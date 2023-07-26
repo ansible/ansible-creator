@@ -6,4 +6,4 @@ class AnsibleCreatorCreate:
         self.args = args
 
     def run(self):
-        print(self.args)
+        pass
