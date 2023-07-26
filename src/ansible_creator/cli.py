@@ -3,7 +3,6 @@
 import argparse
 from .actions.init import AnsibleCreatorInit
 from .actions.create import AnsibleCreatorCreate
-from .constants import MessageColors
 
 
 class AnsibleCreatorCLI:

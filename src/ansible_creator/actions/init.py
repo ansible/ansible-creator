@@ -67,14 +67,14 @@ class AnsibleCreatorInit:
             Path(file_path).touch()
 
         # render and write collection skel templates
-        data = dict(
+        init_data = dict(
             namespace=self._namespace,
             collection_name=self._collection_name,
         )
 
         for template in COLLECTION_SKEL_TEMPLATES:
             rendered_content = self._templar.render(
-                template_name=template, contents=data
+                template_name=template, data=init_data
             )
             dest_file = os.path.join(col_path, template.split(".j2")[0])
             with open(dest_file, "w") as df:
