@@ -1,0 +1,9 @@
+collection:
+  path: /home/nchakrab/
+  namespace: test_namespace
+  name: test_name
+plugins:
+  - type: lookup
+    name: test_name_interfaces12
+    docstring: /home/nchakrab/test.yaml
+    resource: interfaces12

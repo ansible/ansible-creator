@@ -1,0 +1,1 @@
+"""The ansible-creator application"""

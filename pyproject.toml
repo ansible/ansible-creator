@@ -1,0 +1,52 @@
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = [
+  "setuptools >= 45",
+  "setuptools_scm[toml]>=6.2"
+]
+
+[project]
+requires-python = ">=3.10"
+classifiers = [
+  'Development Status :: 2 - Pre-Alpha',
+  'Intended Audience :: Developers',
+  'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+  'Operating System :: OS Independent',
+  'Topic :: Software Development :: Code Generators',
+  'Topic :: Utilities',
+  'Programming Language :: Python',
+  'Programming Language :: Python :: 3',
+  'Programming Language :: Python :: 3 :: Only',
+  'Programming Language :: Python :: 3.10',
+  'Programming Language :: Python :: 3.11',
+  'Programming Language :: Python :: Implementation :: CPython',
+]
+dynamic = ["version", "dependencies", "optional-dependencies"]
+name = "ansible-creator"
+description = "A CLI tool for scaffolding Ansible Content."
+readme = "README.md"
+authors = [{ "name" = "Nilashish Chakarborty", "email" = "nchakrab@redhat.com" }]
+maintainers = [{ "name" = "Ansible by Red Hat", "email" = "info@ansible.com" }]
+license = { text = "GPL-3.0-only" }
+keywords = ["ansible"]
+
+[project.urls]
+homepage = "https://github.com/ansible-community/ansible-creator"
+documentation = "https://ansible-creator.readthedocs.io/en/latest/"
+repository = "https://github.com/ansible-community/ansible-creator"
+changelog = "https://github.com/ansible-community/ansible-creator/releases"
+
+[project.scripts]
+ansible-creator = "ansible_creator.cli:main"
+
+[tool.setuptools.dynamic]
+dependencies = {file = "requirements.txt"}
+
+[tool.setuptools_scm]
+local_scheme = "no-local-version"
+write_to = "src/ansible_creator/_version.py"
+
+[tool.pylint]
+
+[tool.pylint.format]
+max-line-length = 100
