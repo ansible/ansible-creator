@@ -1,0 +1,3 @@
+ignore: |
+  .tox
+  .pre-commit-config.yaml

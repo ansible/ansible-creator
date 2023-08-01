@@ -50,3 +50,8 @@ write_to = "src/ansible_creator/_version.py"
 
 [tool.pylint.format]
 max-line-length = 100
+
+[tool.ruff]
+# Allow lines to be as long as 120 characters.
+line-length = 100
+fix = true

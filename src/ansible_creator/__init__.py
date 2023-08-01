@@ -1,1 +1,1 @@
-"""The ansible-creator application"""
+"""The ansible-creator application."""

@@ -1,15 +1,23 @@
-"""The ansible-creator CLI"""
+"""The ansible-creator CLI."""
 
 import argparse
-from .actions.init import AnsibleCreatorInit
+
 from .actions.create import AnsibleCreatorCreate
+from .actions.init import AnsibleCreatorInit
 
 
 class AnsibleCreatorCLI:
+    """Class representing the ansible-creator CLI."""
+
     def __init__(self):
+        """Initialize the CLI and parse CLI args."""
         self.args = self.parse_args()
 
     def get_version(self):
+        """Get the running ansible-creator version.
+
+        :returns: The ansible-creator version.
+        """
         try:
             from ._version import version as __version__
         except ImportError:
@@ -18,10 +26,13 @@ class AnsibleCreatorCLI:
         return __version__
 
     def parse_args(self):
+        """Start parsing args passed from CLI.
+
+        :returns: A dictionary of CLI args.
+        """
         parser = argparse.ArgumentParser(
             description=(
-                "Tool to scaffold Ansible Content. "
-                "Get started by looking at the help text."
+                "Tool to scaffold Ansible Content. Get started by looking at the help text."
             )
         )
 
@@ -76,8 +87,23 @@ class AnsibleCreatorCLI:
         create_command_parser.add_argument(
             "-f",
             "--file",
-            default="./ansible-contents.yaml",
+            default="./content.yaml",
             help="A YAML file containing definition of Ansible Content(s) to be scaffolded.",
+        )
+
+        sample_command_parser = subparsers.add_parser(
+            "sample",
+            help="Generate a sample content.yaml file.",
+            description=(
+                "Generate a sample content.yaml file to serve as a reference."
+            ),
+        )
+
+        sample_command_parser.add_argument(
+            "-f",
+            "--file",
+            default="./contents.yaml",
+            help="Path where the sample content.yaml file will be added. Default: ./",
         )
 
         args = parser.parse_args()
@@ -85,6 +111,7 @@ class AnsibleCreatorCLI:
         return args
 
     def run(self):
+        """Dispatch work to correct action class."""
         args = vars(self.args)
         if args["action"] == "init":
             AnsibleCreatorInit(**args).run()
@@ -93,6 +120,7 @@ class AnsibleCreatorCLI:
 
 
 def main():
+    """Entry point for ansible-creator CLI."""
     cli = AnsibleCreatorCLI()
     cli.run()
 
