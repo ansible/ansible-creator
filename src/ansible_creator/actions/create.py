@@ -42,7 +42,7 @@ class AnsibleCreatorCreate:
         content_def = {}
         file_path = os.path.abspath(os.path.expanduser(os.path.expandvars(file_path)))
         try:
-            with open(file_path) as content_file:
+            with open(file_path, encoding="utf-8") as content_file:
                 data = yaml.safe_load(content_file)
                 content_def = data
         except FileNotFoundError:

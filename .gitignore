@@ -6,3 +6,5 @@ dist/
 build/
 
 *.egg-info
+
+*.ruff_cache/

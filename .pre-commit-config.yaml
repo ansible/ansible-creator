@@ -1,7 +1,7 @@
 ---
 default_language_version:
   # ensures that we get same behavior on CI(s) as on local machines
-  python: python3.10
+  python: python3.11
 exclude: >
   (?x)^(
     _readthedocs|
@@ -155,6 +155,7 @@ repos:
           - src/
           - tests/
         additional_dependencies:
+          - PyYAML
           - jinja2
           - jsonschema
         pass_filenames: false

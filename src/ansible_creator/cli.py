@@ -5,6 +5,11 @@ import argparse
 from .actions.create import AnsibleCreatorCreate
 from .actions.init import AnsibleCreatorInit
 
+try:
+    from ._version import version as __version__
+except ImportError:
+    __version__ = "source"
+
 
 class AnsibleCreatorCLI:
     """Class representing the ansible-creator CLI."""
@@ -12,18 +17,6 @@ class AnsibleCreatorCLI:
     def __init__(self):
         """Initialize the CLI and parse CLI args."""
         self.args = self.parse_args()
-
-    def get_version(self):
-        """Get the running ansible-creator version.
-
-        :returns: The ansible-creator version.
-        """
-        try:
-            from ._version import version as __version__
-        except ImportError:
-            __version__ = "source"
-
-        return __version__
 
     def parse_args(self):
         """Start parsing args passed from CLI.
@@ -39,7 +32,7 @@ class AnsibleCreatorCLI:
         parser.add_argument(
             "--version",
             action="version",
-            version=self.get_version(),
+            version=__version__,
             help="Print ansible-creator version and exit.",
         )
 

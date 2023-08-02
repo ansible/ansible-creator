@@ -1,14 +1,18 @@
+"""A Jinja2 template engine."""
 try:
     from jinja2 import Environment, StrictUndefined
 
     HAS_JINJA2 = True
 except ImportError:
     HAS_JINJA2 = False
-from importlib import resources
+from ..utils import get_file_contents
 
 
 class Templar:
+    """Class representing a Jinja2 template engine."""
+
     def __init__(self):
+        """Instantiate the template engine."""
         if not HAS_JINJA2:
             raise ImportError(
                 "jinja2 is required but does not appear to be installed.  "
@@ -20,16 +24,15 @@ class Templar:
         )
 
     def render(self, template_name, data):
-        template_content = self.get_template_content(template_name)
+        """Render a template with provided data.
+
+        :params template_name: Name of the template to load.
+        :params data: Data to render template with.
+
+        :returns: Templated content.
+        """
+        template_content = get_file_contents(
+            directory="templates", filename=template_name
+        )
         rendered_content = self.env.from_string(template_content).render(data)
         return rendered_content
-
-    def get_template_content(self, template_name):
-        package = "ansible_creator.templates"
-
-        with resources.files(package).joinpath(template_name).open(
-            "r", encoding="utf-8"
-        ) as fh:
-            content = fh.read()
-
-        return content

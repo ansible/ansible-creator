@@ -55,3 +55,9 @@ max-line-length = 100
 # Allow lines to be as long as 120 characters.
 line-length = 100
 fix = true
+
+[tool.pylint.messages_control]
+disable = [
+  "too-few-public-methods",
+  "too-many-locals",
+]

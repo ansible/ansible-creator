@@ -21,8 +21,8 @@ def get_file_contents(directory, filename):
     try:
         with resources.files(package).joinpath(filename).open(
             "r", encoding="utf-8"
-        ) as fh:
-            content = fh.read()
+        ) as file_open:
+            content = file_open.read()
     except (FileNotFoundError, TypeError) as exc:
         raise exc
 

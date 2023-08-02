@@ -19,14 +19,15 @@ class AnsibleCreatorInit:
         """
         self._namespace = args["collection_name"].split(".")[0]
         self._collection_name = args["collection_name"].split(".")[-1]
-        self._init_path = args["init_path"]
+        self._init_path = os.path.abspath(
+            os.path.expanduser(os.path.expandvars(args["init_path"]))
+        )
         self._force = args["force"]
         self._templar = Templar()
 
     def run(self):
         """Start scaffolding collection skeleton."""
         col_path = os.path.join(self._init_path, self._namespace, self._collection_name)
-        col_path = os.path.abspath(os.path.expanduser(os.path.expandvars(col_path)))
 
         # check if init_path already exists
         if os.path.exists(col_path):
@@ -61,8 +62,8 @@ class AnsibleCreatorInit:
             os.makedirs(col_path)
 
         # start scaffolding collection skeleton - directories
-        for dir in COLLECTION_SKEL_DIRS:
-            dir_path = os.path.join(col_path, dir)
+        for directory in COLLECTION_SKEL_DIRS:
+            dir_path = os.path.join(col_path, directory)
             os.makedirs(dir_path)
 
         # touch __init__.py files in plugin subdirs
@@ -71,23 +72,23 @@ class AnsibleCreatorInit:
             Path(file_path).touch()
 
         # render and write collection skel templates
-        init_data = dict(
-            namespace=self._namespace,
-            collection_name=self._collection_name,
-        )
+        init_data = {
+            "namespace": self._namespace,
+            "collection_name": self._collection_name,
+        }
 
         for template in COLLECTION_SKEL_TEMPLATES:
             rendered_content = self._templar.render(
                 template_name=template, data=init_data
             )
             dest_file = os.path.join(col_path, template.split(".j2")[0])
-            with open(dest_file, "w") as df:
-                df.write(rendered_content)
+            with open(dest_file, "w", encoding="utf-8") as dest_file:
+                dest_file.write(rendered_content)
 
         creator_exit(
             status="OKGREEN",
             message=(
-                "- Collection %s.%s was created successfully at %s"
-                % (self._namespace, self._collection_name, self._init_path)
+                f"- Collection {self._namespace}.{self._collection_name}"
+                f" was created successfully at {self._init_path}"
             ),
         )
