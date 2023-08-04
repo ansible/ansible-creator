@@ -1,14 +1,11 @@
 """Definitions for ansible-creator init action."""
 import os
 import shutil
-
-from pathlib import Path
-
-from ..constants import COLLECTION_SKEL_DIRS, COLLECTION_SKEL_TEMPLATES
-from ..templar import Templar
-from ..utils import creator_exit
-from ..exceptions import CreatorError
 from importlib import resources
+
+from ..exceptions import CreatorError
+from ..templar import Templar
+from ..utils import creator_exit, copy_container
 
 
 class CreatorInit:
@@ -61,29 +58,17 @@ class CreatorInit:
         if not os.path.exists(col_path):
             os.makedirs(col_path)
 
-        # start scaffolding collection skeleton - directories
-        for directory in COLLECTION_SKEL_DIRS:
-            dir_path = os.path.join(col_path, directory)
-            os.makedirs(dir_path)
-
-        # touch __init__.py files in plugin subdirs
-        for plugin_dir in COLLECTION_SKEL_DIRS[4:14]:
-            file_path = os.path.join(col_path, plugin_dir, "__init__.py")
-            Path(file_path).touch()
-
-        # render and write collection skel templates
-        init_data = {
-            "namespace": self._namespace,
-            "collection_name": self._collection_name,
-        }
-
-        for template in COLLECTION_SKEL_TEMPLATES:
-            rendered_content = self._templar.render(
-                template_name=template, data=init_data
-            )
-            dest_file = os.path.join(col_path, template.split(".j2", maxsplit=1)[0])
-            with open(dest_file, "w", encoding="utf-8") as dest_file:
-                dest_file.write(rendered_content)
+        # copy new_collection container to destination, templating files when found
+        copy_container(
+            src=resources.files("ansible_creator.resources.new_collection"),
+            dest=col_path,
+            root="new_collection",
+            templar=self._templar,
+            template_data={
+                "namespace": self._namespace,
+                "collection_name": self._collection_name,
+            },
+        )
 
         creator_exit(
             status="OKGREEN",

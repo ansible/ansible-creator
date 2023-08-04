@@ -14,8 +14,9 @@ class CreatorError(Exception):
 
     @property
     def message(self):
-        """Craft and return the CreatorError message
-           (including the 'cause' when raised from another exception).
+        """Craft and return the CreatorError message.
+
+           Includes the 'cause' when raised from another exception.
 
         :returns: An exception message.
         """
@@ -25,4 +26,8 @@ class CreatorError(Exception):
         return msg
 
     def __str__(self):
+        """Returns a string representation of the exception.
+
+        :returns: The exception message as a string.
+        """
         return self.message

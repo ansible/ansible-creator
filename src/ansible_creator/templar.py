@@ -24,7 +24,7 @@ class Templar:
         )
 
     def render(self, template_name, data):
-        """Render a template with provided data.
+        """Load template from a file and render with provided data.
 
         :params template_name: Name of the template to load.
         :params data: Data to render template with.
@@ -34,5 +34,15 @@ class Templar:
         template_content = get_file_contents(
             directory="templates", filename=template_name
         )
-        rendered_content = self.env.from_string(template_content).render(data)
+        return self.render_from_content(template=template_content, data=data)
+
+    def render_from_content(self, template, data):
+        """Render a template with provided data.
+
+        :params template: The template to load and render.
+        :params data: Data to render template with.
+
+        :returns: Templated content.
+        """
+        rendered_content = self.env.from_string(template).render(data)
         return rendered_content

@@ -8,3 +8,5 @@ build/
 *.egg-info
 
 *.ruff_cache/
+
+__pycache__/
