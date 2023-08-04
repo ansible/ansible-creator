@@ -1,9 +1,9 @@
 """The ansible-creator CLI."""
 
 import argparse
-
-from .actions.create import AnsibleCreatorCreate
-from .actions.init import AnsibleCreatorInit
+from importlib import import_module
+from .exceptions import CreatorError
+from .utils import creator_exit
 
 try:
     from ._version import version as __version__
@@ -106,10 +106,18 @@ class AnsibleCreatorCLI:
     def run(self):
         """Dispatch work to correct action class."""
         args = vars(self.args)
-        if args["action"] == "init":
-            AnsibleCreatorInit(**args).run()
-        elif args["action"] == "create":
-            AnsibleCreatorCreate(**args).run()
+        action = args["action"]
+        action_modules = f"ansible_creator.actions.{action}"
+        action_prefix = "Creator" + f"{action}".capitalize()
+
+        try:
+            action_class = getattr(import_module(action_modules), action_prefix)
+            action_class(**args).run()
+        except CreatorError as exc:
+            status = "FAILURE"
+            if "WARNING" in str(exc):
+                status = "WARNING"
+            creator_exit(status=status, message=str(exc))
 
 
 def main():

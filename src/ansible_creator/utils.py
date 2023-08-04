@@ -23,14 +23,14 @@ def get_file_contents(directory, filename):
             "r", encoding="utf-8"
         ) as file_open:
             content = file_open.read()
-    except (FileNotFoundError, TypeError) as exc:
+    except (FileNotFoundError, TypeError, ModuleNotFoundError) as exc:
         raise exc
 
     return content
 
 
 def creator_exit(status, message):
-    """Helper function for printing a message and exiting the creator process.
+    """Print a message and exit the creator process.
 
     :param status: exit status
     :param message: exit message
@@ -40,7 +40,7 @@ def creator_exit(status, message):
             f"{MessageColors['FAILURE']}Invalid exit status: {status}. This is likely a bug."
         )
     else:
-        print(f"{MessageColors[status]}{message}")
+        print(f"{MessageColors[status]}{message}".strip())
 
         if status == "FAILURE":
             sys.exit(1)

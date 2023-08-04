@@ -5,7 +5,7 @@ try:
     HAS_JINJA2 = True
 except ImportError:
     HAS_JINJA2 = False
-from ..utils import get_file_contents
+from .utils import get_file_contents
 
 
 class Templar:
