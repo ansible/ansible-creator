@@ -6,6 +6,11 @@ import sys
 from importlib import resources
 from .constants import MessageColors
 
+PATH_REPLACERS = {
+    "network_os": "collection_name",
+    "resource": "resource",
+}
+
 
 def get_file_contents(directory, filename):
     """Return contents of a file.
@@ -51,6 +56,7 @@ def creator_exit(status, message):
 
 def copy_container(src, dest, root, templar=None, template_data=None):
     """Recursively traverses a resource container and copies content to destination.
+
     :param src: A traversable object representing the source container.
     :param root: Name of the root container.
     :param dest: Absolute destination path.
@@ -58,27 +64,41 @@ def copy_container(src, dest, root, templar=None, template_data=None):
     :param template_data: A dictionary containing data to render templates with.
 
     """
-
     for obj in src.iterdir():
         dest_name = str(obj).split(root + "/", maxsplit=1)[-1]
         dest_path = os.path.join(dest, dest_name)
 
+        # replace placeholders in destination path with real values
+        for key, val in PATH_REPLACERS.items():
+            if key in dest_path:
+                dest_path = dest_path.replace(key, template_data.get(val))
+
         if obj.is_dir():
-            os.makedirs(dest_path)
+            if not os.path.exists(dest_path):
+                os.makedirs(dest_path)
+
             # recursively copy the directory
-            copy_container(src=obj, dest=dest, root=root, template_data=template_data)
+            copy_container(
+                src=obj,
+                dest=dest,
+                root=root,
+                templar=templar,
+                template_data=template_data,
+            )
 
         elif obj.is_file():
-            content = obj.read_text(encoding="utf-8")
-
-            # only render as templates if both of these are provided
-            # templating is not mandatory
-            if templar and template_data:
-                content = templar.render_from_content(
-                    template=content, data=template_data
-                )
-
-            # remove .j2 suffix at destination
             dest_file = os.path.join(dest, dest_path.split(".j2", maxsplit=1)[0])
-            with open(dest_file, "w", encoding="utf-8") as df_handle:
-                df_handle.write(content)
+
+            if not os.path.exists(dest_file):
+                content = obj.read_text(encoding="utf-8")
+
+                # only render as templates if both of these are provided
+                # templating is not mandatory
+                if templar and template_data:
+                    content = templar.render_from_content(
+                        template=content, data=template_data
+                    )
+
+                # remove .j2 suffix at destination
+                with open(dest_file, "w", encoding="utf-8") as df_handle:
+                    df_handle.write(content)

@@ -1,3 +1,4 @@
+ANSIBLEMODULE
 COLORTERM
 ESCDELAY
 Kolkata
@@ -41,6 +42,8 @@ fedoraproject
 fontawesome
 fqcn
 fromlist
+getval
+haved
 headerlink
 helpconfig
 hostvars
@@ -77,10 +80,12 @@ netcommon           # Ansible network collection, seen in tests and README
 netconf
 nitpicky
 nonblocking
+okey
 oldmask
 oneline
 onigurumacffi
 opensearch
+ovalue
 oxfordcomma
 pageview
 preclear
@@ -92,10 +97,12 @@ pymdownx
 redhatinsights
 representer
 returndocs
+rtype
 runtimes
 scrollback
 sectionauthor
 setuptools          # Used in _version.pyi
+setval
 smartquotes
 somevalue
 statemachine
@@ -115,11 +122,21 @@ usefixtures
 userbase
 viewcode
 volmount
+wantd
 workdir
 xmss
 SKEL
+scaffolders
+scaffolder
+Scaffolder
 OKGREEN
 ENDC
 topdown
 addopts
 testpaths
+metakey
+suboptions
+tmplt
+substring
+objs
+subspec

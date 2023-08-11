@@ -158,4 +158,5 @@ repos:
           - PyYAML
           - jinja2
           - jsonschema
+          - black
         pass_filenames: false

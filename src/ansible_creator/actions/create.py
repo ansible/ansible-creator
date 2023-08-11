@@ -1,10 +1,12 @@
 """Definitions for ansible-creator create action."""
 
 import os
-import yaml
+from copy import deepcopy
+from importlib import import_module
 
-from ..validators import SchemaValidator
-from ..exceptions import CreatorError
+import yaml
+from ansible_creator.validators import SchemaValidator
+from ansible_creator.exceptions import CreatorError
 
 
 class CreatorCreate:
@@ -27,14 +29,24 @@ class CreatorCreate:
         :raises CreatorError: If content definition is empty.
         """
         content_def = self.load_config()
-        if not content_def:
+        if not content_def.get("plugins"):
             raise CreatorError(
-                "WARNING: The content definition file seems to be empty."
-                " No content to scaffold."
+                "WARNING: No content to scaffold. Exiting ansible-creator."
             )
 
         # validate loaded content definition against pre-defined schema
         self.validate_config(content_def)
+
+        for item in content_def["plugins"]:
+            data = deepcopy(item)
+            data.update({"collection": content_def["collection"]})
+            # start scaffolding plugins one by one
+            if item["type"] not in ["action", "filter", "cache", "test"]:
+                scaffolder_class = getattr(
+                    import_module(f"ansible_creator.scaffolders.{item['type']}"),
+                    "Scaffolder",
+                )
+                scaffolder_class(**data).run()
 
     def load_config(self):
         """Load the content definition file.

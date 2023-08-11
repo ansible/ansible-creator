@@ -1,0 +1,67 @@
+# -*- coding: utf-8 -*-
+# Copyright {{ namespace | capitalize }}
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+from __future__ import absolute_import, division, print_function
+
+__metaclass__ = type
+
+"""
+The {{ network_os }} {{ resource }} fact class
+It is in this file the configuration is collected from the device
+for a given resource, parsed, and the facts tree is populated
+based on the configuration.
+"""
+
+from copy import deepcopy
+
+from ansible.module_utils.six import iteritems
+from ansible_collections.ansible.netcommon.plugins.module_utils.network.common import (
+    utils,
+)
+from {{ import_path }}.{{ network_os }}.rm_templates.{{ resource }} import (
+    {{ resource|capitalize }}Template,
+)
+from {{ import_path }}.{{ network_os }}.argspec.{{ resource }}.{{ resource }} import (
+    {{ resource|capitalize }}Args,
+)
+
+class {{ resource|capitalize }}Facts(object):
+    """ The {{ network_os }} {{ resource }} facts class
+    """
+
+    def __init__(self, module, subspec='config', options='options'):
+        self._module = module
+        self.argument_spec = {{ resource|capitalize }}Args.argument_spec
+
+    def populate_facts(self, connection, ansible_facts, data=None):
+        """ Populate the facts for {{ resource|capitalize }} network resource
+
+        :param connection: the device connection
+        :param ansible_facts: Facts dictionary
+        :param data: previously collected conf
+
+        :rtype: dictionary
+        :returns: facts
+        """
+        facts = {}
+        objs = []
+
+        if not data:
+            data = connection.get()
+
+        # parse native config using the {{ resource|capitalize }} template
+        {{ resource|lower }}_parser = {{ resource|capitalize }}Template(lines=data.splitlines(), module=self._module)
+        objs = list({{ resource|lower }}_parser.parse().values())
+
+        ansible_facts['ansible_network_resources'].pop('{{ resource }}', None)
+
+        params = utils.remove_empties(
+            {{ resource|lower }}_parser.validate_config(self.argument_spec, {"config": objs}, redact=True)
+        )
+
+        facts['{{ resource }}'] = params['config']
+        ansible_facts['ansible_network_resources'].update(facts)
+
+        return ansible_facts
