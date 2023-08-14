@@ -46,15 +46,21 @@ dependencies = {file = "requirements.txt"}
 local_scheme = "no-local-version"
 write_to = "src/ansible_creator/_version.py"
 
+
+[tool.ruff]
+# Allow lines to be as long as 100 characters.
+line-length = 100
+fix = true
+
 [tool.pylint]
 
 [tool.pylint.format]
 max-line-length = 100
 
-[tool.ruff]
-# Allow lines to be as long as 120 characters.
-line-length = 100
-fix = true
+[tool.pylint.master]
+ignore = [
+  "_version.py", # built by setuptools_scm
+]
 
 [tool.pylint.messages_control]
 disable = [
