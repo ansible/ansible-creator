@@ -39,10 +39,9 @@ class SchemaValidator:
         try:
             validator.check_schema(schema)
         except SchemaError as schema_err:
-            c_err = CreatorError(
+            raise CreatorError(
                 "Sanity check failed for in-built schema. This is likely a bug.\n"
-            )
-            raise c_err from schema_err
+            ) from schema_err
 
         validation_errors = sorted(
             validator(schema).iter_errors(self.data), key=lambda e: e.path
@@ -68,9 +67,8 @@ class SchemaValidator:
             JSONDecodeError,
             ModuleNotFoundError,
         ) as err:
-            c_err = CreatorError(
+            raise CreatorError(
                 "Unable to load jsonschema for validation with error(s):\n"
-            )
-            raise c_err from err
+            ) from err
 
         return schema

@@ -4,10 +4,10 @@
 class CreatorError(Exception):
     """Class representing exceptions raised from creator code."""
 
-    def __init__(self, message=""):
+    def __init__(self, message=None):
         """Instantiate an object of this class.
 
-        :params message: The exception message.
+        :param message: The exception message.
         """
         super().__init__(message)
         self._message = message
@@ -26,7 +26,7 @@ class CreatorError(Exception):
         return msg
 
     def __str__(self):
-        """Returns a string representation of the exception.
+        """Return a string representation of the exception.
 
         :returns: The exception message as a string.
         """

@@ -19,6 +19,8 @@ def get_file_contents(directory, filename):
     :param directory: A directory within ansible_creator package.
     :param filename: Name of the file to read contents from.
 
+    :returns: Content loaded from file as string.
+
     :raises FileNotFoundError: if filename cannot be located
     :raises TypeError: if invalid type is found
     :raises ModuleNotFoundError: if incorrect package is provided
@@ -55,7 +57,9 @@ def creator_exit(status, message):
             sys.exit(0)
 
 
-def copy_container(source, dest, templar=None, template_data=None, allow_overwrite=None):
+def copy_container(
+    source, dest, templar=None, template_data=None, allow_overwrite=None
+):
     """Copy files and directories from a possibly nested source to a destination.
 
     :param source: Name of the source container.

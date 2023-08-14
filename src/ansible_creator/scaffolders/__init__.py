@@ -52,10 +52,9 @@ class ScaffolderBase(ABC):
                 with open(abs_docstring, encoding="utf-8") as ds_file:
                     docstring = ds_file.read()
             except FileNotFoundError as exc:
-                c_err = CreatorError(
+                raise CreatorError(
                     f"Could not detect the specified docstring file {abs_docstring}"
-                )
-                raise c_err from exc
+                ) from exc
         else:
             # TO-DO: check if plugin file already exists and attempt to read docstring from it
             raise CreatorError(

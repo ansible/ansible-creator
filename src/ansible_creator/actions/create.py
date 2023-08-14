@@ -17,7 +17,7 @@ class CreatorCreate:
 
            Load and validate the content definition file.
 
-        :param file: Path to content definition file.
+        :param **args: A dictionary containing Create options.
         """
         self.file_path = args["file"]
 
@@ -51,7 +51,6 @@ class CreatorCreate:
     def load_config(self):
         """Load the content definition file.
 
-        :param file_path: Path to the content definition file.
         :returns: A dictionary of content(s) to scaffold.
 
         :raises CreatorError: If content definition file is missing or has errors.
@@ -65,16 +64,14 @@ class CreatorCreate:
                 data = yaml.safe_load(content_file)
                 content_def = data
         except FileNotFoundError as exc:
-            c_err = CreatorError(
+            raise CreatorError(
                 "Could not detect the content definition file. "
                 "Use -f to specify a different location for it.\n"
-            )
-            raise c_err from exc
+            ) from exc
         except (yaml.parser.ParserError, yaml.scanner.ScannerError) as exc:
-            c_err = CreatorError(
+            raise CreatorError(
                 f"Error occurred while parsing the definition file:\n{str(exc)}"
-            )
-            raise c_err from exc
+            ) from exc
 
         return content_def
 
@@ -82,7 +79,6 @@ class CreatorCreate:
         """Validate the content definition against a pre-defined jsonschema.
 
         :param content_def: A dictionary of content(s) to scaffold.
-        :returns: True if no validation exceptions occur else False
 
         :raises CreatorError: If schema validation errors were found.
         """
