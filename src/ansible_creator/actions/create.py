@@ -70,7 +70,7 @@ class CreatorCreate:
             ) from exc
         except (yaml.parser.ParserError, yaml.scanner.ScannerError) as exc:
             raise CreatorError(
-                f"Error occurred while parsing the definition file:\n{str(exc)}"
+                "Error occurred while parsing the content definition file:\n"
             ) from exc
 
         return content_def
