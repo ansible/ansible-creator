@@ -1,8 +1,7 @@
 """Scaffolder class for module_network_cli."""
 
-from importlib import resources
-
 from ansible_creator.scaffolders import ScaffolderBase
+from ansible_creator.templar import Templar
 from ansible_creator.utils import copy_container
 
 
@@ -25,10 +24,9 @@ class Scaffolder(ScaffolderBase):
         )
 
         copy_container(
-            src=resources.files("ansible_creator.resources.module_network_cli"),
+            source="module_network_cli",
             dest=self.collection_path,
-            root="module_network_cli",
-            templar=self._templar,
+            templar=Templar(),
             template_data={
                 "argspec": str(self.generate_argspec()),
                 "import_path": import_path,
@@ -39,4 +37,8 @@ class Scaffolder(ScaffolderBase):
                 "network_os": self.collection_name,
                 "documentation": self.docstring,
             },
+            allow_overwrite=[
+                "plugins/module_utils/network/network_os/argspec/resource/resource.py.j2",
+                "plugins/modules/network_os_resource.py.j2",
+            ],
         )

@@ -1,9 +1,6 @@
 """Scaffolder class for module_network_netconf."""
 
-from importlib import resources
-
 from ansible_creator.scaffolders import ScaffolderBase
-from ansible_creator.utils import copy_container
 
 
 class Scaffolder(ScaffolderBase):
@@ -19,24 +16,3 @@ class Scaffolder(ScaffolderBase):
 
     def run(self):
         """Start scaffolding a module_network_netconf type plugin."""
-        import_path = (
-            f"ansible_collections.{self.namespace}.{self.collection_name}."
-            "plugins.module_utils.network"
-        )
-
-        copy_container(
-            src=resources.files("ansible_creator.resources.module_network_netconf"),
-            dest=self.collection_path,
-            root="module_network_netconf",
-            templar=self._templar,
-            template_data={
-                "argspec": self.generate_argspec(),
-                "import_path": import_path,
-                "namespace": self.namespace,
-                "collection_name": self.collection_name,
-                "resource": self.resource,
-                "name": self.plugin_name,
-                "network_os": self.plugin_name,
-                "documentation": self.docstring,
-            },
-        )

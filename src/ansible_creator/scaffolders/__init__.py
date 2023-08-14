@@ -6,7 +6,6 @@ from abc import ABC, abstractmethod
 import black
 import yaml
 
-from ansible_creator.templar import Templar
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.constants import (
     OPTION_CONDITIONALS,
@@ -19,6 +18,10 @@ class ScaffolderBase(ABC):
     """Base class for all scaffolders."""
 
     def __init__(self, **args):
+        """Instantiate an object of this class.
+
+        :param **args: A dictionary containing target collection and plugin information.
+        """
         self.collection_path = args["collection"]["path"]
         self.namespace = args["collection"]["namespace"]
         self.collection_name = args["collection"]["name"]
@@ -26,7 +29,6 @@ class ScaffolderBase(ABC):
         self.plugin_type = args["type"]
         self.path_to_docstring = args.get("docstring", "")  # docstring is optional
         self.docstring = self.load_docstring()
-        self._templar = Templar()
 
     @abstractmethod
     def run(self):
@@ -36,6 +38,7 @@ class ScaffolderBase(ABC):
         """Load docstring from a file or existing module and return.
 
         :returns: The docstring as a string.
+        :raises CreatorError: When the docstring file cannot be found.
         """
         docstring = {}
 
@@ -55,7 +58,10 @@ class ScaffolderBase(ABC):
                 raise c_err from exc
         else:
             # TO-DO: check if plugin file already exists and attempt to read docstring from it
-            pass
+            raise CreatorError(
+                f"Path to docstring is not provided for plugin {self.plugin_name} and\n"
+                "loading docstring from existing plugin is not yet supported."
+            )
         return docstring
 
     def generate_argspec(self):

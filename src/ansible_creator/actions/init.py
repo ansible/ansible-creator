@@ -1,7 +1,6 @@
 """Definitions for ansible-creator init action."""
 import os
 import shutil
-from importlib import resources
 
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.templar import Templar
@@ -60,9 +59,8 @@ class CreatorInit:
 
         # copy new_collection container to destination, templating files when found
         copy_container(
-            src=resources.files("ansible_creator.resources.new_collection"),
+            source="new_collection",
             dest=col_path,
-            root="new_collection",
             templar=self._templar,
             template_data={
                 "namespace": self._namespace,

@@ -29,7 +29,8 @@ class SchemaValidator:
     def validate(self):
         """Validate data against loaded schema.
 
-        :returns: A list of schema validation errors (if any)
+        :returns: A list of schema validation errors (if any).
+        :raises CreatorError: if sanity check for schema fails.
         """
         errors = []
         schema = self.load_schema()
@@ -57,6 +58,7 @@ class SchemaValidator:
         """Attempt to load the schema from schemas directory.
 
         :returns: A schema loaded as json.
+        :raises CreatorError: if the JSON schema cannot be loaded.
         """
         try:
             schema = loads(get_file_contents("schemas", self.criteria))
