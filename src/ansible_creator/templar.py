@@ -12,7 +12,8 @@ class Templar:
     """Class representing a Jinja2 template engine."""
 
     def __init__(self):
-        """Instantiate the template engine.        
+        """Instantiate the template engine.
+
         :raises ImportError: When jinja2 is not installed.
         """
         if not HAS_JINJA2:

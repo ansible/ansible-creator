@@ -38,14 +38,10 @@ options:
 EXAMPLES = """
 # Gather all facts
 - {{ network_os }}_facts:
-    gather_subset: all
     gather_network_resources: all
 
 # Collect only the {{ resource }} facts
 - {{ network_os }}_facts:
-    gather_subset:
-      - !all
-      - !min
     gather_network_resources:
       - {{ resource }}
 
@@ -53,11 +49,6 @@ EXAMPLES = """
 - {{ network_os }}_facts:
     gather_network_resources:
       - "!{{ resource }}"
-
-# Collect {{ resource }} and minimal default facts
-- {{ network_os }}_facts:
-    gather_subset: min
-    gather_network_resources: {{ resource }}
 """
 
 RETURN = """
