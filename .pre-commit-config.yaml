@@ -1,7 +1,7 @@
 ---
 default_language_version:
   # ensures that we get same behavior on CI(s) as on local machines
-  python: python3.10
+  python: python3.9
 exclude: >
   (?x)^(
     _readthedocs|

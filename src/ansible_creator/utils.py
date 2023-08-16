@@ -1,8 +1,8 @@
 """Re-usable utility functions used by this package."""
 
 import os
+import sys
 
-from importlib import resources
 from ansible_creator.constants import MessageColors
 from ansible_creator.exceptions import CreatorError
 
@@ -10,6 +10,11 @@ PATH_REPLACERS = {
     "network_os": "collection_name",
     "resource": "resource",
 }
+
+if sys.version_info < (3, 10):
+    import importlib_resources as resources
+else:
+    from importlib import resources
 
 
 def get_file_contents(directory, filename):
@@ -111,5 +116,4 @@ def copy_container(
             f"allow_overwrite should be of type list, instead got {type(allow_overwrite)}"
         )
 
-    _root = resources.files(f"ansible_creator.resources.{source}")
-    _recursive_copy(root=_root)
+    _recursive_copy(root=resources.files(f"ansible_creator.resources.{source}"))
