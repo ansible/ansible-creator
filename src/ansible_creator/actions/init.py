@@ -4,7 +4,7 @@ import shutil
 
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.templar import Templar
-from ansible_creator.utils import creator_exit, copy_container
+from ansible_creator.utils import creator_display, copy_container
 
 
 class CreatorInit:
@@ -68,7 +68,7 @@ class CreatorInit:
             },
         )
 
-        creator_exit(
+        creator_display(
             status="OKGREEN",
             message=(
                 f"- Collection {self._namespace}.{self._collection_name}"

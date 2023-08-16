@@ -1,9 +1,11 @@
 """The ansible-creator CLI."""
 
 import argparse
+import sys
+
 from importlib import import_module
-from .exceptions import CreatorError
-from .utils import creator_exit
+from ansible_creator.exceptions import CreatorError
+from ansible_creator.utils import creator_display
 
 try:
     from ._version import version as __version__
@@ -114,10 +116,10 @@ class AnsibleCreatorCLI:
             action_class = getattr(import_module(action_modules), action_prefix)
             action_class(**args).run()
         except CreatorError as exc:
-            status = "FAILURE"
-            if "WARNING" in str(exc):
-                status = "WARNING"
-            creator_exit(status=status, message=str(exc))
+            creator_display(status="FAILURE", message=str(exc))
+            sys.exit(1)
+        else:
+            sys.exit(0)
 
 
 def main():

@@ -66,4 +66,5 @@ ignore = [
 disable = [
   "too-few-public-methods",
   "too-many-locals",
+  "too-many-instance-attributes",
 ]

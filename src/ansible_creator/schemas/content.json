@@ -56,9 +56,6 @@
           "overwrite": {
             "type": "boolean"
           },
-          "resource": {
-            "type": "string"
-          },
           "examples": {
             "type": "string"
           },
@@ -82,18 +79,6 @@
           }
         },
         "allOf": [
-          {
-            "if": {
-              "properties": {
-                "type": {
-                  "enum": ["module_network_cli", "module_network_netconf"]
-                }
-              }
-            },
-            "then": {
-              "required": ["resource"]
-            }
-          },
           {
             "if": {
               "properties": {

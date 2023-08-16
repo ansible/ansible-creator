@@ -1,7 +1,6 @@
 """Re-usable utility functions used by this package."""
 
 import os
-import sys
 
 from importlib import resources
 from ansible_creator.constants import MessageColors
@@ -38,7 +37,7 @@ def get_file_contents(directory, filename):
     return content
 
 
-def creator_exit(status, message):
+def creator_display(status="OKGREEN", message=None):
     """Print a message and exit the creator process.
 
     :param status: exit status
@@ -50,11 +49,6 @@ def creator_exit(status, message):
         )
     else:
         print(f"{MessageColors[status]}{message}".strip())
-
-        if status == "FAILURE":
-            sys.exit(1)
-        else:
-            sys.exit(0)
 
 
 def copy_container(
@@ -80,7 +74,6 @@ def copy_container(
             overwrite = False
             dest_name = str(obj).split(source + "/", maxsplit=1)[-1]
             dest_path = os.path.join(dest, dest_name)
-
             if (allow_overwrite) and (dest_name in allow_overwrite):
                 overwrite = True
 
@@ -97,6 +90,7 @@ def copy_container(
                 _recursive_copy(root=obj)
 
             elif obj.is_file():
+                # remove .j2 suffix at destination
                 dest_file = os.path.join(dest, dest_path.split(".j2", maxsplit=1)[0])
 
                 # write at destination only if missing or belongs to overwrite list
@@ -109,8 +103,6 @@ def copy_container(
                         content = templar.render_from_content(
                             template=content, data=template_data
                         )
-
-                    # remove .j2 suffix at destination
                     with open(dest_file, "w", encoding="utf-8") as df_handle:
                         df_handle.write(content)
 
@@ -119,4 +111,5 @@ def copy_container(
             f"allow_overwrite should be of type list, instead got {type(allow_overwrite)}"
         )
 
-    _recursive_copy(root=resources.files(f"ansible_creator.resources.{source}"))
+    _root = resources.files(f"ansible_creator.resources.{source}")
+    _recursive_copy(root=_root)

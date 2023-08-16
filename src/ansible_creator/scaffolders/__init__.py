@@ -1,5 +1,6 @@
 """A package containing all scaffolder classes supported by ansible-creator."""
 
+import ast
 import os
 from abc import ABC, abstractmethod
 
@@ -7,6 +8,8 @@ import black
 import yaml
 
 from ansible_creator.exceptions import CreatorError
+from ansible_creator.templar import Templar
+from ansible_creator.utils import copy_container
 from ansible_creator.constants import (
     OPTION_CONDITIONALS,
     OPTION_METADATA,
@@ -22,7 +25,10 @@ class ScaffolderBase(ABC):
 
         :param **args: A dictionary containing target collection and plugin information.
         """
-        self.collection_path = args["collection"]["path"]
+        self._templar = Templar()
+        self.collection_path = os.path.abspath(
+            os.path.expanduser(os.path.expandvars(args["collection"]["path"]))
+        )
         self.namespace = args["collection"]["namespace"]
         self.collection_name = args["collection"]["name"]
         self.plugin_name = args["name"]
@@ -38,7 +44,7 @@ class ScaffolderBase(ABC):
         """Load docstring from a file or existing module and return.
 
         :returns: The docstring as a string.
-        :raises CreatorError: When the docstring file cannot be found.
+        :raises CreatorError: When the docstring cannot be loaded.
         """
         docstring = {}
 
@@ -56,11 +62,23 @@ class ScaffolderBase(ABC):
                     f"Could not detect the specified docstring file {abs_docstring}"
                 ) from exc
         else:
-            # TO-DO: check if plugin file already exists and attempt to read docstring from it
-            raise CreatorError(
-                f"Path to docstring is not provided for plugin {self.plugin_name} and\n"
-                "loading docstring from existing plugin is not yet supported."
+            # check if plugin file already exists and attempt to read docstring from it
+            module_path = (
+                f"{self.collection_path}/plugins/modules/"
+                f"{self.collection_name}_{self.plugin_name}.py"
             )
+            if os.path.exists(module_path):
+                with open(module_path, encoding="utf-8") as module_file:
+                    module_content = module_file.read()
+                for node in ast.walk(ast.parse(module_content)):
+                    if isinstance(node, ast.Assign):
+                        if node.targets[0].id == "DOCUMENTATION":
+                            docstring = node.value.s.strip()
+            else:
+                raise CreatorError(
+                    f"Unable to load docstring for plugin {self.plugin_name}.\n"
+                    f"Path to a docstring not provided and plugin file does not already exist."
+                )
         return docstring
 
     def generate_argspec(self):
@@ -106,3 +124,41 @@ class ScaffolderBase(ABC):
                 target_versions={black.TargetVersion.PY310},
             ),
         ).strip()
+
+
+class NetworkScaffolderBase(ScaffolderBase):
+    """Base scaffolder class for network content plugins."""
+
+    def __init__(self, **args):
+        """Instantiate an object of this class.
+
+        :param args: A dictionary containing scaffolding data.
+        """
+        super().__init__(**args)
+        self.import_path = (
+            f"ansible_collections.{self.namespace}.{self.collection_name}."
+            "plugins.module_utils.network"
+        )
+        self.template_data = {
+            "argspec": str(self.generate_argspec()),
+            "import_path": self.import_path,
+            "namespace": self.namespace,
+            "collection_name": self.collection_name,
+            "resource": self.plugin_name,
+            "network_os": self.collection_name,
+            "documentation": self.docstring,
+        }
+
+    @abstractmethod
+    def run(self):
+        """Start scaffolding common dirs and files for network content plugins."""
+        copy_container(
+            source="module_network_base",
+            dest=self.collection_path,
+            templar=self._templar,
+            template_data=self.template_data,
+            allow_overwrite=[
+                "plugins/module_utils/network/network_os/argspec/resource/resource.py.j2",
+                "plugins/modules/network_os_resource.py.j2",
+            ],
+        )

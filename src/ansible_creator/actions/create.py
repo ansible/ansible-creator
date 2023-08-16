@@ -7,6 +7,7 @@ from importlib import import_module
 import yaml
 from ansible_creator.validators import SchemaValidator
 from ansible_creator.exceptions import CreatorError
+from ansible_creator.utils import creator_display
 
 
 class CreatorCreate:
@@ -24,29 +25,42 @@ class CreatorCreate:
     def run(self):
         """Start scaffolding the specified content(s).
 
-           Dispatch work to correct scaffolding class.
-
-        :raises CreatorError: If content definition is empty.
+        Dispatch work to correct scaffolding class.
         """
+        creator_display(status="HEADER", message="- launching create action")
         content_def = self.load_config()
         if not content_def.get("plugins"):
-            raise CreatorError(
-                "WARNING: No content to scaffold. Exiting ansible-creator."
+            creator_display(
+                status="WARNING",
+                message="WARNING: No content to scaffold. Exiting ansible-creator.",
             )
 
-        # validate loaded content definition against pre-defined schema
-        self.validate_config(content_def)
+        else:
+            # validate loaded content definition against pre-defined schema
+            creator_display(
+                status="HEADER", message="- validating the loaded content definition"
+            )
+            self.validate_config(content_def)
 
-        for item in content_def["plugins"]:
-            data = deepcopy(item)
-            data.update({"collection": content_def["collection"]})
-            # start scaffolding plugins one by one
-            if item["type"] not in ["action", "filter", "cache", "test"]:
-                scaffolder_class = getattr(
-                    import_module(f"ansible_creator.scaffolders.{item['type']}"),
-                    "Scaffolder",
-                )
-                scaffolder_class(**data).run()
+            for item in content_def["plugins"]:
+                data = deepcopy(item)
+                data.update({"collection": content_def["collection"]})
+                # start scaffolding plugins one by one
+                if item["type"] not in ["action", "filter", "cache", "test"]:
+                    scaffolder_class = getattr(
+                        import_module(f"ansible_creator.scaffolders.{item['type']}"),
+                        "Scaffolder",
+                    )
+                    plugin_name = f"{data['collection']['name']}_{item['name']}"
+                    creator_display(
+                        message=f"- start scaffolding plugin {plugin_name} of type {item['type']}"
+                    )
+                    scaffolder_class(**data).run()
+
+            creator_display(
+                status="HEADER",
+                message="- all scaffolding tasks completed, exiting ansible-creator",
+            )
 
     def load_config(self):
         """Load the content definition file.
@@ -58,6 +72,11 @@ class CreatorCreate:
         content_def = {}
         file_path = os.path.abspath(
             os.path.expanduser(os.path.expandvars(self.file_path))
+        )
+
+        creator_display(
+            status="HEADER",
+            message=f"- loading the content definition file at {file_path}",
         )
         try:
             with open(file_path, encoding="utf-8") as content_file:
