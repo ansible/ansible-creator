@@ -62,6 +62,7 @@ kegex               # An action's regex
 kegexes
 lentext
 levelname
+levelno
 libonig
 lightbulbs
 linenums

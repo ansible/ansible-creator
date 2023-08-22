@@ -22,7 +22,7 @@ class CreatorError(Exception):
         """
         msg = self._message
         if getattr(self, "__cause__", ""):
-            msg += f"\n{str(self.__cause__)}"
+            msg += f"\n{'':<9}{str(self.__cause__)}"
         return msg
 
     def __str__(self):

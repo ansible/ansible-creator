@@ -2,6 +2,7 @@
 
 import os
 import sys
+import logging
 
 from ansible_creator.constants import MessageColors
 from ansible_creator.exceptions import CreatorError
@@ -15,6 +16,8 @@ if sys.version_info < (3, 10):
     import importlib_resources as resources
 else:
     from importlib import resources
+
+logger = logging.getLogger("ansible-creator")
 
 
 def get_file_contents(directory, filename):
@@ -69,12 +72,16 @@ def copy_container(
 
     :raises CreatorError: if allow_overwrite is not a list.
     """
+    logger.debug("starting recursive copy with source container '%s'", source)
+    logger.debug("allow_overwrite set to %s", allow_overwrite)
 
     def _recursive_copy(root):
         """Recursively traverses a resource container and copies content to destination.
 
         :param root: A traversable object representing root of the container to copy.
         """
+        logger.debug("current root set to %s", root)
+
         for obj in root.iterdir():
             overwrite = False
             dest_name = str(obj).split(source + "/", maxsplit=1)[-1]
@@ -97,6 +104,7 @@ def copy_container(
             elif obj.is_file():
                 # remove .j2 suffix at destination
                 dest_file = os.path.join(dest, dest_path.split(".j2", maxsplit=1)[0])
+                logger.debug("dest file is %s", dest_file)
 
                 # write at destination only if missing or belongs to overwrite list
                 if not os.path.exists(dest_file) or overwrite:

@@ -1,11 +1,11 @@
 """The ansible-creator CLI."""
 
 import argparse
-import sys
+import logging
 
 from importlib import import_module
 from ansible_creator.exceptions import CreatorError
-from ansible_creator.utils import creator_display
+from ansible_creator.logger import ColoredFormatter, ExitOnExceptionHandler
 
 try:
     from ._version import version as __version__
@@ -19,6 +19,22 @@ class AnsibleCreatorCLI:
     def __init__(self):
         """Initialize the CLI and parse CLI args."""
         self.args = self.parse_args()
+        self.logger = None
+
+    def init_logger(self):
+        """Initialize the logger."""
+        self.logger = logging.getLogger("ansible-creator")
+        stream_handler = ExitOnExceptionHandler()
+        stream_handler.setLevel(logging.DEBUG)
+        colored_formatter = ColoredFormatter(
+            "%(levelname)s %(message)s",
+        )
+        stream_handler.setFormatter(colored_formatter)
+        self.logger.addHandler(stream_handler)
+        if self.args.verbose:
+            self.logger.setLevel(logging.DEBUG)
+        else:
+            self.logger.setLevel(logging.INFO)
 
     def parse_args(self):
         """Start parsing args passed from CLI.
@@ -36,6 +52,12 @@ class AnsibleCreatorCLI:
             action="version",
             version=__version__,
             help="Print ansible-creator version and exit.",
+        )
+
+        parser.add_argument(
+            "--verbose",
+            action="store_true",
+            help="Increase output verbosity.",
         )
 
         subparsers = parser.add_subparsers(help="The command to invoke.", dest="action")
@@ -108,23 +130,26 @@ class AnsibleCreatorCLI:
     def run(self):
         """Dispatch work to correct action class."""
         args = vars(self.args)
+        self.logger.debug("parsed args %s", str(args))
         action = args["action"]
         action_modules = f"ansible_creator.actions.{action}"
         action_prefix = "Creator" + f"{action}".capitalize()
 
         try:
+            self.logger.info("starting requested action '%s'", action)
             action_class = getattr(import_module(action_modules), action_prefix)
+            self.logger.debug("found action class %s", action_class)
             action_class(**args).run()
         except CreatorError as exc:
-            creator_display(status="FAILURE", message=str(exc))
-            sys.exit(1)
-        else:
-            sys.exit(0)
+            self.logger.error(str(exc))
+
+        self.logger.debug("successfully exiting ansible-creator")
 
 
 def main():
     """Entry point for ansible-creator CLI."""
     cli = AnsibleCreatorCLI()
+    cli.init_logger()
     cli.run()
 
 
