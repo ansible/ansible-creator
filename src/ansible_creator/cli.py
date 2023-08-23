@@ -41,10 +41,19 @@ class AnsibleCreatorCLI:
 
         :returns: A dictionary of CLI args.
         """
+        parent_parser = argparse.ArgumentParser(add_help=False)
+
+        parent_parser.add_argument(
+            "--verbose",
+            help="Increase output verbosity",
+            action="store_true",
+            required=False,
+        )
+
         parser = argparse.ArgumentParser(
             description=(
                 "Tool to scaffold Ansible Content. Get started by looking at the help text."
-            )
+            ),
         )
 
         parser.add_argument(
@@ -52,12 +61,6 @@ class AnsibleCreatorCLI:
             action="version",
             version=__version__,
             help="Print ansible-creator version and exit.",
-        )
-
-        parser.add_argument(
-            "--verbose",
-            action="store_true",
-            help="Increase output verbosity.",
         )
 
         subparsers = parser.add_subparsers(help="The command to invoke.", dest="action")
@@ -69,6 +72,7 @@ class AnsibleCreatorCLI:
             "init",
             help="Initialize an Ansible Collection.",
             description=("Creates the skeleton framework of an Ansible collection."),
+            parents=[parent_parser],
         )
 
         init_command_parser.add_argument(
@@ -99,6 +103,7 @@ class AnsibleCreatorCLI:
                 "Scaffold Ansible Content based on the definition provided "
                 " through -f or --file options."
             ),
+            parents=[parent_parser],
         )
 
         create_command_parser.add_argument(
@@ -108,12 +113,15 @@ class AnsibleCreatorCLI:
             help="A YAML file containing definition of Ansible Content(s) to be scaffolded.",
         )
 
+        # 'sample' command parser
+
         sample_command_parser = subparsers.add_parser(
             "sample",
             help="Generate a sample content.yaml file.",
             description=(
                 "Generate a sample content.yaml file to serve as a reference."
             ),
+            parents=[parent_parser],
         )
 
         sample_command_parser.add_argument(
