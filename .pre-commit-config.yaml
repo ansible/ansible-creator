@@ -86,10 +86,11 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies:
-          - pytest
-          - tox
-          - types-PyYAML
-          - types-setuptools
+          - importlib_resources
+          - jinja2
+          - black
+          - types-jsonschema
+          - types-pyyaml
         args:
           - src
           - tests
