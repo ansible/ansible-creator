@@ -12,6 +12,8 @@ from ansible_creator.exceptions import CreatorError
 
 
 if TYPE_CHECKING:
+    from importlib import abc
+
     from ansible_creator.templar import Templar
 
 PATH_REPLACERS = {
@@ -74,7 +76,7 @@ def copy_container(
     logger.debug("starting recursive copy with source container '%s'", source)
     logger.debug("allow_overwrite set to %s", allow_overwrite)
 
-    def _recursive_copy(root: resources.abc.Traversable) -> None:
+    def _recursive_copy(root: abc.Traversable) -> None:
         """Recursively traverses a resource container and copies content to destination.
 
         :param root: A traversable object representing root of the container to copy.
@@ -90,8 +92,8 @@ def copy_container(
 
             # replace placeholders in destination path with real values
             for key, val in PATH_REPLACERS.items():
-                if key in dest_path:
-                    dest_path = dest_path.replace(key, template_data.get(val))
+                if key in dest_path and template_data:
+                    dest_path = dest_path.replace(key, template_data.get(val, ""))
 
             if obj.is_dir():
                 if not os.path.exists(dest_path):
@@ -118,11 +120,5 @@ def copy_container(
                         )
                     with open(dest_file, "w", encoding="utf-8") as df_handle:
                         df_handle.write(content)
-
-    if allow_overwrite and not isinstance(allow_overwrite, list):
-        msg = f"allow_overwrite should be of type list, instead got {type(allow_overwrite)}"
-        raise CreatorError(
-            msg,
-        )
 
     _recursive_copy(root=resources.files(f"ansible_creator.resources.{source}"))
