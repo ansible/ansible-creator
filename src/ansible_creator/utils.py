@@ -48,7 +48,7 @@ def get_file_contents(directory: str, filename: str) -> str:
             "r",
             encoding="utf-8",
         ) as file_open:
-            content = file_open.read()
+            content: str = file_open.read()
     except (FileNotFoundError, TypeError, ModuleNotFoundError) as exc:
         msg = "Unable to fetch file contents.\n"
         raise CreatorError(msg) from exc

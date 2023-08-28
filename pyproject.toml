@@ -39,15 +39,24 @@ documentation = "https://ansible-creator.readthedocs.io/en/latest/"
 homepage = "https://github.com/ansible-community/ansible-creator"
 repository = "https://github.com/ansible-community/ansible-creator"
 
+[tool.mypy]
+files = ["src", "tests"]
+
+[tool.pydoclint]
+allow-init-docstring = true
+
 [tool.pylint]
 
 [tool.pylint.format]
 max-line-length = 100
 
 [tool.pylint.master]
+good-names = "i,j,k,ex,Run,_,f,fh"
 ignore = [
   "_version.py" # built by setuptools_scm
 ]
+jobs = 0
+no-docstring-rgx = "__.*__"
 
 [tool.pylint.messages_control]
 disable = [

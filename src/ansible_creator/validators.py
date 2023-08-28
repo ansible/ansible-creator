@@ -13,8 +13,8 @@ try:
 except ImportError:
     HAS_JSONSCHEMA = False
 
-from .exceptions import CreatorError
-from .utils import get_file_contents
+from ansible_creator.exceptions import CreatorError
+from ansible_creator.utils import get_file_contents
 
 
 class SchemaValidator:
@@ -65,7 +65,7 @@ class SchemaValidator:
         :raises CreatorError: if the JSON schema cannot be loaded.
         """
         try:
-            schema = loads(get_file_contents("schemas", self.criteria))
+            schema: dict = loads(get_file_contents("schemas", self.criteria))
         except (
             FileNotFoundError,
             TypeError,
