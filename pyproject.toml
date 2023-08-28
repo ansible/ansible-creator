@@ -6,51 +6,38 @@ requires = [
 ]
 
 [project]
-requires-python = ">=3.9"
+authors = [{"email" = "nchakrab@redhat.com", "name" = "Nilashish Chakarborty"}]
 classifiers = [
   'Development Status :: 2 - Pre-Alpha',
   'Intended Audience :: Developers',
   'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
   'Operating System :: OS Independent',
-  'Topic :: Software Development :: Code Generators',
-  'Topic :: Utilities',
-  'Programming Language :: Python',
-  'Programming Language :: Python :: 3',
   'Programming Language :: Python :: 3 :: Only',
+  'Programming Language :: Python :: 3',
   'Programming Language :: Python :: 3.10',
   'Programming Language :: Python :: 3.11',
   'Programming Language :: Python :: Implementation :: CPython',
+  'Programming Language :: Python',
+  'Topic :: Software Development :: Code Generators',
+  'Topic :: Utilities'
 ]
-dynamic = ["version", "dependencies", "optional-dependencies"]
-name = "ansible-creator"
 description = "A CLI tool for scaffolding Ansible Content."
-readme = "README.md"
-authors = [{ "name" = "Nilashish Chakarborty", "email" = "nchakrab@redhat.com" }]
-maintainers = [{ "name" = "Ansible by Red Hat", "email" = "info@ansible.com" }]
-license = { text = "GPL-3.0-only" }
+dynamic = ["dependencies", "optional-dependencies", "version"]
 keywords = ["ansible"]
-
-[project.urls]
-homepage = "https://github.com/ansible-community/ansible-creator"
-documentation = "https://ansible-creator.readthedocs.io/en/latest/"
-repository = "https://github.com/ansible-community/ansible-creator"
-changelog = "https://github.com/ansible-community/ansible-creator/releases"
+license = {text = "GPL-3.0-only"}
+maintainers = [{"email" = "info@ansible.com", "name" = "Ansible by Red Hat"}]
+name = "ansible-creator"
+readme = "README.md"
+requires-python = ">=3.9"
 
 [project.scripts]
 ansible-creator = "ansible_creator.cli:main"
 
-[tool.setuptools.dynamic]
-dependencies = {file = "requirements.txt"}
-
-[tool.setuptools_scm]
-local_scheme = "no-local-version"
-write_to = "src/ansible_creator/_version.py"
-
-
-[tool.ruff]
-# Allow lines to be as long as 100 characters.
-line-length = 100
-fix = true
+[project.urls]
+changelog = "https://github.com/ansible-community/ansible-creator/releases"
+documentation = "https://ansible-creator.readthedocs.io/en/latest/"
+homepage = "https://github.com/ansible-community/ansible-creator"
+repository = "https://github.com/ansible-community/ansible-creator"
 
 [tool.pylint]
 
@@ -59,12 +46,59 @@ max-line-length = 100
 
 [tool.pylint.master]
 ignore = [
-  "_version.py", # built by setuptools_scm
+  "_version.py" # built by setuptools_scm
 ]
 
 [tool.pylint.messages_control]
 disable = [
+  "E0602", # undefined-variable / ruff F821
   "too-few-public-methods",
-  "too-many-locals",
   "too-many-instance-attributes",
+  "too-many-locals"
 ]
+
+[tool.ruff]
+builtins = ["__"]
+fix = true
+ignore = [
+  "C901",
+  "PTH100",
+  "PTH103",
+  "PTH108",
+  "PTH110",
+  "PTH111",
+  "PTH113",
+  "PTH118",
+  "PTH123",
+  "TRY400"
+]
+line-length = 100
+select = ["ALL"]
+target-version = "py39"
+
+[tool.ruff.flake8-pytest-style]
+parametrize-values-type = "tuple"
+
+[tool.ruff.isort]
+lines-after-imports = 2 # Ensures consistency for cases when there's variable vs function/class definitions after imports
+lines-between-types = 1 # Separate import/from with 1 line
+
+[tool.ruff.per-file-ignores]
+# S101 Allow assert in tests
+# S602 Allow shell in test
+# T201 Allow print in tests
+"tests/**" = ["S101", "S602", "T201"]
+
+[tool.ruff.pydocstyle]
+convention = "pep257"
+
+[tool.setuptools.dynamic]
+dependencies = {file = "requirements.txt"}
+
+[tool.setuptools_scm]
+local_scheme = "no-local-version"
+write_to = "src/ansible_creator/_version.py"
+
+[tool.tomlsort]
+all = true
+in_place = true

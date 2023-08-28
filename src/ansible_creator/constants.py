@@ -36,4 +36,5 @@ VALID_ANSIBLEMODULE_ARGS = (
     "no_log",
     "add_file_common_args",
     "supports_check_mode",
-) + OPTION_CONDITIONALS
+    *OPTION_CONDITIONALS,
+)
