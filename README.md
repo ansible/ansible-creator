@@ -5,7 +5,7 @@ A CLI tool for scaffolding Ansible Content.
 ## Installation
 
 ```
-$ pip install git+https://github.com/NilashishC/ansible-creator
+$ pip install git+https://github.com/ansible-community/ansible-creator
 ```
 
 ## Usage
@@ -108,7 +108,7 @@ $ tree -lla /home/ansible/namespace/name
 ### Upcoming features
 
 - Scaffold Ansible plugins of your choice with the `create` action.
-  Switch to the [create](https://github.com/NilashishC/ansible-creator/tree/create) branch and try it out!
+  Switch to the [create](https://github.com/ansible-community/ansible-creator/tree/create) branch and try it out!
 
 ## Licensing
 
