@@ -27,7 +27,7 @@ class ScaffolderBase(ABC):
     def __init__(self: ScaffolderBase, **kwargs: str) -> None:
         """Instantiate an object of this class.
 
-        :param **args: A dictionary containing target collection and plugin information.
+        :param kwargs: A dictionary containing target collection and plugin information.
         """
         self._templar: Templar = Templar()
         self.collection_path: str = os.path.abspath(
@@ -142,7 +142,7 @@ class NetworkScaffolderBase(ScaffolderBase):
     def __init__(self: NetworkScaffolderBase, **kwargs: str) -> None:
         """Instantiate an object of this class.
 
-        :param args: A dictionary containing scaffolding data.
+        :param kwargs: A dictionary containing scaffolding data.
         """
         super().__init__(**kwargs)
         self.import_path = (
