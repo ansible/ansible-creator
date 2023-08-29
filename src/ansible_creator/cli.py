@@ -98,43 +98,6 @@ class AnsibleCreatorCLI:
             help="Force re-initialize the specified directory as an Ansible collection.",
         )
 
-        # 'create' command parser
-
-        create_command_parser = subparsers.add_parser(
-            "create",
-            help="Scaffold Ansible Content.",
-            description=(
-                "Scaffold Ansible Content based on the definition provided "
-                " through -f or --file options."
-            ),
-            parents=[parent_parser],
-        )
-
-        create_command_parser.add_argument(
-            "-f",
-            "--file",
-            default="./content.yaml",
-            help="A YAML file containing definition of Ansible Content(s) to be scaffolded.",
-        )
-
-        # 'sample' command parser
-
-        sample_command_parser = subparsers.add_parser(
-            "sample",
-            help="Generate a sample content.yaml file.",
-            description=(
-                "Generate a sample content.yaml file to serve as a reference."
-            ),
-            parents=[parent_parser],
-        )
-
-        sample_command_parser.add_argument(
-            "-f",
-            "--file",
-            default="./contents.yaml",
-            help="Path where the sample content.yaml file will be added. Default: ./",
-        )
-
         return parser.parse_args()
 
     def run(self: AnsibleCreatorCLI) -> None:
