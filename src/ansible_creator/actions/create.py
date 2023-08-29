@@ -28,7 +28,7 @@ class CreatorCreate:
 
         :param **args: A dictionary containing Create options.
         """
-        self.file_path: str = kwargs["file"]
+        self._file_path: str = kwargs["file"]
 
     def run(self: CreatorCreate) -> None:
         """Start scaffolding the specified content(s).
@@ -93,7 +93,7 @@ class CreatorCreate:
         """
         content_def = {}
         file_path = os.path.abspath(
-            os.path.expanduser(os.path.expandvars(self.file_path)),
+            os.path.expanduser(os.path.expandvars(self._file_path)),
         )
 
         logger.info("attempting to load the content definition file %s", file_path)

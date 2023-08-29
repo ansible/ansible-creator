@@ -116,7 +116,13 @@ templated
 templating
 testhost
 testname
+testns
+notesdir
+antsibull
+flatmap
+Libera
 topbar
+docsite
 tracebacks
 truecolor
 usefixtures
