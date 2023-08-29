@@ -1,65 +1,70 @@
 """A package containing all scaffolder classes supported by ansible-creator."""
 
+from __future__ import annotations
+
 import ast
 import os
+
 from abc import ABC, abstractmethod
 
-import black
 import yaml
 
-from ansible_creator.exceptions import CreatorError
-from ansible_creator.templar import Templar
-from ansible_creator.utils import copy_container
+from black import format_str, mode
+
 from ansible_creator.constants import (
     OPTION_CONDITIONALS,
     OPTION_METADATA,
     VALID_ANSIBLEMODULE_ARGS,
 )
+from ansible_creator.exceptions import CreatorError
+from ansible_creator.templar import Templar
+from ansible_creator.utils import copy_container
 
 
 class ScaffolderBase(ABC):
     """Base class for all scaffolders."""
 
-    def __init__(self, **args):
+    def __init__(self: ScaffolderBase, **kwargs: str) -> None:
         """Instantiate an object of this class.
 
         :param **args: A dictionary containing target collection and plugin information.
         """
-        self._templar = Templar()
-        self.collection_path = os.path.abspath(
-            os.path.expanduser(os.path.expandvars(args["collection"]["path"]))
+        self._templar: Templar = Templar()
+        self.collection_path: str = os.path.abspath(
+            os.path.expanduser(os.path.expandvars(kwargs["collection_path"])),
         )
-        self.namespace = args["collection"]["namespace"]
-        self.collection_name = args["collection"]["name"]
-        self.plugin_name = args["name"]
-        self.plugin_type = args["type"]
-        self.path_to_docstring = args.get("docstring", "")  # docstring is optional
-        self.docstring = self.load_docstring()
+        self.namespace: str = kwargs["collection_namespace"]
+        self.collection_name: str = kwargs["collection_name"]
+        self.plugin_name: str = kwargs["name"]
+        self.plugin_type: str = kwargs["type"]
+        self.path_to_docstring: str = kwargs.get("docstring", "")
+        self.docstring: str = self.load_docstring()
 
     @abstractmethod
-    def run(self):
+    def run(self: ScaffolderBase) -> None:
         """Start scaffolding a plugin type."""
 
-    def load_docstring(self):
+    def load_docstring(self: ScaffolderBase) -> str:
         """Load docstring from a file or existing module and return.
 
         :returns: The docstring as a string.
         :raises CreatorError: When the docstring cannot be loaded.
         """
-        docstring = {}
+        docstring: str = ""
 
         if self.path_to_docstring:
             # attempt to load docstring from specified file (if provided)
             abs_docstring = os.path.abspath(
-                os.path.expanduser(os.path.expandvars(self.path_to_docstring))
+                os.path.expanduser(os.path.expandvars(self.path_to_docstring)),
             )
             # if path to docstring exists load and return its contents.
             try:
                 with open(abs_docstring, encoding="utf-8") as ds_file:
                     docstring = ds_file.read()
             except FileNotFoundError as exc:
+                msg = f"Could not detect the specified docstring file {abs_docstring}"
                 raise CreatorError(
-                    f"Could not detect the specified docstring file {abs_docstring}"
+                    msg,
                 ) from exc
         else:
             # check if plugin file already exists and attempt to read docstring from it
@@ -71,29 +76,33 @@ class ScaffolderBase(ABC):
                 with open(module_path, encoding="utf-8") as module_file:
                     module_content = module_file.read()
                 for node in ast.walk(ast.parse(module_content)):
-                    if isinstance(node, ast.Assign):
-                        if node.targets[0].id == "DOCUMENTATION":
-                            docstring = node.value.s.strip()
+                    if (
+                        isinstance(node, ast.Assign)
+                        and getattr(node.targets[0], "id", "") == "DOCUMENTATION"
+                    ):
+                        docstring = getattr(node.value, "s", "").strip()
             else:
-                raise CreatorError(
+                msg = (
                     f"Unable to load docstring for plugin {self.plugin_name}.\n"
-                    f"Path to a docstring not provided and plugin file does not already exist."
+                    f"{'':<9}Path to a docstring not provided and plugin file does not "
+                    "already exist."
                 )
+                raise CreatorError(msg)
         return docstring
 
-    def generate_argspec(self):
+    def generate_argspec(self: ScaffolderBase) -> str:
         """Convert docstring into Ansible plugin argspec.
 
         :returns: A black formatted string representing the argspec.
         """
 
-        def build_argspec(doc_obj, argspec):
+        def build_argspec(doc_obj: dict, argspec: dict) -> None:
             """Recursively build argspec from doc obj.
 
             :param doc_obj: A dictionary representing YAML loaded documentation.
             :param argspec: A dictionary containing final argspec.
             """
-            options_obj = doc_obj.get("options")
+            options_obj = doc_obj.get("options") or {}
             for okey, ovalue in options_obj.items():
                 argspec[okey] = {}
                 for metakey in list(ovalue):
@@ -102,12 +111,13 @@ class ScaffolderBase(ABC):
                         suboptions_obj = {"options": ovalue["suboptions"]}
                         # recursively call build_argspec
                         build_argspec(
-                            doc_obj=suboptions_obj, argspec=argspec[okey]["options"]
+                            doc_obj=suboptions_obj,
+                            argspec=argspec[okey]["options"],
                         )
                     elif metakey in OPTION_METADATA + OPTION_CONDITIONALS:
                         argspec[okey].update({metakey: ovalue[metakey]})
 
-        argspec = {}
+        argspec: dict = {}
         final_spec = {}
         doc_obj = yaml.safe_load(self.docstring)
 
@@ -118,10 +128,10 @@ class ScaffolderBase(ABC):
             if item in VALID_ANSIBLEMODULE_ARGS:
                 final_spec.update({item: doc_obj[item]})
 
-        return black.format_str(
+        return format_str(
             str(final_spec["argument_spec"]),
-            mode=black.Mode(
-                target_versions={black.TargetVersion.PY310},
+            mode=mode.Mode(
+                target_versions={mode.TargetVersion.PY310},
             ),
         ).strip()
 
@@ -129,12 +139,12 @@ class ScaffolderBase(ABC):
 class NetworkScaffolderBase(ScaffolderBase):
     """Base scaffolder class for network content plugins."""
 
-    def __init__(self, **args):
+    def __init__(self: NetworkScaffolderBase, **kwargs: str) -> None:
         """Instantiate an object of this class.
 
         :param args: A dictionary containing scaffolding data.
         """
-        super().__init__(**args)
+        super().__init__(**kwargs)
         self.import_path = (
             f"ansible_collections.{self.namespace}.{self.collection_name}."
             "plugins.module_utils.network"
@@ -150,7 +160,7 @@ class NetworkScaffolderBase(ScaffolderBase):
         }
 
     @abstractmethod
-    def run(self):
+    def run(self: NetworkScaffolderBase) -> None:
         """Start scaffolding common dirs and files for network content plugins."""
         copy_container(
             source="module_network_base",

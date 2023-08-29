@@ -1,11 +1,20 @@
 """Re-usable utility functions used by this package."""
 
+from __future__ import annotations
+
+import logging
 import os
 import sys
-import logging
 
-from ansible_creator.constants import MessageColors
+from typing import TYPE_CHECKING
+
 from ansible_creator.exceptions import CreatorError
+
+
+if TYPE_CHECKING:
+    from importlib import abc
+
+    from ansible_creator.templar import Templar
 
 PATH_REPLACERS = {
     "network_os": "collection_name",
@@ -20,7 +29,7 @@ else:
 logger = logging.getLogger("ansible-creator")
 
 
-def get_file_contents(directory, filename):
+def get_file_contents(directory: str, filename: str) -> str:
     """Return contents of a file.
 
     :param directory: A directory within ansible_creator package.
@@ -32,36 +41,28 @@ def get_file_contents(directory, filename):
     :raises TypeError: if invalid type is found
     :raises ModuleNotFoundError: if incorrect package is provided
     """
-    package = f"ansible_creator.{directory}"
+    package: str = f"ansible_creator.{directory}"
 
     try:
         with resources.files(package).joinpath(filename).open(
-            "r", encoding="utf-8"
+            "r",
+            encoding="utf-8",
         ) as file_open:
-            content = file_open.read()
+            content: str = file_open.read()
     except (FileNotFoundError, TypeError, ModuleNotFoundError) as exc:
-        raise exc
+        msg = "Unable to fetch file contents.\n"
+        raise CreatorError(msg) from exc
 
     return content
 
 
-def creator_display(status="OKGREEN", message=None):
-    """Print a message and exit the creator process.
-
-    :param status: exit status
-    :param message: exit message
-    """
-    if status not in MessageColors:
-        print(
-            f"{MessageColors['FAILURE']}Invalid exit status: {status}. This is likely a bug."
-        )
-    else:
-        print(f"{MessageColors[status]}{message}".strip())
-
-
 def copy_container(
-    source, dest, templar=None, template_data=None, allow_overwrite=None
-):
+    source: str,
+    dest: str,
+    templar: Templar | None = None,
+    template_data: dict[str, str] | None = None,
+    allow_overwrite: list[str] | None = None,
+) -> None:
     """Copy files and directories from a possibly nested source to a destination.
 
     :param source: Name of the source container.
@@ -75,7 +76,7 @@ def copy_container(
     logger.debug("starting recursive copy with source container '%s'", source)
     logger.debug("allow_overwrite set to %s", allow_overwrite)
 
-    def _recursive_copy(root):
+    def _recursive_copy(root: abc.Traversable) -> None:
         """Recursively traverses a resource container and copies content to destination.
 
         :param root: A traversable object representing root of the container to copy.
@@ -91,8 +92,8 @@ def copy_container(
 
             # replace placeholders in destination path with real values
             for key, val in PATH_REPLACERS.items():
-                if key in dest_path:
-                    dest_path = dest_path.replace(key, template_data.get(val))
+                if key in dest_path and template_data:
+                    dest_path = dest_path.replace(key, template_data.get(val, ""))
 
             if obj.is_dir():
                 if not os.path.exists(dest_path):
@@ -114,14 +115,10 @@ def copy_container(
                     # templating is not mandatory
                     if templar and template_data:
                         content = templar.render_from_content(
-                            template=content, data=template_data
+                            template=content,
+                            data=template_data,
                         )
                     with open(dest_file, "w", encoding="utf-8") as df_handle:
                         df_handle.write(content)
-
-    if allow_overwrite and not isinstance(allow_overwrite, list):
-        raise CreatorError(
-            f"allow_overwrite should be of type list, instead got {type(allow_overwrite)}"
-        )
 
     _recursive_copy(root=resources.files(f"ansible_creator.resources.{source}"))

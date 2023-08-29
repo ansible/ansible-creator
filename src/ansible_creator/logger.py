@@ -22,14 +22,14 @@ SUFFIX = "\033[0m"
 class ColoredFormatter(logging.Formatter):
     """A colorful formatter."""
 
-    def __init__(self, pattern):
+    def __init__(self: ColoredFormatter, pattern: str) -> None:
         """Initialize the formatter.
 
         :param pattern: The log format
         """
         logging.Formatter.__init__(self, pattern)
 
-    def format(self, record):
+    def format(self: ColoredFormatter, record: logging.LogRecord) -> str:  # noqa: A003
         """Format the log record.
 
         :param record: The log record
@@ -46,7 +46,7 @@ class ColoredFormatter(logging.Formatter):
 class ExitOnExceptionHandler(logging.StreamHandler):
     """Exit on exception handler."""
 
-    def emit(self, record) -> None:
+    def emit(self: ExitOnExceptionHandler, record: logging.LogRecord) -> None:
         """Emit the log record.
 
         :param record: The log record

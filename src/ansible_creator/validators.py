@@ -1,5 +1,7 @@
 """A schema validation helper for ansible-creator."""
 
+from __future__ import annotations
+
 from json import JSONDecodeError, loads
 
 
@@ -10,14 +12,15 @@ try:
     HAS_JSONSCHEMA = True
 except ImportError:
     HAS_JSONSCHEMA = False
-from .utils import get_file_contents
-from .exceptions import CreatorError
+
+from ansible_creator.exceptions import CreatorError
+from ansible_creator.utils import get_file_contents
 
 
 class SchemaValidator:
     """Class representing a validation engine for ansible-creator content definition files."""
 
-    def __init__(self, data, criteria):
+    def __init__(self: SchemaValidator, data: dict, criteria: str) -> None:
         """Initialize the validation engine.
 
         :param data: Content definition as a dictionary
@@ -26,7 +29,7 @@ class SchemaValidator:
         self.data = data
         self.criteria = criteria
 
-    def validate(self):
+    def validate(self: SchemaValidator) -> list:
         """Validate data against loaded schema.
 
         :returns: A list of schema validation errors (if any).
@@ -39,12 +42,14 @@ class SchemaValidator:
         try:
             validator.check_schema(schema)
         except SchemaError as schema_err:
+            msg = "Sanity check failed for in-built schema. This is likely a bug.\n"
             raise CreatorError(
-                "Sanity check failed for in-built schema. This is likely a bug.\n"
+                msg,
             ) from schema_err
 
         validation_errors = sorted(
-            validator(schema).iter_errors(self.data), key=lambda e: e.path
+            validator(schema).iter_errors(self.data),
+            key=lambda e: e.path,
         )
 
         for err in validation_errors:
@@ -53,22 +58,23 @@ class SchemaValidator:
 
         return errors
 
-    def load_schema(self):
+    def load_schema(self: SchemaValidator) -> dict:
         """Attempt to load the schema from schemas directory.
 
         :returns: A schema loaded as json.
         :raises CreatorError: if the JSON schema cannot be loaded.
         """
         try:
-            schema = loads(get_file_contents("schemas", self.criteria))
+            schema: dict = loads(get_file_contents("schemas", self.criteria))
         except (
             FileNotFoundError,
             TypeError,
             JSONDecodeError,
             ModuleNotFoundError,
         ) as err:
+            msg = "Unable to load jsonschema for validation with error(s):\n"
             raise CreatorError(
-                "Unable to load jsonschema for validation with error(s):\n"
+                msg,
             ) from err
 
         return schema

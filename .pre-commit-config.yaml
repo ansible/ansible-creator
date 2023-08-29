@@ -1,47 +1,56 @@
 ---
-default_language_version:
-  # ensures that we get same behavior on CI(s) as on local machines
-  python: python3.9
-exclude: >
-  (?x)^(
-    _readthedocs|
-    .tox
-  )$
 repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: check-merge-conflict
+      - id: check-symlinks
+      - id: debug-statements
+      - id: end-of-file-fixer
+      - id: no-commit-to-branch
+        args: [--branch, main]
+      - id: trailing-whitespace
+
+  - repo: https://github.com/asottile/add-trailing-comma.git
+    rev: v3.0.1
+    hooks:
+      - id: add-trailing-comma
+        args:
+          - --py36-plus
+
+  - repo: https://github.com/Lucas-C/pre-commit-hooks.git
+    rev: v1.5.4
+    hooks:
+      - id: remove-tabs
+
   - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: "v3.0.1"
+    # keep it before yamllint
+    rev: v3.0.2
     hooks:
       - id: prettier
-        # Original hook implementation is flaky due to *several* bugs described
-        # in https://github.com/prettier/prettier/issues/12364
-        # a) CI=1 needed to avoid incomplete output
-        # b) two executions are needed because --list-different works correctly
-        # only when run with --check as with --write the output will also
-        # include other entries and logging level cannot be used to keep only
-        # modified files listed (any file is listes using the log level,
-        # regardless if
-        # is modified or not).
-        # c) We avoid letting pre-commit pass each filename in order to avoid
-        # runing multiple instances in parallel. This also ensures that running
-        # prettier from the command line behaves identically with the pre-commit
-        # one. No real performance downsides.
-        # d) exit with the return code from list-different (0=none, 1=some)
-        # rather than the write (0=successfully rewrote files). pre-commit.ci
-        entry: env CI=1 bash -c "prettier --list-different . || ec=$? && prettier --loglevel=error --write . && exit $ec"
-        pass_filenames: false
-        args: []
+        always_run: true
         additional_dependencies:
           - prettier
           - prettier-plugin-toml
+          - prettier-plugin-sort-json
 
-  - repo: https://github.com/psf/black.git
+  - repo: https://github.com/psf/black-pre-commit-mirror
     rev: 23.7.0
     hooks:
       - id: black
-        language_version: python3
+
+  - repo: https://github.com/pappasam/toml-sort
+    rev: v0.23.1
+    hooks:
+      - id: toml-sort-fix
+
+  - repo: https://github.com/tox-dev/tox-ini-fmt
+    rev: "1.3.1"
+    hooks:
+      - id: tox-ini-fmt
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.0.284"
+    rev: "v0.0.285"
     hooks:
       - id: ruff
         args:
@@ -53,110 +62,37 @@ repos:
       - id: cspell
         name: Spell check with cspell
 
-  - repo: https://github.com/Lucas-C/pre-commit-hooks.git
-    rev: v1.5.4
+  - repo: https://github.com/jsh9/pydoclint
+    rev: 0.2.1
     hooks:
-      - id: remove-tabs
-
-  - repo: https://github.com/pre-commit/pre-commit-hooks.git
-    rev: v4.4.0
-    hooks:
-      # Side-effects:
-      - id: trailing-whitespace
-      - id: check-merge-conflict
-      - id: end-of-file-fixer
-      - id: requirements-txt-fixer
-      - id: check-added-large-files
-      - id: fix-byte-order-marker
-      - id: check-case-conflict
-      - id: check-symlinks
-      - id: check-yaml
-        exclude: >
-          (?x)^
-            (
-              mkdocs.yml
-            )
-          $
-      - id: detect-private-key
-      # Heavy checks:
-      - id: check-ast
-      - id: debug-statements
-
-  - repo: https://gitlab.com/bmares/check-json5
-    # Allow json comments, trailing commas
-    # https://github.com/pre-commit/pre-commit-hooks/issues/395
-    rev: v1.0.0
-    hooks:
-      - id: check-json5
-
-  - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.35.0
-    hooks:
-      - id: markdownlint
-        exclude: >
-          (?x)^
-            (
-              \.github/ISSUE_TEMPLATE/\w+|
-              docs/(
-                faq|
-                index|
-              )|
-              README|
-              src/ansible_navigator/data/(help|welcome)
-            )\.md
-          $
-
-  - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.5
-    hooks:
-      - id: codespell
-        # NOTE: dout is part of the stdout action regex
-        args: ["-L", "dout"]
-        # We exclude generated and external files as they are not directly under
-        # our control, so we cannot fix spelling in them.
-        exclude: >
-          (?x)^
-            (
-              tests/fixtures/integration/actions/.*\.json|
-              src/ansible_navigator/data/grammar/.*\.json
-            )
-          $
-
-  - repo: https://github.com/adrienverge/yamllint.git
-    rev: v1.32.0
-    hooks:
-      - id: yamllint
+      - id: pydoclint
         args:
-          - --strict
-        types: [file, yaml]
-
-  - repo: https://github.com/PyCQA/flake8.git
-    rev: 6.1.0
-    hooks:
-      - id: flake8
-        language_version: python3
-        additional_dependencies:
-          - darglint
-          - flake8-docstrings # uses pydocstyle
-
-  - repo: https://github.com/asottile/pyupgrade
-    # keep it after flake8
-    rev: v3.10.1
-    hooks:
-      - id: pyupgrade
-        args: ["--py39-plus"]
+          - "--config=pyproject.toml"
 
   - repo: https://github.com/pycqa/pylint.git
-    rev: v3.0.0a6
+    rev: v3.0.0a7
     hooks:
       - id: pylint
         args:
-          - docs/
-          - src/
-          - tests/
+          - --output-format=colorized
         additional_dependencies:
           - PyYAML
           - jinja2
           - jsonschema
           - black
+
+  - repo: https://github.com/pre-commit/mirrors-mypy.git
+    rev: v1.5.1
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - importlib_resources
+          - jinja2
+          - black
+          - types-jsonschema
+          - types-pyyaml
+        args:
+          - src
+          - tests
+          - --python-version=3.9
         pass_filenames: false

@@ -1,4 +1,7 @@
 """A Jinja2 template engine."""
+from __future__ import annotations
+
+
 try:
     from jinja2 import Environment, StrictUndefined
 
@@ -11,22 +14,26 @@ from .utils import get_file_contents
 class Templar:
     """Class representing a Jinja2 template engine."""
 
-    def __init__(self):
+    def __init__(self: Templar) -> None:
         """Instantiate the template engine.
 
         :raises ImportError: When jinja2 is not installed.
         """
         if not HAS_JINJA2:
-            raise ImportError(
-                "jinja2 is required but does not appear to be installed.  "
+            msg = (
+                "jinja2 is required but does not appear to be installed."
                 "It can be installed using `pip install jinja2`"
+            )
+            raise ImportError(
+                msg,
             )
         self.env = Environment(
             undefined=StrictUndefined,
             keep_trailing_newline=True,
+            autoescape=True,
         )
 
-    def render(self, template_name, data):
+    def render(self: Templar, template_name: str, data: dict) -> str:
         """Load template from a file and render with provided data.
 
         :param template_name: Name of the template to load.
@@ -35,11 +42,12 @@ class Templar:
         :returns: Templated content.
         """
         template_content = get_file_contents(
-            directory="templates", filename=template_name
+            directory="templates",
+            filename=template_name,
         )
         return self.render_from_content(template=template_content, data=data)
 
-    def render_from_content(self, template, data):
+    def render_from_content(self: Templar, template: str, data: dict) -> str:
         """Render a template with provided data.
 
         :param template: The template to load and render.
@@ -47,5 +55,4 @@ class Templar:
 
         :returns: Templated content.
         """
-        rendered_content = self.env.from_string(template).render(data)
-        return rendered_content
+        return self.env.from_string(template).render(data)
