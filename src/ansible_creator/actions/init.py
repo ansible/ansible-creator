@@ -28,6 +28,7 @@ class CreatorInit:
             os.path.expanduser(os.path.expandvars(kwargs["init_path"])),
         )
         self._force = kwargs["force"]
+        self._creator_version = kwargs["creator_version"]
         self._templar = Templar()
 
     def run(self: CreatorInit) -> None:
@@ -50,8 +51,8 @@ class CreatorInit:
             if not self._force:
                 msg = (
                     f"The directory {col_path} already exists.\n"
-                    "{'':<9}You can use --force to re-initialize this directory,"
-                    "\n{'':<9}However it will delete ALL existing contents in it."
+                    f"{'':<9}You can use --force to re-initialize this directory,"
+                    f"\n{'':<9}However it will delete ALL existing contents in it."
                 )
                 raise CreatorError(msg)
 
@@ -81,6 +82,7 @@ class CreatorInit:
             template_data={
                 "namespace": self._namespace,
                 "collection_name": self._collection_name,
+                "creator_version": self._creator_version,
             },
         )
 

@@ -1,3 +1,7 @@
+# This collection is initialized by https://github.com/ansible-community/ansible_creator {{ creator_version }}
+
+# See https://docs.ansible.com/ansible/latest/dev_guide/collections_galaxy_meta.html
+
 namespace: "{{ namespace }}"
 name: "{{ collection_name }}"
 version: 1.0.0
@@ -19,7 +23,9 @@ issues: http://example.com/issue/tracker
 # artifact. A pattern is matched from the relative path of the file or directory of the collection directory. This
 # uses 'fnmatch' to match the files or directories. Some directories and files like 'galaxy.yml', '*.pyc', '*.retry',
 # and '.git' are always filtered. Mutually exclusive with 'manifest'
-build_ignore: []
+build_ignore:
+  - .gitignore
+  - changelogs/.plugin-cache.yaml
 
 # A dict controlling use of manifest directives used in building the collection artifact. The key 'directives' is a
 # list of MANIFEST.in style

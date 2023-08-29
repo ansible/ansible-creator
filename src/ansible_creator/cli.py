@@ -149,6 +149,7 @@ class AnsibleCreatorCLI:
             self.logger.info("starting requested action '%s'", action)
             action_class = getattr(import_module(action_modules), action_prefix)
             self.logger.debug("found action class %s", action_class)
+            cli_args.update({"creator_version": __version__})
             action_class(**cli_args).run()
         except CreatorError as exc:
             self.logger.error(str(exc))
