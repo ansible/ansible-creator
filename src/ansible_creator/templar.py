@@ -27,10 +27,9 @@ class Templar:
             raise ImportError(
                 msg,
             )
-        self.env = Environment(
+        self.env = Environment(  # noqa: S701
             undefined=StrictUndefined,
             keep_trailing_newline=True,
-            autoescape=True,
         )
 
     def render(self: Templar, template_name: str, data: dict) -> str:
