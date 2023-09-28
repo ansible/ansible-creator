@@ -62,6 +62,7 @@ no-docstring-rgx = "__.*__"
 disable = [
   "C0114", # missing-module-docstring
   "E0602", # undefined-variable / ruff F821
+  "R0913",
   "too-few-public-methods",
   "too-many-instance-attributes",
   "too-many-locals"

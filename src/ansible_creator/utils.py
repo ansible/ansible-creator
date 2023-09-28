@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-import logging
 import os
 import sys
 
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from ansible_creator.exceptions import CreatorError
@@ -14,6 +14,7 @@ from ansible_creator.exceptions import CreatorError
 if TYPE_CHECKING:
     from importlib import abc
 
+    from ansible_creator.output import Output
     from ansible_creator.templar import Templar
 
 PATH_REPLACERS = {
@@ -26,7 +27,17 @@ if sys.version_info < (3, 10):
 else:
     from importlib import resources
 
-logger = logging.getLogger("ansible-creator")
+
+@dataclass
+class TermFeatures:
+    """Terminal features."""
+
+    color: bool
+    links: bool
+
+    def any_enabled(self: TermFeatures) -> bool:
+        """Return True if any features are enabled."""
+        return any((self.color, self.links))
 
 
 def get_file_contents(directory: str, filename: str) -> str:
@@ -56,9 +67,11 @@ def get_file_contents(directory: str, filename: str) -> str:
     return content
 
 
-def copy_container(
+# TO-DO: move this to a better location, possible base class for all subcommands?
+def copy_container(  # noqa: PLR0913
     source: str,
     dest: str,
+    output: Output,
     templar: Templar | None = None,
     template_data: dict[str, str] | None = None,
     allow_overwrite: list[str] | None = None,
@@ -73,15 +86,15 @@ def copy_container(
 
     :raises CreatorError: if allow_overwrite is not a list.
     """
-    logger.debug("starting recursive copy with source container '%s'", source)
-    logger.debug("allow_overwrite set to %s", allow_overwrite)
+    output.debug(msg=f"starting recursive copy with source container '{source}'")
+    output.debug(msg=f"allow_overwrite set to {allow_overwrite}")
 
     def _recursive_copy(root: abc.Traversable) -> None:
         """Recursively traverses a resource container and copies content to destination.
 
         :param root: A traversable object representing root of the container to copy.
         """
-        logger.debug("current root set to %s", root)
+        output.debug(msg=f"current root set to {root}")
 
         for obj in root.iterdir():
             overwrite = False
@@ -105,7 +118,7 @@ def copy_container(
             elif obj.is_file():
                 # remove .j2 suffix at destination
                 dest_file = os.path.join(dest, dest_path.split(".j2", maxsplit=1)[0])
-                logger.debug("dest file is %s", dest_file)
+                output.debug(msg=f"dest file is {dest_file}")
 
                 # write at destination only if missing or belongs to overwrite list
                 if not os.path.exists(dest_file) or overwrite:
