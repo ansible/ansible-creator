@@ -3,7 +3,8 @@
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
       "source.fixAll": true
-    }
+    },
+    "editor.defaultFormatter": "ms-python.black-formatter"
   },
   "mypy.runUsingActiveInterpreter": true,
   "mypy.targets": ["src", "tests"],
