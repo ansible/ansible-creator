@@ -167,7 +167,7 @@ class Cli:
         except CreatorError as exc:
             self.output.error(str(exc))
 
-        self.output.debug(msg="successfully exiting ansible-creator")
+        self.output.debug(msg="exiting ansible-creator")
 
 
 def main() -> None:
