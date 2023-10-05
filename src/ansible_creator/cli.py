@@ -8,7 +8,9 @@ import sys
 
 from importlib import import_module
 from pathlib import Path
+from typing import TYPE_CHECKING
 
+from ansible_creator.config import Config
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.output import Output
 from ansible_creator.utils import TermFeatures
@@ -19,19 +21,22 @@ try:
 except ImportError:
     __version__ = "source"
 
+if TYPE_CHECKING:
+    from argparse import Namespace
+
 
 class Cli:
     """Class representing the ansible-creator Cli."""
 
     def __init__(self: Cli) -> None:
         """Initialize the Cli and parse Cli args."""
-        self.args: dict = vars(self.parse_args())
+        self.args: Namespace = self.parse_args()
         self.output: Output
         self.term_features: TermFeatures
 
     def init_output(self: Cli) -> None:
         """Initialize the output object."""
-        no_ansi = self.args.pop("no_ansi")
+        no_ansi = self.args.no_ansi
         if not sys.stdout.isatty():
             self.term_features = TermFeatures(color=False, links=False)
         else:
@@ -41,11 +46,12 @@ class Cli:
             )
 
         self.output = Output(
-            log_append=self.args.pop("log_append"),
-            log_file=self.args.pop("log_file"),
-            log_level=self.args.pop("log_level"),
+            log_append=self.args.log_append,
+            log_file=self.args.log_file,
+            log_level=self.args.log_level,
             term_features=self.term_features,
-            verbosity=self.args.pop("verbose"),
+            verbosity=self.args.verbose,
+            display="json" if self.args.json else "text",
         )
 
     def parse_args(self: Cli) -> argparse.Namespace:
@@ -91,6 +97,14 @@ class Cli:
         )
 
         parent_parser.add_argument(
+            "--json",
+            dest="json",
+            action="store_true",
+            default=False,
+            help="Output messages as JSON",
+        )
+
+        parent_parser.add_argument(
             "-v",
             "--verbose",
             action="count",
@@ -114,7 +128,7 @@ class Cli:
         subparsers = parser.add_subparsers(
             help="The subcommand to invoke.",
             title="Commands",
-            dest="action",
+            dest="subcommand",
         )
         subparsers.required = True
 
@@ -128,7 +142,7 @@ class Cli:
         )
 
         init_command_parser.add_argument(
-            "collection_name",
+            "collection",
             help="The collection name in the format ``<namespace>.<collection>``.",
         )
 
@@ -149,21 +163,19 @@ class Cli:
         return parser.parse_args()
 
     def run(self: Cli) -> None:
-        """Dispatch work to correct action class."""
-        # TO-DO: Convert CLI Args into a Config class
-        cli_args = self.args
-        self.output.debug(msg=f"parsed args {cli_args!s}")
-        action = cli_args.pop("action")
-        action_modules = f"ansible_creator.actions.{action}"
-        action_prefix = "Creator" + f"{action}".capitalize()
+        """Dispatch work to correct subcommand class."""
+        self.output.debug(msg=f"parsed args {self.args!s}")
+        subcommand = self.args.subcommand
+        subcommand_module = f"ansible_creator.subcommands.{subcommand}"
+        subcommand_cls = f"{subcommand}".capitalize()
+        args = vars(self.args)
+        args.update({"creator_version": __version__})
 
         try:
-            self.output.debug(msg=f"starting requested action '{action}'")
-            action_class = getattr(import_module(action_modules), action_prefix)
-            self.output.debug(f"found action class {action_class}")
-            cli_args.update({"output": self.output})
-            cli_args.update({"creator_version": __version__})
-            action_class(**cli_args).run()
+            self.output.debug(msg=f"starting requested action '{subcommand}'")
+            subcommand = getattr(import_module(subcommand_module), subcommand_cls)
+            self.output.debug(f"found action class {subcommand}")
+            subcommand(config=Config(**args), output=self.output).run()
         except CreatorError as exc:
             self.output.error(str(exc))
 
