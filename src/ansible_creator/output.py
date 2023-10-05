@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import decimal
+import json
 import logging
 import shutil
 import sys
@@ -214,15 +215,17 @@ class Output:
         log_append: str,
         term_features: TermFeatures,
         verbosity: int,
+        display: str = "text",
     ) -> None:
         """Initialize the output object.
 
         Args:
-            log_file: The path to the los.get_terminal_size()og file
+            log_file: The path to the log file
             log_level: The log level
             log_append: Whether to append to the log file
             term_features: Terminal features
             verbosity: The verbosity level
+            display: Whether to output as text or JSON
         """
         self._verbosity = verbosity
         self.call_count: dict[str, int] = {
@@ -252,6 +255,7 @@ class Output:
             self.log_to_file = True
         else:
             self.log_to_file = False
+        self.display = display
 
     def critical(self: Output, msg: str) -> None:
         """Print a critical message to the console.
@@ -319,8 +323,6 @@ class Output:
         if self.log_to_file:
             self.logger.log(level.log_level, msg, stacklevel=3)
 
-        set_width = console_width()
-
         debug = 2
         info = 1
         if (self._verbosity < debug and level == Level.DEBUG) or (
@@ -328,12 +330,20 @@ class Output:
         ):
             return
 
+        if self.display == "json":
+            print(  # noqa: T201
+                json.dumps({"level": level.name, "msg": msg}),
+                flush=True,
+            )
+            return
+
         lines = Msg(message=msg, prefix=level).to_lines(
             color=self.term_features.color,
-            width=set_width,
+            width=console_width(),
             with_prefix=True,
         )
-        if level in (Level.CRITICAL, Level.ERROR):
-            print("\n".join(lines), file=sys.stderr)  # noqa: T201
-        else:
-            print("\n".join(lines))  # noqa: T201
+        final_msg = "\n".join(lines)
+
+        file = sys.stderr if level in [Level.CRITICAL, Level.ERROR] else sys.stdout
+
+        print(final_msg, file=file)

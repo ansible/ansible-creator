@@ -13,42 +13,38 @@ from ansible_creator.utils import copy_container
 
 
 if TYPE_CHECKING:
+    from ansible_creator.config import Config
     from ansible_creator.output import Output
 
 
-class CreatorInit:
+class Init:
     """Class representing ansible-creator create subcommand."""
 
-    def __init__(  # noqa: PLR0913
-        self: CreatorInit,
-        collection_name: str,
-        init_path: str,
-        force: bool,  # noqa: FBT001
-        creator_version: str,
+    def __init__(
+        self: Init,
+        config: Config,
         output: Output,
     ) -> None:
         """Initialize the init action.
 
         :param kwargs: Arguments passed for the init action
         """
-        self._namespace: str = collection_name.split(".")[0]
-        self._collection_name: str = collection_name.split(".")[-1]
-        self._init_path: str = os.path.abspath(
-            os.path.expanduser(os.path.expandvars(init_path)),
-        )
-        self._force = force
-        self._creator_version = creator_version
+        self._namespace: str = config.namespace
+        self._collection_name: str = config.collection_name
+        self._init_path: str = config.init_path
+        self._force = config.force
+        self._creator_version = config.creator_version
         self._templar = Templar()
         self.output: Output = output
 
-    def run(self: CreatorInit) -> None:
+    def run(self: Init) -> None:
         """Start scaffolding collection skeleton.
 
         :raises CreatorError: if computed collection path is an existing directory or file.
         """
         col_path = os.path.join(self._init_path, self._namespace, self._collection_name)
 
-        self.output.debug(msg="final collection path set to {col_path}")
+        self.output.debug(msg=f"final collection path set to {col_path}")
 
         # check if init_path already exists
         if os.path.exists(col_path):

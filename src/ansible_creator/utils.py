@@ -67,6 +67,17 @@ def get_file_contents(directory: str, filename: str) -> str:
     return content
 
 
+def expand_path(path: str) -> str:
+    """Resolve absolute path.
+
+    :param path: Path to expand.
+    :returns: Expanded absolute path.
+    """
+    return os.path.abspath(
+        os.path.expanduser(os.path.expandvars(path)),
+    )
+
+
 # TO-DO: move this to a better location, possible base class for all subcommands?
 def copy_container(  # noqa: PLR0913
     source: str,
