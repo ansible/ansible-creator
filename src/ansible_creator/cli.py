@@ -164,7 +164,6 @@ class Cli:
 
     def run(self: Cli) -> None:
         """Dispatch work to correct subcommand class."""
-        # TO-DO: Convert CLI Args into a Config class
         self.output.debug(msg=f"parsed args {self.args!s}")
         subcommand = self.args.subcommand
         subcommand_module = f"ansible_creator.subcommands.{subcommand}"
