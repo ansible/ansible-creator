@@ -29,14 +29,14 @@ Commands:
 
 ```
 $ ansible-creator init --help
-usage: ansible-creator init [-h] [--na] [--lf LOG_FILE] [--ll {notset,debug,info,warning,error,critical}] [--la {true,false}] [-v]
+usage: ansible-creator init [-h] [--na] [--lf LOG_FILE] [--ll {notset,debug,info,warning,error,critical}] [--la {true,false}] [--json] [-v]
                             [--init-path INIT_PATH] [--force]
-                            collection_name
+                            collection
 
 Creates the skeleton framework of an Ansible collection.
 
 positional arguments:
-  collection_name       The collection name in the format ``<namespace>.<collection>``.
+  collection            The collection name in the format ``<namespace>.<collection>``.
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -47,6 +47,7 @@ optional arguments:
                         Log level for file output.
   --la {true,false}, --log-append <bool> {true,false}
                         Append to log file.
+  --json                Output messages as JSON
   -v, --verbose         Give more Cli output. Option is additive, and can be used up to 3 times.
   --init-path INIT_PATH
                         The path in which the skeleton collection will be created. The default is the current working directory.
