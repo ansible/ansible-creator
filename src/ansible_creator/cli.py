@@ -106,7 +106,7 @@ class Cli:
 
         parent_parser.add_argument(
             "-v",
-            "--verbose",
+            dest="verbose",
             action="count",
             default=0,
             help="Give more Cli output. Option is additive, and can be used up to 3 times.",
