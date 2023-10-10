@@ -83,8 +83,8 @@ def copy_container(  # noqa: PLR0913
     source: str,
     dest: str,
     output: Output,
-    templar: Templar | None = None,
-    template_data: dict[str, str] | None = None,
+    templar: Templar,
+    template_data: dict[str, str],
     allow_overwrite: list[str] | None = None,
 ) -> None:
     """Copy files and directories from a possibly nested source to a destination.
@@ -113,7 +113,6 @@ def copy_container(  # noqa: PLR0913
             dest_path = os.path.join(dest, dest_name)
             if (allow_overwrite) and (dest_name in allow_overwrite):
                 overwrite = True
-
             # replace placeholders in destination path with real values
             for key, val in PATH_REPLACERS.items():
                 if key in dest_path and template_data:
@@ -134,7 +133,6 @@ def copy_container(  # noqa: PLR0913
                 # write at destination only if missing or belongs to overwrite list
                 if not os.path.exists(dest_file) or overwrite:
                     content = obj.read_text(encoding="utf-8")
-
                     # only render as templates if both of these are provided
                     # templating is not mandatory
                     if templar and template_data:
