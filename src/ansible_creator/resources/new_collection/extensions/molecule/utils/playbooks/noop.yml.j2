@@ -1,4 +1,8 @@
 ---
-- name: Run a noop
-  ansible.builtin.debug:
-    msg: "This does nothing!"
+- name: noop
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Run a noop
+      ansible.builtin.debug:
+        msg: "This does nothing!"
