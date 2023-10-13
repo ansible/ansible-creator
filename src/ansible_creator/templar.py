@@ -8,7 +8,8 @@ try:
     HAS_JINJA2 = True
 except ImportError:
     HAS_JINJA2 = False
-from .utils import get_file_contents
+
+from ansible_creator.utils import get_file_contents
 
 
 class Templar:
@@ -27,7 +28,7 @@ class Templar:
             raise ImportError(
                 msg,
             )
-        self.env = Environment(  # noqa: S701
+        self.env: Environment = Environment(  # noqa: S701
             undefined=StrictUndefined,
             keep_trailing_newline=True,
         )

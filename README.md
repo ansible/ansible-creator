@@ -55,27 +55,35 @@ optional arguments:
 ```
 
 ```
-$ ansible-creator init testns.testname --init-path $HOME
-    Note: collection testns.testname created at /home/ansible-dev
+$ ansible-creator init testns.testname --init-path $HOME/collections/ansible_collections
+    Note: collection testns.testname created at /home/ansible-dev/collections/ansible_collections
 ```
 
 Running the above command generates an Ansible Collection with the following structure:
 
 ```
-$ tree -lla /home/ansible/namespace/name
-/home/ansible/namespace/name
+$ tree -lla /home/ansible-dev/collections/ansible_collections
+.
 ├── CHANGELOG.rst
 ├── changelogs
 │   └── config.yaml
 ├── docs
-│   ├── docsite
-│   │   └── links.yml
-│   └── .keep
+│   └── docsite
+│       └── links.yml
+├── extensions
+│   ├── eda
+│   │   └── rulebooks
+│   │       └── rulebook.yml
+│   └── molecule
+│       ├── integration_hello_world
+│       │   └── molecule.yml
+│       └── utils
+│           ├── playbooks
+│           │   ├── converge.yml
+│           │   └── noop.yml
+│           └── vars
+│               └── vars.yml
 ├── galaxy.yml
-├── .github
-│   └── workflows
-│       └── test.yml
-├── .isort.cfg
 ├── LICENSE
 ├── meta
 │   └── runtime.yml
@@ -85,6 +93,7 @@ $ tree -lla /home/ansible/namespace/name
 │   ├── cache
 │   │   └── __init__.py
 │   ├── filter
+│   │   ├── hello_world.py
 │   │   └── __init__.py
 │   ├── inventory
 │   │   └── __init__.py
@@ -98,19 +107,17 @@ $ tree -lla /home/ansible/namespace/name
 │   │   └── __init__.py
 │   └── test
 │       └── __init__.py
-├── .pre-commit-config.yaml
-├── .prettierignore
 ├── pyproject.toml
 ├── README.md
-├── tests
-│   ├── .gitignore
-│   ├── integration
-│   │   └── targets
-│   │       └── .keep
-│   └── unit
-│       └── .keep
-└── .vscode
-    └── extensions.json
+└── tests
+    ├── integration
+    │   ├── __init__.py
+    │   ├── targets
+    │   │   └── hello_world
+    │   │       └── tasks
+    │   │           └── main.yml
+    │   └── test_integration.py
+    └── unit
 ```
 
 ### Upcoming features
