@@ -1,0 +1,9 @@
+---
+# See https://github.com/ansible-community/devtools/blob/main/.github/workflows/push.yml
+name: Run release drafter
+on:
+  workflow_dispatch:
+
+jobs:
+  run_release_drafter:
+    uses: ansible/devtools/.github/workflows/push.yml@main
