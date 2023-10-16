@@ -1,0 +1,25 @@
+---
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: /.config/
+    schedule:
+      day: sunday
+      interval: weekly
+    labels:
+      - dependabot-deps-updates
+      - skip-changelog
+    versioning-strategy: lockfile-only
+    ignore:
+      - dependency-name: mypy
+      - dependency-name: pipdeptree
+      - dependency-name: pylint
+      - dependency-name: types-jsonschema
+      - dependency-name: types-pyyaml
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: daily
+    labels:
+      - "dependencies"
+      - "skip-changelog"
