@@ -1,11 +1,18 @@
+![PyPI - Status](https://img.shields.io/pypi/status/ansible-creator)
+![PyPI - Version](https://img.shields.io/pypi/v/ansible-creator)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ansible-creator)
+![License](https://img.shields.io/github/license/ansible-community/ansible-creator)
+[![Ansible Code of Conduct](https://img.shields.io/badge/Code%20of%20Conduct-Ansible-silver.svg)](https://docs.ansible.com/ansible/latest/community/code_of_conduct.html)
+![GitHub issues](https://img.shields.io/github/issues/ansible-community/ansible-creator)
+
 # ansible-creator
 
-A CLI tool for scaffolding Ansible Content.
+A CLI tool for scaffolding all your Ansible Content.
 
 ## Installation
 
 ```
-$ pip install git+https://github.com/ansible-community/ansible-creator
+$ pip install ansible-creator
 ```
 
 ## Usage
