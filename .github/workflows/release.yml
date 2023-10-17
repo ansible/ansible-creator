@@ -7,7 +7,7 @@ on:
 
 jobs:
   publish-to-testpypi:
-    name: Publish ansible-creator 🛠️ package 📦 to TestPyPI
+    name: Publish ansible-creator 🛠️ package 📦 to PyPI
     if: github.event_name == 'release'
     environment: release
     runs-on: ubuntu-22.04
@@ -36,5 +36,3 @@ jobs:
 
       - name: Publish to pypi.org
         uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          repository-url: https://test.pypi.org/legacy/
