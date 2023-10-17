@@ -20,7 +20,7 @@ labels: bug, new
 
 ```
 
-##### PYTHON VERSIO
+##### PYTHON VERSION
 
 <!--- Paste output from `python --version` -->
 
