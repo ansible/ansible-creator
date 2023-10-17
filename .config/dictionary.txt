@@ -107,6 +107,8 @@ Representer
 returndocs
 Rocannon's
 rtype
+rulebook
+rulebooks
 runtimes
 scaffolder
 Scaffolder

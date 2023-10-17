@@ -8,14 +8,15 @@ requires = [
 [project]
 authors = [{"email" = "nchakrab@redhat.com", "name" = "Nilashish Chakarborty"}]
 classifiers = [
-  'Development Status :: 2 - Pre-Alpha',
+  'Development Status :: 3 - Alpha',
   'Intended Audience :: Developers',
-  'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+  'License :: OSI Approved :: Apache Software License',
   'Operating System :: OS Independent',
   'Programming Language :: Python :: 3 :: Only',
   'Programming Language :: Python :: 3',
   'Programming Language :: Python :: 3.10',
   'Programming Language :: Python :: 3.11',
+  'Programming Language :: Python :: 3.9',
   'Programming Language :: Python :: Implementation :: CPython',
   'Programming Language :: Python',
   'Topic :: Software Development :: Code Generators',
@@ -24,7 +25,7 @@ classifiers = [
 description = "A CLI tool for scaffolding Ansible Content."
 dynamic = ["dependencies", "optional-dependencies", "version"]
 keywords = ["ansible"]
-license = {text = "GPL-3.0-only"}
+license = {text = "Apache"}
 maintainers = [{"email" = "info@ansible.com", "name" = "Ansible by Red Hat"}]
 name = "ansible-creator"
 readme = "README.md"
