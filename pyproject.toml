@@ -6,7 +6,7 @@ requires = [
 ]
 
 [project]
-requires-python = ">=3.9"
+authors = [{"email" = "nchakrab@redhat.com", "name" = "Nilashish Chakarborty"}]
 classifiers = [
   'Development Status :: 3 - Alpha',
   'Intended Audience :: Developers',
@@ -14,9 +14,9 @@ classifiers = [
   'Operating System :: OS Independent',
   'Programming Language :: Python :: 3 :: Only',
   'Programming Language :: Python :: 3',
-  'Programming Language :: Python :: 3.9',
   'Programming Language :: Python :: 3.10',
   'Programming Language :: Python :: 3.11',
+  'Programming Language :: Python :: 3.9',
   'Programming Language :: Python :: Implementation :: CPython',
   'Programming Language :: Python',
   'Topic :: Software Development :: Code Generators',
@@ -26,10 +26,10 @@ description = "A CLI tool for scaffolding Ansible Content."
 dynamic = ["dependencies", "optional-dependencies", "version"]
 keywords = ["ansible"]
 license = {text = "Apache"}
-authors = [{"email" = "nchakrab@redhat.com", "name" = "Nilashish Chakarborty"}]
 maintainers = [{"email" = "info@ansible.com", "name" = "Ansible by Red Hat"}]
 name = "ansible-creator"
 readme = "README.md"
+requires-python = ">=3.9"
 
 [project.scripts]
 ansible-creator = "ansible_creator.cli:main"

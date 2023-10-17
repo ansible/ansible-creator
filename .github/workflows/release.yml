@@ -33,7 +33,7 @@ jobs:
 
       - name: Build dists
         run: python -m build
-      
+
       - name: Sign the dists with Sigstore
         uses: sigstore/gh-action-sigstore-python@v1.2.3
         with:
@@ -44,4 +44,4 @@ jobs:
       - name: Publish to pypi.org
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          repository-url: https://test.pypi.org/legacy/              
+          repository-url: https://test.pypi.org/legacy/
