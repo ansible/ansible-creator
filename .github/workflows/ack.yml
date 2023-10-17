@@ -11,4 +11,8 @@ on:
 
 jobs:
   ack:
+    permissions:
+      checks: write
+      contents: write # needed to update release
+      pull-requests: write
     uses: ansible/devtools/.github/workflows/ack.yml@main
