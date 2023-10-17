@@ -6,6 +6,7 @@ updates:
     schedule:
       day: sunday
       interval: weekly
+    versioning-strategy: increase
     labels:
       - dependabot-deps-updates
       - skip-changelog
@@ -13,7 +14,6 @@ updates:
     directory: /
     schedule:
       interval: daily
-    versioning-strategy: increase
     labels:
       - "dependencies"
       - "skip-changelog"
