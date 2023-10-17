@@ -15,5 +15,5 @@ updates:
     schedule:
       interval: daily
     labels:
-      - "dependencies"
+      - "dependabot-gha-updates"
       - "skip-changelog"
