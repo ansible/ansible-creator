@@ -160,6 +160,25 @@ class Cli:
             help="Force re-initialize the specified directory as an Ansible collection.",
         )
 
+        # 'create' command parser
+
+        create_command_parser = subparsers.add_parser(
+            "create",
+            help="Scaffold Ansible Content.",
+            description=(
+                "Scaffold Ansible Content based on the definition provided "
+                " through -f or --file options."
+            ),
+            parents=[parent_parser],
+        )
+
+        create_command_parser.add_argument(
+            "-f",
+            "--file-path",
+            default="./content.yaml",
+            help="A YAML file containing definition of Ansible Content(s) to be scaffolded.",
+        )
+
         return parser.parse_args()
 
     def run(self: Cli) -> None:

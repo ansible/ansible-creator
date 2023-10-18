@@ -2,58 +2,60 @@
 
 from __future__ import annotations
 
-import logging
 import os
 
-from copy import deepcopy
 from importlib import import_module
+from typing import TYPE_CHECKING
 
 from yaml import parser, safe_load, scanner
 
+from ansible_creator.config import ScaffolderConfig
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.validators import SchemaValidator
 
 
-logger = logging.getLogger("ansible-creator")
+if TYPE_CHECKING:
+    from ansible_creator.config import Config
+    from ansible_creator.output import Output
 
 
-class CreatorCreate:
+class Create:
     """Class representing ansible-creator create subcommand."""
 
-    def __init__(self: CreatorCreate, **kwargs: str) -> None:
+    def __init__(self: Create, config: Config, output: Output) -> None:
         """Initialize the create action.
 
            Load and validate the content definition file.
 
         :param **args: A dictionary containing Create options.
         """
-        self._file_path: str = kwargs["file"]
+        self._file_path: str = config.file_path
+        self.output: Output = output
 
-    def run(self: CreatorCreate) -> None:
+    def run(self: Create) -> None:
         """Start scaffolding the specified content(s).
 
         Dispatch work to correct scaffolding class.
 
         :raises CreatorError: if scaffolder class cannot be loaded
         """
-        logger.debug("starting creator 'run'")
+        self.output.debug("starting creator 'run'")
 
         content_def = self.load_config() or {}
 
         if not content_def.get("plugins"):
-            logger.critical("No content to scaffold. Exiting ansible-creator.")
+            self.output.critical("No content to scaffold. Exiting ansible-creator.")
         else:
             # validate loaded content definition against pre-defined schema
             self.validate_config(content_def)
+            data = {
+                "collection_path": content_def["collection"]["path"],
+                "collection_name": content_def["collection"]["name"],
+                "namespace": content_def["collection"]["namespace"],
+            }
 
             for item in content_def["plugins"]:
-                data = deepcopy(item)
-                data.update(
-                    {
-                        "collection_" + k: v
-                        for k, v in content_def["collection"].items()
-                    },
-                )
+                data.update(item)
                 # start scaffolding plugins one by one
                 if item["type"] not in ["action", "filter", "cache", "test"]:
                     try:
@@ -66,20 +68,20 @@ class CreatorCreate:
                             msg,
                         ) from exc
 
-                    logger.debug("found scaffolder class %s", scaffolder_class)
+                    self.output.debug(f"found scaffolder class {scaffolder_class}")
 
-                    plugin_name = f"{data['collection_name']}_{item['name']}"
-
-                    logger.info(
-                        "scaffolding plugin %s of type %s",
-                        plugin_name,
-                        item["type"],
+                    self.output.info(
+                        f"scaffolding plugin {data['collection_name']}_{item['name']}"
+                        f" of type {item['type']}",
                     )
-                    scaffolder_class(**data).run()
+                    scaffolder_class(
+                        config=ScaffolderConfig(**data),
+                        output=self.output,
+                    ).run()
 
-            logger.info("all scaffolding tasks completed! \U0001f389")
+            self.output.note("all scaffolding tasks completed! \U0001f389")
 
-    def load_config(self: CreatorCreate) -> dict:
+    def load_config(self: Create) -> dict:
         """Load the content definition file.
 
         :returns: A dictionary of content(s) to scaffold.
@@ -91,7 +93,7 @@ class CreatorCreate:
             os.path.expanduser(os.path.expandvars(self._file_path)),
         )
 
-        logger.info("attempting to load the content definition file %s", file_path)
+        self.output.info("attempting to load the content definition file {file_path}")
         try:
             with open(file_path, encoding="utf-8") as content_file:
                 data = safe_load(content_file)
@@ -112,14 +114,14 @@ class CreatorCreate:
 
         return content_def
 
-    def validate_config(self: CreatorCreate, content_def: dict) -> None:
+    def validate_config(self: Create, content_def: dict) -> None:
         """Validate the content definition against a pre-defined jsonschema.
 
         :param content_def: A dictionary of content(s) to scaffold.
 
         :raises CreatorError: If schema validation errors were found.
         """
-        logger.info("validating the loaded content definition")
+        self.output.info("validating the loaded content definition")
         errors = SchemaValidator(data=content_def, criteria="content.json").validate()
 
         if errors:
