@@ -35,7 +35,7 @@ repos:
           - prettier-plugin-sort-json
 
   - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 23.9.1
+    rev: 23.10.0
     hooks:
       - id: black
 
@@ -50,7 +50,7 @@ repos:
       - id: tox-ini-fmt
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.1.0"
+    rev: "v0.1.1"
     hooks:
       - id: ruff
         args:
@@ -63,7 +63,7 @@ repos:
         name: Spell check with cspell
 
   - repo: https://github.com/jsh9/pydoclint
-    rev: 0.3.4
+    rev: 0.3.8
     hooks:
       - id: pydoclint
         args:
@@ -82,7 +82,7 @@ repos:
           - black
 
   - repo: https://github.com/pre-commit/mirrors-mypy.git
-    rev: v1.6.0
+    rev: v1.6.1
     hooks:
       - id: mypy
         additional_dependencies:
