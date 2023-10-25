@@ -93,7 +93,7 @@ class Create:
             os.path.expanduser(os.path.expandvars(self._file_path)),
         )
 
-        self.output.info("attempting to load the content definition file {file_path}")
+        self.output.info(f"attempting to load the content definition file {file_path}")
         try:
             with open(file_path, encoding="utf-8") as content_file:
                 data = safe_load(content_file)
