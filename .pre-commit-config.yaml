@@ -35,7 +35,7 @@ repos:
           - prettier-plugin-sort-json
 
   - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 23.10.0
+    rev: 23.10.1
     hooks:
       - id: black
 
@@ -50,7 +50,7 @@ repos:
       - id: tox-ini-fmt
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.1.1"
+    rev: "v0.1.3"
     hooks:
       - id: ruff
         args:
