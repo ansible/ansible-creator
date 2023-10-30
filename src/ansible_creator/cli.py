@@ -178,6 +178,7 @@ class Cli:
             subcommand(config=Config(**args), output=self.output).run()
         except CreatorError as exc:
             self.output.error(str(exc))
+            sys.exit(1)
 
         self.output.debug(msg="exiting ansible-creator")
 
