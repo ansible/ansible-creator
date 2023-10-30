@@ -27,7 +27,8 @@ class Init:
     ) -> None:
         """Initialize the init action.
 
-        :param kwargs: Arguments passed for the init action
+        :param config: App configuration object.
+        :param output: Output class object.
         """
         self._namespace: str = config.namespace
         self._collection_name: str = config.collection_name
