@@ -74,9 +74,12 @@ $ tree -lla /home/ansible-dev/collections/ansible_collections
 ├── CHANGELOG.rst
 ├── changelogs
 │   └── config.yaml
+├── CODE_OF_CONDUCT.md
+├── CONTRIBUTING
 ├── docs
-│   └── docsite
-│       └── links.yml
+│   ├── docsite
+│   │   └── links.yml
+│   └── .keep
 ├── extensions
 │   ├── eda
 │   │   └── rulebooks
@@ -91,7 +94,12 @@ $ tree -lla /home/ansible-dev/collections/ansible_collections
 │           └── vars
 │               └── vars.yml
 ├── galaxy.yml
+├── .github
+│   └── workflows
+│       └── test.yml
+├── .isort.cfg
 ├── LICENSE
+├── MAINTAINERS
 ├── meta
 │   └── runtime.yml
 ├── plugins
@@ -114,17 +122,23 @@ $ tree -lla /home/ansible-dev/collections/ansible_collections
 │   │   └── __init__.py
 │   └── test
 │       └── __init__.py
+├── .pre-commit-config.yaml
+├── .prettierignore
 ├── pyproject.toml
 ├── README.md
-└── tests
-    ├── integration
-    │   ├── __init__.py
-    │   ├── targets
-    │   │   └── hello_world
-    │   │       └── tasks
-    │   │           └── main.yml
-    │   └── test_integration.py
-    └── unit
+├── tests
+│   ├── .gitignore
+│   ├── integration
+│   │   ├── __init__.py
+│   │   ├── targets
+│   │   │   └── hello_world
+│   │   │       └── tasks
+│   │   │           └── main.yml
+│   │   └── test_integration.py
+│   └── unit
+│       └── .keep
+└── .vscode
+    └── extensions.json
 ```
 
 ### Upcoming features
