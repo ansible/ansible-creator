@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING
 from ansible_creator.config import Config
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.output import Output
-from ansible_creator.utils import TermFeatures
+from ansible_creator.utils import TermFeatures, expand_path
 
 
 try:
@@ -47,7 +47,7 @@ class Cli:
 
         self.output = Output(
             log_append=self.args.log_append,
-            log_file=self.args.log_file,
+            log_file=expand_path(self.args.log_file),
             log_level=self.args.log_level,
             term_features=self.term_features,
             verbosity=self.args.verbose,
