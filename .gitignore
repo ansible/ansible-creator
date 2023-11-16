@@ -11,4 +11,6 @@ build/
 
 *.mypy_cache/
 
+*.tox/
+
 __pycache__/

@@ -80,6 +80,8 @@ repos:
           - jinja2
           - jsonschema
           - black
+          - pytest
+          - tox
 
   - repo: https://github.com/pre-commit/mirrors-mypy.git
     rev: v1.6.1
@@ -91,6 +93,7 @@ repos:
           - black
           - types-jsonschema
           - types-pyyaml
+          - pytest
         args:
           - src
           - tests

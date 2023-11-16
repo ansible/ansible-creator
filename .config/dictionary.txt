@@ -130,12 +130,15 @@ subschema
 subspec
 substring
 superfences
+sysargs
 templatable
 templated
 templating
+testcol
 testhost
 testname
 testns
+testorg
 testpaths
 tmplt
 topbar
