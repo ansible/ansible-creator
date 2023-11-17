@@ -11,6 +11,7 @@ argvalues
 astimezone
 autorefs
 basesystem
+BUILDDIR
 caplog
 cliconf             # Ansible network cli abstraction plugin
 codeclimate
@@ -100,6 +101,7 @@ premanent
 pullable
 pymdown
 pymdownx
+quickstart
 redhatinsights
 Regset
 representer
@@ -122,6 +124,9 @@ SIGTERM
 SKEL
 smartquotes
 somevalue
+SOURCEDIR
+SPHINXBUILD
+SPHINXOPTS
 statemachine
 stripspaces
 subaction
@@ -141,6 +146,7 @@ testns
 testorg
 testpaths
 tmplt
+toctree
 topbar
 topdown
 Towncrier           # Changelog generator

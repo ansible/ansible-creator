@@ -1,4 +1,4 @@
-# Configuration file for the Sphinx documentation builder.
+# Configuration file for the Sphinx documentation builder.  # noqa: D100
 #
 # This file only contains a selection of the most common options. For a full
 # list see the documentation:
@@ -10,16 +10,16 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+# import os # noqa: ERA001
+# import sys    # noqa: ERA001
+# sys.path.insert(0, os.path.abspath('.'))  # noqa: ERA001
 
 
 # -- Project information -----------------------------------------------------
 
-project = "Ansible Creator"
-copyright = "2023, Ansible"
-author = "Ansible"
+PROJECT = "Ansible Creator"
+COPYRIGHT = "2023, Ansible"
+AUTHOR = "Ansible"
 
 
 # -- General configuration ---------------------------------------------------
@@ -43,7 +43,7 @@ exclude_patterns = []
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "sphinx_ansible_theme"
+html_theme = "sphinx_ansible_theme"  # pylint: disable=invalid-name
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
