@@ -1,0 +1,16 @@
+---
+- name: Shared integration test runner
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Load the vars
+      ansible.builtin.include_vars:
+        file: ../../utils/vars/vars.yml
+
+    - name: "Integration test: {{ test_name }}"
+      ansible.builtin.include_role:
+        name: "{{ test_path }}"
+      vars:
+        test_path: "{{ integration_tests_path }}{{ test_name }}"
+        test_name: "{{ molecule_scenario_name.replace('integration_', '') }}"

@@ -1,0 +1,9 @@
+---
+- name: Test the Hello World filter plugin
+  ansible.builtin.set_fact:
+    msg: "{{ 'ansible-creator' | testorg.testcol.hello_world }}"
+
+- name: Assert that the filter worked
+  ansible.builtin.assert:
+    that:
+      - msg == 'Hello, ansible-creator'

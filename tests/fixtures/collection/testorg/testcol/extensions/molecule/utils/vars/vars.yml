@@ -1,0 +1,3 @@
+collection_root: "{{ lookup( 'pipe', 'git rev-parse --show-toplevel') }}"
+integration_tests_path: "{{ collection_root }}/tests/integration/targets/"
+molecule_scenario_name: "{{ molecule_scenario_directory | basename }}"

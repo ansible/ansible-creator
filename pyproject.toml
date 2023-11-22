@@ -41,12 +41,16 @@ homepage = "https://github.com/ansible-community/ansible-creator"
 repository = "https://github.com/ansible-community/ansible-creator"
 
 [tool.mypy]
+exclude = ['tests/fixtures']
 files = ["src", "tests"]
 
 [tool.pydoclint]
 allow-init-docstring = true
 
 [tool.pylint]
+
+[tool.pylint.MASTER]
+ignore-patterns = 'test_*'
 
 [tool.pylint.format]
 max-line-length = 100
@@ -71,6 +75,7 @@ disable = [
 
 [tool.ruff]
 builtins = ["__"]
+exclude = ['tests/fixtures']
 fix = true
 ignore = [
   "C901",

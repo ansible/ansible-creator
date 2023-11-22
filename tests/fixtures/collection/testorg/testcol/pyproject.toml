@@ -1,0 +1,7 @@
+[tool.black]
+line-length = 100
+
+[tool.pytest.ini_options]
+addopts = ["--color", "--log-level", "-n", "-vvv", "2", "WARNING", "yes"]
+filterwarnings = ['ignore:AnsibleCollectionFinder has already been configured']
+testpaths = ["tests"]
