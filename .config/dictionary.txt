@@ -10,6 +10,7 @@ argspec
 argvalues
 astimezone
 autorefs
+autosectionlabel
 basesystem
 BUILDDIR
 caplog
@@ -118,6 +119,7 @@ scaffolders
 SCAP
 scrollback
 sectionauthor
+seealso
 setuptools          # Used in _version.pyi
 setval
 SIGTERM
