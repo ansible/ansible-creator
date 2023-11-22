@@ -18,3 +18,7 @@ build/
 __pycache__/
 .cache
 _readthedocs
+
+htmlcov/
+
+.coverage
