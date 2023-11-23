@@ -40,6 +40,9 @@ documentation = "https://ansible-creator.readthedocs.io/en/latest/"
 homepage = "https://github.com/ansible-community/ansible-creator"
 repository = "https://github.com/ansible-community/ansible-creator"
 
+[tool.black]
+exclude = "tests/fixtures"
+
 [tool.mypy]
 exclude = ['tests/fixtures']
 files = ["src", "tests"]
@@ -119,5 +122,4 @@ local_scheme = "no-local-version"
 write_to = "src/ansible_creator/_version.py"
 
 [tool.tomlsort]
-all = true
 in_place = true
