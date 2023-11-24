@@ -36,14 +36,14 @@ $ ansible-creator init <collection-name> --init-path <path>
 
 #### Positional Argument(s)
 
-| Parameter | Description |
-|-----------|-------------|
+| Parameter  | Description                                                          |
+| ---------- | -------------------------------------------------------------------- |
 | collection | The name of the collection in the format `<namespace>.<collection>`. |
 
 #### Optional Arguments
 
 | Parameter                 | Description                                                                                           |
-|---------------------------|-------------------------------------------------------------------------------------------------------|
+| ------------------------- | ----------------------------------------------------------------------------------------------------- |
 | -h, --help                | Show help message and exit.                                                                           |
 | --na, --no-ansi           | Disable the use of ANSI codes for terminal color.                                                     |
 | --lf, --log-file <file>   | Log file to write to.                                                                                 |

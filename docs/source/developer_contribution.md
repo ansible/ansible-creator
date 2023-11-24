@@ -24,7 +24,7 @@ All pull requests undergo automated tests. To ensure that your changes align wit
 
 ## Get in touch
 
-Connect with the ansible-creator community through the [GitHub discussions forum](https://github.com/ansible/ansible-creator/discussions). For real-time interactions, join the `#ansible-devtools` IRC channel on libera.chat or the Matrix room [#devtools:ansible.com](https://matrix.to/#/#devtools:ansible.com). Explore the full list of Ansible IRC and Mailing list options on the Ansible Communication page. Release announcements will be made to the Ansible Announce list. If you encounter security-related concerns, report them via email to [security@ansible.com](<mailto:security@ansible.com>).
+Connect with the ansible-creator community through the [GitHub discussions forum](https://github.com/ansible/ansible-creator/discussions). For real-time interactions, join the `#ansible-devtools` IRC channel on libera.chat or the Matrix room [#devtools:ansible.com](https://matrix.to/#/#devtools:ansible.com). Explore the full list of Ansible IRC and Mailing list options on the Ansible Communication page. Release announcements will be made to the Ansible Announce list. If you encounter security-related concerns, report them via email to [security@ansible.com](mailto:security@ansible.com).
 
 ## Code of Conduct
 

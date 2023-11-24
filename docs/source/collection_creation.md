@@ -6,7 +6,7 @@ Here is a detailed guide on creating an ansible collection using the ansible-cre
 
 ## Step 1: Installing ansible-creator in the Environment
 
-1. Open VS Code and click on the Ansible icon in the activity bar. This action expands and opens the `Ansible Creator` section. Click on *"Get Started"* to access the Menu page of ansible-creator in the editor.
+1. Open VS Code and click on the Ansible icon in the activity bar. This action expands and opens the `Ansible Creator` section. Click on _"Get Started"_ to access the Menu page of ansible-creator in the editor.
 
 2. On the Menu page the `System Requirements` box will view details about the current environment, including ansible, Python, and ansible-creator. If ansible-creator is not installed, proceed to the next step.
 
@@ -16,7 +16,7 @@ Here is a detailed guide on creating an ansible collection using the ansible-cre
 
 ## Step 2: Initializing Collection by Filling an Interactive Form
 
-1. From the menu page, click on `Initialize a collection` to access the *"Init"* interface in the editor, providing an interactive form.
+1. From the menu page, click on `Initialize a collection` to access the _"Init"_ interface in the editor, providing an interactive form.
 
 2. Enter the namespace and the collection name. You can review the format of your collection name as you type.
 
