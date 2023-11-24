@@ -12,7 +12,7 @@ Here is a detailed guide on creating an ansible collection using the ansible-cre
 
 3. Install ansible-creator or switch to an environment where ansible-creator is already installed. Ensure that all requirements in the `system requirements` box display green ticks to signify a ready environment.
 
-![test gif](./media/fedora-refresh.gif){width=900px align=center}
+![refresh](./media/refresh.gif){width=900px align=center}
 
 ## Step 2: Initializing Collection by Filling an Interactive Form
 
@@ -26,13 +26,13 @@ Here is a detailed guide on creating an ansible collection using the ansible-cre
 Use the expanded path; shorthand notations are not supported.
 ```
 
-![test gif](./media/fedora-open-folder.gif){width=900px align=center}
+![open-folder](./media/open-folder.gif){width=900px align=center}
 
 4. Set the verbosity of the output using the options in the dropdown.
 
 5. Optionally, you can log the output to a file by checking the `Log output to a file` option. This reveals additional options related to logging, including selecting the log file, choosing to append to the file, and setting the file logging level.
 
-![test gif](./media/fedora-log-to-file.gif){width=900px align=center}
+![log-to-file](./media/log-to-file.gif){width=900px align=center}
 
 6. To re-scaffold an existing collection, check the `Force` box. This removes the existing content in the collection and freshly scaffolds it with the same name.
 
@@ -40,13 +40,13 @@ Use the expanded path; shorthand notations are not supported.
 
 8. You can review the logs or open the log file (if created) in the VS Code Editor for further scrutiny.
 
-![test gif](./media/fedora-open-log-file.gif){width=900px align=center}
+![open-log-file](./media/open-log-file.gif){width=900px align=center}
 
 ## Step 3: Leveraging the Extension's ability to Interact with the New Collection
 
 1. Once the scaffolding is complete, you can directly add the collection to your current workspace by clicking the provided `Open Collection` button. This will additionally open the `galaxy.yml` file in a new tab in the editor.
 
-![test gif](./media/fedora-open-collection.gif){width=900px align=center}
+![open-collection](./media/open-collection.gif){width=900px align=center}
 
 2. Start developing the content within the newly scaffolded collection.
 
