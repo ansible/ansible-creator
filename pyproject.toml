@@ -44,8 +44,7 @@ repository = "https://github.com/ansible-community/ansible-creator"
 exclude = "tests/fixtures"
 
 [tool.mypy]
-exclude = ['tests/fixtures']
-files = ["src", "tests"]
+files = ["src"]
 
 [tool.pydoclint]
 allow-init-docstring = true
