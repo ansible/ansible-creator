@@ -5,7 +5,6 @@ from __future__ import annotations
 import re
 
 from filecmp import dircmp
-from typing import TYPE_CHECKING
 
 import pytest
 
@@ -16,10 +15,6 @@ from ansible_creator.subcommands.init import Init
 from ansible_creator.utils import TermFeatures
 
 from tests.defaults import FIXTURES_DIR
-
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 
 @pytest.fixture()
@@ -65,17 +60,18 @@ def test_run_success(
     output,
 ) -> None:
     """Test Init.run()."""
+    # successfully create new collection
     init = Init(
         Config(**cli_args),
         output=output,
     )
-
-    # successfully create new collection
     init.run()
     result = capsys.readouterr().out
 
     # check stdout
-    assert re.search("Note: collection testorg.testcol created at", result) is not None
+    assert (
+        re.search("Note: collection testorg.testcol created at.+", result) is not None
+    )
 
     # recursively assert files created
     dircmp(str(tmp_path), str(FIXTURES_DIR / "collection")).report_full_closure()
@@ -100,5 +96,5 @@ def test_run_success(
     init.run()
     result = capsys.readouterr().out
     assert (
-        re.search(r"Warning: re-initializing existing directory", result) is not None
+        re.search("Warning: re-initializing existing directory.+", result) is not None
     ), result
