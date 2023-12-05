@@ -4,17 +4,18 @@ from __future__ import annotations
 
 import re
 
+from filecmp import dircmp
 from typing import TYPE_CHECKING
 
 import pytest
 
 from ansible_creator.config import Config
+from ansible_creator.exceptions import CreatorError
 from ansible_creator.output import Output
 from ansible_creator.subcommands.init import Init
 from ansible_creator.utils import TermFeatures
 
 from tests.defaults import FIXTURES_DIR
-from tests.utils import run_diff
 
 
 if TYPE_CHECKING:
@@ -22,12 +23,12 @@ if TYPE_CHECKING:
 
 
 @pytest.fixture()
-def init_class(tmp_path: Path) -> Init:
+def cli_args(tmp_path: Path) -> dict:
     """Create an Init class object as fixture.
 
     :param tmp_path: App configuration object.
     """
-    cli_args: dict = {
+    return {
         "creator_version": "0.0.1",
         "json": True,
         "log_append": True,
@@ -39,21 +40,65 @@ def init_class(tmp_path: Path) -> Init:
         "collection": "testorg.testcol",
         "init_path": tmp_path,
     }
-    return Init(
-        Config(**cli_args),
-        output=Output(
-            display="text",
-            log_file=str(tmp_path) + "ansible-creator.log",
-            log_level="notset",
-            log_append="false",
-            term_features=TermFeatures(color=False, links=False),
-            verbosity=0,
-        ),
+
+
+@pytest.fixture()
+def output(tmp_path: Path) -> Output:
+    """Create an Output class object as fixture.
+
+    :param tmp_path: App configuration object.
+    """
+    return Output(
+        display="text",
+        log_file=str(tmp_path) + "ansible-creator.log",
+        log_level="notset",
+        log_append="false",
+        term_features=TermFeatures(color=False, links=False),
+        verbosity=0,
     )
 
 
-def test_run(tmp_path, init_class) -> None:  # noqa: ANN001
+def test_run_success(
+    capsys,
+    tmp_path,
+    cli_args,
+    output,
+) -> None:
     """Test Init.run()."""
-    init_class.run()
-    diff = run_diff(a=str(tmp_path), b=str(FIXTURES_DIR / "collection"))
-    assert re.search("Differing files|Only in", diff) is None, diff
+    init = Init(
+        Config(**cli_args),
+        output=output,
+    )
+
+    # successfully create new collection
+    init.run()
+    result = capsys.readouterr().out
+
+    # check stdout
+    assert re.search("Note: collection testorg.testcol created at", result) is not None
+
+    # recursively assert files created
+    dircmp(str(tmp_path), str(FIXTURES_DIR / "collection")).report_full_closure()
+    captured = capsys.readouterr()
+    assert re.search("Differing files|Only in", captured.out) is None, captured.out
+
+    # fail to override existing collection with force=false (default)
+    fail_msg = (
+        f"The directory {tmp_path}/testorg/testcol already exists."
+        "\nYou can use --force to re-initialize this directory."
+        "\nHowever it will delete ALL existing contents in it."
+    )
+    with pytest.raises(CreatorError, match=fail_msg):
+        init.run()
+
+    # override existing collection with force=true
+    cli_args["force"] = True
+    init = Init(
+        Config(**cli_args),
+        output=output,
+    )
+    init.run()
+    result = capsys.readouterr().out
+    assert (
+        re.search(r"Warning: re-initializing existing directory", result) is not None
+    ), result

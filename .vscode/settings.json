@@ -7,7 +7,7 @@
     "editor.defaultFormatter": "ms-python.black-formatter"
   },
   "mypy.runUsingActiveInterpreter": true,
-  "mypy.targets": ["src", "tests"],
+  "mypy.targets": ["src"],
   "[jsonc]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },

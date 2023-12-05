@@ -13,6 +13,7 @@ autorefs
 basesystem
 BUILDDIR
 caplog
+capsys
 cliconf             # Ansible network cli abstraction plugin
 codeclimate
 colname

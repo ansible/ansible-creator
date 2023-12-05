@@ -63,7 +63,7 @@ def test_expand_path() -> None:
         ],
     ],
 )
-def test_cli_parser(monkeypatch, sysargs, expected) -> None:  # noqa: ANN001
+def test_cli_parser(monkeypatch, sysargs, expected) -> None:
     """Test CLI args parsing."""
     monkeypatch.setattr("sys.argv", sysargs)
     assert vars(Cli().parse_args()) == expected

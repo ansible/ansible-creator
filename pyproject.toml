@@ -78,7 +78,7 @@ disable = [
 
 [tool.ruff]
 builtins = ["__"]
-exclude = ['tests/fixtures']
+exclude = ['tests']
 fix = true
 ignore = [
   "C901",
