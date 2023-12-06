@@ -1,4 +1,4 @@
-{% raw %}---
+---
 platforms:
   - name: na
 
@@ -18,4 +18,3 @@ scenario:
     - converge
   destroy_sequence:
     - destroy
-{%- endraw %}

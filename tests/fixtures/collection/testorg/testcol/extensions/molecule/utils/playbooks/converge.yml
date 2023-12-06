@@ -1,4 +1,4 @@
-{% raw %}---
+---
 - name: Shared integration test runner
   hosts: localhost
   gather_facts: false
@@ -14,4 +14,3 @@
       vars:
         test_path: "{{ integration_tests_path }}{{ test_name }}"
         test_name: "{{ molecule_scenario_name.replace('integration_', '') }}"
-{%- endraw %}

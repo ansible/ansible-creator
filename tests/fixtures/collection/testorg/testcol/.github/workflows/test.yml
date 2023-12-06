@@ -1,5 +1,5 @@
-name: GHA for {{ namespace }}.{{ collection_name }}
-{% raw %}
+name: GHA for testorg.testcol
+
 concurrency:
   group: ${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
@@ -39,4 +39,3 @@ jobs:
           '${{ needs.sanity.result }}',
           '${{ needs.unit-galaxy.result }}'
           ]) == {'success'}"
-{%- endraw %}

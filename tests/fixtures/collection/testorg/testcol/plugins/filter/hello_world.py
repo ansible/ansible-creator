@@ -1,4 +1,4 @@
-"""A hello-world filter plugin in {{ namespace }}.{{ collection_name }}."""
+"""A hello-world filter plugin in testorg.testcol."""
 
 from __future__ import absolute_import, division, print_function
 

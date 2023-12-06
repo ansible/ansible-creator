@@ -96,6 +96,5 @@ repos:
           - pytest
         args:
           - src
-          - tests
           - --python-version=3.9
         pass_filenames: false

@@ -40,13 +40,19 @@ documentation = "https://ansible-creator.readthedocs.io/en/latest/"
 homepage = "https://github.com/ansible-community/ansible-creator"
 repository = "https://github.com/ansible-community/ansible-creator"
 
+[tool.black]
+exclude = "tests/fixtures"
+
 [tool.mypy]
-files = ["src", "tests"]
+files = ["src"]
 
 [tool.pydoclint]
 allow-init-docstring = true
 
 [tool.pylint]
+
+[tool.pylint.MASTER]
+ignore-patterns = 'test_*'
 
 [tool.pylint.format]
 max-line-length = 100
@@ -71,6 +77,7 @@ disable = [
 
 [tool.ruff]
 builtins = ["__"]
+exclude = ['tests']
 fix = true
 ignore = [
   "C901",
@@ -114,5 +121,6 @@ local_scheme = "no-local-version"
 write_to = "src/ansible_creator/_version.py"
 
 [tool.tomlsort]
-all = true
 in_place = true
+sort_inline_tables = true
+sort_table_keys = true
