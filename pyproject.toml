@@ -113,7 +113,7 @@ convention = "pep257"
 
 [tool.setuptools.dynamic]
 dependencies = {file = "requirements.txt"}
-optional-dependencies.doc = {file = [".config/requirements-doc.txt"]}
+optional-dependencies.docs = {file = [".config/docs-requirements.txt"]}
 optional-dependencies.test = {file = [".config/requirements-test.txt"]}
 
 [tool.setuptools_scm]

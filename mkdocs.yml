@@ -1,0 +1,117 @@
+---
+# cspell:ignore autohide, autofix
+site_name: Ansible Creator Documentation
+site_url: https://ansible.readthedocs.io/projects/creator/
+repo_url: https://github.com/ansible/ansible-creator
+edit_uri: blob/main/docs/
+copyright: Copyright © 2023 Red Hat, Inc.
+docs_dir: docs
+strict: true
+
+# extra_css:
+#   - stylesheets/extra.css
+
+theme:
+  name: ansible
+  features:
+    - announce.dismiss
+    - content.action.edit
+    - content.action.view
+    - content.code.annotate
+    - content.code.copy
+    - content.tabs.link
+    - content.tooltips
+    - header.autohide
+    - navigation.expand
+    - navigation.footer
+    - navigation.indexes
+    - navigation.instant
+    - navigation.path
+    - navigation.prune
+    - navigation.sections
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.integrate
+extra:
+  generator: false
+  social:
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/ansible-creator/
+      name: PyPI
+    - icon: fontawesome/solid/scroll
+      link: https://github.com/ansible/ansible-creator/releases
+      name: Releases
+    - icon: simple/mastodon
+      link: https://fosstodon.org/@ansible
+      name: Mastodon
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/ansible
+      name: Twitter
+    - icon: simple/matrix
+      link: https://matrix.to/#/#devtools:ansible.com
+      name: Matrix
+    - icon: fontawesome/solid/comments
+      link: https://github.com/ansible/ansible-creator/discussions
+      name: Discussions
+    - icon: fontawesome/brands/github-alt
+      link: https://github.com/ansible/ansible-creator
+      name: GitHub
+
+nav:
+  - Home:
+      - home: index.md
+  - Setup:
+      - installing.md
+      - collection_creation.md
+  - Contributing: contributing.md
+
+exclude_docs: |
+  _autofix_rules.md
+
+plugins:
+  - autorefs
+  - markdown-exec
+  - material/search:
+      separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+  - material/social
+  - material/tags
+  # https://github.com/manuzhang/mkdocs-htmlproofer-plugin
+  # - htmlproofer
+
+markdown_extensions:
+  - markdown_include.include:
+      base_path: docs
+  - admonition
+  - def_list
+  - footnotes
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.magiclink:
+      repo_url_shortener: true
+      repo_url_shorthand: true
+      social_url_shorthand: true
+      social_url_shortener: true
+      user: facelessuser
+      repo: pymdown-extensions
+      normalize_issue_symbols: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - toc:
+      toc_depth: 2
+      permalink: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+        - name: python
+          class: python
+          validator: !!python/name:markdown_exec.validator
+          format: !!python/name:markdown_exec.formatter
