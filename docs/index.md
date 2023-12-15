@@ -1,7 +1,8 @@
-% Ansible Creator documentation master file, created by
-% sphinx-quickstart on Fri Nov 17 12:47:50 2023.
-% You can adapt this file completely to your liking, but it should at least
-% contain the root `toctree` directive.
+---
+hide:
+  - navigation
+  - toc
+---
 
 # Welcome to Ansible-Creator Documentation
 
@@ -9,23 +10,13 @@ The `ansible-creator` is a Command-Line Interface (CLI) tool designed for effort
 
 This documentation serves as a detailed guide for using ansible-creator, emphasizing the 'init' functionality for initializing Ansible Collections. Stay tuned for updates on the 'create' branch that will bring new features to enhance your Ansible workflow.
 
-```{toctree}
-:caption: 'Contents:'
-:maxdepth: 2
-
-self
-installation_usage
-collection_creation
-developer_contribution
-```
-
 ## Upcoming Features
 
 The `create` command is currently under development which will allow you scaffold ansible plugins of your choice.
 
-```{Tip}
-Switch to the create [create branch](https://github.com/ansible/ansible-creator/tree/create) of the project to try it out!
-```
+!!! notice
+
+    Switch to the create [create branch](https://github.com/ansible/ansible-creator/tree/create) of the project to try it out!
 
 ## Licensing
 

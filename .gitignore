@@ -16,3 +16,5 @@ build/
 *.tox/
 
 __pycache__/
+.cache
+_readthedocs
