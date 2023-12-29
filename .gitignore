@@ -19,6 +19,8 @@ __pycache__/
 .cache
 _readthedocs
 
-htmlcov/
-
 .coverage
+
+coverage.xml
+
+htmlcov/

@@ -52,8 +52,20 @@ jobs:
           python3 -m pip freeze --all
 
       - name: "tox -e ${{ matrix.passed_name }}"
-        continue-on-error: ${{ matrix.devel || false }}
         run: python3 -m tox -e ${{ matrix.passed_name }}
+
+      - name: Combine coverage data
+        if: ${{ startsWith(matrix.passed_name, 'py') }}
+        # produce a single .coverage file at repo root
+        run: tox -e coverage
+
+      - name: Upload coverage data
+        if: ${{ startsWith(matrix.passed_name, 'py') }}
+        uses: codecov/codecov-action@v3
+        with:
+          name: ${{ matrix.passed_name }}
+          token: ${{ secrets.CODECOV_TOKEN }}
+          verbose: true # optional (default = false)
 
   tox_passed:
     needs: tox
