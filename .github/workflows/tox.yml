@@ -6,7 +6,14 @@ concurrency:
   cancel-in-progress: true
 
 on:
+  create: # is used for publishing to PyPI and TestPyPI
+    tags: # any tag regardless of its name, no branches
+      - "**"
+  push: # only publishes pushes to the main branch to TestPyPI
+    branches: # any integration branch but not tag
+      - "main"
   pull_request:
+  workflow_call:
 
 jobs:
   pre:
