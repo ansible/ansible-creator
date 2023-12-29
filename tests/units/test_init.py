@@ -94,5 +94,5 @@ def test_run_success(
     init.run()
     result = capsys.readouterr().out
     assert (
-        re.search("Warning: re-initializing existing directory.+", result) is not None
+        re.search("Warning: re-initializing existing directory", result) is not None
     ), result
