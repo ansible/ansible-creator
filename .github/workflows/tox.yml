@@ -22,18 +22,25 @@ jobs:
           min_python: "3.9"
           max_python: "3.12"
           default_python: "3.11"
-          other_names: lint
+          other_names: |
+            lint
+            pkg
 
-  tox:
-    name: ${{ matrix.name }} / python ${{ matrix.python_version }}
-    runs-on: ubuntu-20.04
+          platforms: linux,macos
+          macos: minmax
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os || 'ubuntu-22.04' }}
     needs: pre
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.pre.outputs.matrix) }}
+    env:
+      FORCE_COLOR: 1
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out src from Git
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0 # needed by setuptools-scm
 
@@ -42,24 +49,50 @@ jobs:
         with:
           python-version: ${{ matrix.python_version }}
 
-      - name: Install tox
-        run: python3 -m pip install --upgrade "tox>=4.0.2"
+      - name: Pre-commit cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pre-commit
+          key: ${{ matrix.name }}-pre-commit-${{ hashFiles('setup.cfg', 'tox.ini', 'pyproject.toml', '.pre-commit-config.yaml') }}
 
-      - name: Log Python info (${{ matrix.python_version }})
-        run: |
-          command -v python
-          python --version --version
-          python3 -m pip freeze --all
+      - name: Pip cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ matrix.name }}-pip-${{ hashFiles('setup.cfg', 'tox.ini', 'pyproject.toml', '.pre-commit-config.yaml') }}
+
+      - name: Install tox
+        run: python3 -m pip install --upgrade 'tox>=4.0.3'
+
+      - name: Initialize tox envs
+        run: python -m tox --notest --skip-missing-interpreters false -vv -e ${{ matrix.passed_name }}
 
       - name: "tox -e ${{ matrix.passed_name }}"
         continue-on-error: ${{ matrix.devel || false }}
         run: python3 -m tox -e ${{ matrix.passed_name }}
+      - name: Archive logs
+        uses: actions/upload-artifact@v3
+        with:
+          name: logs.zip
+          path: .tox/**/log/
 
-  tox_passed:
-    needs: tox
-    runs-on: ubuntu-latest
+      - name: Upload coverage data
+        if: ${{ startsWith(matrix.passed_name, 'py') }}
+        uses: codecov/codecov-action@v3
+        with:
+          name: ${{ matrix.passed_name }}
+          fail_ci_if_error: false # see https://github.com/codecov/codecov-action/issues/598
+          token: ${{ secrets.CODECOV_TOKEN }}
+          verbose: true # optional (default = false)
+
+  check: # This job does nothing and is only used for the branch protection
+    if: always()
+
+    needs:
+      - build
+    runs-on: ubuntu-22.04
     steps:
-      - run: >-
-          python -c "assert set([
-          '${{ needs.tox.result }}',
-          ]) == {'success'}"
+      - name: Decide whether the needed jobs succeeded or failed
+        uses: re-actors/alls-green@release/v1
+        with:
+          jobs: ${{ toJSON(needs) }}
