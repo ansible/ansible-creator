@@ -69,9 +69,7 @@ def test_run_success(
     result = capsys.readouterr().out
 
     # check stdout
-    assert (
-        re.search("Note: collection testorg.testcol created at.+", result) is not None
-    )
+    assert re.search("Note: collection testorg.testcol created at", result) is not None
 
     # recursively assert files created
     dircmp(str(tmp_path), str(FIXTURES_DIR / "collection")).report_full_closure()
