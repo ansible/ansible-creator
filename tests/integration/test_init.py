@@ -21,11 +21,11 @@ def test_run_help(cli):
                 Tool to scaffold Ansible Content. Get started by looking at the help text.
 
                 optional arguments:
-                -h, --help  show this help message and exit
-                --version   Print ansible-creator version and exit.
+                  -h, --help  show this help message and exit
+                  --version   Print ansible-creator version and exit.
 
                 Commands:
-                {init}      The subcommand to invoke.
+                  {init}      The subcommand to invoke.
                     init      Initialize an Ansible Collection.
                 """,
             )
