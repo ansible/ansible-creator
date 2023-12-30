@@ -3,33 +3,53 @@
 from __future__ import annotations
 
 import re
-
-from filecmp import dircmp
+import sys
 from textwrap import dedent
-from tests.defaults import FIXTURES_DIR
 
 
 def test_run_help(cli):
     result = cli("ansible-creator --help")
     assert result.returncode == 0
-    assert (
-        dedent(
-            """\
-            usage: ansible-creator [-h] [--version] {init} ...
 
-            Tool to scaffold Ansible Content. Get started by looking at the help text.
+    # temporary assertion fix until we write custom helper
+    if sys.version_info < (3, 10):
+        assert (
+            dedent(
+                """\
+                usage: ansible-creator [-h] [--version] {init} ...
 
-            optional arguments:
-              -h, --help  show this help message and exit
-              --version   Print ansible-creator version and exit.
+                Tool to scaffold Ansible Content. Get started by looking at the help text.
 
-            Commands:
-              {init}      The subcommand to invoke.
-                init      Initialize an Ansible Collection.
-            """,
+                optional arguments:
+                -h, --help  show this help message and exit
+                --version   Print ansible-creator version and exit.
+
+                Commands:
+                {init}      The subcommand to invoke.
+                    init      Initialize an Ansible Collection.
+                """,
+            )
+            in result.stdout
         )
-        in result.stdout
-    )
+    else:
+        assert (
+            dedent(
+                """\
+                usage: ansible-creator [-h] [--version] {init} ...
+
+                Tool to scaffold Ansible Content. Get started by looking at the help text.
+
+                options:
+                  -h, --help  show this help message and exit
+                  --version   Print ansible-creator version and exit.
+
+                Commands:
+                  {init}      The subcommand to invoke.
+                    init      Initialize an Ansible Collection.
+                """,
+            )
+            in result.stdout
+        )
 
 
 def test_run_no_subcommand(cli):
