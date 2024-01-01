@@ -78,7 +78,7 @@ jobs:
         continue-on-error: ${{ matrix.devel || false }}
         run: python3 -m tox -e ${{ matrix.passed_name }}
       - name: Archive logs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: logs.zip
           path: .tox/**/log/
