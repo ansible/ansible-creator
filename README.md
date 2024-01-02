@@ -148,6 +148,6 @@ $ tree -lla /home/ansible-dev/collections/ansible_collections
 
 ## Licensing
 
-GNU General Public License v3.0 or later.
+ansible-creator is released under the Apache License version 2.
 
-See [LICENSE](https://www.gnu.org/licenses/gpl-3.0.txt) to see the full text.
+See the [LICENSE](https://github.com/ansible/ansible-creator/blob/main/LICENSE) file for more details.
