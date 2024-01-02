@@ -1,4 +1,5 @@
 coverage
 pytest
+coverage[toml]
 pytest-xdist
 tox

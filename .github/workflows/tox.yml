@@ -77,6 +77,7 @@ jobs:
       - name: "tox -e ${{ matrix.passed_name }}"
         continue-on-error: ${{ matrix.devel || false }}
         run: python3 -m tox -e ${{ matrix.passed_name }}
+
       - name: Archive logs
         uses: actions/upload-artifact@v3
         with:

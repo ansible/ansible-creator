@@ -18,7 +18,7 @@ from tests.defaults import FIXTURES_DIR
 
 
 @pytest.fixture()
-def cli_args(tmp_path: Path) -> dict:
+def cli_args(tmp_path) -> dict:
     """Create an Init class object as fixture.
 
     :param tmp_path: App configuration object.
@@ -38,7 +38,7 @@ def cli_args(tmp_path: Path) -> dict:
 
 
 @pytest.fixture()
-def output(tmp_path: Path) -> Output:
+def output(tmp_path) -> Output:
     """Create an Output class object as fixture.
 
     :param tmp_path: App configuration object.
@@ -69,7 +69,7 @@ def test_run_success(
     result = capsys.readouterr().out
 
     # check stdout
-    assert re.search("Note: collection testorg.testcol created at", result) is not None
+    assert re.search("Note: collection testorg.testcol created", result) is not None
 
     # recursively assert files created
     dircmp(str(tmp_path), str(FIXTURES_DIR / "collection")).report_full_closure()

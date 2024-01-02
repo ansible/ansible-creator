@@ -9,8 +9,6 @@ try:
 except ImportError:
     HAS_JINJA2 = False
 
-from ansible_creator.utils import get_file_contents
-
 
 class Templar:
     """Class representing a Jinja2 template engine."""
@@ -32,20 +30,6 @@ class Templar:
             undefined=StrictUndefined,
             keep_trailing_newline=True,
         )
-
-    def render(self: Templar, template_name: str, data: dict) -> str:
-        """Load template from a file and render with provided data.
-
-        :param template_name: Name of the template to load.
-        :param data: Data to render template with.
-
-        :returns: Templated content.
-        """
-        template_content = get_file_contents(
-            directory="templates",
-            filename=template_name,
-        )
-        return self.render_from_content(template=template_content, data=data)
 
     def render_from_content(self: Templar, template: str, data: dict) -> str:
         """Render a template with provided data.
