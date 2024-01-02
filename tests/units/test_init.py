@@ -78,16 +78,12 @@ def test_run_success(
 
     # fail to override existing collection with force=false (default)
     fail_msg = (
-        rf"The directory\s+{tmp_path}/testorg/testcol already exists."
+        f"The directory {tmp_path}/testorg/testcol already exists."
         "\nYou can use --force to re-initialize this directory."
         "\nHowever it will delete ALL existing contents in it."
     )
-    with pytest.raises(CreatorError) as override_exc:
+    with pytest.raises(CreatorError, match=fail_msg):
         init.run()
-    assert override_exc.type is CreatorError
-    assert (
-        re.search(fail_msg, override_exc.value.args[0], flags=re.MULTILINE) is not None
-    )
 
     # override existing collection with force=true
     cli_args["force"] = True
