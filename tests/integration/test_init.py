@@ -90,8 +90,9 @@ def test_run_init_basic(cli, tmp_path):
     assert result.returncode != 0
     assert (
         re.search(
-            f"Error: The directory {tmp_path}/testorg/testcol already exists.",
+            rf"Error: The directory\s+{tmp_path}/testorg/testcol\s+already exists.",
             result.stderr,
+            flags=re.MULTILINE,
         )
         is not None
     )
