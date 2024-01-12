@@ -20,4 +20,4 @@ The `create` command is currently under development which will allow you scaffol
 
 ## Licensing
 
-**ansible-creator** is licensed under the Apache License version 2. Refer to the [LICENSE](https://github.com/ansible/ansible-creator/blob/main/LICENSE) file for the full text.
+**ansible-creator** is licensed under the Apache License version 2. Refer to the [LICENSE](http://www.apache.org/licenses/LICENSE-2.0) file for the full text.
