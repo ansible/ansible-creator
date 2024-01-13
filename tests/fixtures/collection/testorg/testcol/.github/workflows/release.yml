@@ -1,5 +1,6 @@
 ---
 name: Release testorg.testcol
+
 on:
   release:
     types: [published]
