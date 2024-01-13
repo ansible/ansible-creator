@@ -1,7 +1,7 @@
 ---
 name: Release {{ namespace }}.{{ collection_name }}
 {% raw %}
-on:
+on: # yamllint disable-line rule:truthy
   release:
     types: [published]
 
