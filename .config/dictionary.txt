@@ -161,4 +161,5 @@ viewcode
 volmount
 wantd
 workdir
+xdist
 xmss
