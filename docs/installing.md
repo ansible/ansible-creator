@@ -139,7 +139,7 @@ $ tree -lla /home/ansible-dev/collections/ansible_collections
 
 **Note:**
 
-The scaffolded collection includes a `hello_world` filter plugin, along with an integration test target for it, that can be run using `molecule` and `pytest-ansible`. This serves as an example for you to refer when writing tests for your Ansible plugins and can be removed when it is no longer required.
+The scaffolded collection includes a `hello_world` filter plugin, along with a molecule scenario and an integration test target for it, that can be run using `pytest`. This serves as an example for you to refer when writing tests for your Ansible plugins and can be removed when it is no longer required.
 
 To run the `hello_world` integration test, follow these steps:
 
