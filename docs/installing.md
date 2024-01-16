@@ -149,5 +149,5 @@ To run the `hello_world` integration test, follow these steps:
 
 It also comes equipped with Github Action Workflows that use [ansible-content-actions](https://github.com/marketplace/actions/ansible-content-actions) for testing and publishing the collection. For details on how to use these, please refer to the following:
 
-- [Using the testing workflow](https://github.com/ansible/ansible-content-actions/blob/main/docs/ci.md)
+- [Using the testing workflow](https://github.com/ansible/ansible-dev-tools/blob/main/docs/user-guide/ci-setup.md)
 - [Using the release workflow](https://github.com/ansible/ansible-content-actions/blob/main/docs/release.md)
