@@ -1,3 +1,4 @@
+---
 name: GHA for {{ namespace }}.{{ collection_name }}
 {% raw %}
 concurrency:
@@ -12,17 +13,17 @@ on: # yamllint disable-line rule:truthy
     - cron: "0 0 * * *"
 
 jobs:
-  ansible-lint:
-    uses: ansible-network/github_actions/.github/workflows/ansible-lint.yml@main
   changelog:
-    uses: ansible-network/github_actions/.github/workflows/changelog.yml@main
-  integration:
-    uses: ansible-network/github_actions/.github/workflows/integration_simple.yml@main
+    uses: ansible/ansible-content-actions/.github/workflows/changelog.yaml@main
+    if: github.event_name == 'pull_request'
+  ansible-lint:
+    uses: ansible/ansible-content-actions/.github/workflows/ansible_lint.yaml@main
   sanity:
-    uses: ansible-network/github_actions/.github/workflows/sanity.yml@main
+    uses: ansible/ansible-content-actions/.github/workflows/sanity.yaml@main
   unit-galaxy:
-    uses: ansible-network/github_actions/.github/workflows/unit_galaxy.yml@main
-
+    uses: ansible/ansible-content-actions/.github/workflows/unit.yaml@main
+  integration:
+    uses: ansible/ansible-content-actions/.github/workflows/integration.yaml@main
   all_green:
     if: ${{ always() && (github.event_name != 'schedule') }}
     needs:
@@ -30,6 +31,7 @@ jobs:
       - integration
       - sanity
       - unit-galaxy
+      - ansible-lint
     runs-on: ubuntu-latest
     steps:
       - run: >-
@@ -38,5 +40,6 @@ jobs:
           '${{ needs.integration.result }}',
           '${{ needs.sanity.result }}',
           '${{ needs.unit-galaxy.result }}'
+          '${{ needs.ansible-lint.result }}'
           ]) == {'success'}"
 {%- endraw %}
