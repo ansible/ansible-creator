@@ -136,3 +136,18 @@ $ tree -lla /home/ansible-dev/collections/ansible_collections
 └── .vscode
     └── extensions.json
 ```
+
+**Note:**
+
+The scaffolded collection includes a `hello_world` filter plugin, along with a molecule scenario and an integration test target for it, that can be run using `pytest`. This serves as an example for you to refer when writing tests for your Ansible plugins and can be removed when it is no longer required.
+
+To run the `hello_world` integration test, follow these steps:
+
+- Git initialize the repository containing the scaffolded collection with `git init`.
+- `pip install ansible-core molecule pytest-xdist pytest-ansible`.
+- Invoke `pytest` from collection root.
+
+It also comes equipped with Github Action Workflows that use [ansible-content-actions](https://github.com/marketplace/actions/ansible-content-actions) for testing and publishing the collection. For details on how to use these, please refer to the following:
+
+- [Using the testing workflow](https://github.com/ansible/ansible-dev-tools/blob/main/docs/user-guide/ci-setup.md)
+- [Using the release workflow](https://github.com/ansible/ansible-dev-tools/blob/main/docs/user-guide/content-release.md)
