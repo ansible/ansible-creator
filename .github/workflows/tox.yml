@@ -57,13 +57,13 @@ jobs:
           python-version: ${{ matrix.python_version }}
 
       - name: Pre-commit cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pre-commit
           key: ${{ matrix.name }}-pre-commit-${{ hashFiles('setup.cfg', 'tox.ini', 'pyproject.toml', '.pre-commit-config.yaml') }}
 
       - name: Pip cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ matrix.name }}-pip-${{ hashFiles('setup.cfg', 'tox.ini', 'pyproject.toml', '.pre-commit-config.yaml') }}
