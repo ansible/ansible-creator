@@ -1,6 +1,6 @@
 [![codecov](https://codecov.io/github/ansible/ansible-creator/graph/badge.svg?token=QZKqxsNNsL)](https://codecov.io/github/ansible/ansible-creator)
-![PyPI - Status](https://img.shields.io/pypi/status/ansible-creator)
-![PyPI - Version](https://img.shields.io/pypi/v/ansible-creator)
+[![PyPI - Status](https://img.shields.io/pypi/status/ansible-creator)](https://pypi.org/project/ansible-creator/)
+[![PyPI - Version](https://img.shields.io/pypi/v/ansible-creator)](https://pypi.org/project/ansible-creator/)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ansible-creator)
 ![License](https://img.shields.io/github/license/ansible/ansible-creator)
 [![Ansible Code of Conduct](https://img.shields.io/badge/Code%20of%20Conduct-Ansible-silver.svg)](https://docs.ansible.com/ansible/latest/community/code_of_conduct.html)
