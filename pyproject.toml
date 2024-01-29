@@ -113,7 +113,7 @@ lines-between-types = 1 # Separate import/from with 1 line
 convention = "pep257"
 
 [tool.setuptools.dynamic]
-dependencies = {file = "requirements.txt"}
+dependencies = {file = ".config/requirements.txt"}
 optional-dependencies.docs = {file = [".config/docs-requirements.txt"]}
 optional-dependencies.test = {file = [".config/requirements-test.txt"]}
 
