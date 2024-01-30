@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 import shutil
 
 from typing import TYPE_CHECKING
@@ -36,6 +37,7 @@ class Init:
         self._force = config.force
         self._creator_version = config.creator_version
         self._templar = Templar()
+        self._templates_path = config.templates_path
         self.output: Output = output
 
     def run(self: Init) -> None:
@@ -46,6 +48,38 @@ class Init:
         col_path = os.path.join(self._init_path, self._namespace, self._collection_name)
 
         self.output.debug(msg=f"final collection path set to {col_path}")
+
+        # validate custom templates
+        if self._templates_path:
+            full_templates_path = os.path.join(self._templates_path, "new_collection")
+
+            # verify that templates path exists and has "new_collection" dir
+            if not os.path.exists(full_templates_path):
+                msg = f"could not find templates for new collection at {self._templates_path}."
+                raise CreatorError(msg)
+
+            # ensure that "new_collection" dir is not empty
+            if len(os.listdir(full_templates_path)) == 0:
+                msg = (
+                    "please ensure that a directory named `new_collection` exists"
+                    f" at {self._templates_path} and is not empty."
+                )
+                raise CreatorError(msg)
+
+            # ensure that a template for galaxy file exists in "new_collection" dir
+            if (
+                len(
+                    list(
+                        filter(
+                            re.compile("(?:galaxy.)(?:yml|yaml)(?:.j2)?").match,
+                            os.listdir(full_templates_path),
+                        ),
+                    ),
+                )
+                == 0
+            ):
+                msg = f"template for Ansible galaxy file not found in {full_templates_path!s}."
+                raise CreatorError(msg)
 
         # check if init_path already exists
         if os.path.exists(col_path):
@@ -86,6 +120,7 @@ class Init:
             source="new_collection",
             dest=col_path,
             templar=self._templar,
+            templates_path=self._templates_path,
             template_data={
                 "namespace": self._namespace,
                 "collection_name": self._collection_name,

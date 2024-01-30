@@ -6,6 +6,7 @@ import os
 import sys
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from ansible_creator.exceptions import CreatorError
@@ -84,6 +85,7 @@ def copy_container(  # noqa: PLR0913
     dest: str,
     output: Output,
     templar: Templar,
+    templates_path: str,
     template_data: dict[str, str],
     allow_overwrite: list[str] | None = None,
 ) -> None:
@@ -100,10 +102,13 @@ def copy_container(  # noqa: PLR0913
     output.debug(msg=f"starting recursive copy with source container '{source}'")
     output.debug(msg=f"allow_overwrite set to {allow_overwrite}")
 
-    def _recursive_copy(root: abc.Traversable) -> None:
+    if templates_path:
+        output.debug(msg=f"custom templates path set to {templates_path}")
+
+    def _recursive_copy(root: Path | abc.Traversable) -> None:
         """Recursively traverses a resource container and copies content to destination.
 
-        :param root: A traversable object representing root of the container to copy.
+        :param root: A traversable or Path object representing root of the container to copy.
         """
         output.debug(msg=f"current root set to {root}")
 
@@ -143,4 +148,11 @@ def copy_container(  # noqa: PLR0913
                     with open(dest_file, "w", encoding="utf-8") as df_handle:
                         df_handle.write(content)
 
-    _recursive_copy(root=resources.files(f"ansible_creator.resources.{source}"))
+    if templates_path:
+        # use custom templates path
+        root = Path(templates_path) / source
+    else:
+        # use built-in templates
+        root = resources.files(f"ansible_creator.resources.{source}")
+
+    _recursive_copy(root)

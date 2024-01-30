@@ -19,6 +19,7 @@ class Config:
     no_ansi: bool
     subcommand: str
     verbose: int
+    templates_path: str
 
     collection: str = ""
     force: bool = False
@@ -35,5 +36,8 @@ class Config:
             fqcn = self.collection.split(".", maxsplit=1)
             object.__setattr__(self, "namespace", fqcn[0])
             object.__setattr__(self, "collection_name", fqcn[-1])
+
+        if self.templates_path:
+            object.__setattr__(self, "template", expand_path(self.init_path))
 
         object.__setattr__(self, "init_path", expand_path(self.init_path))
