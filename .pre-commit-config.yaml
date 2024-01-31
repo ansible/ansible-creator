@@ -1,4 +1,15 @@
 ---
+ci:
+  # format compatible with commitlint
+  autoupdate_commit_msg: "chore: pre-commit autoupdate"
+  autoupdate_schedule: monthly
+  autofix_commit_msg: |
+    chore: auto fixes from pre-commit.com hooks
+
+    for more information, see https://pre-commit.ci
+  skip:
+    # https://github.com/pre-commit-ci/issues/issues/55
+    - deps
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
@@ -96,3 +107,17 @@ repos:
           - src
           - --python-version=3.9
         pass_filenames: false
+  - repo: https://github.com/jazzband/pip-tools
+    rev: 7.3.0
+    hooks:
+      - id: pip-compile
+        name: deps
+        alias: deps
+        always_run: true
+        entry: pip-compile -q --no-annotate --output-file=.config/constraints.txt pyproject.toml --all-extras --strip-extras
+        files: ^.config\/.*(requirements|constraints).*$
+        language: python
+        language_version: "3.10" # minimal we support officially
+        pass_filenames: false
+        additional_dependencies:
+          - pip>=22.3.1
