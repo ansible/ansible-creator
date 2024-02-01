@@ -105,7 +105,7 @@ repos:
           - pytest
         args:
           - src
-          - --python-version=3.9
+          - --python-version=3.10
         pass_filenames: false
   - repo: https://github.com/jazzband/pip-tools
     rev: 7.3.0
@@ -117,7 +117,7 @@ repos:
         entry: pip-compile -q --no-annotate --output-file=.config/constraints.txt pyproject.toml --all-extras --strip-extras
         files: ^.config\/.*(requirements|constraints).*$
         language: python
-        language_version: "3.9" # minimal we support officially
+        language_version: "3.10" # minimal we support officially
         pass_filenames: false
         additional_dependencies:
           - pip>=22.3.1
