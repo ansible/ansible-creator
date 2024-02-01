@@ -9,7 +9,7 @@ ci:
     for more information, see https://pre-commit.ci
   skip:
     # https://github.com/pre-commit-ci/issues/issues/55
-    - deps
+    - pip-compile
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
@@ -117,7 +117,7 @@ repos:
         entry: pip-compile -q --no-annotate --output-file=.config/constraints.txt pyproject.toml --all-extras --strip-extras
         files: ^.config\/.*(requirements|constraints).*$
         language: python
-        language_version: "3.10" # minimal we support officially
+        language_version: "3.9" # minimal we support officially
         pass_filenames: false
         additional_dependencies:
           - pip>=22.3.1
