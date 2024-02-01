@@ -114,8 +114,8 @@ convention = "pep257"
 
 [tool.setuptools.dynamic]
 dependencies = {file = ".config/requirements.in"}
-optional-dependencies.docs = {file = [".config/docs-requirements.in"]}
-optional-dependencies.test = {file = [".config/test-requirements.in"]}
+optional-dependencies.docs = {file = [".config/requirements-docs.in"]}
+optional-dependencies.test = {file = [".config/requirements-test.in"]}
 
 [tool.setuptools_scm]
 local_scheme = "no-local-version"
