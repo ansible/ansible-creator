@@ -28,7 +28,7 @@ jobs:
         with:
           min_python: "3.9"
           max_python: "3.12"
-          default_python: "3.11"
+          default_python: "3.9"
           other_names: |
             lint
             pkg
@@ -44,7 +44,7 @@ jobs:
       matrix: ${{ fromJson(needs.pre.outputs.matrix) }}
     env:
       FORCE_COLOR: 1
-
+    environment: test
     steps:
       - name: Check out src from Git
         uses: actions/checkout@v4
@@ -79,19 +79,17 @@ jobs:
         run: python3 -m tox -e ${{ matrix.passed_name }}
 
       - name: Archive logs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: logs.zip
+          name: logs-${{ matrix.name }}.zip
           path: .tox/**/log/
 
       - name: Upload coverage data
         if: ${{ startsWith(matrix.passed_name, 'py') }}
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
-          name: ${{ matrix.passed_name }}
-          fail_ci_if_error: false # see https://github.com/codecov/codecov-action/issues/598
+          name: ${{ matrix.name }}
           token: ${{ secrets.CODECOV_TOKEN }}
-          verbose: true # optional (default = false)
 
   check: # This job does nothing and is only used for the branch protection
     if: always()
@@ -100,6 +98,12 @@ jobs:
       - build
     runs-on: ubuntu-22.04
     steps:
+      - name: Merge logs into a single archive
+        uses: actions/upload-artifact/merge@v4
+        with:
+          name: logs.zip
+          pattern: logs-*.zip
+          delete-merged: true
       - name: Decide whether the needed jobs succeeded or failed
         uses: re-actors/alls-green@release/v1
         with:
