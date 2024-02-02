@@ -1,4 +1,5 @@
 """Custom exception classes for ansible-creator."""
+
 from __future__ import annotations
 
 

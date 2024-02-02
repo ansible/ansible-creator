@@ -55,10 +55,14 @@ def get_file_contents(directory: str, filename: str) -> str:
     package: str = f"ansible_creator.{directory}"
 
     try:
-        with resources.files(package).joinpath(filename).open(
-            "r",
-            encoding="utf-8",
-        ) as file_open:
+        with (
+            resources.files(package)
+            .joinpath(filename)
+            .open(
+                "r",
+                encoding="utf-8",
+            ) as file_open,
+        ):
             content: str = file_open.read()
     except (FileNotFoundError, TypeError, ModuleNotFoundError) as exc:
         msg = "Unable to fetch file contents.\n"
