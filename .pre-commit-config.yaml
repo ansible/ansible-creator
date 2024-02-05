@@ -97,7 +97,6 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies:
-          - importlib_resources
           - jinja2
           - black
           - types-jsonschema
