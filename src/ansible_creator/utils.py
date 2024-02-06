@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import os
-import sys
 
 from dataclasses import dataclass
+from importlib import resources
 from typing import TYPE_CHECKING
 
 from ansible_creator.exceptions import CreatorError
@@ -21,11 +21,6 @@ PATH_REPLACERS = {
     "network_os": "collection_name",
     "resource": "resource",
 }
-
-if sys.version_info < (3, 10):
-    import importlib_resources as resources
-else:
-    from importlib import resources
 
 
 @dataclass
