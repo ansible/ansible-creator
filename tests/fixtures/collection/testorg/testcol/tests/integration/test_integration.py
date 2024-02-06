@@ -1,4 +1,5 @@
 """Tests for molecule scenarios."""
+
 from __future__ import absolute_import, division, print_function
 
 from pytest_ansible.molecule import MoleculeScenario

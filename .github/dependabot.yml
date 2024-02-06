@@ -2,14 +2,17 @@
 version: 2
 updates:
   - package-ecosystem: pip
-    directory: /
+    directory: /.config/
     schedule:
       day: sunday
       interval: weekly
-    versioning-strategy: increase
     labels:
       - dependabot-deps-updates
       - skip-changelog
+    groups:
+      dependencies:
+        patterns:
+          - "*"
   - package-ecosystem: github-actions
     directory: /
     schedule:

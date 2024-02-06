@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import os
-import sys
 
 from dataclasses import dataclass
 from pathlib import Path
+from importlib import resources
 from typing import TYPE_CHECKING
 
 from ansible_creator.exceptions import CreatorError
@@ -22,11 +22,6 @@ PATH_REPLACERS = {
     "network_os": "collection_name",
     "resource": "resource",
 }
-
-if sys.version_info < (3, 10):
-    import importlib_resources as resources
-else:
-    from importlib import resources
 
 
 @dataclass
@@ -56,10 +51,14 @@ def get_file_contents(directory: str, filename: str) -> str:
     package: str = f"ansible_creator.{directory}"
 
     try:
-        with resources.files(package).joinpath(filename).open(
-            "r",
-            encoding="utf-8",
-        ) as file_open:
+        with (
+            resources.files(package)
+            .joinpath(filename)
+            .open(
+                "r",
+                encoding="utf-8",
+            ) as file_open,
+        ):
             content: str = file_open.read()
     except (FileNotFoundError, TypeError, ModuleNotFoundError) as exc:
         msg = "Unable to fetch file contents.\n"
