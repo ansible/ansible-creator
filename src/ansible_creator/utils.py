@@ -13,8 +13,7 @@ from ansible_creator.exceptions import CreatorError
 
 
 if TYPE_CHECKING:
-    from importlib import abc
-
+    from ansible_creator.compat import Traversable
     from ansible_creator.output import Output
     from ansible_creator.templar import Templar
 
@@ -84,8 +83,8 @@ def copy_container(  # noqa: PLR0913
     dest: str,
     output: Output,
     templar: Templar,
-    templates_path: str,
     template_data: dict[str, str],
+    templates_path: str,
     allow_overwrite: list[str] | None = None,
 ) -> None:
     """Copy files and directories from a possibly nested source to a destination.
@@ -94,6 +93,7 @@ def copy_container(  # noqa: PLR0913
     :param dest: Absolute destination path.
     :param templar: An object of template class.
     :param template_data: A dictionary containing data to render templates with.
+    :param templates_path: A string representing path to custom templates
     :param allow_overwrite: A list of paths that should be overwritten at destination.
 
     :raises CreatorError: if allow_overwrite is not a list.
@@ -104,7 +104,7 @@ def copy_container(  # noqa: PLR0913
     if templates_path:
         output.debug(msg=f"custom templates path set to {templates_path}")
 
-    def _recursive_copy(root: Path | abc.Traversable) -> None:
+    def _recursive_copy(root: Path | Traversable) -> None:
         """Recursively traverses a resource container and copies content to destination.
 
         :param root: A traversable or Path object representing root of the container to copy.
@@ -149,9 +149,9 @@ def copy_container(  # noqa: PLR0913
 
     if templates_path:
         # use custom templates path
-        root = Path(templates_path) / source
+        tp_root = Path(templates_path) / source
+        _recursive_copy(tp_root)
     else:
         # use built-in templates
-        root = resources.files(f"ansible_creator.resources.{source}")
-
-    _recursive_copy(root)
+        ib_root = resources.files(f"ansible_creator.resources.{source}")
+        _recursive_copy(ib_root)
