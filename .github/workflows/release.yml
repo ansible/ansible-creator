@@ -7,6 +7,7 @@ on:
 jobs:
   before-release:
     uses: ansible/ansible-creator/.github/workflows/tox.yml@main
+    secrets: inherit
 
   release:
     name: release ${{ github.event.ref }}
