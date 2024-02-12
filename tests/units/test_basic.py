@@ -33,6 +33,7 @@ def test_expand_path() -> None:
                 "collection": "testorg.testcol",
                 "init_path": "./",
                 "force": False,
+                "templates_path": None,
             },
         ],
         [
@@ -60,6 +61,7 @@ def test_expand_path() -> None:
                 "collection": "testorg.testcol",
                 "init_path": "/home/ansible",
                 "force": True,
+                "templates_path": None,
             },
         ],
     ],
@@ -83,6 +85,7 @@ def test_configuration_class() -> None:
         "verbose": 2,
         "collection": "testorg.testcol",
         "init_path": "$HOME",
+        "templates_path": None,
     }
     app_config = Config(**cli_args)
     assert app_config.namespace == "testorg"

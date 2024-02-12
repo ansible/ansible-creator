@@ -6,14 +6,14 @@ import os
 
 from dataclasses import dataclass
 from importlib import resources
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from ansible_creator.exceptions import CreatorError
 
 
 if TYPE_CHECKING:
-    from importlib import abc
-
+    from ansible_creator.compat import Traversable
     from ansible_creator.output import Output
     from ansible_creator.templar import Templar
 
@@ -84,6 +84,7 @@ def copy_container(  # noqa: PLR0913
     output: Output,
     templar: Templar,
     template_data: dict[str, str],
+    templates_path: str,
     allow_overwrite: list[str] | None = None,
 ) -> None:
     """Copy files and directories from a possibly nested source to a destination.
@@ -92,6 +93,7 @@ def copy_container(  # noqa: PLR0913
     :param dest: Absolute destination path.
     :param templar: An object of template class.
     :param template_data: A dictionary containing data to render templates with.
+    :param templates_path: A string representing path to custom templates
     :param allow_overwrite: A list of paths that should be overwritten at destination.
 
     :raises CreatorError: if allow_overwrite is not a list.
@@ -99,10 +101,13 @@ def copy_container(  # noqa: PLR0913
     output.debug(msg=f"starting recursive copy with source container '{source}'")
     output.debug(msg=f"allow_overwrite set to {allow_overwrite}")
 
-    def _recursive_copy(root: abc.Traversable) -> None:
+    if templates_path:
+        output.debug(msg=f"custom templates path set to {templates_path}")
+
+    def _recursive_copy(root: Path | Traversable) -> None:
         """Recursively traverses a resource container and copies content to destination.
 
-        :param root: A traversable object representing root of the container to copy.
+        :param root: A traversable or Path object representing root of the container to copy.
         """
         output.debug(msg=f"current root set to {root}")
 
@@ -142,4 +147,11 @@ def copy_container(  # noqa: PLR0913
                     with open(dest_file, "w", encoding="utf-8") as df_handle:
                         df_handle.write(content)
 
-    _recursive_copy(root=resources.files(f"ansible_creator.resources.{source}"))
+    if templates_path:
+        # use custom templates path
+        tp_root = Path(templates_path) / source
+        _recursive_copy(tp_root)
+    else:
+        # use built-in templates
+        ib_root = resources.files(f"ansible_creator.resources.{source}")
+        _recursive_copy(ib_root)

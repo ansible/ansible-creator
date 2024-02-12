@@ -154,6 +154,13 @@ class Cli:
         )
 
         init_command_parser.add_argument(
+            "--templates-path",
+            help="Path to a directory containing custom template for collection skeleton."
+            " When provided, this will be used to scaffold the collection instead of the"
+            " in-built template.",
+        )
+
+        init_command_parser.add_argument(
             "--force",
             default=False,
             action="store_true",
