@@ -43,6 +43,10 @@ repository = "https://github.com/ansible-community/ansible-creator"
 [tool.black]
 exclude = "tests/fixtures"
 
+[tool.coverage.report]
+exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]
+omit = ["tests/*"]
+
 [tool.mypy]
 files = ["src"]
 

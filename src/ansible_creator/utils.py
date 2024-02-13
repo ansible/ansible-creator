@@ -12,8 +12,7 @@ from ansible_creator.exceptions import CreatorError
 
 
 if TYPE_CHECKING:
-    from importlib import abc
-
+    from ansible_creator.compat import Traversable
     from ansible_creator.output import Output
     from ansible_creator.templar import Templar
 
@@ -99,7 +98,7 @@ def copy_container(  # noqa: PLR0913
     output.debug(msg=f"starting recursive copy with source container '{source}'")
     output.debug(msg=f"allow_overwrite set to {allow_overwrite}")
 
-    def _recursive_copy(root: abc.Traversable) -> None:
+    def _recursive_copy(root: Traversable) -> None:
         """Recursively traverses a resource container and copies content to destination.
 
         :param root: A traversable object representing root of the container to copy.
