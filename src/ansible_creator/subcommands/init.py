@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 
 class Init:
-    """Class representing ansible-creator create subcommand."""
+    """Class representing ansible-creator init subcommand."""
 
     def __init__(
         self: Init,
