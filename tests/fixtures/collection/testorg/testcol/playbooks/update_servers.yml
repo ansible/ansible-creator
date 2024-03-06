@@ -4,10 +4,10 @@
   become: true
 
   tasks:
-    - name: Ensure apache is at the latest version
+    - name: Ensure apache is at the present version
       ansible.builtin.yum:
         name: httpd
-        state: latest
+        state: present
     - name: Write the apache config file
       ansible.builtin.template:
         src: /srv/httpd.j2
@@ -19,10 +19,10 @@
   become: true
 
   tasks:
-    - name: Ensure postgresql is at the latest version
+    - name: Ensure postgresql is at the present version
       ansible.builtin.yum:
         name: postgresql
-        state: latest
+        state: present
     - name: Ensure that postgresql is started
       ansible.builtin.service:
         name: postgresql

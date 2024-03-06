@@ -27,9 +27,12 @@ Including an example of how to use your role (for instance, with variables passe
       roles:
          - { role: username.rolename, x: 42 }
 
+Another way to consume this role would be:
+
 License
 -------
 
+# TO-DO: Update the license to the one you want to use (delete this line after setting the license)
 BSD
 
 Author Information
