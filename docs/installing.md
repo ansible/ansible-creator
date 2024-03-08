@@ -92,12 +92,16 @@ $ tree -lla /home/ansible-dev/collections/ansible_collections
 ├── galaxy.yml
 ├── .github
 │   └── workflows
+│       ├── release.yml
 │       └── test.yml
 ├── .isort.cfg
 ├── LICENSE
 ├── MAINTAINERS
 ├── meta
 │   └── runtime.yml
+├── playbooks
+│   ├── first_playbook_ext.yml
+│   └── update_servers.yml
 ├── plugins
 │   ├── action
 │   │   └── __init__.py
@@ -122,6 +126,23 @@ $ tree -lla /home/ansible-dev/collections/ansible_collections
 ├── .prettierignore
 ├── pyproject.toml
 ├── README.md
+├── roles
+│   └── run
+│       ├── defaults
+│       │   └── main.yml
+│       ├── files
+│       ├── handlers
+│       │   └── main.yaml
+│       ├── meta
+│       │   └── main.yml
+│       ├── README.md
+│       ├── tasks
+│       │   └── main.yml
+│       ├── templates
+│       ├── tests
+│       │   └── inventory
+│       ├── vars
+│       │   └── main.yml
 ├── tests
 │   ├── .gitignore
 │   ├── integration
