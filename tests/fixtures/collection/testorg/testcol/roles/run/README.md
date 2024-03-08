@@ -1,4 +1,4 @@
-Testorg.Testcol Role
+Testorg.Testcol Run Role
 ========================
 
 A brief description of the role goes here.

@@ -8,6 +8,7 @@
       ansible.builtin.yum:
         name: httpd
         state: present
+
     - name: Write the apache config file
       ansible.builtin.template:
         src: /srv/httpd.j2
@@ -23,6 +24,7 @@
       ansible.builtin.yum:
         name: postgresql
         state: present
+
     - name: Ensure that postgresql is started
       ansible.builtin.service:
         name: postgresql
