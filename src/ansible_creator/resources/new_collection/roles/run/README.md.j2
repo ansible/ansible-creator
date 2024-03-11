@@ -27,7 +27,8 @@ Including an example of how to use your role (for instance, with variables passe
 - name: Execute tasks on servers
   hosts: servers
   roles:
-      - { role: {{ namespace }}.{{ collection_name }}.run, x: 42 }
+    - role: {{ namespace }}.{{ collection_name }}.run
+      run_x: 42
 ```
 
 Another way to consume this role would be:
