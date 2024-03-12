@@ -131,6 +131,7 @@ $ tree -lla /home/ansible-dev/collections/ansible_collections
 │       ├── defaults
 │       │   └── main.yml
 │       ├── files
+│       │   └── .keep
 │       ├── handlers
 │       │   └── main.yaml
 │       ├── meta
@@ -139,6 +140,7 @@ $ tree -lla /home/ansible-dev/collections/ansible_collections
 │       ├── tasks
 │       │   └── main.yml
 │       ├── templates
+│       │   └── .keep
 │       ├── tests
 │       │   └── inventory
 │       ├── vars
