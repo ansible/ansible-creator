@@ -92,12 +92,16 @@ $ tree -lla /home/ansible-dev/collections/ansible_collections
 ├── galaxy.yml
 ├── .github
 │   └── workflows
+│       ├── release.yml
 │       └── test.yml
 ├── .isort.cfg
 ├── LICENSE
 ├── MAINTAINERS
 ├── meta
 │   └── runtime.yml
+├── playbooks
+│   ├── sample_playbook_1.yml
+│   └── sample_playbook_2.yml
 ├── plugins
 │   ├── action
 │   │   └── __init__.py
@@ -122,6 +126,25 @@ $ tree -lla /home/ansible-dev/collections/ansible_collections
 ├── .prettierignore
 ├── pyproject.toml
 ├── README.md
+├── roles
+│   └── run
+│       ├── defaults
+│       │   └── main.yml
+│       ├── files
+│       │   └── .keep
+│       ├── handlers
+│       │   └── main.yaml
+│       ├── meta
+│       │   └── main.yml
+│       ├── README.md
+│       ├── tasks
+│       │   └── main.yml
+│       ├── templates
+│       │   └── .keep
+│       ├── tests
+│       │   └── inventory
+│       ├── vars
+│       │   └── main.yml
 ├── tests
 │   ├── .gitignore
 │   ├── integration
@@ -149,5 +172,7 @@ To run the `hello_world` integration test, follow these steps:
 
 It also comes equipped with Github Action Workflows that use [ansible-content-actions](https://github.com/marketplace/actions/ansible-content-actions) for testing and publishing the collection. For details on how to use these, please refer to the following:
 
-- [Using the testing workflow](https://github.com/ansible/ansible-dev-tools/blob/main/docs/user-guide/ci-setup.md)
-- [Using the release workflow](https://github.com/ansible/ansible-dev-tools/blob/main/docs/user-guide/content-release.md)
+- [Using the testing workflow](https://ansible.readthedocs.io/projects/dev-tools/user-guide/ci-setup/)
+- [Using the release workflow](https://ansible.readthedocs.io/projects/dev-tools/user-guide/content-release/)
+
+Please ensure that you review any potential `TO-DO` items in the scaffolded content and make the necessary modifications according to your requirements.
