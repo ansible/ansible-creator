@@ -100,8 +100,8 @@ $ tree -lla /home/ansible-dev/collections/ansible_collections
 ├── meta
 │   └── runtime.yml
 ├── playbooks
-│   ├── first_playbook_ext.yml
-│   └── update_servers.yml
+│   ├── sample_playbook_1.yml
+│   └── sample_playbook_2.yml
 ├── plugins
 │   ├── action
 │   │   └── __init__.py
