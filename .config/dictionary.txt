@@ -12,6 +12,7 @@ astimezone
 autorefs
 autosectionlabel
 basesystem
+boto
 BUILDDIR
 caplog
 capsys
@@ -110,6 +111,7 @@ representer
 Representer
 returndocs
 Rocannon's
+rolename
 rtype
 rulebook
 rulebooks
@@ -160,6 +162,7 @@ userbase
 viewcode
 volmount
 wantd
+webservers
 workdir
 xdist
 xmss
