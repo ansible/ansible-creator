@@ -33,6 +33,7 @@ def test_expand_path() -> None:
                 "collection": "testorg.testcol",
                 "init_path": "./",
                 "force": False,
+                "project": "collection",  # default value
             },
         ],
         [
@@ -60,6 +61,7 @@ def test_expand_path() -> None:
                 "collection": "testorg.testcol",
                 "init_path": "/home/ansible",
                 "force": True,
+                "project": "collection",  # default value
             },
         ],
     ],

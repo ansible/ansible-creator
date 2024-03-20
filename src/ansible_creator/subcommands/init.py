@@ -40,7 +40,7 @@ class Init:
         self.output: Output = output
 
     def run(self: Init) -> None:
-        """Start scaffolding collection skeleton.
+        """Start scaffolding skeleton.
 
         :raises CreatorError: if computed collection path is an existing directory or file.
         """

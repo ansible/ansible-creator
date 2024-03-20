@@ -34,6 +34,7 @@ def cli_args(tmp_path) -> dict:
         "verbose": 0,
         "collection": "testorg.testcol",
         "init_path": tmp_path,
+        "project": "collection",  # default value
     }
 
 

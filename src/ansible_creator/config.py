@@ -32,12 +32,12 @@ class Config:
 
     def __post_init__(self: Config) -> None:
         """Post process config values."""
-        if self.project == "collection":
+        if self.collection:
             fqcn = self.collection.split(".", maxsplit=1)
             object.__setattr__(self, "namespace", fqcn[0])
             object.__setattr__(self, "collection_name", fqcn[-1])
 
-        if self.project != "collection":
+        if self.project == "ansible-project":
             object.__setattr__(self, "namespace", "")
             object.__setattr__(self, "collection_name", "")
 
