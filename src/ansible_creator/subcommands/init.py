@@ -35,6 +35,7 @@ class Init:
         self._init_path: str = config.init_path
         self._force = config.force
         self._creator_version = config.creator_version
+        self._project = config.project
         self._templar = Templar()
         self.output: Output = output
 
@@ -43,7 +44,14 @@ class Init:
 
         :raises CreatorError: if computed collection path is an existing directory or file.
         """
-        col_path = os.path.join(self._init_path, self._namespace, self._collection_name)
+        if self._project == "collection":
+            col_path = os.path.join(
+                self._init_path,
+                self._namespace,
+                self._collection_name,
+            )
+        else:
+            col_path = self._init_path
 
         self.output.debug(msg=f"final collection path set to {col_path}")
 
@@ -80,20 +88,42 @@ class Init:
             self.output.debug(msg=f"creating new directory at {col_path}")
             os.makedirs(col_path)
 
-        # copy new_collection container to destination, templating files when found
-        self.output.debug(msg="started copying collection skeleton to destination")
-        copy_container(
-            source="new_collection",
-            dest=col_path,
-            templar=self._templar,
-            template_data={
-                "namespace": self._namespace,
-                "collection_name": self._collection_name,
-                "creator_version": self._creator_version,
-            },
-            output=self.output,
-        )
+        if self._project == "collection":
+            # copy new_collection container to destination, templating files when found
+            self.output.debug(msg="started copying collection skeleton to destination")
+            copy_container(
+                source="new_collection",
+                dest=col_path,
+                templar=self._templar,
+                template_data={
+                    "namespace": self._namespace,
+                    "collection_name": self._collection_name,
+                    "creator_version": self._creator_version,
+                },
+                output=self.output,
+            )
 
-        self.output.note(
-            f"collection {self._namespace}.{self._collection_name} created at {self._init_path}",
-        )
+            self.output.note(
+                f"collection {self._namespace}.{self._collection_name} "
+                f"created at {self._init_path}",
+            )
+
+        else:
+            self.output.debug(
+                msg="started copying ansible-project skeleton to destination",
+            )
+            copy_container(
+                source="ansible_project",
+                dest=col_path,
+                templar=self._templar,
+                template_data={
+                    "namespace": self._namespace,
+                    "collection_name": self._collection_name,
+                    "creator_version": self._creator_version,
+                },
+                output=self.output,
+            )
+
+            self.output.note(
+                f"ansible project created at {self._init_path}",
+            )

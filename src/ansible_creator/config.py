@@ -23,6 +23,7 @@ class Config:
     collection: str = ""
     force: bool = False
     init_path: str = "./"
+    project: str = ""
 
     # TO-DO: Add instance variables for other 'create' and 'sample'
 
@@ -31,9 +32,13 @@ class Config:
 
     def __post_init__(self: Config) -> None:
         """Post process config values."""
-        if self.collection:
+        if self.project == "collection":
             fqcn = self.collection.split(".", maxsplit=1)
             object.__setattr__(self, "namespace", fqcn[0])
             object.__setattr__(self, "collection_name", fqcn[-1])
+
+        if self.project != "collection":
+            object.__setattr__(self, "namespace", "")
+            object.__setattr__(self, "collection_name", "")
 
         object.__setattr__(self, "init_path", expand_path(self.init_path))

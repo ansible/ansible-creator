@@ -143,7 +143,14 @@ class Cli:
 
         init_command_parser.add_argument(
             "collection",
+            nargs="?",
             help="The collection name in the format ``<namespace>.<collection>``.",
+        )
+
+        init_command_parser.add_argument(
+            "--project",
+            default="collection",
+            help="Project type to scaffold, for eg: ansible-project.",
         )
 
         init_command_parser.add_argument(
