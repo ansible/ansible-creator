@@ -111,7 +111,6 @@ representer
 Representer
 returndocs
 Rocannon's
-rolename
 rtype
 rulebook
 rulebooks
@@ -162,7 +161,6 @@ userbase
 viewcode
 volmount
 wantd
-webservers
 workdir
 xdist
 xmss

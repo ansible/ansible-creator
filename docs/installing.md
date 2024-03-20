@@ -99,9 +99,6 @@ $ tree -lla /home/ansible-dev/collections/ansible_collections
 ├── MAINTAINERS
 ├── meta
 │   └── runtime.yml
-├── playbooks
-│   ├── sample_playbook_1.yml
-│   └── sample_playbook_2.yml
 ├── plugins
 │   ├── action
 │   │   └── __init__.py

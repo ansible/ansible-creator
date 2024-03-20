@@ -1,3 +1,2 @@
 # Stuff we don't want prettier to ever to look into
-tests/fixtures/collection/testorg/testcol/playbooks/
 tests/fixtures/collection/testorg/testcol/roles/
