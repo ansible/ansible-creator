@@ -1,5 +1,0 @@
----
-- name: Example playbook
-  hosts: localhost
-  roles:
-    - role: "{{ namespace }}.{{ collection_name }}.{{ role_name }}"

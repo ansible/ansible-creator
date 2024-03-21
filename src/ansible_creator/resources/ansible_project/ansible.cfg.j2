@@ -23,3 +23,10 @@ become_method = sudo
 
 # Set the directory for roles to be installed from galaxy
 roles_path = collections/ansible_collections/project_org/project_repo/roles
+
+[persistent_connection]
+# Controls how long the persistent connection will remain idle before it is destroyed
+connect_timeout=30
+
+# Controls the amount of time to wait for response from remote device before timing out persistent connection
+command_timeout=30
