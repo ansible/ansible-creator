@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from ansible_creator.exceptions import CreatorError
 from ansible_creator.utils import expand_path
 
 
@@ -32,6 +33,12 @@ class Config:
 
     def __post_init__(self: Config) -> None:
         """Post process config values."""
+        # Show CreatorError if the required collection name is not provided
+        if not self.collection and self.project == "collection":
+            raise CreatorError(
+                "The collection name is required when scaffolding a collection.",
+            )
+
         if self.collection:
             fqcn = self.collection.split(".", maxsplit=1)
             object.__setattr__(self, "namespace", fqcn[0])
