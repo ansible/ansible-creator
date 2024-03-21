@@ -4,6 +4,20 @@ ansible-creator provides two main functionalities: `init` and `create`. The `ini
 
 ## Installation
 
+!!! Recommendation
+
+    The **recommended** approach to install `ansible-creator` is using the
+    `ansible-dev-tools` package.
+    [Ansible Development Tools (ADT)](https://ansible.readthedocs.io/projects/dev-tools/)
+    aims to streamline the setup and usage of several tools needed in order to
+    create [Ansible](https://www.ansible.com) content. ADT combines critical Ansible
+    development packages into a unified Python package.
+
+    ```bash
+    # This also installs ansible-core if it is not already installed
+    pip3 install ansible-dev-tools
+    ```
+
 To install ansible-creator, use the following pip command:
 
 ```console
