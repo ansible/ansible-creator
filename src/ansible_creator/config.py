@@ -22,7 +22,11 @@ class Config:
 
     collection: str = ""
     force: bool = False
+    # These are the same thing but init_path is a terrible name for non-init
+    # commands
     init_path: str = "./"
+    collection_path: str = "./"
+    branch_name: str = "main"
 
     # TO-DO: Add instance variables for other 'create' and 'sample'
 
