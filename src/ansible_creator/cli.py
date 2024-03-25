@@ -182,6 +182,29 @@ class Cli:
             help="Force re-initialize the specified directory as an Ansible collection.",
         )
 
+        # 'docs' command parser
+
+        docs_command_parser = subparsers.add_parser(
+            "docs",
+            help="(Re)generate documentation for an Ansible Collection.",
+            description=("Creates documentation for an Ansible collection."),
+            parents=[parent_parser],
+        )
+
+        docs_command_parser.add_argument(
+            "-b",
+            "--branch-name",
+            default="main",
+            help="The name of the main branch of the collection, for linking between files.",
+        )
+
+        docs_command_parser.add_argument(
+            "--collection-path",
+            default="./",
+            help="The path to the collection in which docs will be generatedated. The default is "
+            "the current working directory.",
+        )
+
         return parser.parse_args()
 
     def run(self: Cli) -> None:

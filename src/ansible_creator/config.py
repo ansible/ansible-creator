@@ -23,6 +23,8 @@ class Config:
 
     collection: str = ""
     force: bool = False
+    # These are the same thing but init_path is a terrible name for non-init
+    # commands
     init_path: str = "./"
     project: str = ""
     scm_org: str = ""
