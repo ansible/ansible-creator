@@ -1,5 +1,8 @@
 """Generate or update collection documentation."""
+from __future__ import annotations
+
 import ast
+import contextlib
 import logging
 import os
 import re
@@ -9,7 +12,7 @@ import tempfile
 
 from functools import partial
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import yaml
 
@@ -19,14 +22,15 @@ from ansible.module_utils.six import string_types
 from ansible.plugins.loader import fragment_loader
 from ansible.utils import plugin_docs
 from ansible.utils.collection_loader._collection_finder import _AnsibleCollectionFinder
-from jinja2 import Environment
-from jinja2 import FileSystemLoader
+from jinja2 import Environment, FileSystemLoader
 
-from ansible_creator.jinja_utils import documented_type
-from ansible_creator.jinja_utils import from_kludge_ns
-from ansible_creator.jinja_utils import html_ify
-from ansible_creator.jinja_utils import rst_ify
-from ansible_creator.jinja_utils import to_kludge_ns
+from ansible_creator.jinja_utils import (
+    documented_type,
+    from_kludge_ns,
+    html_ify,
+    rst_ify,
+    to_kludge_ns,
+)
 
 
 logging.basicConfig(format="%(levelname)-10s%(message)s", level=logging.INFO)
@@ -46,7 +50,7 @@ SUBDIRS = (
     "test",
     "validate",
 )
-TEMPLATE_DIR = os.path.dirname(__file__)
+TEMPLATE_DIR = Path(__file__).parent
 ANSIBLE_COMPAT = """## Ansible version compatibility
 
 This collection has been tested against following Ansible versions: **{requires_ansible}**.
@@ -59,7 +63,7 @@ PEP440 is the schema used to describe the versions of Ansible.
 """
 
 
-def ensure_list(value):
+def ensure_list(value: Any) -> list[Any]:
     """Ensure the value is a list.
 
     :param value: The value to check
@@ -71,7 +75,7 @@ def ensure_list(value):
     return [value]
 
 
-def convert_descriptions(data):
+def convert_descriptions(data: dict[str, Any]) -> None:
     """Convert the descriptions for doc into lists.
 
     :param data: the chunk from the doc
@@ -105,11 +109,15 @@ def jinja_environment():
     env.filters["html_ify"] = html_ify
     env.globals["to_kludge_ns"] = to_kludge_ns
     env.globals["from_kludge_ns"] = from_kludge_ns
-    template = env.get_template("plugin.rst.j2")
-    return template
+    return env.get_template("plugin.rst.j2")
 
 
-def update_readme(content, path, gh_url, branch_name):  # pylint: disable-msg=too-many-locals
+def update_readme(
+    content: dict,
+    path: Path,
+    gh_url: str,
+    branch_name: str,
+) -> None:  # pylint: disable-msg=too-many-locals
     """Update the README.md in the repository.
 
     :param content: The dict containing the content
@@ -148,16 +156,17 @@ def update_readme(content, path, gh_url, branch_name):  # pylint: disable-msg=to
             data.append(f"{link}|{description}")
         data.append("")
     readme = os.path.join(path, "README.md")
+    readme_content = []
     try:
         with open(readme, encoding="utf8") as readme_file:
-            content = readme_file.read().splitlines()
+            readme_content = readme_file.read().splitlines()
     except FileNotFoundError:
         logging.error("README.md not found in %s", path)
         logging.error("README.md not updated")
         sys.exit(1)
     try:
-        start = content.index("<!--start collection content-->")
-        end = content.index("<!--end collection content-->")
+        start = readme_content.index("<!--start collection content-->")
+        end = readme_content.index("<!--end collection content-->")
     except ValueError:
         logging.error("Content anchors not found in %s", readme)
         logging.error("README.md not updated")
@@ -173,7 +182,11 @@ def update_readme(content, path, gh_url, branch_name):  # pylint: disable-msg=to
         logging.info("README.md updated")
 
 
-def handle_simple(collection, fullpath, kind):  # pylint: disable-msg=too-many-locals
+def handle_simple(
+    collection,
+    fullpath: Path,
+    kind,
+) -> dict:  # pylint: disable-msg=too-many-locals
     """Process "simple" plugins like filter or test.
 
     :param collection: The full collection name
@@ -206,7 +219,9 @@ def handle_simple(collection, fullpath, kind):  # pylint: disable-msg=too-many-l
         if isinstance(node, ast.FunctionDef)
     }
     class_def = [
-        node for node in module.body if isinstance(node, ast.ClassDef) and node.name == class_name
+        node
+        for node in module.body
+        if isinstance(node, ast.ClassDef) and node.name == class_name
     ]
     if not class_def:
         return plugins
@@ -259,12 +274,17 @@ def handle_simple(collection, fullpath, kind):  # pylint: disable-msg=too-many-l
 
             # Get the first line from the docstring for the description and
             # make that the short description.
-            comment = next(c for c in comment.splitlines() if c and not c.startswith(":"))
+            comment = next(
+                c for c in comment.splitlines() if c and not c.startswith(":")
+            )
             plugins[f"{collection}.{name}"] = {"has_rst": False, "comment": comment}
     return plugins
 
 
-def process(collection: str, path: Path):  # pylint: disable-msg=too-many-locals,too-many-branches
+def process(
+    collection: str,
+    path: Path,
+):  # pylint: disable-msg=too-many-locals,too-many-branches
     """Process the files in each subdirectory.
 
     :param collection: The collection name
@@ -307,7 +327,11 @@ def process(collection: str, path: Path):  # pylint: disable-msg=too-many-locals
                     if doc is None and subdir in ["filter", "test"]:
                         name_only = filename.rsplit(".")[0]
                         combined_ptype = f"{name_only} {subdir}"
-                        content[combined_ptype] = handle_simple(collection, fullpath, subdir)
+                        content[combined_ptype] = handle_simple(
+                            collection,
+                            fullpath,
+                            subdir,
+                        )
                     else:
                         if doc:
                             doc["plugin_type"] = plugin_type
@@ -328,7 +352,7 @@ def process(collection: str, path: Path):  # pylint: disable-msg=too-many-locals
                                 doc["examples"] = examples
 
                             doc["module"] = f"{collection}." "{plugin_name}".format(
-                                plugin_name=doc.get(plugin_type, doc.get("name"))
+                                plugin_name=doc.get(plugin_type, doc.get("name")),
                             )
                             doc["author"] = ensure_list(doc["author"])
                             doc["description"] = ensure_list(doc["description"])
@@ -343,7 +367,11 @@ def process(collection: str, path: Path):  # pylint: disable-msg=too-many-locals
                                 doc["module"] + f"_{plugin_type}" + ".rst",
                             )
 
-                            with open(module_rst_path, "w", encoding="utf8") as doc_file:
+                            with open(
+                                module_rst_path,
+                                "w",
+                                encoding="utf8",
+                            ) as doc_file:
                                 doc_file.write(template.render(doc))
                             content[subdir][doc["module"]] = {
                                 "has_rst": True,
@@ -404,7 +432,9 @@ def link_collection(path: Path, galaxy: dict, collection_root: Optional[Path] = 
     collection_directory = Path(namespace_directory, galaxy["name"])
 
     logging.info("Linking collection to collection path %s", collection_root)
-    logging.info("This is required for the Ansible fragment loader to find doc fragments")
+    logging.info(
+        "This is required for the Ansible fragment loader to find doc fragments",
+    )
 
     if collection_directory.exists():
         logging.info("Attempting to remove existing %s", collection_directory)
@@ -423,7 +453,7 @@ def link_collection(path: Path, galaxy: dict, collection_root: Optional[Path] = 
     collection_directory.symlink_to(path)
 
 
-def add_collection(path: Path, galaxy: dict) -> Optional[tempfile.TemporaryDirectory]:
+def add_collection(path: Path, galaxy: dict) -> tempfile.TemporaryDirectory | None:
     """Add path to collections dir so we can find local doc_fragments.
 
     :param path: The collections path
@@ -433,10 +463,8 @@ def add_collection(path: Path, galaxy: dict) -> Optional[tempfile.TemporaryDirec
     collections_path = None
     tempdir = None
 
-    try:
+    with contextlib.suppress(IndexError):
         collections_path = path.parents[1]
-    except IndexError:
-        pass
 
     # Check that parent dir is named ansible_collections
     if collections_path and collections_path.name != "ansible_collections":
@@ -444,7 +472,9 @@ def add_collection(path: Path, galaxy: dict) -> Optional[tempfile.TemporaryDirec
         collections_path = None
 
     if collections_path is None:
-        tempdir = tempfile.TemporaryDirectory()  # pylint: disable-msg=consider-using-with
+        tempdir = (
+            tempfile.TemporaryDirectory()
+        )  # pylint: disable-msg=consider-using-with
         logging.info("Temporary collection path %s created", tempdir.name)
         collections_path = Path(tempdir.name) / "ansible_collections"
         link_collection(path, galaxy, collection_root=collections_path)
@@ -454,7 +484,7 @@ def add_collection(path: Path, galaxy: dict) -> Optional[tempfile.TemporaryDirec
 
     # Tell ansible about the path
     _AnsibleCollectionFinder(  # pylint: disable-msg=protected-access
-        paths=[collections_path, "~/.ansible/collections"]
+        paths=[collections_path, "~/.ansible/collections"],
     )._install()
 
     # This object has to outlive this method or it will be cleaned up before
@@ -462,7 +492,7 @@ def add_collection(path: Path, galaxy: dict) -> Optional[tempfile.TemporaryDirec
     return tempdir
 
 
-def add_ansible_compatibility(runtime, path):
+def add_ansible_compatibility(runtime: dict[str, Any], path: Path) -> None:
     """Add ansible compatibility information to README.
 
     :param runtime: runtime.yml contents
@@ -472,7 +502,9 @@ def add_ansible_compatibility(runtime, path):
     """
     requires_ansible = runtime.get("requires_ansible")
     if not requires_ansible:
-        logging.error("Unable to find requires_ansible in runtime.yml, not added to README")
+        logging.error(
+            "Unable to find requires_ansible in runtime.yml, not added to README",
+        )
         return
     readme = os.path.join(path, "README.md")
     try:
