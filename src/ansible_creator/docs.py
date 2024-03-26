@@ -1,4 +1,5 @@
 """Generate or update collection documentation."""
+
 from __future__ import annotations
 
 import ast
@@ -12,7 +13,7 @@ import tempfile
 
 from functools import partial
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, TypeVar
 
 import yaml
 
@@ -22,7 +23,7 @@ from ansible.module_utils.six import string_types
 from ansible.plugins.loader import fragment_loader
 from ansible.utils import plugin_docs
 from ansible.utils.collection_loader._collection_finder import _AnsibleCollectionFinder
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, Template
 
 from ansible_creator.jinja_utils import (
     documented_type,
@@ -63,7 +64,10 @@ PEP440 is the schema used to describe the versions of Ansible.
 """
 
 
-def ensure_list(value: Any) -> list[Any]:
+T = TypeVar("T")
+
+
+def ensure_list(value: list[T] | T) -> list[T]:
     """Ensure the value is a list.
 
     :param value: The value to check
@@ -91,7 +95,7 @@ def convert_descriptions(data: dict[str, Any]) -> None:
                 convert_descriptions(definition["contains"])
 
 
-def jinja_environment():
+def jinja_environment() -> Template:
     """Define the jinja environment.
 
     :return: A jinja template, with the env set
@@ -172,13 +176,11 @@ def update_readme(
         logging.error("README.md not updated")
         sys.exit(1)
     if start and end:
-        new = content[0 : start + 1] + data + content[end:]
+        new = readme_content[0 : start + 1] + data + readme_content[end:]
         with open(readme, "w", encoding="utf8") as readme_file:
             readme_file.write("\n".join(new))
             # Avoid "No newline at end of file.
-            # No, I don't know why it has to be two of them.
-            # Yes, it actually does have to be two of them.
-            readme_file.write("\n\n")
+            readme_file.write("\n")
         logging.info("README.md updated")
 
 
@@ -284,7 +286,7 @@ def handle_simple(
 def process(
     collection: str,
     path: Path,
-):  # pylint: disable-msg=too-many-locals,too-many-branches
+) -> dict:  # pylint: disable-msg=too-many-locals,too-many-branches
     """Process the files in each subdirectory.
 
     :param collection: The collection name
@@ -305,10 +307,7 @@ def process(
     content = {}
 
     for subdir in SUBDIRS:  # pylint: disable-msg=too-many-nested-blocks
-        if subdir == "modules":
-            plugin_type = "module"
-        else:
-            plugin_type = subdir
+        plugin_type = "module" if subdir == "modules" else subdir
 
         dirpath = Path(path, "plugins", subdir)
         if dirpath.is_dir():
@@ -332,55 +331,51 @@ def process(
                             fullpath,
                             subdir,
                         )
-                    else:
-                        if doc:
-                            doc["plugin_type"] = plugin_type
+                    elif doc:
+                        doc["plugin_type"] = plugin_type
 
-                            if return_docs:
-                                # Seems a recent change in devel makes this
-                                # return a dict not a yaml string.
-                                if isinstance(return_docs, dict):
-                                    doc["return_docs"] = return_docs
-                                else:
-                                    doc["return_docs"] = yaml.safe_load(return_docs)
-                                convert_descriptions(doc["return_docs"])
-
-                            doc["metadata"] = (metadata,)
-                            if isinstance(examples, string_types):
-                                doc["plain_examples"] = examples.strip()
+                        if return_docs:
+                            # Seems a recent change in devel makes this
+                            # return a dict not a yaml string.
+                            if isinstance(return_docs, dict):
+                                doc["return_docs"] = return_docs
                             else:
-                                doc["examples"] = examples
+                                doc["return_docs"] = yaml.safe_load(return_docs)
+                            convert_descriptions(doc["return_docs"])
 
-                            doc["module"] = f"{collection}." "{plugin_name}".format(
-                                plugin_name=doc.get(plugin_type, doc.get("name")),
-                            )
-                            doc["author"] = ensure_list(doc["author"])
-                            doc["description"] = ensure_list(doc["description"])
-                            try:
-                                convert_descriptions(doc["options"])
-                            except KeyError:
-                                pass  # This module takes no options
+                        doc["metadata"] = (metadata,)
+                        if isinstance(examples, string_types):
+                            doc["plain_examples"] = examples.strip()
+                        else:
+                            doc["examples"] = examples
 
-                            module_rst_path = Path(
-                                path,
-                                "docs",
-                                doc["module"] + f"_{plugin_type}" + ".rst",
-                            )
+                        plugin_name = doc.get(plugin_type, doc.get("name"))
+                        doc["module"] = f"{collection}.{plugin_name}"
+                        doc["author"] = ensure_list(doc["author"])
+                        doc["description"] = ensure_list(doc["description"])
+                        with contextlib.suppress(KeyError):
+                            convert_descriptions(doc["options"])
 
-                            with open(
-                                module_rst_path,
-                                "w",
-                                encoding="utf8",
-                            ) as doc_file:
-                                doc_file.write(template.render(doc))
-                            content[subdir][doc["module"]] = {
-                                "has_rst": True,
-                                "comment": doc["short_description"],
-                            }
+                        module_rst_path = Path(
+                            path,
+                            "docs",
+                            doc["module"] + f"_{plugin_type}" + ".rst",
+                        )
+
+                        with open(
+                            module_rst_path,
+                            "w",
+                            encoding="utf8",
+                        ) as doc_file:
+                            doc_file.write(template.render(doc))
+                        content[subdir][doc["module"]] = {
+                            "has_rst": True,
+                            "comment": doc["short_description"],
+                        }
     return content
 
 
-def load_galaxy(path):
+def load_galaxy(path: Path) -> dict[str, str]:
     """Load collection details from the galaxy.yml file in the collection.
 
     :param path: The path the collection
@@ -398,7 +393,7 @@ def load_galaxy(path):
         sys.exit(1)
 
 
-def load_runtime(path):
+def load_runtime(path: Path) -> dict[str, str]:
     """Load runtime details from the runtime.yml file in the collection.
 
     :param path: The path the collection
@@ -416,7 +411,11 @@ def load_runtime(path):
         sys.exit(1)
 
 
-def link_collection(path: Path, galaxy: dict, collection_root: Optional[Path] = None):
+def link_collection(
+    path: Path,
+    galaxy: dict,
+    collection_root: Optional[Path] = None,
+) -> None:
     """Link the provided collection into the Ansible default collection path.
 
     :param path: A path
