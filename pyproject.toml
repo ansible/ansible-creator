@@ -85,7 +85,6 @@ exclude = ['tests']
 fix = true
 ignore = [
   "C901",
-  "EM101",
   "PTH100",
   "PTH103",
   "PTH108",
@@ -94,7 +93,6 @@ ignore = [
   "PTH113",
   "PTH118",
   "PTH123",
-  "TRY003",
   "TRY400"
 ]
 line-length = 100

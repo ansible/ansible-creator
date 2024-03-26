@@ -35,9 +35,8 @@ class Config:
         """Post process config values."""
         # Show CreatorError if the required collection name is not provided
         if not self.collection and self.project == "collection":
-            raise CreatorError(
-                "The collection name is required when scaffolding a collection.",
-            )
+            msg = "The collection name is required when scaffolding a collection."
+            raise CreatorError(msg)
 
         if self.collection:
             fqcn = self.collection.split(".", maxsplit=1)
