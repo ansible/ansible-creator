@@ -85,6 +85,7 @@ repos:
         args:
           - --output-format=colorized
         additional_dependencies:
+          - ansible-core
           - PyYAML
           - jinja2
           - jsonschema

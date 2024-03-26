@@ -24,6 +24,10 @@ class Config:
     force: bool = False
     init_path: str = "./"
 
+    # Options for docs subcommand
+    collection_path: str = "./"
+    branch_name: str = "main"
+
     # TO-DO: Add instance variables for other 'create' and 'sample'
 
     collection_name: str = field(init=False)
