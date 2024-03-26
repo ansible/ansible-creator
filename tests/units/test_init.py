@@ -18,7 +18,7 @@ from tests.defaults import FIXTURES_DIR
 
 
 @pytest.fixture()
-def cli_args(tmp_path) -> dict:
+def cli_args_for_collection(tmp_path) -> dict:
     """Create an Init class object as fixture.
 
     :param tmp_path: App configuration object.
@@ -39,6 +39,27 @@ def cli_args(tmp_path) -> dict:
 
 
 @pytest.fixture()
+def cli_args_for_ansible_project(tmp_path) -> dict:
+    """Create an Init class object as fixture.
+
+    :param tmp_path: App configuration object.
+    """
+    return {
+        "creator_version": "0.0.1",
+        "json": True,
+        "log_append": True,
+        "log_file": tmp_path / "ansible-creator.log",
+        "log_level": "debug",
+        "no_ansi": False,
+        "subcommand": "init",
+        "verbose": 0,
+        "collection": None,
+        "init_path": tmp_path / "new_project",
+        "project": "ansible-project",
+    }
+
+
+@pytest.fixture()
 def output(tmp_path) -> Output:
     """Create an Output class object as fixture.
 
@@ -54,16 +75,16 @@ def output(tmp_path) -> Output:
     )
 
 
-def test_run_success(
+def test_run_success_for_collection(
     capsys,
     tmp_path,
-    cli_args,
+    cli_args_for_collection,
     output,
 ) -> None:
     """Test Init.run()."""
     # successfully create new collection
     init = Init(
-        Config(**cli_args),
+        Config(**cli_args_for_collection),
         output=output,
     )
     init.run()
@@ -87,9 +108,54 @@ def test_run_success(
         init.run()
 
     # override existing collection with force=true
-    cli_args["force"] = True
+    cli_args_for_collection["force"] = True
     init = Init(
-        Config(**cli_args),
+        Config(**cli_args_for_collection),
+        output=output,
+    )
+    init.run()
+    result = capsys.readouterr().out
+    assert (
+        re.search("Warning: re-initializing existing directory", result) is not None
+    ), result
+
+
+def test_run_success_ansible_project(
+    capsys,
+    tmp_path,
+    cli_args_for_ansible_project,
+    output,
+) -> None:
+    """Test Init.run()."""
+    # successfully create new ansible-project
+    init = Init(
+        Config(**cli_args_for_ansible_project),
+        output=output,
+    )
+    init.run()
+    result = capsys.readouterr().out
+
+    # check stdout
+    assert re.search("Note: ansible project created", result) is not None
+
+    # # recursively assert files created
+    # dircmp(str(tmp_path / "new_project"), str(FIXTURES_DIR / "project" / "ansible_project")).report_full_closure()
+    # captured = capsys.readouterr()
+    # assert re.search("Differing files|Only in", captured.out) is None, captured.out
+
+    # fail to override existing ansible-project directory with force=false (default)
+    fail_msg = (
+        f"The directory {tmp_path}/new_project already exists."
+        "\nYou can use --force to re-initialize this directory."
+        "\nHowever it will delete ALL existing contents in it."
+    )
+    with pytest.raises(CreatorError, match=fail_msg):
+        init.run()
+
+    # override existing ansible-project directory with force=true
+    cli_args_for_ansible_project["force"] = True
+    init = Init(
+        Config(**cli_args_for_ansible_project),
         output=output,
     )
     init.run()
