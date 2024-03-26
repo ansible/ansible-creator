@@ -1,4 +1,5 @@
 """Utilities for jinja2."""
+
 import re
 
 from html import escape as html_escape
@@ -19,7 +20,7 @@ _CONST = re.compile(r"C\(([^)]+)\)")
 _RULER = re.compile(r"HORIZONTALLINE")
 
 
-def to_kludge_ns(key, value):
+def to_kludge_ns(key: str, value: str) -> str:
     """Save a value for later use.
 
     :param key: The key to store under
@@ -30,7 +31,7 @@ def to_kludge_ns(key, value):
     return ""
 
 
-def from_kludge_ns(key):
+def from_kludge_ns(key: str) -> str:
     """Recall a value stored with to_kludge_ns.
 
     :param key: The key to look for
@@ -39,7 +40,7 @@ def from_kludge_ns(key):
     return NS_MAP[key]
 
 
-def html_ify(text):
+def html_ify(text: str) -> str:
     """Convert symbols like I(this is in italics) to valid HTML.
 
     :param text: The text to transform
@@ -60,7 +61,7 @@ def html_ify(text):
     return text.strip()
 
 
-def rst_ify(text):
+def rst_ify(text: str) -> str:
     """Convert symbols like I(this is in italics) to valid restructured text.
 
     :param text: The text to transform
@@ -77,7 +78,7 @@ def rst_ify(text):
     return text
 
 
-def documented_type(text):
+def documented_type(text: str) -> str:
     """Convert any python type to a type for documentation.
 
     :param text: A python type
