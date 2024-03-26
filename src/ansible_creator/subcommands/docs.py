@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import os
 
@@ -10,10 +11,21 @@ from typing import TYPE_CHECKING
 
 import yaml
 
+from ansible_creator.docs import (
+    IGNORE_FILES,
+    SUBDIRS,
+    convert_descriptions,
+    ensure_list,
+    fragment_loader,
+    handle_simple,
+    jinja_environment,
+    load_galaxy,
+    plugin_docs,
+    string_types,
+    to_text,
+    update_readme,
+)
 from ansible_creator.templar import Templar
-from ansible_creator.docs import ensure_list, jinja_environment, load_galaxy, SUBDIRS, IGNORE_FILES
-from ansible_creator.docs import plugin_docs, to_text, fragment_loader, handle_simple
-from ansible_creator.docs import convert_descriptions, string_types, update_readme
 
 
 if TYPE_CHECKING:
@@ -21,7 +33,10 @@ if TYPE_CHECKING:
     from ansible_creator.output import Output
 
 
-def process(collection: str, path: Path):  # pylint: disable-msg=too-many-locals,too-many-branches
+def process(
+    collection: str,
+    path: Path,
+):  # pylint: disable-msg=too-many-locals,too-many-branches
     """Process the files in each subdirectory.
 
     :param collection: The collection name
@@ -42,10 +57,7 @@ def process(collection: str, path: Path):  # pylint: disable-msg=too-many-locals
     content = {}
 
     for subdir in SUBDIRS:  # pylint: disable-msg=too-many-nested-blocks
-        if subdir == "modules":
-            plugin_type = "module"
-        else:
-            plugin_type = subdir
+        plugin_type = "module" if subdir == "modules" else subdir
 
         dirpath = Path(path, "plugins", subdir)
         if dirpath.is_dir():
@@ -64,48 +76,53 @@ def process(collection: str, path: Path):  # pylint: disable-msg=too-many-locals
                     if doc is None and subdir in ["filter", "test"]:
                         name_only = filename.rsplit(".")[0]
                         combined_ptype = f"{name_only} {subdir}"
-                        content[combined_ptype] = handle_simple(collection, fullpath, subdir)
-                    else:
-                        if doc:
-                            doc["plugin_type"] = plugin_type
+                        content[combined_ptype] = handle_simple(
+                            collection,
+                            fullpath,
+                            subdir,
+                        )
+                    elif doc:
+                        doc["plugin_type"] = plugin_type
 
-                            if return_docs:
-                                # Seems a recent change in devel makes this
-                                # return a dict not a yaml string.
-                                if isinstance(return_docs, dict):
-                                    doc["return_docs"] = return_docs
-                                else:
-                                    doc["return_docs"] = yaml.safe_load(return_docs)
-                                convert_descriptions(doc["return_docs"])
-
-                            doc["metadata"] = (metadata,)
-                            if isinstance(examples, string_types):
-                                doc["plain_examples"] = examples.strip()
+                        if return_docs:
+                            # Seems a recent change in devel makes this
+                            # return a dict not a yaml string.
+                            if isinstance(return_docs, dict):
+                                doc["return_docs"] = return_docs
                             else:
-                                doc["examples"] = examples
+                                doc["return_docs"] = yaml.safe_load(return_docs)
+                            convert_descriptions(doc["return_docs"])
 
-                            doc["module"] = f"{collection}." "{plugin_name}".format(
-                                plugin_name=doc.get(plugin_type, doc.get("name"))
-                            )
-                            doc["author"] = ensure_list(doc["author"])
-                            doc["description"] = ensure_list(doc["description"])
-                            try:
-                                convert_descriptions(doc["options"])
-                            except KeyError:
-                                pass  # This module takes no options
+                        doc["metadata"] = (metadata,)
+                        if isinstance(examples, string_types):
+                            doc["plain_examples"] = examples.strip()
+                        else:
+                            doc["examples"] = examples
 
-                            module_rst_path = Path(
-                                path,
-                                "docs",
-                                doc["module"] + f"_{plugin_type}" + ".rst",
-                            )
+                        doc["module"] = f"{collection}." "{plugin_name}".format(
+                            plugin_name=doc.get(plugin_type, doc.get("name")),
+                        )
+                        doc["author"] = ensure_list(doc["author"])
+                        doc["description"] = ensure_list(doc["description"])
+                        with contextlib.suppress(KeyError):
+                            convert_descriptions(doc["options"])
 
-                            with open(module_rst_path, "w", encoding="utf8") as doc_file:
-                                doc_file.write(template.render(doc))
-                            content[subdir][doc["module"]] = {
-                                "has_rst": True,
-                                "comment": doc["short_description"],
-                            }
+                        module_rst_path = Path(
+                            path,
+                            "docs",
+                            doc["module"] + f"_{plugin_type}" + ".rst",
+                        )
+
+                        with open(
+                            module_rst_path,
+                            "w",
+                            encoding="utf8",
+                        ) as doc_file:
+                            doc_file.write(template.render(doc))
+                        content[subdir][doc["module"]] = {
+                            "has_rst": True,
+                            "comment": doc["short_description"],
+                        }
     return content
 
 
@@ -122,7 +139,7 @@ class Docs:
         :param kwargs: Arguments passed for the docs action
         """
         self._branch_name: str = config.branch_name
-        self._collection_path: str = config.collection_path
+        self._collection_path: Path = Path(config.collection_path)
         self._creator_version = config.creator_version
         self._templar = Templar()
         self.output: Output = output
