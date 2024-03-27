@@ -2,9 +2,6 @@
 # Specify the inventory file
 inventory = inventory/hosts.yml
 
-# Set the path to roles directory
-roles_path = collections/ansible_collections/project_org/project_repo/roles
-
 # Define the directory for host and group variables
 host_vars_inventory = inventory/host_vars
 group_vars_inventory = inventory/group_vars
@@ -20,9 +17,6 @@ remote_user = myuser
 
 # Define the default become method
 become_method = sudo
-
-# Set the directory for roles to be installed from galaxy
-roles_path = collections/ansible_collections/project_org/project_repo/roles
 
 [persistent_connection]
 # Controls how long the persistent connection will remain idle before it is destroyed
