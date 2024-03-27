@@ -1,2 +1,3 @@
 # Stuff we don't want prettier to ever to look into
 tests/fixtures/collection/testorg/testcol/roles/
+tests/fixtures/project/ansible_project/collections/ansible_collections/project_org/project_repo/roles/run/README.md

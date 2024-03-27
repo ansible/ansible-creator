@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from ansible_creator.exceptions import CreatorError
 from ansible_creator.utils import expand_path
 
 
@@ -23,6 +24,7 @@ class Config:
     collection: str = ""
     force: bool = False
     init_path: str = "./"
+    project: str = ""
 
     # TO-DO: Add instance variables for other 'create' and 'sample'
 
@@ -31,9 +33,18 @@ class Config:
 
     def __post_init__(self: Config) -> None:
         """Post process config values."""
+        # Show CreatorError if the required collection name is not provided
+        if not self.collection and self.project == "collection":
+            msg = "The collection name is required when scaffolding a collection."
+            raise CreatorError(msg)
+
         if self.collection:
             fqcn = self.collection.split(".", maxsplit=1)
             object.__setattr__(self, "namespace", fqcn[0])
             object.__setattr__(self, "collection_name", fqcn[-1])
+
+        if self.project == "ansible-project":
+            object.__setattr__(self, "namespace", "")
+            object.__setattr__(self, "collection_name", "")
 
         object.__setattr__(self, "init_path", expand_path(self.init_path))

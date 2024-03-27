@@ -1,0 +1,12 @@
+---
+- name: Debug print task-1
+  ansible.builtin.debug:
+    msg: "This is task-1"
+
+- name: Debug print task-2
+  ansible.builtin.debug:
+    msg: "This is task-2"
+
+- name: Debug print task-3
+  ansible.builtin.debug:
+    msg: "This is task-3"
