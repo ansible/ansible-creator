@@ -1,7 +1,7 @@
 """A runpy entry point for ansible-creator.
 
 This makes it possible to invoke CLI
-via :command:`python -m ansible_creator`.
+via :command:`python3 -m ansible_creator`.
 """
 
 from .cli import main
