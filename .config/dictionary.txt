@@ -27,6 +27,7 @@ copybutton
 datadir
 datarootdir
 deflist
+devcontainer
 devel
 docsite
 doctree

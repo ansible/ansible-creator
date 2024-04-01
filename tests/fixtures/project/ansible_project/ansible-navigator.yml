@@ -7,7 +7,7 @@ ansible-navigator:
 
   execution-environment:
     enabled: true
-    image: ghcr.io/ansible/creator-ee:latest
+    image: ghcr.io/ansible/community-ansible-dev-tools-container:latest
     pull:
       policy: always
 
