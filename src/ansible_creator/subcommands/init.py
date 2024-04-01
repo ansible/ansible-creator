@@ -43,7 +43,14 @@ class Init:
 
         :raises CreatorError: if computed collection path is an existing directory or file.
         """
-        col_path = os.path.join(self._init_path, self._namespace, self._collection_name)
+        if self._init_path.endswith("collections/ansible_collections"):
+            col_path = os.path.join(
+                self._init_path,
+                self._namespace,
+                self._collection_name,
+            )
+        else:
+            col_path = self._init_path
 
         self.output.debug(msg=f"final collection path set to {col_path}")
 
