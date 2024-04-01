@@ -18,7 +18,7 @@ def cli_run(args):
     """execute a command using subprocess."""
     updated_env = os.environ.copy()
     # this helps asserting stdout/stderr
-    updated_env.update({"LINES": "40", "COLUMNS": "500", "TERM": "xterm-256color"})
+    updated_env.update({"LINES": "40", "COLUMNS": "300", "TERM": "xterm-256color"})
     try:
         result = subprocess.run(
             args,
