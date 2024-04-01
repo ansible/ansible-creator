@@ -95,11 +95,13 @@ def test_run_init_basic(cli, tmp_path):
 
     assert result.returncode != 0
     # sanitize error message (this is due to different line breaks in different CI environments)
-    err_msg = result.stderr.replace(f"{tmp_path}", "")
-    print(err_msg)
+    err_msg = result.stderr.replace(
+        f"{tmp_path}/collections/ansible_collections/testorg/testcol",
+        "",
+    )
     assert (
         re.search(
-            rf"Error: The directory /collections/ansible_collections/testorg/testcol\s+already\s+exists.",
+            rf"Error: The directory\s+already\s+exists.",
             err_msg,
             flags=re.MULTILINE,
         )
