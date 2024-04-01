@@ -13,7 +13,7 @@ import tempfile
 
 from functools import partial
 from pathlib import Path
-from typing import Any, Optional, TypeVar
+from typing import Any, TypeVar
 
 import yaml
 
@@ -102,6 +102,7 @@ def jinja_environment() -> Template:
     """
     env = Environment(
         loader=FileSystemLoader(TEMPLATE_DIR),
+        autoescape=True,
         variable_start_string="@{",
         variable_end_string="}@",
         lstrip_blocks=True,
@@ -116,12 +117,12 @@ def jinja_environment() -> Template:
     return env.get_template("plugin.rst.j2")
 
 
-def update_readme(
+def update_readme(  # noqa: PLR0912
     content: dict,
     path: Path,
     gh_url: str,
     branch_name: str,
-) -> None:  # pylint: disable-msg=too-many-locals
+) -> None:
     """Update the README.md in the repository.
 
     :param content: The dict containing the content
@@ -185,10 +186,10 @@ def update_readme(
 
 
 def handle_simple(
-    collection,
+    collection: str,
     fullpath: Path,
-    kind,
-) -> dict:  # pylint: disable-msg=too-many-locals
+    kind: str,
+) -> dict:
     """Process "simple" plugins like filter or test.
 
     :param collection: The full collection name
@@ -243,7 +244,7 @@ def handle_simple(
         None,
     )
 
-    if not simple_map:
+    if simple_map is None:
         simple_func = [
             func
             for func in class_def[0].body
@@ -263,14 +264,15 @@ def handle_simple(
             None,
         )
 
-    if not simple_map:
+    if simple_map is None:
         return plugins
 
     keys = [k.s for k in simple_map.value.keys]
     logging.info("Adding %s plugins %s", kind, ",".join(keys))
     values = [k.id for k in simple_map.value.values]
-    simple_map = dict(zip(keys, values))
-    for name, func in simple_map.items():
+
+    definitions = dict(zip(keys, values))
+    for name, func in definitions.items():
         if func in function_definitions:
             comment = function_definitions[func] or f"{collection} {name} {kind} plugin"
 
@@ -283,10 +285,10 @@ def handle_simple(
     return plugins
 
 
-def process(
+def process(  # noqa: PLR0912 pylint: disable-msg=too-many-branches
     collection: str,
     path: Path,
-) -> dict:  # pylint: disable-msg=too-many-locals,too-many-branches
+) -> dict:
     """Process the files in each subdirectory.
 
     :param collection: The collection name
@@ -414,7 +416,7 @@ def load_runtime(path: Path) -> dict[str, str]:
 def link_collection(
     path: Path,
     galaxy: dict,
-    collection_root: Optional[Path] = None,
+    collection_root: Path | None = None,
 ) -> None:
     """Link the provided collection into the Ansible default collection path.
 
@@ -472,8 +474,8 @@ def add_collection(path: Path, galaxy: dict) -> tempfile.TemporaryDirectory | No
 
     if collections_path is None:
         tempdir = (
-            tempfile.TemporaryDirectory()
-        )  # pylint: disable-msg=consider-using-with
+            tempfile.TemporaryDirectory()  # pylint: disable-msg=consider-using-with
+        )
         logging.info("Temporary collection path %s created", tempdir.name)
         collections_path = Path(tempdir.name) / "ansible_collections"
         link_collection(path, galaxy, collection_root=collections_path)
@@ -482,7 +484,7 @@ def add_collection(path: Path, galaxy: dict) -> tempfile.TemporaryDirectory | No
     logging.info("Collection path is %s", full_path)
 
     # Tell ansible about the path
-    _AnsibleCollectionFinder(  # pylint: disable-msg=protected-access
+    _AnsibleCollectionFinder(  # noqa: SLF001
         paths=[collections_path, "~/.ansible/collections"],
     )._install()
 

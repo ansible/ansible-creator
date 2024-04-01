@@ -58,7 +58,7 @@ def test_run_no_subcommand(cli):
     assert (
         dedent(
             """\
-            usage: ansible-creator [-h] [--version] {init} ...
+            usage: ansible-creator [-h] [--version] {init,docs} ...
             ansible-creator: error: the following arguments are required: subcommand
             """,
         )

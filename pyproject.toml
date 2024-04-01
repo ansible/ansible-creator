@@ -85,6 +85,7 @@ exclude = ['tests']
 fix = true
 ignore = [
   "C901",
+  "PD011",
   "PTH100",
   "PTH103",
   "PTH108",

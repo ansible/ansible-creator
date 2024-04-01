@@ -75,7 +75,7 @@ def rst_ify(text: str) -> str:
     text = _CONST.sub(r"``\1``", text)
     text = _RULER.sub(r"------------", text)
 
-    return text
+    return text  # noqa: RET504
 
 
 def documented_type(text: str) -> str:

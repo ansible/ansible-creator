@@ -201,7 +201,7 @@ class Cli:
         docs_command_parser.add_argument(
             "--collection-path",
             default="./",
-            help="The path to the collection in which docs will be generatedated. The default is "
+            help="The path to the collection in which docs will be generated. The default is "
             "the current working directory.",
         )
 

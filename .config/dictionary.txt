@@ -20,21 +20,25 @@ cliconf             # Ansible network cli abstraction plugin
 codeclimate
 colname
 COLORTERM
+colspan
 coltext
 colval
 commandline
 copybutton
+darkgreen
 datadir
 datarootdir
 deflist
 devcontainer
 devel
+dictsort
 docsite
 doctree
 dumpable
 dunder
 editables
 ENDC
+endfor
 endraw
 ESCDELAY
 extlinks
@@ -48,6 +52,7 @@ getval
 haved
 headerlink
 helpconfig
+HORIZONTALLINE
 hostvars
 hrefs
 htmlproofer
@@ -63,6 +68,7 @@ keepends
 kegex               # An action's regex
 kegexes
 Kolkata
+larr
 lentext
 levelname
 levelno
@@ -85,6 +91,7 @@ moduleauthor
 mqueue              # https://github.com/ansible/ansible-runner/issues/984
 myproject
 myuser
+nbsp
 netcommon           # Ansible network collection, seen in tests and README
 netconf
 nitpicky
@@ -117,6 +124,7 @@ rtype
 rulebook
 rulebooks
 runtimes
+sameas
 scaffolder
 Scaffolder
 scaffolders
@@ -153,6 +161,7 @@ testorg
 testpaths
 tmplt
 toctree
+tojson
 topbar
 topdown
 Towncrier           # Changelog generator

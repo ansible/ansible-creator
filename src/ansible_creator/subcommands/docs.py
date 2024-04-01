@@ -57,5 +57,6 @@ class Docs:
         )
 
         self.output.note(
-            f"collection {namespace}.{collection_name} documentation updated at {self._collection_path}",
+            f"collection {namespace}.{collection_name} "
+            f"documentation updated at {self._collection_path}",
         )

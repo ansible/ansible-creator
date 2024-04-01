@@ -316,7 +316,7 @@ Facts returned by this module are added/updated in the ``hostvars`` host facts a
                     <br/>
                     {% if value.sample is defined and value.sample %}
                         <div style="font-size: smaller"><b>Sample:</b></div>
-                        {# TODO: The sample should be escaped, using | escape or | htmlify, but both mess things up beyond repair with dicts #}
+                        {# TODO: The sample should be escaped, using | escape or | html_ify, but both mess things up beyond repair with dicts #}
                         <div style="font-size: smaller; color: blue; word-wrap: break-word; word-break: break-all;">@{ value.sample | replace('\n', '\n    ') | html_ify }@</div>
                     {% endif %}
                 </td>
@@ -395,7 +395,7 @@ Common return values are documented `here <https://docs.ansible.com/ansible/late
                     <br/>
                     {% if value.sample is defined and value.sample %}
                         <div style="font-size: smaller"><b>Sample:</b></div>
-                        {# TODO: The sample should be escaped, using |escape or |htmlify, but both mess things up beyond repair with dicts #}
+                        {# TODO: The sample should be escaped, using | escape or | html_ify, but both mess things up beyond repair with dicts #}
                         <div style="font-size: smaller; color: blue; word-wrap: break-word; word-break: break-all;">@{ value.sample | replace('\n', '\n    ') | html_ify }@</div>
                     {% endif %}
                 </td>
