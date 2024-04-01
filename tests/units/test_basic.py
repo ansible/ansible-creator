@@ -34,6 +34,8 @@ def test_expand_path() -> None:
                 "init_path": "./",
                 "force": False,
                 "project": "collection",  # default value
+                "scm_org": None,
+                "scm_project": None,
             },
         ],
         [
@@ -55,6 +57,8 @@ def test_expand_path() -> None:
                 "init_path": "/home/ansible/my-ansible-project",
                 "force": False,
                 "project": "ansible-project",
+                "scm_org": None,
+                "scm_project": None,
             },
         ],
         [
@@ -83,6 +87,8 @@ def test_expand_path() -> None:
                 "init_path": "/home/ansible",
                 "force": True,
                 "project": "collection",  # default value
+                "scm_org": None,
+                "scm_project": None,
             },
         ],
         [
@@ -111,6 +117,8 @@ def test_expand_path() -> None:
                 "init_path": "/home/ansible/my-ansible-project",
                 "force": True,
                 "project": "ansible-project",
+                "scm_org": None,
+                "scm_project": None,
             },
         ],
     ],

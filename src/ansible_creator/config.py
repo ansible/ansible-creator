@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.utils import expand_path
@@ -25,11 +25,13 @@ class Config:
     force: bool = False
     init_path: str = "./"
     project: str = ""
+    scm_org: str = ""
+    scm_project: str = ""
 
     # TO-DO: Add instance variables for other 'create' and 'sample'
 
-    collection_name: str = field(init=False)
-    namespace: str = field(init=False)
+    collection_name: str = ""
+    namespace: str = ""
 
     def __post_init__(self: Config) -> None:
         """Post process config values."""
@@ -42,9 +44,5 @@ class Config:
             fqcn = self.collection.split(".", maxsplit=1)
             object.__setattr__(self, "namespace", fqcn[0])
             object.__setattr__(self, "collection_name", fqcn[-1])
-
-        if self.project == "ansible-project":
-            object.__setattr__(self, "namespace", "")
-            object.__setattr__(self, "collection_name", "")
 
         object.__setattr__(self, "init_path", expand_path(self.init_path))

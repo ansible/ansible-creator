@@ -154,6 +154,16 @@ class Cli:
         )
 
         init_command_parser.add_argument(
+            "--scm-org",
+            help="Xyz",
+        )
+
+        init_command_parser.add_argument(
+            "--scm-project",
+            help="Xyz",
+        )
+
+        init_command_parser.add_argument(
             "--init-path",
             default="./",
             help="The path in which the skeleton collection will be created. The default is the "

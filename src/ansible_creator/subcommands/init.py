@@ -36,6 +36,8 @@ class Init:
         self._force = config.force
         self._creator_version = config.creator_version
         self._project = config.project
+        self._scm_org = config.scm_org
+        self._scm_project = config.scm_project
         self._templar = Templar()
         self.output: Output = output
 
@@ -117,8 +119,8 @@ class Init:
                 dest=col_path,
                 templar=self._templar,
                 template_data={
-                    "namespace": self._namespace,
-                    "collection_name": self._collection_name,
+                    "namespace": self._scm_org,
+                    "collection_name": self._scm_project,
                     "creator_version": self._creator_version,
                 },
                 output=self.output,
