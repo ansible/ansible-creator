@@ -96,7 +96,7 @@ def test_run_init_basic(cli, tmp_path):
     assert result.returncode != 0
     assert (
         re.search(
-            rf"Error: The directory\s+{tmp_path}/collections/ansible_collections/testorg/testcol\s+already exists.",
+            rf"Error: The directory\s+{tmp_path}/collections/ansible_collections/testorg/testcol\s+already(\n|\s)exists.",
             result.stderr,
             flags=re.MULTILINE,
         )
