@@ -76,9 +76,11 @@ def test_run_init_no_input(cli):
 
 
 def test_run_init_basic(cli, tmp_path):
-    cli(f"mkdir -p {tmp_path}/collections/ansible_collections")
+    final_dest = f"{tmp_path}/collections/ansible_collections"
+    cli(f"mkdir -p {final_dest}")
+
     result = cli(
-        f"ansible-creator init testorg.testcol --init-path {tmp_path}/collections/ansible_collections",
+        f"ansible-creator init testorg.testcol --init-path {final_dest}",
     )
     assert result.returncode == 0
 
@@ -90,7 +92,7 @@ def test_run_init_basic(cli, tmp_path):
 
     # fail to override existing collection with force=false (default)
     result = cli(
-        f"ansible-creator init testorg.testcol --init-path {tmp_path}/collections/ansible_collections",
+        f"ansible-creator init testorg.testcol --init-path {final_dest}",
     )
 
     assert result.returncode != 0
@@ -99,6 +101,7 @@ def test_run_init_basic(cli, tmp_path):
         f"{tmp_path}/collections/ansible_collections/testorg/testcol",
         "",
     )
+    print(err_msg)
     assert (
         re.search(
             rf"Error: The directory\s+already\s+exists.",
