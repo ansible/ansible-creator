@@ -92,6 +92,7 @@ def test_run_init_basic(cli, tmp_path):
     result = cli(
         f"ansible-creator init testorg.testcol --init-path {tmp_path}/collections/ansible_collections",
     )
+    print(result.stderr)
     assert result.returncode != 0
     assert (
         re.search(
