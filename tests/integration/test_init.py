@@ -97,6 +97,7 @@ def test_run_init_basic(cli, tmp_path):
 
     assert result.returncode != 0
 
+    # this is required to handle random line breaks in CI, especially with macos runners
     mod_stderr = "".join([line.strip() for line in result.stderr.splitlines()])
     assert (
         re.search(
