@@ -97,11 +97,13 @@ def test_run_init_basic(cli, tmp_path):
 
     assert result.returncode != 0
 
-    print(result.stderr.replace("\n", ""))
-
+    mod_stderr = "".join([line.strip() for line in result.stderr.splitlines()])
     assert (
-        f"Error: The directory {final_dest}/testorg/testcol already exists."
-        in result.stderr.replace("\n", " ")
+        re.search(
+            rf"Error:\s*The\s*directory\s*{final_dest}/testorg/testcol\s*already\s*exists",
+            mod_stderr,
+        )
+        is not None
     )
     assert "You can use --force to re-initialize this directory." in result.stderr
     assert "However it will delete ALL existing contents in it." in result.stderr
