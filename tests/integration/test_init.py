@@ -101,7 +101,7 @@ def test_run_init_basic(cli, tmp_path):
     assert (
         re.search(
             rf"Error: The directory\s+{final_dest}/testorg/testcol\s+already\s+exists.",
-            result.stderr,
+            result.stderr.replace("\n", ""),
             flags=re.MULTILINE,
         )
         is not None
