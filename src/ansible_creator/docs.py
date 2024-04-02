@@ -100,9 +100,8 @@ def jinja_environment() -> Template:
 
     :return: A jinja template, with the env set
     """
-    env = Environment(
+    env = Environment(  # noqa: S701
         loader=FileSystemLoader(TEMPLATE_DIR),
-        autoescape=True,
         variable_start_string="@{",
         variable_end_string="}@",
         lstrip_blocks=True,
@@ -110,7 +109,7 @@ def jinja_environment() -> Template:
     )
     env.filters["rst_ify"] = rst_ify
     env.filters["documented_type"] = documented_type
-    env.tests["list"] = partial(is_sequence, include_strings=False)
+    env.tests["list"] = partial(is_sequence, include_strings=False)  # type: ignore[assignment]
     env.filters["html_ify"] = html_ify
     env.globals["to_kludge_ns"] = to_kludge_ns
     env.globals["from_kludge_ns"] = from_kludge_ns
@@ -212,7 +211,7 @@ def handle_simple(
         logging.error("Only filter and test are supported simple types")
         sys.exit(1)
 
-    plugins = {}
+    plugins: dict[str, str | dict] = {}
     with open(fullpath, encoding="utf8") as file_obj:
         file_contents = file_obj.read()
     module = ast.parse(file_contents)
@@ -233,46 +232,35 @@ def handle_simple(
     if docstring:
         plugins["_description"] = docstring.strip()
 
-    simple_map = next(
-        (
-            node
-            for node in class_def[0].body
-            if isinstance(node, ast.Assign)
-            and hasattr(node, "targets")
-            and node.targets[0].id == map_name
-        ),
-        None,
-    )
-
-    if simple_map is None:
-        simple_func = [
-            func
-            for func in class_def[0].body
-            if isinstance(func, ast.FunctionDef) and func.name == func_name
-        ]
-        if not simple_func:
-            return plugins
-
-        # The filter map is either looked up using the filter_map = {}
-        # assignment or if return returns a dict literal.
-        simple_map = next(
-            (
-                node
-                for node in simple_func[0].body
-                if isinstance(node, ast.Return) and isinstance(node.value, ast.Dict)
-            ),
-            None,
-        )
-
-    if simple_map is None:
+    # The filter map is either looked up using the filter_map = {}
+    # assignment or if return returns a dict literal.
+    node: ast.Assign | ast.Return | None
+    node = find_assignment(class_def[0], map_name)
+    if node is None:
+        node = find_return(class_def[0], func_name)
+    # Found neither assignment nor function, return plugins unaltered
+    if node is None or node.value is None or not isinstance(node.value, ast.Dict):
         return plugins
 
-    keys = [k.s for k in simple_map.value.keys]
-    logging.info("Adding %s plugins %s", kind, ",".join(keys))
-    values = [k.id for k in simple_map.value.values]
+    function_map: ast.Dict = node.value
+    items = zip(function_map.keys, function_map.values)
 
-    definitions = dict(zip(keys, values))
-    for name, func in definitions.items():
+    keys = [k.s for k in function_map.keys if k and isinstance(k, ast.Constant)]
+    logging.info("Adding %s plugins %s", kind, ",".join(keys))
+
+    for name_expr, func_expr in items:
+        if not isinstance(name_expr, ast.Constant):
+            logging.warning("Found unexpected plugin name node %s", type(name_expr))
+            continue
+        if not isinstance(func_expr, ast.Name):
+            logging.warning(
+                "Found unexpected plugin implementation node %s",
+                type(func_expr),
+            )
+            continue
+
+        name = name_expr.s
+        func = func_expr.id
         if func in function_definitions:
             comment = function_definitions[func] or f"{collection} {name} {kind} plugin"
 
@@ -283,6 +271,38 @@ def handle_simple(
             )
             plugins[f"{collection}.{name}"] = {"has_rst": False, "comment": comment}
     return plugins
+
+
+def find_assignment(class_node: ast.ClassDef, name: str) -> ast.Assign | None:
+    """Find a named assignment in an ast class."""
+    assignments: list[ast.Assign] = [
+        node
+        for node in class_node.body
+        if isinstance(node, ast.Assign) and hasattr(node, "targets")
+    ]
+    for assignment in assignments:
+        for target in assignment.targets:
+            if isinstance(target, ast.Name) and target.id == name:
+                return assignment
+    return None
+
+
+def find_return(class_node: ast.ClassDef, name: str) -> ast.Return | None:
+    """Find a function return in an ast class."""
+    class_functions = [
+        func
+        for func in class_node.body
+        if isinstance(func, ast.FunctionDef) and func.name == name
+    ]
+    if not class_functions:
+        return None
+
+    for function in class_functions:
+        if function.name == name:
+            for node in function.body:
+                if isinstance(node, ast.Return) and isinstance(node.value, ast.Dict):
+                    return node
+    return None
 
 
 def process(  # noqa: PLR0912 pylint: disable-msg=too-many-branches
@@ -306,7 +326,7 @@ def process(  # noqa: PLR0912 pylint: disable-msg=too-many-branches
     logging.info("Making docs directory %s", docs_path)
     Path(docs_path).mkdir(parents=True, exist_ok=True)
 
-    content = {}
+    content: dict[str, dict] = {}
 
     for subdir in SUBDIRS:  # pylint: disable-msg=too-many-nested-blocks
         plugin_type = "module" if subdir == "modules" else subdir
@@ -484,7 +504,7 @@ def add_collection(path: Path, galaxy: dict) -> tempfile.TemporaryDirectory | No
     logging.info("Collection path is %s", full_path)
 
     # Tell ansible about the path
-    _AnsibleCollectionFinder(  # noqa: SLF001
+    _AnsibleCollectionFinder(  # noqa: SLF001 pylint: disable-msg=protected-access
         paths=[collections_path, "~/.ansible/collections"],
     )._install()
 

@@ -98,7 +98,6 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies:
-          - ansible-core
           - jinja2
           - black
           - types-jsonschema
