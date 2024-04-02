@@ -97,7 +97,7 @@ def test_run_init_basic(cli, tmp_path):
 
     assert result.returncode != 0
 
-    # sanitize error message (this is due to different line breaks in different CI environments)
+    print(result.stderr)
     assert (
         re.search(
             rf"Error: The directory\s+{final_dest}/testorg/testcol\s+already\s+exists.",
