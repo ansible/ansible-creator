@@ -4,7 +4,7 @@ This repository contains the `project_org.project_repo` Ansible Collection.
 
 ## Tested with Ansible
 
-Tested with ansible-core >=2.13 releases and the current development version of ansible-core.
+Tested with ansible-core >=2.14 releases and the current development version of ansible-core.
 
 ## External requirements
 
