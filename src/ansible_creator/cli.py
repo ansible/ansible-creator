@@ -155,12 +155,13 @@ class Cli:
 
         init_command_parser.add_argument(
             "--scm-org",
-            help="Xyz",
+            help="Namespace for the scaffolded playbook adjacent collection in ansible-project.",
         )
 
         init_command_parser.add_argument(
             "--scm-project",
-            help="Xyz",
+            help="Collection name for the scaffolded playbook adjacent collection "
+            "in ansible-project.",
         )
 
         init_command_parser.add_argument(

@@ -168,15 +168,17 @@ def test_run_success_ansible_project(
 def test_run_success_collections_alt_dir(
     tmp_path,
     capsys,
-    cli_args,
+    cli_args_for_collection,
     output,
 ) -> None:
     """Test Init.run() when init_path ends with "collections" / "ansible_collections"""
     # successfully create new collection
-    cli_args["init_path"] = tmp_path / "collections" / "ansible_collections"
-    final_path = cli_args["init_path"] / "testorg" / "testcol"
+    cli_args_for_collection["init_path"] = (
+        tmp_path / "collections" / "ansible_collections"
+    )
+    final_path = cli_args_for_collection["init_path"] / "testorg" / "testcol"
     init = Init(
-        Config(**cli_args),
+        Config(**cli_args_for_collection),
         output=output,
     )
     init.run()
