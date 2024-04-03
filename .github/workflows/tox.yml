@@ -72,7 +72,7 @@ jobs:
         run: python3 -m pip install --upgrade 'tox>=4.0.3'
 
       - name: Initialize tox envs
-        run: python -m tox --notest --skip-missing-interpreters false -vv -e ${{ matrix.passed_name }}
+        run: python3 -m tox --notest --skip-missing-interpreters false -vv -e ${{ matrix.passed_name }}
 
       - name: "tox -e ${{ matrix.passed_name }}"
         continue-on-error: ${{ matrix.devel || false }}
