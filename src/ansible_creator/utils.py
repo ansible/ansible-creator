@@ -19,8 +19,8 @@ if TYPE_CHECKING:
 PATH_REPLACERS = {
     "network_os": "collection_name",
     "resource": "resource",
-    "project_org": "namespace",
-    "project_repo": "collection_name",
+    "project_org": "scm_org",
+    "project_repo": "scm_project",
 }
 
 

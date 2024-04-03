@@ -117,8 +117,8 @@ class Init:
                 dest=self._init_path,
                 templar=self._templar,
                 template_data={
-                    "namespace": self._scm_org,
-                    "collection_name": self._scm_project,
+                    "scm_org": self._scm_org,
+                    "scm_project": self._scm_project,
                     "creator_version": self._creator_version,
                 },
                 output=self.output,
