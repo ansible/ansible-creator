@@ -2,4 +2,4 @@
 - name: Example playbook
   hosts: localhost
   roles:
-    - role: "{{ namespace }}.{{ collection_name }}.{{ role_name }}"
+    - role: "{{ namespace }}.{{ collection_name }}.run"
