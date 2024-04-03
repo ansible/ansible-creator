@@ -33,7 +33,7 @@ def cli_args(tmp_path) -> dict:
         "subcommand": "init",
         "verbose": 0,
         "collection": "testorg.testcol",
-        "init_path": tmp_path,
+        "init_path": tmp_path / "testorg" / "testcol",
     }
 
 
