@@ -40,6 +40,15 @@ class Config:
             msg = "The collection name is required when scaffolding a collection."
             raise CreatorError(msg)
 
+        if self.project == "ansible-project" and (
+            self.scm_org is None or self.scm_project is None
+        ):
+            msg = (
+                "Required parameters scm-org and scm-project to scaffold"
+                " playbook adjacent collection within ansible-project."
+            )
+            raise CreatorError(msg)
+
         if self.collection:
             fqcn = self.collection.split(".", maxsplit=1)
             object.__setattr__(self, "namespace", fqcn[0])
