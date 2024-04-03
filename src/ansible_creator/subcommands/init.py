@@ -43,29 +43,34 @@ class Init:
 
         :raises CreatorError: if computed collection path is an existing directory or file.
         """
-        col_path = os.path.join(self._init_path, self._namespace, self._collection_name)
+        if self._init_path.endswith("collections/ansible_collections"):
+            self._init_path = os.path.join(
+                self._init_path,
+                self._namespace,
+                self._collection_name,
+            )
 
-        self.output.debug(msg=f"final collection path set to {col_path}")
+        self.output.debug(msg=f"final collection path set to {self._init_path}")
 
         # check if init_path already exists
-        if os.path.exists(col_path):
-            if os.path.isfile(col_path):
-                msg = f"the path {col_path} already exists, but is a file - aborting"
+        if os.path.exists(self._init_path):
+            if os.path.isfile(self._init_path):
+                msg = f"the path {self._init_path} already exists, but is a file - aborting"
                 raise CreatorError(
                     msg,
                 )
 
             if not self._force:
                 msg = (
-                    f"The directory {col_path} already exists.\n"
+                    f"The directory {self._init_path} already exists.\n"
                     f"You can use --force to re-initialize this directory."
                     f"\nHowever it will delete ALL existing contents in it."
                 )
                 raise CreatorError(msg)
 
             # user requested --force, re-initializing existing directory
-            self.output.warning(f"re-initializing existing directory {col_path}")
-            for root, dirs, files in os.walk(col_path, topdown=True):
+            self.output.warning(f"re-initializing existing directory {self._init_path}")
+            for root, dirs, files in os.walk(self._init_path, topdown=True):
                 for old_dir in dirs:
                     path = os.path.join(root, old_dir)
                     self.output.debug(f"removing tree {old_dir}")
@@ -76,15 +81,15 @@ class Init:
                     os.unlink(path)
 
         # if init_path does not exist, create it
-        if not os.path.exists(col_path):
-            self.output.debug(msg=f"creating new directory at {col_path}")
-            os.makedirs(col_path)
+        if not os.path.exists(self._init_path):
+            self.output.debug(msg=f"creating new directory at {self._init_path}")
+            os.makedirs(self._init_path)
 
         # copy new_collection container to destination, templating files when found
         self.output.debug(msg="started copying collection skeleton to destination")
         copy_container(
             source="new_collection",
-            dest=col_path,
+            dest=self._init_path,
             templar=self._templar,
             template_data={
                 "namespace": self._namespace,
