@@ -72,14 +72,14 @@ $ ansible-creator init <collection-name> --init-path <path>
 $ ansible-creator init testns.testname --init-path $HOME/collections/ansible_collections
 ```
 
-This command will scaffold the collection `testns.testname` at `/home/ansible-dev/collections/ansible_collections`
+This command will scaffold the collection `testns.testname` at `/home/ansible-dev/collections/ansible_collections/testns/testname`
 
 #### Generated Ansible Collection Structure
 
 Running the init command generates an Ansible Collection with a comprehensive directory structure. Explore it using:
 
 ```console
-$ tree -lla /home/ansible-dev/collections/ansible_collections
+$ tree -lla /home/ansible-dev/collections/ansible_collections/testns/testname
 .
 ├── CHANGELOG.rst
 ├── changelogs
