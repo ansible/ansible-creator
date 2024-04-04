@@ -1,9 +1,11 @@
-Project_org.Project_repo Run Role
+Weather.Demo Run Role
 ========================
 
 A brief description of the role is here.
 
 Requirements
+------------
+
 Any prerequisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
 
 Role Variables
@@ -25,20 +27,20 @@ Including an example of how to use your role (for instance, with variables passe
 - name: Execute tasks on servers
   hosts: servers
   roles:
-    - role: project_org.project_repo.run
+    - role: weather.demo.run
       run_x: 42
 ```
 
 Another way to consume this role would be:
 
 ```yaml
-- name: Initialize the run role from testorg.testcol
+- name: Initialize the run role from weather.demo
   hosts: servers
   gather_facts: false
   tasks:
     - name: Trigger invocation of run role
       ansible.builtin.include_role:
-        name: project_org.project_repo.run
+        name: weather.demo.run
       vars:
         run_x: 42
 ```

@@ -56,6 +56,8 @@ def cli_args_for_ansible_project(tmp_path) -> dict:
         "collection": None,
         "init_path": tmp_path / "new_project",
         "project": "ansible-project",
+        "scm_org": "weather",
+        "scm_project": "demo",
     }
 
 
@@ -138,10 +140,13 @@ def test_run_success_ansible_project(
     # check stdout
     assert re.search("Note: ansible project created", result) is not None
 
-    # # recursively assert files created
-    # dircmp(str(tmp_path / "new_project"), str(FIXTURES_DIR / "project" / "ansible_project")).report_full_closure()
-    # captured = capsys.readouterr()
-    # assert re.search("Differing files|Only in", captured.out) is None, captured.out
+    # recursively assert files created
+    dircmp(
+        str(tmp_path / "new_project"),
+        str(FIXTURES_DIR / "project" / "ansible_project"),
+    ).report_full_closure()
+    captured = capsys.readouterr()
+    assert re.search("Differing files|Only in", captured.out) is None, captured.out
 
     # fail to override existing ansible-project directory with force=false (default)
     fail_msg = (

@@ -1,6 +1,6 @@
-# Project_org Project_repo Collection
+# Weather Demo Collection
 
-This repository contains the `project_org.project_repo` Ansible Collection.
+This repository contains the `weather.demo` Ansible Collection.
 
 ## Tested with Ansible
 
@@ -12,31 +12,31 @@ Some modules and plugins require external libraries. Please check the requiremen
 
 ## Included content
 
-Please check the included content on the [Ansible Galaxy page for this collection](https://galaxy.ansible.com/testorg/testcol).
+Please check the included content on the [Ansible Galaxy page for this collection](https://galaxy.ansible.com/weather/demo).
 
 ## Using this collection
 
 ```
-    ansible-galaxy collection install project_org.project_repo
+    ansible-galaxy collection install weather.demo
 ```
 
 You can also include it in a `requirements.yml` file and install it via `ansible-galaxy collection install -r requirements.yml` using the format:
 
 ```yaml
 collections:
-  - name: project_org.project_repo
+  - name: weather.demo
 ```
 
 To upgrade the collection to the latest available version, run the following command:
 
 ```bash
-ansible-galaxy collection install project_org.project_repo --upgrade
+ansible-galaxy collection install weather.demo --upgrade
 ```
 
-You can also install a specific version of the collection, for example, if you need to downgrade when something is broken in the latest version (please report an issue in this repository). Use the following syntax where `X.Y.Z` can be any [available version](https://galaxy.ansible.com/project_org/project_repo):
+You can also install a specific version of the collection, for example, if you need to downgrade when something is broken in the latest version (please report an issue in this repository). Use the following syntax where `X.Y.Z` can be any [available version](https://galaxy.ansible.com/weather/demo):
 
 ```bash
-ansible-galaxy collection install project_org.project_repo:==X.Y.Z
+ansible-galaxy collection install weather.demo:==X.Y.Z
 ```
 
 See [Ansible Using Collections](https://docs.ansible.com/ansible/latest/user_guide/collections_using.html) for more details.
