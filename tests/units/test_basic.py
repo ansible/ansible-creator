@@ -74,13 +74,7 @@ def test_configuration_class() -> None:
     """Test Config() dataclass post_init."""
     cli_args: dict = {
         "creator_version": "0.0.1",
-        "json": True,
-        "log_append": True,
-        "log_file": "./ansible-creator.log",
-        "log_level": "debug",
-        "no_ansi": False,
         "subcommand": "init",
-        "verbose": 2,
         "collection": "testorg.testcol",
         "init_path": "$HOME",
     }

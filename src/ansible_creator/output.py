@@ -238,7 +238,7 @@ class Output:
             "warning": 0,
         }
         self.term_features = term_features
-        self.logger = logging.getLogger("pip4a")
+        self.logger = logging.getLogger("ansible_creator")
         if log_level != "notset":
             self.logger.setLevel(log_level.upper())
             self.log_to_file = bool(log_file)
