@@ -3,7 +3,6 @@
   gather_facts: false
   hosts: switch1
   tasks:
-
     - name: Get config for IOS devices
       cisco.ios.ios_facts:
         gather_subset: all

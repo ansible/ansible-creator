@@ -164,6 +164,7 @@ viewcode
 volmount
 wantd
 webserver
+webservers
 workdir
 xdist
 xmss
