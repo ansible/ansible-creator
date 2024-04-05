@@ -12,13 +12,7 @@ class Config:
     """The application configuration for ansible-creator."""
 
     creator_version: str
-    json: bool
-    log_append: bool
-    log_file: str
-    log_level: str
-    no_ansi: bool
     subcommand: str
-    verbose: int
 
     collection: str = ""
     force: bool = False
