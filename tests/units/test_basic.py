@@ -6,7 +6,8 @@ import pytest
 
 from ansible_creator.cli import Cli
 from ansible_creator.config import Config
-from ansible_creator.utils import expand_path
+from ansible_creator.utils import expand_path, TermFeatures
+from ansible_creator.output import Output
 
 
 def test_expand_path() -> None:
@@ -68,6 +69,35 @@ def test_cli_parser(monkeypatch, sysargs, expected) -> None:
     """Test CLI args parsing."""
     monkeypatch.setattr("sys.argv", sysargs)
     assert vars(Cli().parse_args()) == expected
+
+
+def test_cli_init_output(monkeypatch) -> None:
+    sysargs = [
+        "ansible-creator",
+        "init",
+        "testorg.testcol",
+        "--init-path=/home/ansible",
+        "-vvv",
+        "--json",
+        "--no-ansi",
+        "--la=false",
+        "--lf=test.log",
+        "--ll=debug",
+        "--force",
+    ]
+    output = Output(
+        log_append="false",
+        log_file=expand_path("test.log"),
+        log_level="debug",
+        term_features=TermFeatures(color=False, links=False),
+        verbosity=3,
+        display="json",
+    )
+
+    monkeypatch.setattr("sys.argv", sysargs)
+    cli = Cli()
+    cli.init_output()
+    assert vars(cli.output) == vars(output)
 
 
 def test_configuration_class() -> None:
