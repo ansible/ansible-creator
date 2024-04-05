@@ -56,6 +56,8 @@ class Config:
             )
             raise CreatorError(msg)
 
+        # Validation for: ansible-creator init testorg.testname --scm-org=weather
+        # --scm-project=demo --project=collection
         if self.scm_org and self.scm_project and self.project != "ansible-project":
             msg = (
                 "The parameters 'scm-org' and 'scm-project' have no effect when"
@@ -64,6 +66,7 @@ class Config:
             self.output.warning(msg)
 
         # Validation for: ansible-creator init testorg.testname --project=ansible-project
+        # --scm-org weather --scm-project demo
         if self.collection and self.project != "collection":
             msg = "Collection name has no effect when project is set to ansible project"
             self.output.warning(msg)
