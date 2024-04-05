@@ -149,19 +149,27 @@ class Cli:
 
         init_command_parser.add_argument(
             "--project",
+            choices=["ansible-project", "collection"],
             default="collection",
-            help="Project type to scaffold, for eg: ansible-project.",
+            help="Project type to scaffold. Valid choices are collection, ansible-project.",
         )
 
         init_command_parser.add_argument(
             "--scm-org",
-            help="Namespace for the scaffolded playbook adjacent collection in ansible-project.",
+            help=(
+                "The SCM org where the ansible-project will be hosted. This value is used as"
+                " the namespace for the playbook adjacent collection."
+                " Required when `--project=ansible-project`."
+            ),
         )
 
         init_command_parser.add_argument(
             "--scm-project",
-            help="Collection name for the scaffolded playbook adjacent collection "
-            "in ansible-project.",
+            help=(
+                "The SCM project where the ansible-project will be hosted. This value is used as"
+                " the collection_name for the playbook adjacent collection."
+                " Required when `--project=ansible-project`."
+            ),
         )
 
         init_command_parser.add_argument(
@@ -193,7 +201,7 @@ class Cli:
             self.output.debug(msg=f"starting requested action '{subcommand}'")
             subcommand = getattr(import_module(subcommand_module), subcommand_cls)
             self.output.debug(f"found action class {subcommand}")
-            subcommand(config=Config(**args), output=self.output).run()
+            subcommand(config=Config(**args, output=self.output)).run()
         except CreatorError as exc:
             self.output.error(str(exc))
             sys.exit(1)

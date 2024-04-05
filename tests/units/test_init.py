@@ -18,50 +18,6 @@ from tests.defaults import FIXTURES_DIR
 
 
 @pytest.fixture()
-def cli_args_for_collection(tmp_path) -> dict:
-    """Create an Init class object as fixture.
-
-    :param tmp_path: App configuration object.
-    """
-    return {
-        "creator_version": "0.0.1",
-        "json": True,
-        "log_append": True,
-        "log_file": tmp_path / "ansible-creator.log",
-        "log_level": "debug",
-        "no_ansi": False,
-        "subcommand": "init",
-        "verbose": 0,
-        "collection": "testorg.testcol",
-        "init_path": tmp_path / "testorg" / "testcol",
-        "project": "collection",  # default value
-    }
-
-
-@pytest.fixture()
-def cli_args_for_ansible_project(tmp_path) -> dict:
-    """Create an Init class object as fixture.
-
-    :param tmp_path: App configuration object.
-    """
-    return {
-        "creator_version": "0.0.1",
-        "json": True,
-        "log_append": True,
-        "log_file": tmp_path / "ansible-creator.log",
-        "log_level": "debug",
-        "no_ansi": False,
-        "subcommand": "init",
-        "verbose": 0,
-        "collection": None,
-        "init_path": tmp_path / "new_project",
-        "project": "ansible-project",
-        "scm_org": "weather",
-        "scm_project": "demo",
-    }
-
-
-@pytest.fixture()
 def output(tmp_path) -> Output:
     """Create an Output class object as fixture.
 
@@ -77,17 +33,39 @@ def output(tmp_path) -> Output:
     )
 
 
+@pytest.fixture()
+def cli_args(tmp_path, output: Output) -> dict:
+    """Create an Init class object as fixture.
+
+    :param tmp_path: App configuration object.
+    """
+    return {
+        "creator_version": "0.0.1",
+        "json": True,
+        "log_append": True,
+        "log_file": tmp_path / "ansible-creator.log",
+        "log_level": "debug",
+        "no_ansi": False,
+        "subcommand": "init",
+        "verbose": 0,
+        "collection": "testorg.testcol",
+        "init_path": tmp_path / "testorg" / "testcol",
+        "output": output,
+    }
+
+
 def test_run_success_for_collection(
     capsys,
     tmp_path,
-    cli_args_for_collection,
+    cli_args,
     output,
 ) -> None:
     """Test Init.run()."""
     # successfully create new collection
+
+    cli_args["project"] = "collection"
     init = Init(
-        Config(**cli_args_for_collection),
-        output=output,
+        Config(**cli_args),
     )
     init.run()
     result = capsys.readouterr().out
@@ -110,10 +88,9 @@ def test_run_success_for_collection(
         init.run()
 
     # override existing collection with force=true
-    cli_args_for_collection["force"] = True
+    cli_args["force"] = True
     init = Init(
-        Config(**cli_args_for_collection),
-        output=output,
+        Config(**cli_args),
     )
     init.run()
     result = capsys.readouterr().out
@@ -125,14 +102,18 @@ def test_run_success_for_collection(
 def test_run_success_ansible_project(
     capsys,
     tmp_path,
-    cli_args_for_ansible_project,
+    cli_args,
     output,
 ) -> None:
     """Test Init.run()."""
     # successfully create new ansible-project
+    cli_args["collection"] = None
+    cli_args["project"] = "ansible-project"
+    cli_args["init_path"] = tmp_path / "new_project"
+    cli_args["scm_org"] = "weather"
+    cli_args["scm_project"] = "demo"
     init = Init(
-        Config(**cli_args_for_ansible_project),
-        output=output,
+        Config(**cli_args),
     )
     init.run()
     result = capsys.readouterr().out
@@ -158,10 +139,9 @@ def test_run_success_ansible_project(
         init.run()
 
     # override existing ansible-project directory with force=true
-    cli_args_for_ansible_project["force"] = True
+    cli_args["force"] = True
     init = Init(
-        Config(**cli_args_for_ansible_project),
-        output=output,
+        Config(**cli_args),
     )
     init.run()
     result = capsys.readouterr().out
@@ -173,18 +153,16 @@ def test_run_success_ansible_project(
 def test_run_success_collections_alt_dir(
     tmp_path,
     capsys,
-    cli_args_for_collection,
+    cli_args,
     output,
 ) -> None:
     """Test Init.run() when init_path ends with "collections" / "ansible_collections"""
     # successfully create new collection
-    cli_args_for_collection["init_path"] = (
-        tmp_path / "collections" / "ansible_collections"
-    )
-    final_path = cli_args_for_collection["init_path"] / "testorg" / "testcol"
+    cli_args["project"] = "collection"
+    cli_args["init_path"] = tmp_path / "collections" / "ansible_collections"
+    final_path = cli_args["init_path"] / "testorg" / "testcol"
     init = Init(
-        Config(**cli_args_for_collection),
-        output=output,
+        Config(**cli_args),
     )
     init.run()
     result = capsys.readouterr().out

@@ -70,7 +70,7 @@ def test_run_init_no_input(cli):
     result = cli("ansible-creator init")
     assert result.returncode != 0
     assert (
-        "Error: The collection name is required when scaffolding a collection"
+        "Error: The argument 'collection' is required when scaffolding a collection"
         in result.stderr
     )
 

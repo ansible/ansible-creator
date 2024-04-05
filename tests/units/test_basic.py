@@ -6,7 +6,8 @@ import pytest
 
 from ansible_creator.cli import Cli
 from ansible_creator.config import Config
-from ansible_creator.utils import expand_path
+from ansible_creator.output import Output
+from ansible_creator.utils import TermFeatures, expand_path
 
 
 def test_expand_path() -> None:
@@ -131,7 +132,7 @@ def test_cli_parser(monkeypatch, sysargs, expected) -> None:
     assert vars(Cli().parse_args()) == expected
 
 
-def test_configuration_class() -> None:
+def test_configuration_class(output: Output) -> None:
     """Test Config() dataclass post_init."""
     cli_args: dict = {
         "creator_version": "0.0.1",
@@ -140,6 +141,7 @@ def test_configuration_class() -> None:
         "log_file": "./ansible-creator.log",
         "log_level": "debug",
         "no_ansi": False,
+        "output": output,
         "subcommand": "init",
         "verbose": 2,
         "collection": "testorg.testcol",

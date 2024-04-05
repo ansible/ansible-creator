@@ -23,7 +23,6 @@ class Init:
     def __init__(
         self: Init,
         config: Config,
-        output: Output,
     ) -> None:
         """Initialize the init action.
 
@@ -39,7 +38,7 @@ class Init:
         self._scm_org = config.scm_org
         self._scm_project = config.scm_project
         self._templar = Templar()
-        self.output: Output = output
+        self.output: Output = config.output
 
     def run(self: Init) -> None:
         """Start scaffolding skeleton.

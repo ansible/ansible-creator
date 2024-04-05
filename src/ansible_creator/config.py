@@ -3,9 +3,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.utils import expand_path
+
+
+if TYPE_CHECKING:
+    from ansible_creator.output import Output
 
 
 @dataclass(frozen=True)
@@ -18,6 +23,7 @@ class Config:
     log_file: str
     log_level: str
     no_ansi: bool
+    output: Output
     subcommand: str
     verbose: int
 
@@ -35,19 +41,32 @@ class Config:
 
     def __post_init__(self: Config) -> None:
         """Post process config values."""
-        # Show CreatorError if the required collection name is not provided
+        # Validation for: ansible-creator init
         if not self.collection and self.project == "collection":
-            msg = "The collection name is required when scaffolding a collection."
+            msg = "The argument 'collection' is required when scaffolding a collection."
             raise CreatorError(msg)
 
+        # Validation for: ansible-creator init --project=ansible-project
         if self.project == "ansible-project" and (
             self.scm_org is None or self.scm_project is None
         ):
             msg = (
-                "Required parameters scm-org and scm-project to scaffold"
-                " playbook adjacent collection within ansible-project."
+                "Parameters 'scm-org' and 'scm-project' are required when "
+                "scaffolding an ansible-project."
             )
             raise CreatorError(msg)
+
+        if self.scm_org and self.scm_project and self.project != "ansible-project":
+            msg = (
+                "The parameters 'scm-org' and 'scm-project' have no effect when"
+                " project is not set to ansible-project"
+            )
+            self.output.warning(msg)
+
+        # Validation for: ansible-creator init testorg.testname --project=ansible-project
+        if self.collection and self.project != "collection":
+            msg = "Collection name has no effect when project is set to ansible project"
+            self.output.warning(msg)
 
         if self.collection:
             fqcn = self.collection.split(".", maxsplit=1)
