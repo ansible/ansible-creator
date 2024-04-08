@@ -5,6 +5,7 @@ from __future__ import annotations
 import decimal
 import json
 import logging
+import os
 import shutil
 import sys
 import textwrap
@@ -46,6 +47,9 @@ def console_width() -> int:
 
     :returns: The console width
     """
+    columns = int(os.environ.get("COLUMNS", "0"))
+    if columns:
+        return columns
     medium = 80
     wide = 132
     width = shutil.get_terminal_size().columns
