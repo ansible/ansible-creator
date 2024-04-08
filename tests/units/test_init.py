@@ -36,7 +36,6 @@ def test_run_success_for_collection(
     capsys,
     tmp_path,
     cli_args,
-    output,
 ) -> None:
     """Test Init.run()."""
     # successfully create new collection
@@ -81,7 +80,6 @@ def test_run_success_ansible_project(
     capsys,
     tmp_path,
     cli_args,
-    output,
 ) -> None:
     """Test Init.run()."""
     # successfully create new ansible-project
@@ -132,7 +130,6 @@ def test_run_success_collections_alt_dir(
     tmp_path,
     capsys,
     cli_args,
-    output,
 ) -> None:
     """Test Init.run() when init_path ends with "collections" / "ansible_collections"""
     # successfully create new collection
@@ -152,6 +149,57 @@ def test_run_success_collections_alt_dir(
         re.search(
             rf"Note:\s*collection\s*testorg.testcol\s*created\s*at\s*{final_path}",
             mod_result,
+        )
+        is not None
+    )
+
+
+def test_error_1(
+    tmp_path,
+    cli_args,
+) -> None:
+    """Test Init.run()."""
+    # Validation for: ansible-creator init --project=ansible-project
+    cli_args["collection"] = None
+    cli_args["project"] = "ansible-project"
+    cli_args["init_path"] = tmp_path / "new_project"
+    cli_args["scm_org"] = None
+    cli_args["scm_project"] = None
+    fail_msg = (
+        "Parameters 'scm-org' and 'scm-project' are required when "
+        "scaffolding an ansible-project."
+    )
+    with pytest.raises(CreatorError, match=fail_msg):
+        init = Init(
+            Config(**cli_args),
+        )
+        init.run()
+
+
+def test_error_2(
+    capsys,
+    tmp_path,
+    cli_args,
+) -> None:
+    """Test Init.run()."""
+    # Validation for: ansible-creator init testorg.testname --scm-org=weather
+    # --scm-project=demo --project=collection
+    cli_args["collection"] = "testorg.testname"
+    cli_args["project"] = None
+    cli_args["init_path"] = tmp_path / "testorg" / "testcol"
+    cli_args["scm_org"] = "weather"
+    cli_args["scm_project"] = "demo"
+    init = Init(
+        Config(**cli_args),
+    )
+    init.run()
+    result = capsys.readouterr().out
+    assert (
+        re.search(
+            " Warning: The parameters 'scm-org' and 'scm-project' "
+            "have no effect when project\n          is not set to "
+            "ansible-project",
+            result,
         )
         is not None
     )
