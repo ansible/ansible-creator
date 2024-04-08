@@ -1,0 +1,31 @@
+---
+- name: Update web servers
+  hosts: webservers
+  become: true
+
+  tasks:
+    - name: Ensure apache is at the present version
+      ansible.builtin.dnf:
+        name: httpd
+        state: present
+
+    - name: Write the apache config file
+      ansible.builtin.template:
+        src: /srv/httpd.j2
+        dest: /etc/httpd.conf
+        mode: "0644"
+
+- name: Update db servers
+  hosts: databases
+  become: true
+
+  tasks:
+    - name: Ensure postgresql is at the present version
+      ansible.builtin.dnf:
+        name: postgresql
+        state: present
+
+    - name: Ensure that postgresql is started
+      ansible.builtin.service:
+        name: postgresql
+        state: started

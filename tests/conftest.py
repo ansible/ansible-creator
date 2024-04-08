@@ -4,6 +4,9 @@ import os
 import subprocess
 import pytest
 
+from ansible_creator.output import Output
+from ansible_creator.utils import TermFeatures
+
 os.environ["HOME"] = "/home/ansible"
 os.environ["DEV_WORKSPACE"] = "collections/ansible_collections"
 
@@ -12,6 +15,22 @@ os.environ["DEV_WORKSPACE"] = "collections/ansible_collections"
 def cli():
     """fixture to run CLI commands."""
     return cli_run
+
+
+@pytest.fixture()
+def output(tmp_path) -> Output:
+    """Create an Output class object as fixture.
+
+    :param tmp_path: App configuration object.
+    """
+    return Output(
+        display="text",
+        log_file=str(tmp_path) + "ansible-creator.log",
+        log_level="notset",
+        log_append="false",
+        term_features=TermFeatures(color=False, links=False),
+        verbosity=0,
+    )
 
 
 def cli_run(args):

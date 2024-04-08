@@ -18,7 +18,7 @@ from tests.defaults import FIXTURES_DIR
 
 
 @pytest.fixture()
-def cli_args(tmp_path) -> dict:
+def cli_args(tmp_path, output: Output) -> dict:
     """Create an Init class object as fixture.
 
     :param tmp_path: App configuration object.
@@ -28,36 +28,21 @@ def cli_args(tmp_path) -> dict:
         "subcommand": "init",
         "collection": "testorg.testcol",
         "init_path": tmp_path / "testorg" / "testcol",
+        "output": output,
     }
 
 
-@pytest.fixture()
-def output(tmp_path) -> Output:
-    """Create an Output class object as fixture.
-
-    :param tmp_path: App configuration object.
-    """
-    return Output(
-        display="text",
-        log_file=str(tmp_path) + "ansible-creator.log",
-        log_level="notset",
-        log_append="false",
-        term_features=TermFeatures(color=False, links=False),
-        verbosity=0,
-    )
-
-
-def test_run_success(
+def test_run_success_for_collection(
     capsys,
     tmp_path,
     cli_args,
-    output,
 ) -> None:
     """Test Init.run()."""
     # successfully create new collection
+
+    cli_args["project"] = "collection"
     init = Init(
         Config(**cli_args),
-        output=output,
     )
     init.run()
     result = capsys.readouterr().out
@@ -83,7 +68,56 @@ def test_run_success(
     cli_args["force"] = True
     init = Init(
         Config(**cli_args),
-        output=output,
+    )
+    init.run()
+    result = capsys.readouterr().out
+    assert (
+        re.search("Warning: re-initializing existing directory", result) is not None
+    ), result
+
+
+def test_run_success_ansible_project(
+    capsys,
+    tmp_path,
+    cli_args,
+) -> None:
+    """Test Init.run()."""
+    # successfully create new ansible-project
+    cli_args["collection"] = None
+    cli_args["project"] = "ansible-project"
+    cli_args["init_path"] = tmp_path / "new_project"
+    cli_args["scm_org"] = "weather"
+    cli_args["scm_project"] = "demo"
+    init = Init(
+        Config(**cli_args),
+    )
+    init.run()
+    result = capsys.readouterr().out
+
+    # check stdout
+    assert re.search("Note: ansible project created", result) is not None
+
+    # recursively assert files created
+    dircmp(
+        str(tmp_path / "new_project"),
+        str(FIXTURES_DIR / "project" / "ansible_project"),
+    ).report_full_closure()
+    captured = capsys.readouterr()
+    assert re.search("Differing files|Only in", captured.out) is None, captured.out
+
+    # fail to override existing ansible-project directory with force=false (default)
+    fail_msg = (
+        f"The directory {tmp_path}/new_project already exists."
+        "\nYou can use --force to re-initialize this directory."
+        "\nHowever it will delete ALL existing contents in it."
+    )
+    with pytest.raises(CreatorError, match=fail_msg):
+        init.run()
+
+    # override existing ansible-project directory with force=true
+    cli_args["force"] = True
+    init = Init(
+        Config(**cli_args),
     )
     init.run()
     result = capsys.readouterr().out
@@ -96,15 +130,14 @@ def test_run_success_collections_alt_dir(
     tmp_path,
     capsys,
     cli_args,
-    output,
 ) -> None:
     """Test Init.run() when init_path ends with "collections" / "ansible_collections"""
     # successfully create new collection
+    cli_args["project"] = "collection"
     cli_args["init_path"] = tmp_path / "collections" / "ansible_collections"
     final_path = cli_args["init_path"] / "testorg" / "testcol"
     init = Init(
         Config(**cli_args),
-        output=output,
     )
     init.run()
     result = capsys.readouterr().out
@@ -116,6 +149,75 @@ def test_run_success_collections_alt_dir(
         re.search(
             rf"Note:\s*collection\s*testorg.testcol\s*created\s*at\s*{final_path}",
             mod_result,
+        )
+        is not None
+    )
+
+
+def test_error_1(
+    tmp_path,
+    cli_args,
+) -> None:
+    """Test Init.run()."""
+    # Validation for: ansible-creator init --project=ansible-project
+    cli_args["collection"] = None
+    cli_args["project"] = "ansible-project"
+    cli_args["init_path"] = tmp_path / "new_project"
+    cli_args["scm_org"] = None
+    cli_args["scm_project"] = None
+    fail_msg = (
+        "Parameters 'scm-org' and 'scm-project' are required when "
+        "scaffolding an ansible-project."
+    )
+    with pytest.raises(CreatorError, match=fail_msg):
+        init = Init(
+            Config(**cli_args),
+        )
+        init.run()
+
+
+def test_error_2(
+    cli_args,
+) -> None:
+    """Test Init.run()."""
+    # Validation for: ansible-creator init
+    cli_args["collection"] = None
+    cli_args["project"] = "collection"
+    cli_args["init_path"] = None
+    cli_args["scm_org"] = None
+    cli_args["scm_project"] = None
+    fail_msg = "The argument 'collection' is required when scaffolding a collection."
+    with pytest.raises(CreatorError, match=fail_msg):
+        init = Init(
+            Config(**cli_args),
+        )
+        init.run()
+
+
+def test_warning(
+    capsys,
+    tmp_path,
+    cli_args,
+) -> None:
+    """Test Init.run()."""
+    # Validation for: ansible-creator init testorg.testname --scm-org=weather
+    # --scm-project=demo --project=collection
+    cli_args["collection"] = "testorg.testname"
+    cli_args["project"] = None
+    cli_args["init_path"] = tmp_path / "testorg" / "testcol"
+    cli_args["scm_org"] = "weather"
+    cli_args["scm_project"] = "demo"
+    init = Init(
+        Config(**cli_args),
+    )
+    init.run()
+    result = capsys.readouterr().out
+    assert (
+        re.search(
+            " Warning: The parameters 'scm-org' and 'scm-project' "
+            "have no effect when project\n          is not set to "
+            "ansible-project",
+            result,
         )
         is not None
     )
