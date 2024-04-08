@@ -3,11 +3,12 @@
 from pathlib import Path
 
 import pytest
+import re
 
 from ansible_creator.cli import Cli
 from ansible_creator.config import Config
+from ansible_creator.utils import expand_path, TermFeatures
 from ansible_creator.output import Output
-from ansible_creator.utils import TermFeatures, expand_path
 
 
 def test_expand_path() -> None:
@@ -16,6 +17,21 @@ def test_expand_path() -> None:
         expand_path("~/$DEV_WORKSPACE/namespace/collection")
         == "/home/ansible/collections/ansible_collections/namespace/collection"
     )
+
+
+def test_configuration_class(output: Output) -> None:
+    """Test Config() dataclass post_init."""
+    cli_args: dict = {
+        "creator_version": "0.0.1",
+        "subcommand": "init",
+        "collection": "testorg.testcol",
+        "init_path": "$HOME",
+        "output": output,
+    }
+    app_config = Config(**cli_args)
+    assert app_config.namespace == "testorg"
+    assert app_config.collection_name == "testcol"
+    assert app_config.init_path == "/home/ansible"
 
 
 @pytest.mark.parametrize(
@@ -132,22 +148,51 @@ def test_cli_parser(monkeypatch, sysargs, expected) -> None:
     assert vars(Cli().parse_args()) == expected
 
 
-def test_configuration_class(output: Output) -> None:
-    """Test Config() dataclass post_init."""
-    cli_args: dict = {
-        "creator_version": "0.0.1",
-        "json": True,
-        "log_append": True,
-        "log_file": "./ansible-creator.log",
-        "log_level": "debug",
-        "no_ansi": False,
-        "output": output,
-        "subcommand": "init",
-        "verbose": 2,
-        "collection": "testorg.testcol",
-        "init_path": "$HOME",
-    }
-    app_config = Config(**cli_args)
-    assert app_config.namespace == "testorg"
-    assert app_config.collection_name == "testcol"
-    assert app_config.init_path == "/home/ansible"
+def test_cli_init_output(monkeypatch) -> None:
+    sysargs = [
+        "ansible-creator",
+        "init",
+        "testorg.testcol",
+        "--init-path=/home/ansible",
+        "-vvv",
+        "--json",
+        "--no-ansi",
+        "--la=false",
+        "--lf=test.log",
+        "--ll=debug",
+        "--force",
+    ]
+    output = Output(
+        log_append="false",
+        log_file=expand_path("test.log"),
+        log_level="debug",
+        term_features=TermFeatures(color=False, links=False),
+        verbosity=3,
+        display="json",
+    )
+
+    monkeypatch.setattr("sys.argv", sysargs)
+    cli = Cli()
+    cli.init_output()
+    assert vars(cli.output) == vars(output)
+
+
+def test_cli_main(capsys, tmp_path, monkeypatch) -> None:
+    sysargs = [
+        "ansible-creator",
+        "init",
+        "testns.testcol",
+        f"--init-path={tmp_path}/testns/testcol",
+        "--json",
+        "--force",
+        "-vvv",
+    ]
+
+    monkeypatch.setattr("sys.argv", sysargs)
+    cli = Cli()
+    cli.init_output()
+    cli.run()
+
+    result = capsys.readouterr().out
+    # check stdout
+    assert re.search("collection testns.testcol created", result) is not None

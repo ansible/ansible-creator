@@ -41,13 +41,7 @@ def cli_args(tmp_path, output: Output) -> dict:
     """
     return {
         "creator_version": "0.0.1",
-        "json": True,
-        "log_append": True,
-        "log_file": tmp_path / "ansible-creator.log",
-        "log_level": "debug",
-        "no_ansi": False,
         "subcommand": "init",
-        "verbose": 0,
         "collection": "testorg.testcol",
         "init_path": tmp_path / "testorg" / "testcol",
         "output": output,
