@@ -18,22 +18,6 @@ from tests.defaults import FIXTURES_DIR
 
 
 @pytest.fixture()
-def output(tmp_path) -> Output:
-    """Create an Output class object as fixture.
-
-    :param tmp_path: App configuration object.
-    """
-    return Output(
-        display="text",
-        log_file=str(tmp_path) + "ansible-creator.log",
-        log_level="notset",
-        log_append="false",
-        term_features=TermFeatures(color=False, links=False),
-        verbosity=0,
-    )
-
-
-@pytest.fixture()
 def cli_args(tmp_path, output: Output) -> dict:
     """Create an Init class object as fixture.
 
