@@ -9,10 +9,10 @@ import sys
 from importlib import import_module
 from pathlib import Path
 
-from ansible_creator.config import Config
-from ansible_creator.exceptions import CreatorError
-from ansible_creator.output import Output
-from ansible_creator.utils import TermFeatures, expand_path
+from .config import Config
+from .exceptions import CreatorError
+from .output import Output
+from .utils import TermFeatures, expand_path
 
 
 try:

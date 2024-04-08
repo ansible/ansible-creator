@@ -57,7 +57,7 @@ def test_run_success_for_collection(
 
     # fail to override existing collection with force=false (default)
     fail_msg = (
-        f"The directory {tmp_path}/testorg/testcol already exists."
+        f"The directory {tmp_path}/testorg/testcol is not empty."
         "\nYou can use --force to re-initialize this directory."
         "\nHowever it will delete ALL existing contents in it."
     )
@@ -107,7 +107,7 @@ def test_run_success_ansible_project(
 
     # fail to override existing ansible-project directory with force=false (default)
     fail_msg = (
-        f"The directory {tmp_path}/new_project already exists."
+        f"The directory {tmp_path}/new_project is not empty."
         "\nYou can use --force to re-initialize this directory."
         "\nHowever it will delete ALL existing contents in it."
     )
@@ -212,12 +212,14 @@ def test_warning(
     )
     init.run()
     result = capsys.readouterr().out
+
+    # this is required to handle random line breaks in CI, especially with macos runners
+    mod_result = "".join([line.strip() for line in result.splitlines()])
     assert (
         re.search(
-            " Warning: The parameters 'scm-org' and 'scm-project' "
-            "have no effect when project\n          is not set to "
-            "ansible-project",
-            result,
+            rf"Warning:\s*The parameters\s*'scm-org'\s*and\s*'scm-project'"
+            rf"\s*have\s*no\s*effect\s*when\s*project\s*is\s*not\s*set\s*to\s*ansible-project",
+            mod_result,
         )
         is not None
     )
