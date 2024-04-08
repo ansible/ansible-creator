@@ -1,17 +1,18 @@
 ---
 collections:
-  - name: ansible.builtin
-    version: 1.0.0
-
   - name: ansible.posix
     version: 1.4.0
 
-  - name: community.general
+  - name: ansible.scm
     version: 2.0.0
+
+  - name: ansible.utils
+    version: 4.0.0
 
   - name: https://github.com/redhat-cop/network.backup
     type: git
 
-  - name: my_organization.my_collection
-    version: 1.2.3
-    source: https://github.com/my_organization/my_collection.git
+  # TO-DO: User's own collections can also be specified as mention below.
+  # - name: my_organization.my_collection
+  #   version: 1.2.3
+  #   source: https://github.com/my_organization/my_collection.git
