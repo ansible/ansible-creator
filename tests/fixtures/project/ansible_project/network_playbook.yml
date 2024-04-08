@@ -1,0 +1,25 @@
+---
+- name: Network Getting Started First Playbook Extended
+  gather_facts: false
+  hosts: switch1
+  tasks:
+    - name: Get config for IOS devices
+      cisco.ios.ios_facts:
+        gather_subset: all
+
+    - name: Display the config
+      ansible.builtin.debug:
+        msg: "The hostname is {{ ansible_net_hostname }} and the OS is {{ ansible_net_version }}"
+
+    - name: Update the hostname
+      cisco.ios.ios_config:
+        lines:
+          - hostname ios-changed
+
+    - name: Get changed config for IOS devices
+      cisco.ios.ios_facts:
+        gather_subset: all
+
+    - name: Display the changed config
+      ansible.builtin.debug:
+        msg: "The new hostname is {{ ansible_net_hostname }} and the OS is {{ ansible_net_version }}"

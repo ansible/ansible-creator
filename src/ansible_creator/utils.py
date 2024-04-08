@@ -17,8 +17,8 @@ if TYPE_CHECKING:
     from ansible_creator.templar import Templar
 
 PATH_REPLACERS = {
-    "network_os": "collection_name",
-    "resource": "resource",
+    "project_org": "scm_org",
+    "project_repo": "scm_project",
 }
 
 

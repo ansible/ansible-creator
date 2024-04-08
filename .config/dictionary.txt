@@ -27,6 +27,7 @@ copybutton
 datadir
 datarootdir
 deflist
+devcontainer
 devel
 docsite
 doctree
@@ -83,6 +84,7 @@ mkdocstrings
 moduleauthor
 mqueue              # https://github.com/ansible/ansible-runner/issues/984
 myproject
+myuser
 netcommon           # Ansible network collection, seen in tests and README
 netconf
 nitpicky
@@ -161,6 +163,8 @@ userbase
 viewcode
 volmount
 wantd
+webserver
+webservers
 workdir
 xdist
 xmss

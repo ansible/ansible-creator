@@ -19,13 +19,14 @@ def test_expand_path() -> None:
     )
 
 
-def test_configuration_class() -> None:
+def test_configuration_class(output: Output) -> None:
     """Test Config() dataclass post_init."""
     cli_args: dict = {
         "creator_version": "0.0.1",
         "subcommand": "init",
         "collection": "testorg.testcol",
         "init_path": "$HOME",
+        "output": output,
     }
     app_config = Config(**cli_args)
     assert app_config.namespace == "testorg"
@@ -49,6 +50,32 @@ def test_configuration_class() -> None:
                 "collection": "testorg.testcol",
                 "init_path": "./",
                 "force": False,
+                "project": "collection",  # default value
+                "scm_org": None,
+                "scm_project": None,
+            },
+        ],
+        [
+            [
+                "ansible-creator",
+                "init",
+                "--project=ansible-project",
+                "--init-path=/home/ansible/my-ansible-project",
+            ],
+            {
+                "subcommand": "init",
+                "no_ansi": False,
+                "log_file": str(Path.cwd() / "ansible-creator.log"),
+                "log_level": "notset",
+                "log_append": "true",
+                "json": False,
+                "verbose": 0,
+                "collection": None,
+                "init_path": "/home/ansible/my-ansible-project",
+                "force": False,
+                "project": "ansible-project",
+                "scm_org": None,
+                "scm_project": None,
             },
         ],
         [
@@ -76,6 +103,41 @@ def test_configuration_class() -> None:
                 "collection": "testorg.testcol",
                 "init_path": "/home/ansible",
                 "force": True,
+                "project": "collection",  # default value
+                "scm_org": None,
+                "scm_project": None,
+            },
+        ],
+        [
+            [
+                "ansible-creator",
+                "init",
+                "--project=ansible-project",
+                "--scm-org=weather",
+                "--scm-project=demo",
+                "--init-path=/home/ansible/my-ansible-project",
+                "-vvv",
+                "--json",
+                "--no-ansi",
+                "--la=false",
+                "--lf=test.log",
+                "--ll=debug",
+                "--force",
+            ],
+            {
+                "subcommand": "init",
+                "no_ansi": True,
+                "log_file": "test.log",
+                "log_level": "debug",
+                "log_append": "false",
+                "json": True,
+                "verbose": 3,
+                "collection": None,
+                "init_path": "/home/ansible/my-ansible-project",
+                "force": True,
+                "project": "ansible-project",
+                "scm_org": "weather",
+                "scm_project": "demo",
             },
         ],
     ],
