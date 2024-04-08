@@ -25,15 +25,9 @@ def cli_args(tmp_path) -> dict:
     """
     return {
         "creator_version": "0.0.1",
-        "json": True,
-        "log_append": True,
-        "log_file": tmp_path / "ansible-creator.log",
-        "log_level": "debug",
-        "no_ansi": False,
         "subcommand": "init",
-        "verbose": 0,
         "collection": "testorg.testcol",
-        "init_path": tmp_path,
+        "init_path": tmp_path / "testorg" / "testcol",
     }
 
 
@@ -96,3 +90,32 @@ def test_run_success(
     assert (
         re.search("Warning: re-initializing existing directory", result) is not None
     ), result
+
+
+def test_run_success_collections_alt_dir(
+    tmp_path,
+    capsys,
+    cli_args,
+    output,
+) -> None:
+    """Test Init.run() when init_path ends with "collections" / "ansible_collections"""
+    # successfully create new collection
+    cli_args["init_path"] = tmp_path / "collections" / "ansible_collections"
+    final_path = cli_args["init_path"] / "testorg" / "testcol"
+    init = Init(
+        Config(**cli_args),
+        output=output,
+    )
+    init.run()
+    result = capsys.readouterr().out
+
+    # this is required to handle random line breaks in CI, especially with macos runners
+    mod_result = "".join([line.strip() for line in result.splitlines()])
+
+    assert (
+        re.search(
+            rf"Note:\s*collection\s*testorg.testcol\s*created\s*at\s*{final_path}",
+            mod_result,
+        )
+        is not None
+    )
