@@ -56,31 +56,35 @@ class Init:
 
         # check if init_path already exists
         if os.path.exists(self._init_path):
+            # init-path exists and is a file
             if os.path.isfile(self._init_path):
                 msg = f"the path {self._init_path} already exists, but is a file - aborting"
                 raise CreatorError(
                     msg,
                 )
+            if os.listdir(self._init_path):
+                # init-path exists and is not empty, but user did not request --force
+                if not self._force:
+                    msg = (
+                        f"The directory {self._init_path} is not empty.\n"
+                        f"You can use --force to re-initialize this directory."
+                        f"\nHowever it will delete ALL existing contents in it."
+                    )
+                    raise CreatorError(msg)
 
-            if not self._force:
-                msg = (
-                    f"The directory {self._init_path} already exists.\n"
-                    f"You can use --force to re-initialize this directory."
-                    f"\nHowever it will delete ALL existing contents in it."
+                # user requested --force, re-initializing existing directory
+                self.output.warning(
+                    f"re-initializing existing directory {self._init_path}",
                 )
-                raise CreatorError(msg)
-
-            # user requested --force, re-initializing existing directory
-            self.output.warning(f"re-initializing existing directory {self._init_path}")
-            for root, dirs, files in os.walk(self._init_path, topdown=True):
-                for old_dir in dirs:
-                    path = os.path.join(root, old_dir)
-                    self.output.debug(f"removing tree {old_dir}")
-                    shutil.rmtree(path)
-                for old_file in files:
-                    path = os.path.join(root, old_file)
-                    self.output.debug(f"removing file {old_file}")
-                    os.unlink(path)
+                for root, dirs, files in os.walk(self._init_path, topdown=True):
+                    for old_dir in dirs:
+                        path = os.path.join(root, old_dir)
+                        self.output.debug(f"removing tree {old_dir}")
+                        shutil.rmtree(path)
+                    for old_file in files:
+                        path = os.path.join(root, old_file)
+                        self.output.debug(f"removing file {old_file}")
+                        os.unlink(path)
 
         # if init_path does not exist, create it
         if not os.path.exists(self._init_path):

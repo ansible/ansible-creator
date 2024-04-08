@@ -101,7 +101,7 @@ def test_run_init_basic(cli, tmp_path):
     mod_stderr = "".join([line.strip() for line in result.stderr.splitlines()])
     assert (
         re.search(
-            rf"Error:\s*The\s*directory\s*{final_dest}/testorg/testcol\s*already\s*exists",
+            rf"Error:\s*The\s*directory\s*{final_dest}/testorg/testcol\s*is\s*not\s*empty.",
             mod_stderr,
         )
         is not None
