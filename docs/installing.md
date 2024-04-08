@@ -169,6 +169,65 @@ To run the `hello_world` integration test, follow these steps:
 - `pip install ansible-core molecule pytest-xdist pytest-ansible`.
 - Invoke `pytest` from collection root.
 
+### Initialize Ansible Project
+
+#### Example
+
+```console
+$ ansible-creator init --project=ansible-project --scm-org=weather --scm-project=demo --init-path $HOME/path/to/scaffold/your/new_ansible_project
+```
+
+This command will scaffold the ansible-project `new_ansible_project` at `/home/user/path/to/your/new_ansible_project`
+
+#### Generated Ansible Project Structure
+
+Running the init command with parameters `--project`, `--scm-org` and `--scm-project` generates an Ansible Project with a comprehensive directory structure. Explore it using:
+
+```console
+$ tree -la /home/ansible-dev/collections/ansible_collections/testns/testname
+.
+├── ansible.cfg
+├── ansible-navigator.yml
+├── collections
+│   ├── ansible_collections
+│   │   └── weather
+│   │       └── demo
+│   │           ├── README.md
+│   │           └── roles
+│   │               └── run
+│   │                   ├── README.md
+│   │                   └── tasks
+│   │                       └── main.yml
+│   └── requirements.yml
+├── .devcontainer
+│   ├── devcontainer.json
+│   ├── docker
+│   │   └── devcontainer.json
+│   └── podman
+│       └── devcontainer.json
+├── .github
+│   ├── ansible-code-bot.yml
+│   └── workflows
+│       └── tests.yml
+├── inventory
+│   ├── group_vars
+│   │   ├── all.yml
+│   │   └── web_servers.yml
+│   ├── hosts.yml
+│   └── host_vars
+│       ├── server1.yml
+│       ├── server2.yml
+│       ├── server3.yml
+│       ├── switch1.yml
+│       └── switch2.yml
+├── linux_playbook.yml
+├── network_playbook.yml
+├── README.md
+├── site.yml
+└── .vscode
+    └── extensions.json
+```
+
 It also comes equipped with Github Action Workflows that use [ansible-content-actions](https://github.com/marketplace/actions/ansible-content-actions) for testing and publishing the collection. For details on how to use these, please refer to the following:
 
 - [Using the testing workflow](https://ansible.readthedocs.io/projects/dev-tools/user-guide/ci-setup/)
