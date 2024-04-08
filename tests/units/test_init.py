@@ -177,6 +177,24 @@ def test_error_1(
 
 
 def test_error_2(
+    cli_args,
+) -> None:
+    """Test Init.run()."""
+    # Validation for: ansible-creator init
+    cli_args["collection"] = None
+    cli_args["project"] = "collection"
+    cli_args["init_path"] = None
+    cli_args["scm_org"] = None
+    cli_args["scm_project"] = None
+    fail_msg = "The argument 'collection' is required when scaffolding a collection."
+    with pytest.raises(CreatorError, match=fail_msg):
+        init = Init(
+            Config(**cli_args),
+        )
+        init.run()
+
+
+def test_warning(
     capsys,
     tmp_path,
     cli_args,
