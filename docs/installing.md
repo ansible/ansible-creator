@@ -42,17 +42,20 @@ $ ansible-creator init <collection-name> --init-path <path>
 
 #### Optional Arguments
 
-| Parameter                 | Description                                                                                           |
-| ------------------------- | ----------------------------------------------------------------------------------------------------- |
-| -h, --help                | Show help message and exit.                                                                           |
-| --na, --no-ansi           | Disable the use of ANSI codes for terminal color.                                                     |
-| --lf, --log-file <file>   | Log file to write to.                                                                                 |
-| --ll, --log-level <level> | Log level (notset, debug, info, warning, error, critical) for file output.                            |
-| --la, --log-append <bool> | Append to log file.                                                                                   |
-| --json                    | Output messages as JSON.                                                                              |
-| -v, --verbose             | Give more CLI output. Option is additive and can be used up to 3 times.                               |
-| --init-path <path>        | The path where the skeleton collection will be scaffolded (default is the current working directory). |
-| --force                   | Force re-initialize the specified directory as an Ansible collection.                                 |
+| Parameter                 | Description                                                                                                                                                                          |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| -h, --help                | Show help message and exit.                                                                                                                                                          |
+| --na, --no-ansi           | Disable the use of ANSI codes for terminal color.                                                                                                                                    |
+| --lf, --log-file <file>   | Log file to write to.                                                                                                                                                                |
+| --ll, --log-level <level> | Log level (notset, debug, info, warning, error, critical) for file output.                                                                                                           |
+| --la, --log-append <bool> | Append to log file.                                                                                                                                                                  |
+| --json                    | Output messages as JSON.                                                                                                                                                             |
+| -v, --verbose             | Give more CLI output. Option is additive and can be used up to 3 times.                                                                                                              |
+| --project                 | Project type to scaffold. Valid choices are collection, ansible-project.                                                                                                             |
+| --scm-org                 | The SCM org where the ansible-project will be hosted. This value is used as the namespace for the playbook adjacent collection. Required when `--project=ansible-project`.           |
+| --scm-project             | The SCM project where the ansible-project will be hosted. This value is used as the collection_name for the playbook adjacent collection. Required when `--project=ansible-project`. |
+| --init-path <path>        | The path where the skeleton collection will be scaffolded (default is the current working directory).                                                                                |
+| --force                   | Force re-initialize the specified directory as an Ansible collection.                                                                                                                |
 
 #### Example
 
@@ -168,6 +171,67 @@ To run the `hello_world` integration test, follow these steps:
 - Git initialize the repository containing the scaffolded collection with `git init`.
 - `pip install ansible-core molecule pytest-xdist pytest-ansible`.
 - Invoke `pytest` from collection root.
+
+### Initialize Ansible Project
+
+The `init` command along with parameters `--project`, `--scm-org` and `--scm-project` enables you to initialize an Ansible Project to create a foundational structure for the project. Use the following command template:
+
+#### Example
+
+```console
+$ ansible-creator init --project=ansible-project --scm-org=weather --scm-project=demo --init-path $HOME/path/to/scaffold/your/new_ansible_project
+```
+
+This command will scaffold the ansible-project `new_ansible_project` at `/home/user/path/to/your/new_ansible_project`
+
+#### Generated Ansible Project Structure
+
+Running the init command with parameters `--project`, `--scm-org` and `--scm-project` generates an Ansible Project with a comprehensive directory structure. Explore it using:
+
+```console
+$ tree -la /home/ansible-dev/collections/ansible_collections/testns/testname
+.
+├── ansible.cfg
+├── ansible-navigator.yml
+├── collections
+│   ├── ansible_collections
+│   │   └── weather
+│   │       └── demo
+│   │           ├── README.md
+│   │           └── roles
+│   │               └── run
+│   │                   ├── README.md
+│   │                   └── tasks
+│   │                       └── main.yml
+│   └── requirements.yml
+├── .devcontainer
+│   ├── devcontainer.json
+│   ├── docker
+│   │   └── devcontainer.json
+│   └── podman
+│       └── devcontainer.json
+├── .github
+│   ├── ansible-code-bot.yml
+│   └── workflows
+│       └── tests.yml
+├── inventory
+│   ├── group_vars
+│   │   ├── all.yml
+│   │   └── web_servers.yml
+│   ├── hosts.yml
+│   └── host_vars
+│       ├── server1.yml
+│       ├── server2.yml
+│       ├── server3.yml
+│       ├── switch1.yml
+│       └── switch2.yml
+├── linux_playbook.yml
+├── network_playbook.yml
+├── README.md
+├── site.yml
+└── .vscode
+    └── extensions.json
+```
 
 It also comes equipped with Github Action Workflows that use [ansible-content-actions](https://github.com/marketplace/actions/ansible-content-actions) for testing and publishing the collection. For details on how to use these, please refer to the following:
 
