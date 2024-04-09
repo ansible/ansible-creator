@@ -20,17 +20,16 @@ class Docs:
     def __init__(
         self: Docs,
         config: Config,
-        output: Output,
     ) -> None:
         """Initialize the docs action.
 
-        :param kwargs: Arguments passed for the docs action
+        :param config: App configuration object.
         """
         self._branch_name: str = config.branch_name
         self._collection_path: Path = Path(config.collection_path)
         self._creator_version = config.creator_version
         self._templar = Templar()
-        self.output: Output = output
+        self.output: Output = config.output
 
     def run(self: Docs) -> None:
         """Regenerate collection documentation from plugins."""
