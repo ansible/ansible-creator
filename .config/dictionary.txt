@@ -29,6 +29,7 @@ datarootdir
 deflist
 devcontainer
 devel
+devfile
 docsite
 doctree
 dumpable

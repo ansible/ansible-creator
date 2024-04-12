@@ -77,6 +77,7 @@ $ tree -lla /home/ansible-dev/collections/ansible_collections/testns/testname
 │   └── config.yaml
 ├── CODE_OF_CONDUCT.md
 ├── CONTRIBUTING
+├── devfile.yaml
 ├── docs
 │   ├── docsite
 │   │   └── links.yml
@@ -210,6 +211,7 @@ $ tree -la /home/ansible-dev/collections/ansible_collections/testns/testname
 │   │   └── devcontainer.json
 │   └── podman
 │       └── devcontainer.json
+├── devfile.yaml
 ├── .github
 │   ├── ansible-code-bot.yml
 │   └── workflows
