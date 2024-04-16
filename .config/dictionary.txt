@@ -30,6 +30,7 @@ deflist
 devcontainer
 devel
 devfile
+devspaces
 docsite
 doctree
 dumpable
@@ -64,6 +65,7 @@ keepends
 kegex               # An action's regex
 kegexes
 Kolkata
+KUBEDOCK
 lentext
 levelname
 levelno
