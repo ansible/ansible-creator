@@ -65,6 +65,7 @@ keepends
 kegex               # An action's regex
 kegexes
 Kolkata
+kubedock
 lentext
 levelname
 levelno
