@@ -104,7 +104,7 @@ class Init:
                     "creator_version": self._creator_version,
                 },
                 output=self.output,
-                common_resources=["devcontainer"],
+                common_resources=["devcontainer", "devfile"],
             )
 
             self.output.note(
@@ -126,7 +126,7 @@ class Init:
                     "creator_version": self._creator_version,
                 },
                 output=self.output,
-                common_resources=["devcontainer"],
+                common_resources=["devcontainer", "devfile"],
             )
 
             self.output.note(
