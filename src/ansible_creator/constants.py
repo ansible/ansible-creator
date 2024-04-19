@@ -40,5 +40,5 @@ VALID_ANSIBLEMODULE_ARGS = (
 )
 
 GLOBAL_TEMPLATE_VARS = {
-    "DEV_CONTAINER_IMAGE": "ghcr.io/ansible/community-ansible-dev-tools-container:latest",
+    "DEV_CONTAINER_IMAGE": "ghcr.io/ansible/community-ansible-dev-tools:latest",
 }
