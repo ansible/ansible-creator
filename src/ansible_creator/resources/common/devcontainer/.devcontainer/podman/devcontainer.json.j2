@@ -1,6 +1,6 @@
 {
-  "name": "ansible-dev-container-docker",
-  "image": "ghcr.io/ansible/community-ansible-dev-tools-container:latest",
+  "name": "ansible-dev-container-podman",
+  "image": "{{ DEV_CONTAINER_IMAGE }}",
   "containerUser": "podman",
   "runArgs": [
     "--security-opt",
@@ -13,6 +13,7 @@
     "/dev/fuse",
     "--security-opt",
     "apparmor=unconfined",
+    "--userns=keep-id:uid=1000,gid=1000",
     "--hostname=ansible-dev-container"
   ],
   "updateRemoteUserUID": true,
