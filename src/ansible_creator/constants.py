@@ -38,3 +38,7 @@ VALID_ANSIBLEMODULE_ARGS = (
     "supports_check_mode",
     *OPTION_CONDITIONALS,
 )
+
+GLOBAL_TEMPLATE_VARS = {
+    "DEV_CONTAINER_IMAGE": "ghcr.io/ansible/community-ansible-dev-tools-container:latest",
+}

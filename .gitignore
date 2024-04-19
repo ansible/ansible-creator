@@ -21,3 +21,5 @@ _readthedocs
 .coverage
 coverage.xml
 test.log
+
+venv

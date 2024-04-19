@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from importlib import resources
 from typing import TYPE_CHECKING
 
+from ansible_creator.constants import GLOBAL_TEMPLATE_VARS
 from ansible_creator.exceptions import CreatorError
 
 
@@ -83,7 +84,9 @@ def copy_container(  # noqa: PLR0913
     output: Output,
     templar: Templar,
     template_data: dict[str, str],
+    common_resources: list[str] | None = None,
     allow_overwrite: list[str] | None = None,
+    resource_location: str = "ansible_creator.resources",
 ) -> None:
     """Copy files and directories from a possibly nested source to a destination.
 
@@ -97,6 +100,9 @@ def copy_container(  # noqa: PLR0913
     """
     output.debug(msg=f"starting recursive copy with source container '{source}'")
     output.debug(msg=f"allow_overwrite set to {allow_overwrite}")
+
+    # Include the global template variables
+    template_data.update(GLOBAL_TEMPLATE_VARS)
 
     def _recursive_copy(root: Traversable) -> None:
         """Recursively traverses a resource container and copies content to destination.
@@ -141,4 +147,28 @@ def copy_container(  # noqa: PLR0913
                     with open(dest_file, "w", encoding="utf-8") as df_handle:
                         df_handle.write(content)
 
-    _recursive_copy(root=resources.files(f"ansible_creator.resources.{source}"))
+    _recursive_copy(root=resources.files(f"{resource_location}.{source}"))
+
+    common_resource_location = "ansible_creator.resources.common"
+    if common_resources is None:
+        if resource_location == common_resource_location:
+            output.debug(msg=f"Common resource '{source}' is complete.")
+            return
+        output.debug(msg="No common resources to process")
+        return
+
+    output.debug(msg=f"Common resources include: '{' '.join(common_resources)}'")
+    for common_resource in common_resources:
+        # Override the original source passed in with the common resource
+        # no need to repass the common resources
+        # override the default resource location with the directory for common resources
+        output.debug(msg=f"Processing common resource: '{common_resource}'")
+        copy_container(
+            source=common_resource,
+            dest=dest,
+            output=output,
+            templar=templar,
+            template_data=template_data,
+            allow_overwrite=allow_overwrite,
+            resource_location=common_resource_location,
+        )
