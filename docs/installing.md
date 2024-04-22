@@ -77,6 +77,13 @@ $ tree -lla /home/ansible-dev/collections/ansible_collections/testns/testname
 │   └── config.yaml
 ├── CODE_OF_CONDUCT.md
 ├── CONTRIBUTING
+├── .devcontainer
+│   ├── devcontainer.json
+│   ├── docker
+│   │   └── devcontainer.json
+│   └── podman
+│       └── devcontainer.json
+├── devfile.yaml
 ├── docs
 │   ├── docsite
 │   │   └── links.yml
@@ -189,7 +196,7 @@ This command will scaffold the ansible-project `new_ansible_project` at `/home/u
 Running the init command with parameters `--project`, `--scm-org` and `--scm-project` generates an Ansible Project with a comprehensive directory structure. Explore it using:
 
 ```console
-$ tree -la /home/ansible-dev/collections/ansible_collections/testns/testname
+$ tree -la /home/user/path/to/your/new_ansible_project
 .
 ├── ansible.cfg
 ├── ansible-navigator.yml
@@ -210,6 +217,7 @@ $ tree -la /home/ansible-dev/collections/ansible_collections/testns/testname
 │   │   └── devcontainer.json
 │   └── podman
 │       └── devcontainer.json
+├── devfile.yaml
 ├── .github
 │   ├── ansible-code-bot.yml
 │   └── workflows
