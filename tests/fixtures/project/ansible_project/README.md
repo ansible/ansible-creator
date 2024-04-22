@@ -33,6 +33,7 @@ The directory structure follows best practices recommended by the Ansible commun
  |   └── hosts.yml
  |── ansible-navigator.yml
  |── ansible.cfg
+ |── devfile.yaml
  |── linux_playbook.yml
  |── network_playbook.yml
  |── README.md
