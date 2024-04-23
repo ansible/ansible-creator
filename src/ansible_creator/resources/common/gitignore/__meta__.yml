@@ -4,7 +4,7 @@ new_collection:
     value: ""
 
 ansible_project:
-  additions: 
+  additions:
     template: True
     value: |
       .logs/*
