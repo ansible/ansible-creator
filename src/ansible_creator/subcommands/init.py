@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.templar import Templar
-from ansible_creator.utils import copy_container
+from ansible_creator.utils import Copier
 
 
 if TYPE_CHECKING:
@@ -94,18 +94,24 @@ class Init:
         if self._project == "collection":
             # copy new_collection container to destination, templating files when found
             self.output.debug(msg="started copying collection skeleton to destination")
-            copy_container(
-                source="new_collection",
+            copier = Copier(
+                resources=[
+                    "new_collection",
+                    "common.devcontainer",
+                    "common.devfile",
+                    "common.gitignore",
+                ],
+                resource_id="new_collection",
                 dest=self._init_path,
+                output=self.output,
                 templar=self._templar,
                 template_data={
                     "namespace": self._namespace,
                     "collection_name": self._collection_name,
                     "creator_version": self._creator_version,
                 },
-                output=self.output,
-                common_resources=["devcontainer", "devfile"],
             )
+            copier.copy_containers()
 
             self.output.note(
                 f"collection {self._namespace}.{self._collection_name} "
@@ -116,18 +122,24 @@ class Init:
             self.output.debug(
                 msg="started copying ansible-project skeleton to destination",
             )
-            copy_container(
-                source="ansible_project",
+            copier = Copier(
+                resources=[
+                    "ansible_project",
+                    "common.devcontainer",
+                    "common.devfile",
+                    "common.gitignore",
+                ],
+                resource_id="ansible_project",
                 dest=self._init_path,
+                output=self.output,
                 templar=self._templar,
                 template_data={
                     "scm_org": self._scm_org,
                     "scm_project": self._scm_project,
                     "creator_version": self._creator_version,
                 },
-                output=self.output,
-                common_resources=["devcontainer", "devfile"],
             )
+            copier.copy_containers()
 
             self.output.note(
                 f"ansible project created at {self._init_path}",

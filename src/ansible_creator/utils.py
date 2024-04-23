@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import os
 
-from dataclasses import dataclass
-from importlib import resources
+from dataclasses import dataclass, field
+from importlib import resources as impl_resources
 from typing import TYPE_CHECKING
+
+import yaml
 
 from ansible_creator.constants import GLOBAL_TEMPLATE_VARS
 from ansible_creator.exceptions import CreatorError
@@ -51,7 +53,7 @@ def get_file_contents(directory: str, filename: str) -> str:
 
     try:
         with (
-            resources.files(package)
+            impl_resources.files(package)
             .joinpath(filename)
             .open(
                 "r",
@@ -77,45 +79,56 @@ def expand_path(path: str) -> str:
     )
 
 
-# TO-DO: move this to a better location, possible base class for all subcommands?
-def copy_container(  # noqa: PLR0913
-    source: str,
-    dest: str,
-    output: Output,
-    templar: Templar,
-    template_data: dict[str, str],
-    common_resources: list[str] | None = None,
-    allow_overwrite: list[str] | None = None,
-    resource_location: str = "ansible_creator.resources",
-) -> None:
-    """Copy files and directories from a possibly nested source to a destination.
+@dataclass
+class Copier:
+    """Configuration for the Copier class."""
 
-    :param source: Name of the source container.
-    :param dest: Absolute destination path.
-    :param templar: An object of template class.
-    :param template_data: A dictionary containing data to render templates with.
-    :param allow_overwrite: A list of paths that should be overwritten at destination.
+    resources: list[str]
+    """ list of resource containers to copy"""
+    resource_id: str
+    """the id of the resource to copy"""
+    dest: str
+    """the destination path to copy resources to"""
+    output: Output
+    """an instance of the Output class"""
+    allow_overwrite: list[str] | None = None
+    """a list of paths that should be overwritten at destination"""
+    index: int = 0
+    """index of the current resource being copied"""
+    resource_root: str = "ansible_creator.resources"
+    """root path for the resources"""
+    templar: Templar | None = None
+    """an instance of the Templar class"""
+    template_data: dict[str, str] = field(default_factory=dict)
+    """a dictionary containing the original data to render templates with"""
 
-    :raises CreatorError: if allow_overwrite is not a list.
-    """
-    output.debug(msg=f"starting recursive copy with source container '{source}'")
-    output.debug(msg=f"allow_overwrite set to {allow_overwrite}")
+    @property
+    def resource(self: Copier) -> str:
+        """Return the current resource being copied."""
+        return self.resources[self.index]
 
-    # Include the global template variables
-    template_data.update(GLOBAL_TEMPLATE_VARS)
-
-    def _recursive_copy(root: Traversable) -> None:
+    def _recursive_copy(
+        self: Copier,
+        root: Traversable,
+        template_data: dict[str, str],
+    ) -> None:
         """Recursively traverses a resource container and copies content to destination.
 
         :param root: A traversable object representing root of the container to copy.
+        :param copier_config: Configuration for the Copier class.
+        :param template_data: A dictionary containing current data to render templates with.
         """
-        output.debug(msg=f"current root set to {root}")
+        self.output.debug(msg=f"current root set to {root}")
 
         for obj in root.iterdir():
             overwrite = False
-            dest_name = str(obj).split(source + "/", maxsplit=1)[-1]
-            dest_path = os.path.join(dest, dest_name)
-            if (allow_overwrite) and (dest_name in allow_overwrite):
+            # resource names may have a . but directories use / in the path
+            dest_name = str(obj).split(
+                self.resource.replace(".", "/") + "/",
+                maxsplit=1,
+            )[-1]
+            dest_path = os.path.join(self.dest, dest_name)
+            if (self.allow_overwrite) and (dest_name in self.allow_overwrite):
                 overwrite = True
             # replace placeholders in destination path with real values
             for key, val in PATH_REPLACERS.items():
@@ -127,48 +140,92 @@ def copy_container(  # noqa: PLR0913
                     os.makedirs(dest_path)
 
                 # recursively copy the directory
-                _recursive_copy(root=obj)
+                self._recursive_copy(
+                    root=obj,
+                    template_data=template_data,
+                )
 
             elif obj.is_file():
+                if obj.name == "__meta__.yml":
+                    continue
                 # remove .j2 suffix at destination
-                dest_file = os.path.join(dest, dest_path.split(".j2", maxsplit=1)[0])
-                output.debug(msg=f"dest file is {dest_file}")
+                dest_file = os.path.join(
+                    self.dest,
+                    dest_path.split(".j2", maxsplit=1)[0],
+                )
+                self.output.debug(msg=f"dest file is {dest_file}")
 
                 # write at destination only if missing or belongs to overwrite list
                 if not os.path.exists(dest_file) or overwrite:
                     content = obj.read_text(encoding="utf-8")
                     # only render as templates if both of these are provided
                     # templating is not mandatory
-                    if templar and template_data:
-                        content = templar.render_from_content(
+                    if self.templar and template_data:
+                        content = self.templar.render_from_content(
                             template=content,
                             data=template_data,
                         )
                     with open(dest_file, "w", encoding="utf-8") as df_handle:
                         df_handle.write(content)
 
-    _recursive_copy(root=resources.files(f"{resource_location}.{source}"))
+    def _per_container(self: Copier) -> None:
+        """Copy files and directories from a possibly nested source to a destination.
 
-    common_resource_location = "ansible_creator.resources.common"
-    if common_resources is None:
-        if resource_location == common_resource_location:
-            output.debug(msg=f"Common resource '{source}' is complete.")
-            return
-        output.debug(msg="No common resources to process")
-        return
+        :param copier_config: Configuration for the Copier class.
 
-    output.debug(msg=f"Common resources include: '{' '.join(common_resources)}'")
-    for common_resource in common_resources:
-        # Override the original source passed in with the common resource
-        # no need to repass the common resources
-        # override the default resource location with the directory for common resources
-        output.debug(msg=f"Processing common resource: '{common_resource}'")
-        copy_container(
-            source=common_resource,
-            dest=dest,
-            output=output,
-            templar=templar,
-            template_data=template_data,
-            allow_overwrite=allow_overwrite,
-            resource_location=common_resource_location,
+        :raises CreatorError: if allow_overwrite is not a list.
+        """
+        self.output.debug(
+            msg=f"starting recursive copy with source container '{self.resource}'",
         )
+        self.output.debug(msg=f"allow_overwrite set to {self.allow_overwrite}")
+
+        # Include the global template variables
+        self.template_data.update(GLOBAL_TEMPLATE_VARS)
+
+        # Copy the template data to not pollute the original
+        template_data = self.template_data.copy()
+
+        # Collect and template any resource specific variables
+        meta_file = (
+            impl_resources.files(f"{self.resource_root}.{self.resource}")
+            / "__meta__.yml"
+        )
+        try:
+            with meta_file.open("r", encoding="utf-8") as meta_fileh:
+                self.output.debug(
+                    msg=f"loading resource specific vars from {meta_file}",
+                )
+                meta = yaml.safe_load(meta_fileh.read())
+        except FileNotFoundError:
+            meta = {}
+            self.output.debug(msg="no resource specific vars found")
+
+        found = meta.get(self.resource_id, {})
+        for key, value in found.items():
+            if value["template"] and self.templar:
+                serialized = yaml.dump(value["value"])
+                templated = self.templar.render_from_content(
+                    template=serialized,
+                    data=template_data,
+                )
+                deserialized = yaml.safe_load(templated)
+                template_data.update({key: deserialized})
+            else:
+                template_data.update({key: value["value"]})
+
+        self._recursive_copy(
+            root=impl_resources.files(f"{self.resource_root}.{self.resource}"),
+            template_data=template_data,
+        )
+
+    def copy_containers(
+        self: Copier,
+    ) -> None:
+        """Copy multiple containers to destination.
+
+        :param copier_config: Configuration for the Copier class.
+        """
+        for i in range(len(self.resources)):
+            self.index = i
+            self._per_container()
