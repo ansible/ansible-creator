@@ -11,7 +11,6 @@ from typing import TYPE_CHECKING
 import yaml
 
 from ansible_creator.constants import GLOBAL_TEMPLATE_VARS
-from ansible_creator.exceptions import CreatorError
 
 
 if TYPE_CHECKING:
@@ -35,37 +34,6 @@ class TermFeatures:
     def any_enabled(self: TermFeatures) -> bool:
         """Return True if any features are enabled."""
         return any((self.color, self.links))
-
-
-def get_file_contents(directory: str, filename: str) -> str:
-    """Return contents of a file.
-
-    :param directory: A directory within ansible_creator package.
-    :param filename: Name of the file to read contents from.
-
-    :returns: Content loaded from file as string.
-
-    :raises FileNotFoundError: if filename cannot be located
-    :raises TypeError: if invalid type is found
-    :raises ModuleNotFoundError: if incorrect package is provided
-    """
-    package: str = f"ansible_creator.{directory}"
-
-    try:
-        with (
-            impl_resources.files(package)
-            .joinpath(filename)
-            .open(
-                "r",
-                encoding="utf-8",
-            ) as file_open,
-        ):
-            content: str = file_open.read()
-    except (FileNotFoundError, TypeError, ModuleNotFoundError) as exc:
-        msg = "Unable to fetch file contents.\n"
-        raise CreatorError(msg) from exc
-
-    return content
 
 
 def expand_path(path: str) -> str:
