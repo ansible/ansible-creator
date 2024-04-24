@@ -1,0 +1,19 @@
+new_collection:
+  additions:
+    template: False
+    value: ""
+
+ansible_project:
+  additions:
+    template: True
+    value: |
+      .logs/*
+      *.retry
+      *.vault
+      collections/*
+      !collections/ansible_collections
+      !collections/requirements.yml
+      collections/ansible_collections/*
+      !collections/ansible_collections/{{ scm_org}}
+      collections/ansible_collections/{{ scm_org }}/*
+      !collections/ansible_collections/{{ scm_org }}/{{ scm_project }}
