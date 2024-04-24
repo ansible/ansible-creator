@@ -4,12 +4,12 @@ from pathlib import Path
 
 import pytest
 import re
+import sys
 
 from ansible_creator.cli import Cli
 from ansible_creator.config import Config
 from ansible_creator.utils import expand_path, TermFeatures
 from ansible_creator.output import Output
-from ansible_creator.templar import Templar
 
 
 def test_expand_path() -> None:
@@ -151,13 +151,21 @@ def test_cli_parser(monkeypatch, sysargs, expected) -> None:
 
 def test_missing_j2(monkeypatch) -> None:
     """Test missing Jinja2."""
+
     fail_msg = (
         "jinja2 is required but does not appear to be installed."
         "It can be installed using `pip install jinja2`"
     )
-    monkeypatch.setattr("ansible_creator.templar.HAS_JINJA2", False)
+
+    monkeypatch.setattr("sys.path", [])
+    monkeypatch.delitem(sys.modules, "jinja2", raising=False)
+    monkeypatch.delitem(sys.modules, "ansible_creator.templar", raising=False)
+
+    import ansible_creator.templar
+
+    assert ansible_creator.templar.HAS_JINJA2 == False
     with pytest.raises(ImportError, match=fail_msg):
-        Templar()
+        ansible_creator.templar.Templar()
 
 
 def test_cli_init_output(monkeypatch) -> None:
