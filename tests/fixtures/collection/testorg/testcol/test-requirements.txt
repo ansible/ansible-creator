@@ -1,0 +1,4 @@
+# TO-DO: add python packages that are required for testing this collection
+pytest-ansible
+pytest-xdist
+molecule

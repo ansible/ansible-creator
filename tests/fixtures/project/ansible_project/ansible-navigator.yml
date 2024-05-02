@@ -2,9 +2,9 @@
 ansible-navigator:
   logging:
     level: debug
-    append: False
+    append: false
     file: $PWD/.logs/ansible-navigator.log
 
   playbook-artifact:
-    enable: True
+    enable: true
     save-as: "$PWD/.logs/{playbook_name}-artifact-{time_stamp}.json"
