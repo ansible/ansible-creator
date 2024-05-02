@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 import yaml
 
-from ansible_creator.constants import GLOBAL_TEMPLATE_VARS
+from ansible_creator.constants import GLOBAL_TEMPLATE_VARS, SKIP_DIRS, SKIP_FILES_TYPES
 
 
 if TYPE_CHECKING:
@@ -104,6 +104,8 @@ class Copier:
                     dest_path = dest_path.replace(key, template_data.get(val, ""))
 
             if obj.is_dir():
+                if obj.name in SKIP_DIRS:
+                    continue
                 if not os.path.exists(dest_path):
                     os.makedirs(dest_path)
 
@@ -114,6 +116,8 @@ class Copier:
                 )
 
             elif obj.is_file():
+                if obj.name.split(".")[-1] in SKIP_FILES_TYPES:
+                    continue
                 if obj.name == "__meta__.yml":
                     continue
                 # remove .j2 suffix at destination
