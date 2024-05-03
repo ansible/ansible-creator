@@ -6,6 +6,6 @@
     "matangover.mypy",
     "ms-python.black-formatter",
     "ms-python.pylint",
-    "redhat.ansible", 
+    "redhat.ansible"
   ]
 }
