@@ -1,9 +1,11 @@
 {
   "recommendations": [
+    "charliermarsh.ruff",
+    "esbenp.prettier-vscode",
+    "gitHub.copilot",
+    "matangover.mypy",
     "ms-python.black-formatter",
     "ms-python.pylint",
-    "charliermarsh.ruff",
-    "matangover.mypy",
-    "esbenp.prettier-vscode"
+    "redhat.ansible", 
   ]
 }
