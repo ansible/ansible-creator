@@ -1,5 +1,11 @@
-coverage
-pytest
+black
 coverage[toml]
+mypy
+pre-commit
+pydoclint
+pytest
 pytest-xdist
+ruff
+toml-sort
 tox
+types-PyYAML

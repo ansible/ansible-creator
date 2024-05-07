@@ -1,8 +1,0 @@
-black
-mypy
-pre-commit
-pydoclint
-pytest
-ruff
-toml-sort
-types-PyYAML
