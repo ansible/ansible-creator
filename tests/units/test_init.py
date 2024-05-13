@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+
 import re
+import shutil
 
 from filecmp import dircmp
 from pathlib import Path
@@ -252,15 +254,13 @@ def test_delete_error(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         ),
     )
 
-    def rmtree(path: Path) -> None:
-        raise OSError("Failed to delete directory")
+    err = "Test thrown error"
 
-    import shutil
+    def rmtree(path: Path) -> None:
+        raise OSError(err)
 
     monkeypatch.setattr(shutil, "rmtree", rmtree)
 
-    fail_msg = "Failed to delete directory"
-
-    with pytest.raises(CreatorError, match=fail_msg) as exc_info:
+    with pytest.raises(CreatorError, match=err) as exc_info:
         init.run()
     assert "failed to remove existing directory" in str(exc_info.value)
