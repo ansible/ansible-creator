@@ -245,7 +245,6 @@ class Output:
         self.logger = logging.getLogger("ansible_creator")
         if log_level != "notset":
             self.logger.setLevel(log_level.upper())
-            self.log_to_file = bool(log_file)
             log_file_path = Path(log_file)
             if log_file_path.exists() and log_append == "false":
                 log_file_path.unlink()

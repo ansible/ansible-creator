@@ -81,19 +81,9 @@ disable = [
 
 [tool.ruff]
 builtins = ["__"]
-exclude = ['tests']
+exclude = ["_version.py", "tests"]
 fix = true
 ignore = [
-  "C901",
-  "PTH100",
-  "PTH103",
-  "PTH108",
-  "PTH110",
-  "PTH111",
-  "PTH113",
-  "PTH118",
-  "PTH123",
-  "TRY400"
 ]
 line-length = 100
 select = ["ALL"]

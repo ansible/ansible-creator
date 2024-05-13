@@ -2,17 +2,18 @@
 
 from __future__ import annotations
 
-import os
 import shutil
 
 from typing import TYPE_CHECKING
 
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.templar import Templar
-from ansible_creator.utils import Copier
+from ansible_creator.utils import Copier, expand_path
 
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from ansible_creator.config import Config
     from ansible_creator.output import Output
 
@@ -31,7 +32,7 @@ class Init:
         """
         self._namespace: str = config.namespace
         self._collection_name: str = config.collection_name
-        self._init_path: str = config.init_path
+        self._init_path: Path = expand_path(config.init_path)
         self._force = config.force
         self._creator_version = config.creator_version
         self._project = config.project
@@ -45,24 +46,20 @@ class Init:
 
         :raises CreatorError: if computed collection path is an existing directory or file.
         """
-        if self._init_path.endswith("collections/ansible_collections"):
-            self._init_path = os.path.join(
-                self._init_path,
-                self._namespace,
-                self._collection_name,
-            )
+        if self._init_path.parts[-2:] == ("collections", "ansible_collections"):
+            self._init_path = self._init_path / self._namespace / self._collection_name
 
         self.output.debug(msg=f"final collection path set to {self._init_path}")
 
         # check if init_path already exists
-        if os.path.exists(self._init_path):
+        if self._init_path.exists():
             # init-path exists and is a file
-            if os.path.isfile(self._init_path):
+            if self._init_path.is_file():
                 msg = f"the path {self._init_path} already exists, but is a file - aborting"
                 raise CreatorError(
                     msg,
                 )
-            if os.listdir(self._init_path):
+            if next(self._init_path.iterdir(), None):
                 # init-path exists and is not empty, but user did not request --force
                 if not self._force:
                     msg = (
@@ -76,20 +73,16 @@ class Init:
                 self.output.warning(
                     f"re-initializing existing directory {self._init_path}",
                 )
-                for root, dirs, files in os.walk(self._init_path, topdown=True):
-                    for old_dir in dirs:
-                        path = os.path.join(root, old_dir)
-                        self.output.debug(f"removing tree {old_dir}")
-                        shutil.rmtree(path)
-                    for old_file in files:
-                        path = os.path.join(root, old_file)
-                        self.output.debug(f"removing file {old_file}")
-                        os.unlink(path)
+                try:
+                    shutil.rmtree(self._init_path)
+                except OSError as e:
+                    err = f"failed to remove existing directory {self._init_path}: {e}"
+                    raise CreatorError(err) from e
 
         # if init_path does not exist, create it
-        if not os.path.exists(self._init_path):
+        if not self._init_path.exists():
             self.output.debug(msg=f"creating new directory at {self._init_path}")
-            os.makedirs(self._init_path)
+            self._init_path.mkdir(parents=True)
 
         if self._project == "collection":
             # copy new_collection container to destination, templating files when found

@@ -6,6 +6,7 @@ import os
 
 from dataclasses import dataclass, field
 from importlib import resources as impl_resources
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import yaml
@@ -36,15 +37,15 @@ class TermFeatures:
         return any((self.color, self.links))
 
 
-def expand_path(path: str) -> str:
+def expand_path(path: str) -> Path:
     """Resolve absolute path.
 
     :param path: Path to expand.
     :returns: Expanded absolute path.
     """
-    return os.path.abspath(
-        os.path.expanduser(os.path.expandvars(path)),
-    )
+    _path = Path(os.path.expandvars(path))
+    _path = _path.expanduser()
+    return _path.resolve()
 
 
 @dataclass
@@ -55,7 +56,7 @@ class Copier:
     """ list of resource containers to copy"""
     resource_id: str
     """the id of the resource to copy"""
-    dest: str
+    dest: Path
     """the destination path to copy resources to"""
     output: Output
     """an instance of the Output class"""
@@ -75,7 +76,7 @@ class Copier:
         """Return the current resource being copied."""
         return self.resources[self.index]
 
-    def _recursive_copy(
+    def _recursive_copy(  # noqa: C901, PLR0912 # pylint: disable=too-many-branches
         self: Copier,
         root: Traversable,
         template_data: dict[str, str],
@@ -95,19 +96,21 @@ class Copier:
                 self.resource.replace(".", "/") + "/",
                 maxsplit=1,
             )[-1]
-            dest_path = os.path.join(self.dest, dest_name)
-            if (self.allow_overwrite) and (dest_name in self.allow_overwrite):
+            dest_path = self.dest / dest_name
+            if self.allow_overwrite and (dest_name in self.allow_overwrite):
                 overwrite = True
             # replace placeholders in destination path with real values
             for key, val in PATH_REPLACERS.items():
-                if key in dest_path and template_data:
-                    dest_path = dest_path.replace(key, template_data.get(val, ""))
+                if key in str(dest_path) and template_data:
+                    str_dest_path = str(dest_path)
+                    repl_val = template_data.get(val, "")
+                    dest_path = Path(str_dest_path.replace(key, repl_val))
 
             if obj.is_dir():
                 if obj.name in SKIP_DIRS:
                     continue
-                if not os.path.exists(dest_path):
-                    os.makedirs(dest_path)
+                if not dest_path.exists():
+                    dest_path.mkdir(parents=True)
 
                 # recursively copy the directory
                 self._recursive_copy(
@@ -121,14 +124,13 @@ class Copier:
                 if obj.name == "__meta__.yml":
                     continue
                 # remove .j2 suffix at destination
-                dest_file = os.path.join(
-                    self.dest,
-                    dest_path.split(".j2", maxsplit=1)[0],
-                )
+                if dest_path.suffix == ".j2":
+                    dest_path = dest_path.with_suffix("")
+                dest_file = Path(self.dest) / dest_path
                 self.output.debug(msg=f"dest file is {dest_file}")
 
                 # write at destination only if missing or belongs to overwrite list
-                if not os.path.exists(dest_file) or overwrite:
+                if not dest_file.exists() or overwrite:
                     content = obj.read_text(encoding="utf-8")
                     # only render as templates if both of these are provided
                     # templating is not mandatory
@@ -137,7 +139,7 @@ class Copier:
                             template=content,
                             data=template_data,
                         )
-                    with open(dest_file, "w", encoding="utf-8") as df_handle:
+                    with dest_file.open("w", encoding="utf-8") as df_handle:
                         df_handle.write(content)
 
     def _per_container(self: Copier) -> None:

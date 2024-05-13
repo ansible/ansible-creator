@@ -43,7 +43,7 @@ class Cli:
 
         self.output = Output(
             log_append=self.args.pop("log_append"),
-            log_file=expand_path(self.args.pop("log_file")),
+            log_file=str(expand_path(self.args.pop("log_file"))),
             log_level=self.args.pop("log_level"),
             term_features=self.term_features,
             verbosity=self.args.pop("verbose"),

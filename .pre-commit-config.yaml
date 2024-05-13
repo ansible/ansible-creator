@@ -104,7 +104,7 @@ repos:
           - pytest
         args:
           - src
-          - --python-version=3.10
+          - --python-version=3.12
         pass_filenames: false
   - repo: https://github.com/jazzband/pip-tools
     rev: 7.4.1
