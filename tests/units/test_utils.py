@@ -7,8 +7,10 @@ from ansible_creator.utils import expand_path
 
 def test_expand_path() -> None:
     """Test expand_path utils."""
-    assert expand_path("~/$DEV_WORKSPACE/namespace/collection") == Path(
-        "/home/ansible/collections/ansible_collections/namespace/collection",
+    assert (
+        expand_path("~/$DEV_WORKSPACE/namespace/collection")
+        == Path.home()
+        / "/home/ansible/collections/ansible_collections/namespace/collection"
     )
     assert expand_path("~") == Path.home()
     assert expand_path("foo") == Path.cwd() / "foo"

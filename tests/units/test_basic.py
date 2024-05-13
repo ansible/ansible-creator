@@ -24,7 +24,9 @@ def test_configuration_class(output: Output) -> None:
     app_config = Config(**cli_args)
     assert app_config.namespace == "testorg"
     assert app_config.collection_name == "testcol"
-    assert app_config.init_path == Path("/home/ansible")
+    linux_path = Path("/home/ansible")
+    mac_os_path = Path("System/Volumes/Data/home/ansible")
+    assert app_config.init_path in [linux_path, mac_os_path]
 
 
 @pytest.mark.parametrize(
