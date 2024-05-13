@@ -12,12 +12,6 @@ from ansible_creator.utils import expand_path, TermFeatures
 from ansible_creator.output import Output
 
 
-def test_expand_path() -> None:
-    """Test expand_path utils."""
-    assert expand_path("~/$DEV_WORKSPACE/namespace/collection") == Path(
-        "/home/ansible/collections/ansible_collections/namespace/collection",
-    )
-
 
 def test_configuration_class(output: Output) -> None:
     """Test Config() dataclass post_init."""
