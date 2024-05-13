@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 
 from filecmp import dircmp
+from pathlib import Path
 
 import pytest
 
@@ -223,3 +224,43 @@ def test_warning(
         )
         is not None
     )
+
+
+def test_delete_error(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """Test a remove fails gracefully.
+
+    Args:
+        monkeypatch: Pytest monkeypatch fixture.
+        tmp_path: Temporary directory path.
+    """
+    (tmp_path / "file.txt").touch()
+
+    init = Init(
+        Config(
+            creator_version="0.0.1",
+            force=True,
+            subcommand="init",
+            collection="testorg.testcol",
+            init_path=str(tmp_path),
+            output=Output(
+                log_file=str(tmp_path / "log.log"),
+                log_level="DEBUG",
+                log_append="false",
+                term_features=TermFeatures(color=False, links=False),
+                verbosity=0,
+            ),
+        ),
+    )
+
+    def rmtree(path: Path) -> None:
+        raise OSError("Failed to delete directory")
+
+    import shutil
+
+    monkeypatch.setattr(shutil, "rmtree", rmtree)
+
+    fail_msg = "Failed to delete directory"
+
+    with pytest.raises(CreatorError, match=fail_msg) as exc_info:
+        init.run()
+    assert "failed to remove existing directory" in str(exc_info.value)
