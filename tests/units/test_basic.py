@@ -12,7 +12,6 @@ from ansible_creator.utils import expand_path, TermFeatures
 from ansible_creator.output import Output
 
 
-
 def test_configuration_class(output: Output) -> None:
     """Test Config() dataclass post_init."""
     cli_args: dict = {
