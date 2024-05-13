@@ -25,7 +25,7 @@ def test_configuration_class(output: Output) -> None:
     assert app_config.namespace == "testorg"
     assert app_config.collection_name == "testcol"
     linux_path = Path("/home/ansible")
-    mac_os_path = Path("System/Volumes/Data/home/ansible")
+    mac_os_path = Path("/System/Volumes/Data/home/ansible")
     assert app_config.init_path in [linux_path, mac_os_path]
 
 
