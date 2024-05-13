@@ -10,7 +10,7 @@ def test_expand_path() -> None:
     home = Path.home().resolve()
     expected = home / "collections/ansible_collections/namespace/collection"
     assert expand_path("~/$DEV_WORKSPACE/namespace/collection") == expected
-    assert expand_path("~") == Path.home()
+    assert expand_path("~") == home
     assert expand_path("foo") == Path.cwd() / "foo"
-    assert expand_path("$HOME") == Path.home()
-    assert expand_path("~/$HOME") == Path(str(Path.home()) + str(Path.home()))
+    assert expand_path("$HOME") == home
+    assert expand_path("~/$HOME") == Path(f"{home}/{home}")
