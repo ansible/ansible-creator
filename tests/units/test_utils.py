@@ -13,4 +13,4 @@ def test_expand_path() -> None:
     assert expand_path("~") == home
     assert expand_path("foo") == Path.cwd() / "foo"
     assert expand_path("$HOME") == home
-    assert expand_path("~/$HOME") == Path(f"{home}/{home}")
+    assert expand_path("~/$HOME") == Path(f"{home}/{Path.home()}")
