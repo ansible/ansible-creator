@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from typing import Any
 
 try:
     from jinja2 import Environment, StrictUndefined
@@ -17,7 +22,8 @@ class Templar:
     def __init__(self: Templar) -> None:
         """Instantiate the template engine.
 
-        :raises ImportError: When jinja2 is not installed.
+        Raises:
+            ImportError: when jinja2 is not installed.
         """
         if not HAS_JINJA2:
             msg = (
@@ -32,12 +38,13 @@ class Templar:
             keep_trailing_newline=True,
         )
 
-    def render_from_content(self: Templar, template: str, data: dict) -> str:
+    def render_from_content(self: Templar, template: str, data: dict[str, Any]) -> str:
         """Render a template with provided data.
 
-        :param template: The template to load and render.
-        :param data: Data to render template with.
-
-        :returns: Templated content.
+        Args:
+            template: The template to load and render.
+            data: Data to render template with.
+        Returns:
+            Templated content.
         """
         return self.env.from_string(template).render(data)

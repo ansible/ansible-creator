@@ -1,27 +1,33 @@
 """Basic unit tests for ansible-creator."""
 
-from pathlib import Path
+from __future__ import annotations
 
-import pytest
 import re
 import sys
 
+from pathlib import Path
+
+import pytest
+
 from ansible_creator.cli import Cli
 from ansible_creator.config import Config
-from ansible_creator.utils import expand_path, TermFeatures
 from ansible_creator.output import Output
+from ansible_creator.utils import TermFeatures, expand_path
 
 
 def test_configuration_class(output: Output) -> None:
-    """Test Config() dataclass post_init."""
-    cli_args: dict = {
-        "creator_version": "0.0.1",
-        "subcommand": "init",
-        "collection": "testorg.testcol",
-        "init_path": "$HOME",
-        "output": output,
-    }
-    app_config = Config(**cli_args)
+    """Test Config() dataclass post_init.
+
+    Args:
+        output: Output dataclass object.
+    """
+    app_config = Config(
+        creator_version="0.0.1",
+        subcommand="init",
+        collection="testorg.testcol",
+        init_path="$HOME",
+        output=output,
+    )
     assert app_config.namespace == "testorg"
     assert app_config.collection_name == "testcol"
     linux_path = Path("/home/ansible")
@@ -137,15 +143,28 @@ def test_configuration_class(output: Output) -> None:
         ],
     ],
 )
-def test_cli_parser(monkeypatch, sysargs, expected) -> None:
-    """Test CLI args parsing."""
+def test_cli_parser(
+    monkeypatch: pytest.MonkeyPatch,
+    sysargs: list[str],
+    expected: dict[str, str | bool | None],
+) -> None:
+    """Test CLI args parsing.
+
+    Args:
+        monkeypatch: Pytest monkeypatch fixture.
+        sysargs: List of CLI arguments.
+        expected: Expected values for the parsed CLI arguments.
+    """
     monkeypatch.setattr("sys.argv", sysargs)
     assert vars(Cli().parse_args()) == expected
 
 
-def test_missing_j2(monkeypatch) -> None:
-    """Test missing Jinja2."""
+def test_missing_j2(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test missing Jinja2.
 
+    Args:
+        monkeypatch: Pytest monkeypatch fixture.
+    """
     fail_msg = (
         "jinja2 is required but does not appear to be installed."
         "It can be installed using `pip install jinja2`"
@@ -157,12 +176,17 @@ def test_missing_j2(monkeypatch) -> None:
 
     import ansible_creator.templar
 
-    assert ansible_creator.templar.HAS_JINJA2 == False
+    assert ansible_creator.templar.HAS_JINJA2 is False
     with pytest.raises(ImportError, match=fail_msg):
         ansible_creator.templar.Templar()
 
 
-def test_cli_init_output(monkeypatch) -> None:
+def test_cli_init_output(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test CLI init_output method.
+
+    Args:
+        monkeypatch: Pytest monkeypatch fixture.
+    """
     sysargs = [
         "ansible-creator",
         "init",
@@ -191,7 +215,18 @@ def test_cli_init_output(monkeypatch) -> None:
     assert vars(cli.output) == vars(output)
 
 
-def test_cli_main(capsys, tmp_path, monkeypatch) -> None:
+def test_cli_main(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test CLI main method.
+
+    Args:
+        capsys: Pytest capsys fixture.
+        tmp_path: Temporary path.
+        monkeypatch: Pytest monkeypatch fixture.
+    """
     sysargs = [
         "ansible-creator",
         "init",

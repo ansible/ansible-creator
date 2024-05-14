@@ -48,10 +48,21 @@ exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]
 omit = ["tests/*"]
 
 [tool.mypy]
-files = ["src"]
+exclude = 'tests/fixtures'
+files = ["src", "tests"]
+strict = true
+
+[[tool.mypy.overrides]]
+ignore_missing_imports = true
+module = ["pytest_ansible.molecule"]
 
 [tool.pydoclint]
 allow-init-docstring = true
+arg-type-hints-in-docstring = false
+check-return-types = false
+show-filenames-in-every-violation-message = true
+skip-checking-short-docstrings = false
+style = 'google'
 
 [tool.pylint]
 
@@ -79,9 +90,14 @@ disable = [
   "too-many-locals"
 ]
 
+[tool.pytest.ini_options]
+addopts = "--ignore=tests/fixtures"
+tmp_path_retention_policy = "failed"
+verbosity_assertions = 2
+
 [tool.ruff]
 builtins = ["__"]
-exclude = ["_version.py", "tests"]
+exclude = ["_version.py", "tests/fixtures"]
 fix = true
 ignore = [
 ]
@@ -97,6 +113,7 @@ lines-after-imports = 2 # Ensures consistency for cases when there's variable vs
 lines-between-types = 1 # Separate import/from with 1 line
 
 [tool.ruff.per-file-ignores]
+"src/ansible_creator/resources/new_collection/tests/**" = ["S101", "S602", "T201"]
 # S101 Allow assert in tests
 # S602 Allow shell in test
 # T201 Allow print in tests

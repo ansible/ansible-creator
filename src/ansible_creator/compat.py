@@ -13,6 +13,10 @@ import sys
 
 
 if sys.version_info >= (3, 11):
-    from importlib.resources.abc import Traversable
+    from importlib.resources.abc import Traversable as _Traversable
 else:
-    from importlib.abc import Traversable  # pylint: disable=W4904
+    from importlib.abc import (  # pylint: disable=deprecated-class
+        Traversable as _Traversable,
+    )
+
+Traversable = _Traversable
