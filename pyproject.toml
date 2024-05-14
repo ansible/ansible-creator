@@ -47,6 +47,14 @@ exclude = "tests/fixtures"
 exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]
 omit = ["tests/*"]
 
+[tool.coverage.run]
+source = ["src"]
+# Do not use branch until bug is fixes:
+# https://github.com/nedbat/coveragepy/issues/605
+# branch = true
+parallel = true
+concurrency = ["multiprocessing", "thread"]
+
 [tool.mypy]
 exclude = 'tests/fixtures'
 files = ["src", "tests"]
