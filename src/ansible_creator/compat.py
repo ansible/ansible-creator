@@ -19,4 +19,4 @@ else:
         Traversable as _Traversable,
     )
 
-Traversable = _Traversable # pragma: no cover
+Traversable = _Traversable  # pragma: no cover
