@@ -91,7 +91,7 @@ disable = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "--ignore=tests/fixtures"
+addopts = "-n auto --ignore=tests/fixtures"
 tmp_path_retention_policy = "failed"
 verbosity_assertions = 2
 
