@@ -48,12 +48,12 @@ exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]
 omit = ["tests/*"]
 
 [tool.coverage.run]
-source = ["src"]
+concurrency = ["multiprocessing", "thread"]
 # Do not use branch until bug is fixes:
 # https://github.com/nedbat/coveragepy/issues/605
 # branch = true
 parallel = true
-concurrency = ["multiprocessing", "thread"]
+source = ["src"]
 
 [tool.mypy]
 exclude = 'tests/fixtures'
