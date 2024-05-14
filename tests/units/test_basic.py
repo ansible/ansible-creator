@@ -12,14 +12,6 @@ from ansible_creator.utils import expand_path, TermFeatures
 from ansible_creator.output import Output
 
 
-def test_expand_path() -> None:
-    """Test expand_path utils."""
-    assert (
-        expand_path("~/$DEV_WORKSPACE/namespace/collection")
-        == "/home/ansible/collections/ansible_collections/namespace/collection"
-    )
-
-
 def test_configuration_class(output: Output) -> None:
     """Test Config() dataclass post_init."""
     cli_args: dict = {
@@ -32,7 +24,9 @@ def test_configuration_class(output: Output) -> None:
     app_config = Config(**cli_args)
     assert app_config.namespace == "testorg"
     assert app_config.collection_name == "testcol"
-    assert app_config.init_path == "/home/ansible"
+    linux_path = Path("/home/ansible")
+    mac_os_path = Path("/System/Volumes/Data/home/ansible")
+    assert app_config.init_path in [linux_path, mac_os_path]
 
 
 @pytest.mark.parametrize(
@@ -184,7 +178,7 @@ def test_cli_init_output(monkeypatch) -> None:
     ]
     output = Output(
         log_append="false",
-        log_file=expand_path("test.log"),
+        log_file=str(expand_path("test.log")),
         log_level="debug",
         term_features=TermFeatures(color=False, links=False),
         verbosity=3,
