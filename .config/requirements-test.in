@@ -1,5 +1,6 @@
 coverage
 pytest
 coverage[toml]
+coverage-enable-subprocess
 pytest-xdist
 tox
