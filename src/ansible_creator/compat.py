@@ -12,11 +12,11 @@ here.
 import sys
 
 
-if sys.version_info >= (3, 11):  # pragma: no cover
+if sys.version_info >= (3, 11):
     from importlib.resources.abc import Traversable as _Traversable
 else:
-    from importlib.abc import (  # pylint: disable=deprecated-class # pragma: no cover
+    from importlib.abc import (  # pylint: disable=deprecated-class
         Traversable as _Traversable,
     )
 
-Traversable = _Traversable  # pragma: no cover
+Traversable = _Traversable
