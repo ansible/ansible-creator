@@ -366,3 +366,69 @@ def test_is_file_error(tmp_path: Path) -> None:
     with pytest.raises(CreatorError) as exc_info:
         init.run()
     assert "but is a file" in str(exc_info.value)
+
+
+def test_collection_name_not_set(output: Output, tmp_path: Path) -> None:
+    """Although it shouldn't happen, test when collection name is not set.
+
+    Args:
+        output: Output class object.
+        tmp_path: Temporary directory path.
+    """
+
+    class FakeConfig:
+        """Fake Config class, ours protects from this error."""
+
+        collection = "foo.bar"
+        collection_name = None
+        creator_version = "0.0.1"
+        force = False
+        init_path = tmp_path
+        project = "collection"
+        output: Output
+        namespace = None
+        scm_org = None
+        scm_project = None
+        subcommand = "init"
+
+    config = FakeConfig()
+    config.output = output
+
+    expected = "Collection name is required when scaffolding a collection."
+    with pytest.raises(CreatorError, match=expected):
+        Init(config=config).run()  # type: ignore[arg-type]
+
+
+def test_scm_vals_not_set(output: Output, tmp_path: Path) -> None:
+    """Although it shouldn't happen, test when scm_org or scm_project not set.
+
+    Args:
+        output: Output class object.
+        tmp_path: Temporary directory path.
+    """
+
+    class FakeConfig:
+        """Fake Config class, ours protects from this error."""
+
+        collection = "foo.bar"
+        collection_name = None
+        creator_version = "0.0.1"
+        force = False
+        init_path = tmp_path
+        project = "ansible_project"
+        output: Output
+        namespace = None
+        scm_org = None
+        scm_project = None
+        subcommand = "init"
+
+    config = FakeConfig()
+    config.output = output
+
+    expected = (
+        "Parameters 'scm-org' and 'scm-project'"
+        " are required when scaffolding an ansible-project."
+    )
+
+    with pytest.raises(CreatorError, match=expected):
+        Init(config=config).run()  # type: ignore[arg-type]
