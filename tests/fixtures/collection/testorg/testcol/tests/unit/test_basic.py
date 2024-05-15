@@ -1,4 +1,4 @@
-"""Unit tests for testorg.testcol"""
+"""Unit tests for testorg.testcol."""
 
 
 def test_basic() -> None:

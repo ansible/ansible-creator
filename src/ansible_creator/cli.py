@@ -16,6 +16,8 @@ from ansible_creator.utils import TermFeatures, expand_path
 
 
 try:
+    from typing import Any
+
     from ._version import version as __version__
 except ImportError:
     __version__ = "source"
@@ -26,7 +28,7 @@ class Cli:
 
     def __init__(self: Cli) -> None:
         """Initialize the Cli and parse Cli args."""
-        self.args: dict = vars(self.parse_args())
+        self.args: dict[str, Any] = vars(self.parse_args())
         self.output: Output
         self.term_features: TermFeatures
 
@@ -53,7 +55,8 @@ class Cli:
     def parse_args(self: Cli) -> argparse.Namespace:
         """Start parsing args passed from Cli.
 
-        :returns: A dictionary of Cli args.
+        Returns:
+            The parsed arguments.
         """
         parent_parser = argparse.ArgumentParser(add_help=False)
 

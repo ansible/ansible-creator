@@ -10,6 +10,8 @@ from ansible_creator.utils import expand_path
 
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from ansible_creator.output import Output
 
 
@@ -23,18 +25,22 @@ class Config:
 
     collection: str = ""
     force: bool = False
-    init_path: str = "./"
+    init_path: str | Path = "./"
     project: str = ""
-    scm_org: str = ""
-    scm_project: str = ""
+    scm_org: str | None = None
+    scm_project: str | None = None
 
     # TO-DO: Add instance variables for other 'create' and 'sample'
 
-    collection_name: str = ""
+    collection_name: str | None = None
     namespace: str = ""
 
     def __post_init__(self: Config) -> None:
-        """Post process config values."""
+        """Post process config values.
+
+        Raises:
+            CreatorError: When required values are missing or invalid.
+        """
         # Validation for: ansible-creator init
         if not self.collection and self.project == "collection":
             msg = "The argument 'collection' is required when scaffolding a collection."
@@ -72,4 +78,5 @@ class Config:
             object.__setattr__(self, "namespace", fqcn[0])
             object.__setattr__(self, "collection_name", fqcn[-1])
 
-        object.__setattr__(self, "init_path", expand_path(self.init_path))
+        if isinstance(self.init_path, str):
+            object.__setattr__(self, "init_path", expand_path(self.init_path))

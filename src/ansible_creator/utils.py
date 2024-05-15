@@ -33,15 +33,21 @@ class TermFeatures:
     links: bool
 
     def any_enabled(self: TermFeatures) -> bool:
-        """Return True if any features are enabled."""
+        """Return True if any features are enabled.
+
+        Returns:
+            bool: True if any features are enabled.
+        """
         return any((self.color, self.links))
 
 
 def expand_path(path: str) -> Path:
     """Resolve absolute path.
 
-    :param path: Path to expand.
-    :returns: Expanded absolute path.
+    Args:
+        path: Path to expand.
+    Returns:
+        Expanded absolute path.
     """
     _path = Path(os.path.expandvars(path))
     _path = _path.expanduser()
@@ -83,9 +89,9 @@ class Copier:
     ) -> None:
         """Recursively traverses a resource container and copies content to destination.
 
-        :param root: A traversable object representing root of the container to copy.
-        :param copier_config: Configuration for the Copier class.
-        :param template_data: A dictionary containing current data to render templates with.
+        Args:
+            root: A traversable object representing root of the container to copy.
+            template_data: A dictionary containing current data to render templates with.
         """
         self.output.debug(msg=f"current root set to {root}")
 

@@ -4,10 +4,24 @@ from __future__ import annotations
 
 import re
 import sys
+
+from subprocess import CalledProcessError, CompletedProcess
 from textwrap import dedent
+from typing import TYPE_CHECKING, Any, Callable
 
 
-def test_run_help(cli):
+if TYPE_CHECKING:
+    from pathlib import Path
+
+cli_type = Callable[[Any], CompletedProcess[str] | CalledProcessError]
+
+
+def test_run_help(cli: cli_type) -> None:
+    """Test running ansible-creator --help.
+
+    Args:
+        cli: cli_run function.
+    """
     result = cli("ansible-creator --help")
     assert result.returncode == 0
 
@@ -52,7 +66,12 @@ def test_run_help(cli):
         )
 
 
-def test_run_no_subcommand(cli):
+def test_run_no_subcommand(cli: cli_type) -> None:
+    """Test running ansible-creator without subcommand.
+
+    Args:
+        cli: cli_run function.
+    """
     result = cli("ansible-creator")
     assert result.returncode != 0
     assert (
@@ -66,7 +85,12 @@ def test_run_no_subcommand(cli):
     )
 
 
-def test_run_init_no_input(cli):
+def test_run_init_no_input(cli: cli_type) -> None:
+    """Test running ansible-creator init without any input.
+
+    Args:
+        cli: cli_run function.
+    """
     result = cli("ansible-creator init")
     assert result.returncode != 0
     assert (
@@ -75,7 +99,13 @@ def test_run_init_no_input(cli):
     )
 
 
-def test_run_init_basic(cli, tmp_path):
+def test_run_init_basic(cli: cli_type, tmp_path: Path) -> None:
+    """Test running ansible-creator init with empty/non-empty/force.
+
+    Args:
+        cli: cli_run function.
+        tmp_path: Temporary path.
+    """
     final_dest = f"{tmp_path}/collections/ansible_collections"
     cli(f"mkdir -p {final_dest}")
 

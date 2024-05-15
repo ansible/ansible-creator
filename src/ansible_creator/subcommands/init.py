@@ -4,15 +4,15 @@ from __future__ import annotations
 
 import shutil
 
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.templar import Templar
-from ansible_creator.utils import Copier, expand_path
+from ansible_creator.utils import Copier
 
 
 if TYPE_CHECKING:
-    from pathlib import Path
 
     from ansible_creator.config import Config
     from ansible_creator.output import Output
@@ -27,12 +27,12 @@ class Init:
     ) -> None:
         """Initialize the init action.
 
-        :param config: App configuration object.
-        :param output: Output class object.
+        Args:
+            config: App configuration object.
         """
         self._namespace: str = config.namespace
-        self._collection_name: str = config.collection_name
-        self._init_path: Path = expand_path(config.init_path)
+        self._collection_name: str | None = config.collection_name
+        self._init_path: Path = Path(config.init_path)
         self._force = config.force
         self._creator_version = config.creator_version
         self._project = config.project
@@ -41,12 +41,17 @@ class Init:
         self._templar = Templar()
         self.output: Output = config.output
 
-    def run(self: Init) -> None:
+    def run(self: Init) -> None:  # noqa: C901
         """Start scaffolding skeleton.
 
-        :raises CreatorError: if computed collection path is an existing directory or file.
+        Raises:
+            CreatorError: When computed collection path is an existing directory or file.
         """
-        if self._init_path.parts[-2:] == ("collections", "ansible_collections"):
+        if (
+            self._init_path.parts[-2:] == ("collections", "ansible_collections")
+            and self._project == "collection"
+            and isinstance(self._collection_name, str)
+        ):
             self._init_path = self._init_path / self._namespace / self._collection_name
 
         self.output.debug(msg=f"final collection path set to {self._init_path}")
@@ -85,6 +90,9 @@ class Init:
             self._init_path.mkdir(parents=True)
 
         if self._project == "collection":
+            if not isinstance(self._collection_name, str):
+                msg = "Collection name is required when scaffolding a collection."
+                raise CreatorError(msg)
             # copy new_collection container to destination, templating files when found
             self.output.debug(msg="started copying collection skeleton to destination")
             copier = Copier(
@@ -115,6 +123,15 @@ class Init:
             self.output.debug(
                 msg="started copying ansible-project skeleton to destination",
             )
+            if not isinstance(self._scm_org, str) or not isinstance(
+                self._scm_project,
+                str,
+            ):
+                msg = (
+                    "Parameters 'scm-org' and 'scm-project' are required when "
+                    "scaffolding an ansible-project."
+                )
+                raise CreatorError(msg)
             copier = Copier(
                 resources=[
                     "ansible_project",

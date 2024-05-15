@@ -1,13 +1,14 @@
+# cspell: ignore dcmp, subdcmp
 """Unit tests for ansible-creator init."""
 
 from __future__ import annotations
-
 
 import re
 import shutil
 
 from filecmp import dircmp
 from pathlib import Path
+from typing import TypedDict
 
 import pytest
 
@@ -20,29 +21,74 @@ from ansible_creator.utils import TermFeatures
 from tests.defaults import FIXTURES_DIR
 
 
-@pytest.fixture()
-def cli_args(tmp_path, output: Output) -> dict:
-    """Create an Init class object as fixture.
+class ConfigDict(TypedDict):
+    """Type hint for Config dictionary."""
 
-    :param tmp_path: App configuration object.
+    creator_version: str
+    output: Output
+    subcommand: str
+    collection: str
+    init_path: str
+    project: str
+    force: bool
+    scm_org: str | None
+    scm_project: str | None
+
+
+@pytest.fixture()
+def cli_args(tmp_path: Path, output: Output) -> ConfigDict:
+    """Create a dict to use for a Init class object as fixture.
+
+    Args:
+        tmp_path: App configuration object.
+        output: Output class object.
+    Returns:
+        dict: Dictionary, partial Init class object.
     """
     return {
         "creator_version": "0.0.1",
+        "output": output,
         "subcommand": "init",
         "collection": "testorg.testcol",
-        "init_path": tmp_path / "testorg" / "testcol",
-        "output": output,
+        "init_path": str(tmp_path / "testorg" / "testcol"),
+        "project": "",
+        "force": False,
+        "scm_org": "",
+        "scm_project": "",
     }
 
 
-def test_run_success_for_collection(
-    capsys,
-    tmp_path,
-    cli_args,
-) -> None:
-    """Test Init.run()."""
-    # successfully create new collection
+def has_differences(dcmp: dircmp.MyDirCmp, errors: list[str]) -> list[str]:
+    """Recursively check for differences in dircmp object.
 
+    Args:
+        dcmp: dircmp object.
+        errors: List of errors.
+    Returns:
+        list: List of errors.
+    """
+    errors.extend([f"Only in {dcmp.left}: {f}" for f in dcmp.left_only])
+    errors.extend([f"Only in {dcmp.right}: {f}" for f in dcmp.right_only])
+    errors.extend(
+        [f"Differing files: {dcmp.left}/{f} {dcmp.right}/{f}" for f in dcmp.diff_files],
+    )
+    for subdcmp in dcmp.subdirs.values():
+        errors = has_differences(subdcmp, errors)
+    return errors
+
+
+def test_run_success_for_collection(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test Init.run().
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
     cli_args["project"] = "collection"
     init = Init(
         Config(**cli_args),
@@ -54,9 +100,9 @@ def test_run_success_for_collection(
     assert re.search("Note: collection testorg.testcol created", result) is not None
 
     # recursively assert files created
-    dircmp(str(tmp_path), str(FIXTURES_DIR / "collection")).report_full_closure()
-    captured = capsys.readouterr()
-    assert re.search("Differing files|Only in", captured.out) is None, captured.out
+    cmp = dircmp(str(tmp_path), str(FIXTURES_DIR / "collection"))
+    diff = has_differences(dcmp=cmp, errors=[])
+    assert diff == [], diff
 
     # fail to override existing collection with force=false (default)
     fail_msg = (
@@ -80,15 +126,22 @@ def test_run_success_for_collection(
 
 
 def test_run_success_ansible_project(
-    capsys,
-    tmp_path,
-    cli_args,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
 ) -> None:
-    """Test Init.run()."""
-    # successfully create new ansible-project
-    cli_args["collection"] = None
+    """Test Init.run().
+
+    Successfully create new ansible-project
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["collection"] = ""
     cli_args["project"] = "ansible-project"
-    cli_args["init_path"] = tmp_path / "new_project"
+    cli_args["init_path"] = str(tmp_path / "new_project")
     cli_args["scm_org"] = "weather"
     cli_args["scm_project"] = "demo"
     init = Init(
@@ -101,12 +154,12 @@ def test_run_success_ansible_project(
     assert re.search("Note: ansible project created", result) is not None
 
     # recursively assert files created
-    dircmp(
+    cmp = dircmp(
         str(tmp_path / "new_project"),
         str(FIXTURES_DIR / "project" / "ansible_project"),
-    ).report_full_closure()
-    captured = capsys.readouterr()
-    assert re.search("Differing files|Only in", captured.out) is None, captured.out
+    )
+    diff = has_differences(dcmp=cmp, errors=[])
+    assert diff == [], diff
 
     # fail to override existing ansible-project directory with force=false (default)
     fail_msg = (
@@ -130,15 +183,22 @@ def test_run_success_ansible_project(
 
 
 def test_run_success_collections_alt_dir(
-    tmp_path,
-    capsys,
-    cli_args,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    cli_args: ConfigDict,
 ) -> None:
-    """Test Init.run() when init_path ends with "collections" / "ansible_collections"""
-    # successfully create new collection
+    """Test Init.run() when init_path ends with "collections" / "ansible_collections.
+
+    Successfully create new collection
+
+    Args:
+        tmp_path: Temporary directory path.
+        capsys: Pytest fixture to capture stdout and stderr.
+        cli_args: Dictionary, partial Init class object.
+    """
     cli_args["project"] = "collection"
-    cli_args["init_path"] = tmp_path / "collections" / "ansible_collections"
-    final_path = cli_args["init_path"] / "testorg" / "testcol"
+    cli_args["init_path"] = str(tmp_path / "collections" / "ansible_collections")
+    final_path = Path(cli_args["init_path"]) / "testorg" / "testcol"
     init = Init(
         Config(**cli_args),
     )
@@ -158,14 +218,20 @@ def test_run_success_collections_alt_dir(
 
 
 def test_error_1(
-    tmp_path,
-    cli_args,
+    tmp_path: Path,
+    cli_args: ConfigDict,
 ) -> None:
-    """Test Init.run()."""
-    # Validation for: ansible-creator init --project=ansible-project
-    cli_args["collection"] = None
+    """Test Init.run().
+
+    Validation for: ansible-creator init --project=ansible-project
+
+    Args:
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["collection"] = ""
     cli_args["project"] = "ansible-project"
-    cli_args["init_path"] = tmp_path / "new_project"
+    cli_args["init_path"] = str(tmp_path / "new_project")
     cli_args["scm_org"] = None
     cli_args["scm_project"] = None
     fail_msg = (
@@ -173,41 +239,47 @@ def test_error_1(
         "scaffolding an ansible-project."
     )
     with pytest.raises(CreatorError, match=fail_msg):
-        init = Init(
-            Config(**cli_args),
-        )
-        init.run()
+        Init(Config(**cli_args))
 
 
 def test_error_2(
-    cli_args,
+    cli_args: ConfigDict,
 ) -> None:
-    """Test Init.run()."""
-    # Validation for: ansible-creator init
-    cli_args["collection"] = None
+    """Test Init.run().
+
+    Validation for: ansible-creator init
+
+    Args:
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["collection"] = ""
     cli_args["project"] = "collection"
-    cli_args["init_path"] = None
-    cli_args["scm_org"] = None
-    cli_args["scm_project"] = None
+    cli_args["init_path"] = ""
+    cli_args["scm_org"] = ""
+    cli_args["scm_project"] = ""
     fail_msg = "The argument 'collection' is required when scaffolding a collection."
     with pytest.raises(CreatorError, match=fail_msg):
-        init = Init(
-            Config(**cli_args),
-        )
-        init.run()
+        Init(Config(**cli_args))
 
 
 def test_warning(
-    capsys,
-    tmp_path,
-    cli_args,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
 ) -> None:
-    """Test Init.run()."""
-    # Validation for: ansible-creator init testorg.testname --scm-org=weather
-    # --scm-project=demo --project=collection
+    """Test Init.run().
+
+    Validation for: ansible-creator init testorg.testname --scm-org=weather
+    --scm-project=demo --project=collection
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
     cli_args["collection"] = "testorg.testname"
-    cli_args["project"] = None
-    cli_args["init_path"] = tmp_path / "testorg" / "testcol"
+    cli_args["project"] = "collection"
+    cli_args["init_path"] = str(tmp_path / "testorg" / "testcol")
     cli_args["scm_org"] = "weather"
     cli_args["scm_project"] = "demo"
     init = Init(
@@ -220,8 +292,8 @@ def test_warning(
     mod_result = "".join([line.strip() for line in result.splitlines()])
     assert (
         re.search(
-            rf"Warning:\s*The parameters\s*'scm-org'\s*and\s*'scm-project'"
-            rf"\s*have\s*no\s*effect\s*when\s*project\s*is\s*not\s*set\s*to\s*ansible-project",
+            r"Warning:\s*The parameters\s*'scm-org'\s*and\s*'scm-project'"
+            r"\s*have\s*no\s*effect\s*when\s*project\s*is\s*not\s*set\s*to\s*ansible-project",
             mod_result,
         )
         is not None
@@ -256,7 +328,7 @@ def test_delete_error(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
 
     err = "Test thrown error"
 
-    def rmtree(path: Path) -> None:
+    def rmtree(path: Path) -> None:  # noqa: ARG001
         raise OSError(err)
 
     monkeypatch.setattr(shutil, "rmtree", rmtree)
@@ -266,11 +338,10 @@ def test_delete_error(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     assert "failed to remove existing directory" in str(exc_info.value)
 
 
-def test_is_file_error(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_is_file_error(tmp_path: Path) -> None:
     """Test a file dest fails gracefully.
 
     Args:
-        monkeypatch: Pytest monkeypatch fixture.
         tmp_path: Temporary directory path.
     """
     file = tmp_path / "file.txt"
@@ -295,3 +366,69 @@ def test_is_file_error(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     with pytest.raises(CreatorError) as exc_info:
         init.run()
     assert "but is a file" in str(exc_info.value)
+
+
+def test_collection_name_not_set(output: Output, tmp_path: Path) -> None:
+    """Although it shouldn't happen, test when collection name is not set.
+
+    Args:
+        output: Output class object.
+        tmp_path: Temporary directory path.
+    """
+
+    class FakeConfig:
+        """Fake Config class, ours protects from this error."""
+
+        collection = "foo.bar"
+        collection_name = None
+        creator_version = "0.0.1"
+        force = False
+        init_path = tmp_path
+        project = "collection"
+        output: Output
+        namespace = None
+        scm_org = None
+        scm_project = None
+        subcommand = "init"
+
+    config = FakeConfig()
+    config.output = output
+
+    expected = "Collection name is required when scaffolding a collection."
+    with pytest.raises(CreatorError, match=expected):
+        Init(config=config).run()  # type: ignore[arg-type]
+
+
+def test_scm_vals_not_set(output: Output, tmp_path: Path) -> None:
+    """Although it shouldn't happen, test when scm_org or scm_project not set.
+
+    Args:
+        output: Output class object.
+        tmp_path: Temporary directory path.
+    """
+
+    class FakeConfig:
+        """Fake Config class, ours protects from this error."""
+
+        collection = "foo.bar"
+        collection_name = None
+        creator_version = "0.0.1"
+        force = False
+        init_path = tmp_path
+        project = "ansible_project"
+        output: Output
+        namespace = None
+        scm_org = None
+        scm_project = None
+        subcommand = "init"
+
+    config = FakeConfig()
+    config.output = output
+
+    expected = (
+        "Parameters 'scm-org' and 'scm-project'"
+        " are required when scaffolding an ansible-project."
+    )
+
+    with pytest.raises(CreatorError, match=expected):
+        Init(config=config).run()  # type: ignore[arg-type]
