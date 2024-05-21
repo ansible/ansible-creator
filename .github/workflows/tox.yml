@@ -44,7 +44,8 @@ jobs:
       matrix: ${{ fromJson(needs.pre.outputs.matrix) }}
     env:
       FORCE_COLOR: 1
-    environment: test
+    permissions:
+      id-token: write
     steps:
       - name: Check out src from Git
         uses: actions/checkout@v4
@@ -89,9 +90,9 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           name: ${{ matrix.name }}
-          token: ${{ secrets.CODECOV_TOKEN }}
           verbose: true
-          fail_ci_if_error: false
+          fail_ci_if_error: true
+          use_oidc: true # cspell:ignore oidc
 
   check: # This job does nothing and is only used for the branch protection
     if: always()
