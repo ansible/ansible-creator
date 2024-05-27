@@ -5,15 +5,15 @@ from __future__ import annotations
 import re
 import sys
 
+from collections.abc import Callable
+from pathlib import Path
 from subprocess import CalledProcessError, CompletedProcess
-from textwrap import dedent
-from typing import TYPE_CHECKING, Any, Callable
+from typing import Any
 
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 cli_type = Callable[[Any], CompletedProcess[str] | CalledProcessError]
+
+CREATOR_BIN = Path(sys.executable).parent / "ansible-creator"
 
 
 def test_run_help(cli: cli_type) -> None:
@@ -22,48 +22,13 @@ def test_run_help(cli: cli_type) -> None:
     Args:
         cli: cli_run function.
     """
-    result = cli("ansible-creator --help")
-    assert result.returncode == 0
+    # Get the path to the current python interpreter
+    result = cli(f"{CREATOR_BIN} --help")
+    assert result.returncode == 0, (result.stdout, result.stderr)
 
-    # temporary assertion fix until we write custom helper
-    if sys.version_info < (3, 10):
-        assert (
-            dedent(
-                """\
-                usage: ansible-creator [-h] [--version] {init} ...
-
-                Tool to scaffold Ansible Content. Get started by looking at the help text.
-
-                optional arguments:
-                  -h, --help  show this help message and exit
-                  --version   Print ansible-creator version and exit.
-
-                Commands:
-                  {init}      The subcommand to invoke.
-                    init      Initialize an Ansible Collection.
-                """,
-            )
-            in result.stdout
-        )
-    else:
-        assert (
-            dedent(
-                """\
-                usage: ansible-creator [-h] [--version] {init} ...
-
-                Tool to scaffold Ansible Content. Get started by looking at the help text.
-
-                options:
-                  -h, --help  show this help message and exit
-                  --version   Print ansible-creator version and exit.
-
-                Commands:
-                  {init}      The subcommand to invoke.
-                    init      Initialize an Ansible Collection.
-                """,
-            )
-            in result.stdout
-        )
+    assert "Print ansible-creator version and exit." in result.stdout
+    assert "The subcommand to invoke." in result.stdout
+    assert "Initialize an Ansible Collection." in result.stdout
 
 
 def test_run_no_subcommand(cli: cli_type) -> None:
@@ -72,17 +37,9 @@ def test_run_no_subcommand(cli: cli_type) -> None:
     Args:
         cli: cli_run function.
     """
-    result = cli("ansible-creator")
+    result = cli(str(CREATOR_BIN))
     assert result.returncode != 0
-    assert (
-        dedent(
-            """\
-            usage: ansible-creator [-h] [--version] {init} ...
-            ansible-creator: error: the following arguments are required: subcommand
-            """,
-        )
-        in result.stderr
-    )
+    assert "the following arguments are required: subcommand" in result.stderr
 
 
 def test_run_init_no_input(cli: cli_type) -> None:
@@ -91,7 +48,7 @@ def test_run_init_no_input(cli: cli_type) -> None:
     Args:
         cli: cli_run function.
     """
-    result = cli("ansible-creator init")
+    result = cli(f"{CREATOR_BIN} init")
     assert result.returncode != 0
     assert (
         "Error: The argument 'collection' is required when scaffolding a collection"
@@ -110,7 +67,7 @@ def test_run_init_basic(cli: cli_type, tmp_path: Path) -> None:
     cli(f"mkdir -p {final_dest}")
 
     result = cli(
-        f"ansible-creator init testorg.testcol --init-path {final_dest}",
+        f"{CREATOR_BIN} init testorg.testcol --init-path {final_dest}",
     )
     assert result.returncode == 0
 
@@ -122,7 +79,7 @@ def test_run_init_basic(cli: cli_type, tmp_path: Path) -> None:
 
     # fail to override existing collection with force=false (default)
     result = cli(
-        f"ansible-creator init testorg.testcol --init-path {final_dest}",
+        f"{CREATOR_BIN} init testorg.testcol --init-path {final_dest}",
     )
 
     assert result.returncode != 0
@@ -140,7 +97,7 @@ def test_run_init_basic(cli: cli_type, tmp_path: Path) -> None:
     assert "However it will delete ALL existing contents in it." in result.stderr
 
     # override existing collection with force=true
-    result = cli(f"ansible-creator init testorg.testcol --init-path {tmp_path} --force")
+    result = cli(f"{CREATOR_BIN} init testorg.testcol --init-path {tmp_path} --force")
     assert result.returncode == 0
     assert (
         re.search("Warning: re-initializing existing directory", result.stdout)

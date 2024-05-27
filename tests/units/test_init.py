@@ -35,8 +35,8 @@ class ConfigDict(TypedDict):
     scm_project: str | None
 
 
-@pytest.fixture()
-def cli_args(tmp_path: Path, output: Output) -> ConfigDict:
+@pytest.fixture(name="cli_args")
+def fixture_cli_args(tmp_path: Path, output: Output) -> ConfigDict:
     """Create a dict to use for a Init class object as fixture.
 
     Args:
