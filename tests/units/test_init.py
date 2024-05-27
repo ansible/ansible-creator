@@ -59,7 +59,7 @@ def fixture_cli_args(tmp_path: Path, output: Output) -> ConfigDict:
     }
 
 
-def has_differences(dcmp: dircmp.MyDirCmp, errors: list[str]) -> list[str]:
+def has_differences(dcmp: dircmp[str], errors: list[str]) -> list[str]:
     """Recursively check for differences in dircmp object.
 
     Args:
@@ -381,17 +381,17 @@ def test_collection_name_not_set(output: Output, tmp_path: Path) -> None:
     class FakeConfig:
         """Fake Config class, ours protects from this error."""
 
-        collection = "foo.bar"
-        collection_name = None
-        creator_version = "0.0.1"
-        force = False
-        init_path = tmp_path
-        project = "collection"
+        collection: str = "foo.bar"
+        collection_name: str | None = None
+        creator_version: str = "0.0.1"
+        force: bool = False
+        init_path: Path = tmp_path
+        project: str = "collection"
         output: Output
-        namespace = None
-        scm_org = None
-        scm_project = None
-        subcommand = "init"
+        namespace: str | None = None
+        scm_org: str | None = None
+        scm_project: str | None = None
+        subcommand: str = "init"
 
     config = FakeConfig()
     config.output = output
@@ -412,17 +412,17 @@ def test_scm_vals_not_set(output: Output, tmp_path: Path) -> None:
     class FakeConfig:
         """Fake Config class, ours protects from this error."""
 
-        collection = "foo.bar"
-        collection_name = None
-        creator_version = "0.0.1"
-        force = False
-        init_path = tmp_path
-        project = "ansible_project"
+        collection: str = "foo.bar"
+        collection_name: str | None = None
+        creator_version: str = "0.0.1"
+        force: bool = False
+        init_path: Path = tmp_path
+        project: str = "ansible_project"
         output: Output
-        namespace = None
-        scm_org = None
-        scm_project = None
-        subcommand = "init"
+        namespace: str | None = None
+        scm_org: str | None = None
+        scm_project: str | None = None
+        subcommand: str = "init"
 
     config = FakeConfig()
     config.output = output

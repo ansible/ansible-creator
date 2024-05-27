@@ -103,10 +103,8 @@ repos:
           - types-jsonschema
           - types-pyyaml
           - pytest
-        args:
-          - src
-          - --python-version=3.10
-        pass_filenames: false
+        # Override default pre-commit '--ignore-missing-imports'
+        args: [--strict]
 
   - repo: https://github.com/jazzband/pip-tools
     rev: 7.4.1
