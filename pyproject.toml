@@ -1,8 +1,8 @@
 [build-system]
 build-backend = "setuptools.build_meta"
 requires = [
-  "setuptools >= 45",
-  "setuptools_scm[toml]>=6.2"
+  "setuptools >= 65.3.0", # required by pyproject+setuptools_scm integration and editable installs
+  "setuptools_scm[toml] >= 7.0.5" # required for "no-local-version" scheme
 ]
 
 [project]
@@ -35,18 +35,13 @@ requires-python = ">=3.10"
 ansible-creator = "ansible_creator.cli:main"
 
 [project.urls]
-changelog = "https://github.com/ansible-community/ansible-creator/releases"
-documentation = "https://ansible-creator.readthedocs.io/en/latest/"
-homepage = "https://github.com/ansible-community/ansible-creator"
-repository = "https://github.com/ansible-community/ansible-creator"
+changelog = "https://github.com/ansible/ansible-creator/releases"
+documentation = "https://ansible.readthedocs.io/projects/creator/"
+homepage = "https://github.com/ansible/ansible-creator"
+repository = "https://github.com/ansible/ansible-creator"
 
 [tool.black]
 exclude = "tests/fixtures"
-
-# Keep this default because xml/report do not know to use load it from config file:
-# data_file = ".coverage"
-[tool.coverage.paths]
-source = ["src", ".tox/*/site-packages"]
 
 [tool.coverage.report]
 exclude_lines = ["if TYPE_CHECKING:", "pragma: no cover"]
@@ -58,10 +53,8 @@ skip_empty = true
 sort = "Cover"
 
 [tool.coverage.run]
+branch = false # https://github.com/nedbat/coveragepy/issues/605
 concurrency = ["multiprocessing", "thread"]
-# Do not use branch until bug is fixes:
-# https://github.com/nedbat/coveragepy/issues/605
-# branch = true
 parallel = true
 source_pkgs = ["ansible_creator"]
 
@@ -82,7 +75,7 @@ max-line-length = 100
 [tool.pylint.master]
 good-names = "i,j,k,ex,Run,_,f,fh"
 ignore = [
-  "_version.py", # generated
+  "_version.py", # built by setuptools_scm
   "test_integration.py" # will have a pytest-ansible import error
 ]
 jobs = 0
@@ -336,24 +329,29 @@ lines-after-imports = 2 # Ensures consistency for cases when there's variable vs
 lines-between-types = 1 # Separate import/from with 1 line
 
 [tool.ruff.lint.per-file-ignores]
-# SIM108, file is generated
 "_version.py" = ["SIM108"]
 "src/ansible_creator/resources/new_collection/tests/**" = ["SLF001", "S101", "S602", "T201"]
-# SLF001: Allow private member access in tests
-# S101 Allow assert in tests
-# S602 Allow shell in test
-# T201 Allow print in tests
 "tests/**" = ["SLF001", "S101", "S602", "T201"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
 [tool.setuptools.dynamic]
-dependencies = {file = ".config/requirements.in"}
+dependencies = {file = [".config/requirements.in"]}
 optional-dependencies.docs = {file = [".config/requirements-docs.in"]}
 optional-dependencies.test = {file = [".config/requirements-test.in"]}
 
 [tool.setuptools_scm]
+# To prevent accidental pick of mobile version tags such 'v6'
+git_describe_command = [
+  "git",
+  "describe",
+  "--dirty",
+  "--long",
+  "--tags",
+  "--match",
+  "v*.*"
+]
 local_scheme = "no-local-version"
 write_to = "src/ansible_creator/_version.py"
 
