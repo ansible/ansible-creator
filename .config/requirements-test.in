@@ -1,6 +1,13 @@
-coverage
-pytest
+black
 coverage[toml]
-coverage-enable-subprocess
+flake8
+mypy
+pip-tools
+pre-commit
+pydoclint[flake8]
+pytest
 pytest-xdist
+ruff
+toml-sort
 tox
+types-PyYAML
