@@ -49,15 +49,13 @@ exclude = "tests/fixtures"
 source = ["src", ".tox/*/site-packages"]
 
 [tool.coverage.report]
-exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]
-# Increase it just so it would pass on any single-python run
-fail_under = 91
-# During development we might remove code (files) with coverage data, and we dont want to fail:
+exclude_lines = ["if TYPE_CHECKING:", "pragma: no cover"]
+fail_under = 93
 ignore_errors = true
-omit = ["test/*"]
 show_missing = true
 skip_covered = true
 skip_empty = true
+sort = "Cover"
 
 [tool.coverage.run]
 concurrency = ["multiprocessing", "thread"]
@@ -65,7 +63,7 @@ concurrency = ["multiprocessing", "thread"]
 # https://github.com/nedbat/coveragepy/issues/605
 # branch = true
 parallel = true
-source = ["src"]
+source_pkgs = ["ansible_creator"]
 
 [tool.mypy]
 exclude = 'tests/fixtures'
