@@ -42,6 +42,7 @@ def cli_args(tmp_path: Path, output: Output) -> ConfigDict:
     Args:
         tmp_path: App configuration object.
         output: Output class object.
+
     Returns:
         dict: Dictionary, partial Init class object.
     """
@@ -64,6 +65,7 @@ def has_differences(dcmp: dircmp.MyDirCmp, errors: list[str]) -> list[str]:
     Args:
         dcmp: dircmp object.
         errors: List of errors.
+
     Returns:
         list: List of errors.
     """
