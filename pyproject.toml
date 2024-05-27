@@ -76,14 +76,6 @@ strict = true
 ignore_missing_imports = true
 module = ["pytest_ansible.molecule"]
 
-[tool.pydoclint]
-allow-init-docstring = true
-arg-type-hints-in-docstring = false
-check-return-types = false
-show-filenames-in-every-violation-message = true
-skip-checking-short-docstrings = false
-style = 'google'
-
 [tool.pylint]
 
 [tool.pylint.MASTER]
@@ -140,7 +132,7 @@ lines-between-types = 1 # Separate import/from with 1 line
 "tests/**" = ["S101", "S602", "T201"]
 
 [tool.ruff.pydocstyle]
-convention = "pep257"
+convention = "google"
 
 [tool.setuptools.dynamic]
 dependencies = {file = ".config/requirements.in"}
