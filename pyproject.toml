@@ -313,6 +313,7 @@ disable = [
 
 [tool.pytest.ini_options]
 addopts = "-ra --showlocals --durations=10"
+norecursedirs = "tests/fixtures"
 testpaths = "tests"
 tmp_path_retention_policy = "failed"
 verbosity_assertions = 2
