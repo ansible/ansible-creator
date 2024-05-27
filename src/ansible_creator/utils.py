@@ -46,6 +46,7 @@ def expand_path(path: str) -> Path:
 
     Args:
         path: Path to expand.
+
     Returns:
         Expanded absolute path.
     """

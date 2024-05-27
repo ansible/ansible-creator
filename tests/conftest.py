@@ -38,6 +38,7 @@ def output(tmp_path: Path) -> Output:
 
     Args:
         tmp_path: Temporary path.
+
     Returns:
         Output: Output class object.
     """
@@ -56,6 +57,7 @@ def cli_run(args: list[str]) -> CompletedProcess[str] | CalledProcessError:
 
     Args:
         args: Command to run.
+
     Returns:
         CompletedProcess: CompletedProcess object.
         CalledProcessError: CalledProcessError object.

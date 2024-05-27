@@ -44,6 +44,7 @@ class Templar:
         Args:
             template: The template to load and render.
             data: Data to render template with.
+
         Returns:
             Templated content.
         """

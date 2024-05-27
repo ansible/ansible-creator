@@ -1,9 +1,14 @@
 {
   "recommendations": [
-    "ms-python.black-formatter",
-    "ms-python.pylint",
     "charliermarsh.ruff",
-    "matangover.mypy",
-    "esbenp.prettier-vscode"
+    "esbenp.prettier-vscode",
+    "markis.code-coverage",
+    "ms-python.black-formatter",
+    "ms-python.debugpy",
+    "ms-python.flake8",
+    "ms-python.mypy-type-checker",
+    "ms-python.pylint",
+    "ms-python.python",
+    "streetsidesoftware.code-spell-checker"
   ]
 }
