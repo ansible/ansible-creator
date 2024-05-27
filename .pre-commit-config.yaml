@@ -7,9 +7,6 @@ ci:
     chore: auto fixes from pre-commit.com hooks
 
     for more information, see https://pre-commit.ci
-  skip:
-    # https://github.com/pre-commit-ci/issues/issues/55
-    - pip-compile
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
@@ -86,11 +83,11 @@ repos:
         args:
           - --output-format=colorized
         additional_dependencies:
-          - PyYAML
+          - black
           - jinja2
           - jsonschema
-          - black
           - pytest
+          - pyyaml
           - tox
 
   - repo: https://github.com/pre-commit/mirrors-mypy.git
@@ -98,11 +95,11 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies:
-          - jinja2
           - black
+          - jinja2
+          - pytest
           - types-jsonschema
           - types-pyyaml
-          - pytest
         # Override default pre-commit '--ignore-missing-imports'
         args: [--strict]
 
@@ -115,4 +112,4 @@ repos:
         stages: [manual]
         entry: pip-compile .config/requirements.in --upgrade --all-extras --no-annotate --strip-extras --output-file=.config/constraints.txt pyproject.toml
         files: ^.config\/.*requirements.*$
-        language_version: "3.10" # minimal we support official
+        language_version: "3.10" # minimal we support officially
