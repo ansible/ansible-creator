@@ -353,7 +353,6 @@ git_describe_command = [
   "v*.*"
 ]
 local_scheme = "no-local-version"
-tag_regex = '^(?P<prefix>v)?(?P<version>[^\+]+)(?P<suffix>.*)?$'
 write_to = "src/ansible_dev_environment/_version.py"
 
 [tool.tomlsort]
