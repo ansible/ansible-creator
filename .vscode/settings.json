@@ -1,18 +1,22 @@
 {
-  "[python]": {
-    "editor.formatOnSave": true,
-    "editor.codeActionsOnSave": {
-      "source.fixAll": "explicit"
-    },
-    "editor.defaultFormatter": "ms-python.black-formatter"
-  },
-  "mypy.runUsingActiveInterpreter": true,
-  "mypy.targets": ["src"],
   "[jsonc]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "python.analysis.typeCheckingMode": "basic",
+  "[python]": {
+    "editor.codeActionsOnSave": {
+      "source.fixAll": "explicit",
+      "source.organizeImports": "explicit"
+    },
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.formatOnSave": true
+  },
+  "flake8.importStrategy": "fromEnvironment",
+  "markiscodecoverage.searchCriteria": ".coverage/lcov.info",
+  "mypy-type-checker.args": ["--config-file=${workspaceFolder}/pyproject.toml"],
+  "mypy-type-checker.importStrategy": "fromEnvironment",
+  "mypy-type-checker.preferDaemon": true,
+  "mypy-type-checker.reportingScope": "workspace",
   "python.testing.pytestArgs": ["tests"],
-  "python.testing.unittestEnabled": false,
-  "python.testing.pytestEnabled": true
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false
 }
