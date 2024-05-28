@@ -83,7 +83,7 @@ class Copier:
         """Return the current resource being copied."""
         return self.resources[self.index]
 
-    def _recursive_copy(  # noqa: C901, PLR0912 # pylint: disable=too-many-branches
+    def _recursive_copy(  # noqa: C901, PLR0912
         self: Copier,
         root: Traversable,
         template_data: dict[str, str],
