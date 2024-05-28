@@ -83,12 +83,9 @@ repos:
         args:
           - --output-format=colorized
         additional_dependencies:
-          - black
           - jinja2
-          - jsonschema
           - pytest
           - pyyaml
-          - tox
 
   - repo: https://github.com/pre-commit/mirrors-mypy.git
     rev: v1.10.0
