@@ -92,10 +92,8 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies:
-          - black
           - jinja2
           - pytest
-          - types-jsonschema
           - types-pyyaml
         # Override default pre-commit '--ignore-missing-imports'
         args: [--strict]
