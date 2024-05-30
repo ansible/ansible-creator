@@ -1,6 +1,6 @@
 addopts
 ansiblelint
-ANSIBLEMODULE
+ansiblemodule
 antsibull
 apidoc
 argname
@@ -13,13 +13,13 @@ autorefs
 autosectionlabel
 basesystem
 boto
-BUILDDIR
+builddir
 caplog
 capsys
-cliconf             # Ansible network cli abstraction plugin
+cliconf             # ansible network cli abstraction plugin
 codeclimate
 colname
-COLORTERM
+colorterm
 coltext
 colval
 commandline
@@ -36,9 +36,9 @@ doctree
 dumpable
 dunder
 editables
-ENDC
+endc
 endraw
-ESCDELAY
+escdelay
 extlinks
 facelessuser
 fedoraproject
@@ -63,17 +63,16 @@ introspector
 isatty
 jsonschema
 keepends
-kegex               # An action's regex
+kegex               # an action's regex
 kegexes
-Kolkata
+kolkata
 kubedock
 lentext
 levelname
 levelno
-Libera
+libera
 libonig
 lightbulbs
-Lightbulbs
 linenums
 linkcheck
 lintable
@@ -81,7 +80,7 @@ lintables
 magiclink
 maskables
 maxsplit
-Mergeable
+mergeable
 metakey
 mkdocs
 mkdocstrings
@@ -89,14 +88,14 @@ moduleauthor
 mqueue              # https://github.com/ansible/ansible-runner/issues/984
 myproject
 myuser
-netcommon           # Ansible network collection, seen in tests and README
+netcommon           # ansible network collection, seen in tests and readme
 netconf
 nitpicky
 nonblocking
 notesdir
 objs
 okey
-OKGREEN
+okgreen
 oldmask
 oneline
 onigurumacffi
@@ -112,31 +111,29 @@ pymdown
 pymdownx
 quickstart
 redhatinsights
-Regset
+regset
 representer
-Representer
 returndocs
-Rocannon's
+rocannon's
 rtype
 rulebook
 rulebooks
 runtimes
 scaffolder
-Scaffolder
 scaffolders
-SCAP
+scap
 scrollback
 sectionauthor
 seealso
-setuptools          # Used in _version.pyi
+setuptools          # used in _version.pyi
 setval
-SIGTERM
-SKEL
+sigterm
+skel
 smartquotes
 somevalue
-SOURCEDIR
-SPHINXBUILD
-SPHINXOPTS
+sourcedir
+sphinxbuild
+sphinxopts
 statemachine
 stripspaces
 subaction
@@ -159,7 +156,7 @@ tmplt
 toctree
 topbar
 topdown
-Towncrier           # Changelog generator
+towncrier           # changelog generator
 tracebacks
 truecolor
 usefixtures
