@@ -168,10 +168,7 @@ class Copier:
         template_data = self.template_data.copy()
 
         # Collect and template any resource specific variables
-        meta_file = (
-            impl_resources.files(f"{self.resource_root}.{self.resource}")
-            / "__meta__.yml"
-        )
+        meta_file = impl_resources.files(f"{self.resource_root}.{self.resource}") / "__meta__.yml"
         try:
             with meta_file.open("r", encoding="utf-8") as meta_fileh:
                 self.output.debug(

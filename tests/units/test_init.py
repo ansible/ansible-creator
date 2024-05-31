@@ -122,9 +122,7 @@ def test_run_success_for_collection(
     )
     init.run()
     result = capsys.readouterr().out
-    assert (
-        re.search("Warning: re-initializing existing directory", result) is not None
-    ), result
+    assert re.search("Warning: re-initializing existing directory", result) is not None, result
 
 
 def test_run_success_ansible_project(
@@ -179,9 +177,7 @@ def test_run_success_ansible_project(
     )
     init.run()
     result = capsys.readouterr().out
-    assert (
-        re.search("Warning: re-initializing existing directory", result) is not None
-    ), result
+    assert re.search("Warning: re-initializing existing directory", result) is not None, result
 
 
 def test_run_success_collections_alt_dir(

@@ -47,9 +47,7 @@ class Config:
             raise CreatorError(msg)
 
         # Validation for: ansible-creator init --project=ansible-project
-        if self.project == "ansible-project" and (
-            self.scm_org is None or self.scm_project is None
-        ):
+        if self.project == "ansible-project" and (self.scm_org is None or self.scm_project is None):
             msg = (
                 "Parameters 'scm-org' and 'scm-project' are required when "
                 "scaffolding an ansible-project."
@@ -68,9 +66,7 @@ class Config:
         # Validation for: ansible-creator init testorg.testname --project=ansible-project
         # --scm-org weather --scm-project demo
         if self.collection and self.project != "collection":
-            msg = (
-                "Collection name has no effect when project is set to ansible-project."
-            )
+            msg = "Collection name has no effect when project is set to ansible-project."
             self.output.warning(msg)
 
         if self.collection:
