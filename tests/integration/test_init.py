@@ -72,10 +72,7 @@ def test_run_init_basic(cli: cli_type, tmp_path: Path) -> None:
     assert result.returncode == 0
 
     # check stdout
-    assert (
-        re.search("Note: collection testorg.testcol created at", result.stdout)
-        is not None
-    )
+    assert re.search("Note: collection testorg.testcol created at", result.stdout) is not None
 
     # fail to override existing collection with force=false (default)
     result = cli(
@@ -99,7 +96,4 @@ def test_run_init_basic(cli: cli_type, tmp_path: Path) -> None:
     # override existing collection with force=true
     result = cli(f"{CREATOR_BIN} init testorg.testcol --init-path {tmp_path} --force")
     assert result.returncode == 0
-    assert (
-        re.search("Warning: re-initializing existing directory", result.stdout)
-        is not None
-    )
+    assert re.search("Warning: re-initializing existing directory", result.stdout) is not None
