@@ -131,17 +131,19 @@ class Copier:
                 if obj.name == "__meta__.yml":
                     continue
                 # remove .j2 suffix at destination
+                needs_templating = False
                 if dest_path.suffix == ".j2":
                     dest_path = dest_path.with_suffix("")
+                    needs_templating = True
                 dest_file = Path(self.dest) / dest_path
                 self.output.debug(msg=f"dest file is {dest_file}")
 
                 # write at destination only if missing or belongs to overwrite list
                 if not dest_file.exists() or overwrite:
                     content = obj.read_text(encoding="utf-8")
-                    # only render as templates if both of these are provided
-                    # templating is not mandatory
-                    if self.templar and template_data:
+                    # only render as templates if both of these are provided,
+                    # and original file suffix was j2
+                    if self.templar and template_data and needs_templating:
                         content = self.templar.render_from_content(
                             template=content,
                             data=template_data,
