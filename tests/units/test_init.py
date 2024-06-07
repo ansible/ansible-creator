@@ -17,7 +17,6 @@ from ansible_creator.exceptions import CreatorError
 from ansible_creator.output import Output
 from ansible_creator.subcommands.init import Init
 from ansible_creator.utils import TermFeatures
-
 from tests.defaults import FIXTURES_DIR
 
 
