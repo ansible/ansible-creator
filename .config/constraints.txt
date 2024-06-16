@@ -29,10 +29,10 @@ dnspython==2.6.1
 docstring-parser-fork==0.0.5
 exceptiongroup==1.2.1
 execnet==2.1.1
-filelock==3.14.0
-flake8==7.0.0
+filelock==3.15.1
+flake8==7.1.0
 ghp-import==2.1.0
-griffe==0.45.2
+griffe==0.45.3
 htmlmin2==0.1.13
 identify==2.5.36
 idna==3.7
@@ -42,7 +42,7 @@ jinja2==3.1.4
 jsmin==3.0.1
 linkchecker==10.4.0
 markdown==3.6
-markdown-exec==1.8.3
+markdown-exec==1.9.1
 markdown-include==0.8.1
 markupsafe==2.1.5
 mccabe==0.7.0
@@ -63,7 +63,7 @@ mkdocstrings-python==1.10.3
 mypy==1.10.0
 mypy-extensions==1.0.0
 nodeenv==1.9.1
-packaging==24.0
+packaging==24.1
 paginate==0.5.6
 pathspec==0.12.1
 pillow==10.3.0
@@ -72,7 +72,7 @@ pipdeptree==2.22.0
 platformdirs==4.2.2
 pluggy==1.5.0
 pre-commit==3.7.1
-pycodestyle==2.11.1
+pycodestyle==2.12.0
 pycparser==2.22
 pydoclint==0.4.1
 pyflakes==3.2.0
@@ -89,7 +89,7 @@ pyyaml==6.0.1
 pyyaml-env-tag==0.1
 regex==2024.5.15
 requests==2.32.3
-ruff==0.4.8
+ruff==0.4.9
 six==1.16.0
 soupsieve==2.5
 termcolor==2.4.0
