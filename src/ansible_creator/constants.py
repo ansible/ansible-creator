@@ -5,6 +5,8 @@ GLOBAL_TEMPLATE_VARS = {
     "DEV_FILE_IMAGE": "ghcr.io/ansible/ansible-workspace-env-reference:latest",
 }
 
+MIN_COLLECTION_NAME_LEN = 2
+
 # directory names that will be skipped in any resource
 SKIP_DIRS = ("__pycache__",)
 # file types that will be skipped in any resource
