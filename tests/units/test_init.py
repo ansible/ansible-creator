@@ -296,6 +296,7 @@ def test_warning(
         is not None
     )
 
+
 def test_collection_name_char_error(
     cli_args: ConfigDict,
 ) -> None:
@@ -312,11 +313,12 @@ def test_collection_name_char_error(
     cli_args["scm_org"] = ""
     cli_args["scm_project"] = ""
     fail_msg = (
-                "Collection name can only contain lower case letters, underscores, and numbers"
-                " and cannot begin with an underscore."
-            )
+        "Collection name can only contain lower case letters, underscores, and numbers"
+        " and cannot begin with an underscore."
+    )
     with pytest.raises(CreatorError, match=fail_msg):
         Init(Config(**cli_args))
+
 
 def test_collection_name_length_error(
     cli_args: ConfigDict,
@@ -336,6 +338,7 @@ def test_collection_name_length_error(
     fail_msg = "Collection namespace and name must be longer than 2 characters."
     with pytest.raises(CreatorError, match=fail_msg):
         Init(Config(**cli_args))
+
 
 def test_delete_error(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Test a remove fails gracefully.
