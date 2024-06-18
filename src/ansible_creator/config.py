@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import re
+
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from ansible_creator.constants import MIN_COLLECTION_NAME_LEN
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.utils import expand_path
 
@@ -69,8 +72,22 @@ class Config:
             msg = "Collection name has no effect when project is set to ansible-project."
             self.output.warning(msg)
 
+        # Validation for collection name according to Ansible requirements
         if self.collection:
             fqcn = self.collection.split(".", maxsplit=1)
+            name_filter = re.compile(r"^(?!_)[a-z0-9_]+$")
+
+            if not name_filter.match(fqcn[0]) or not name_filter.match(fqcn[-1]):
+                msg = (
+                    "Collection name can only contain lower case letters, underscores, and numbers"
+                    " and cannot begin with an underscore."
+                )
+                raise CreatorError(msg)
+
+            if len(fqcn[0]) <= MIN_COLLECTION_NAME_LEN or len(fqcn[-1]) <= MIN_COLLECTION_NAME_LEN:
+                msg = "Collection namespace and name must be longer than 2 characters."
+                raise CreatorError(msg)
+
             object.__setattr__(self, "namespace", fqcn[0])
             object.__setattr__(self, "collection_name", fqcn[-1])
 

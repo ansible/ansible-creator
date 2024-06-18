@@ -297,6 +297,49 @@ def test_warning(
     )
 
 
+def test_collection_name_char_error(
+    cli_args: ConfigDict,
+) -> None:
+    """Test a collection's name for disallowed characters.
+
+    Validation for: ansible-creator init <collection>
+
+    Args:
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["collection"] = "BAD.NAME"
+    cli_args["project"] = "collection"
+    cli_args["init_path"] = ""
+    cli_args["scm_org"] = ""
+    cli_args["scm_project"] = ""
+    fail_msg = (
+        "Collection name can only contain lower case letters, underscores, and numbers"
+        " and cannot begin with an underscore."
+    )
+    with pytest.raises(CreatorError, match=fail_msg):
+        Init(Config(**cli_args))
+
+
+def test_collection_name_length_error(
+    cli_args: ConfigDict,
+) -> None:
+    """Test a collection's name for length greater than 2 characters.
+
+    Validation for: ansible-creator init <collection>
+
+    Args:
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["collection"] = "na.co"
+    cli_args["project"] = "collection"
+    cli_args["init_path"] = ""
+    cli_args["scm_org"] = ""
+    cli_args["scm_project"] = ""
+    fail_msg = "Collection namespace and name must be longer than 2 characters."
+    with pytest.raises(CreatorError, match=fail_msg):
+        Init(Config(**cli_args))
+
+
 def test_delete_error(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Test a remove fails gracefully.
 
