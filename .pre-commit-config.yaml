@@ -79,6 +79,7 @@ repos:
     rev: v3.2.2
     hooks:
       - id: pylint
+        language_version: "3.10"
         args:
           - --output-format=colorized
         additional_dependencies:
