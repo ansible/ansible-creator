@@ -2,9 +2,8 @@
 
 This repository contains the `testorg.testcol` Ansible Collection.
 
-## Tested with Ansible
-
-Tested with ansible-core >=2.14 releases and the current development version of ansible-core.
+<!--start requires_ansible-->
+<!--end requires_ansible-->
 
 ## External requirements
 
@@ -12,11 +11,12 @@ Some modules and plugins require external libraries. Please check the requiremen
 
 ## Included content
 
-Please check the included content on the [Ansible Galaxy page for this collection](https://galaxy.ansible.com/testorg/testcol).
+<!--start collection content-->
+<!--end collection content-->
 
 ## Using this collection
 
-```
+```bash
     ansible-galaxy collection install testorg.testcol
 ```
 
