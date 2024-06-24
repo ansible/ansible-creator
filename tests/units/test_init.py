@@ -21,7 +21,19 @@ from tests.defaults import FIXTURES_DIR
 
 
 class ConfigDict(TypedDict):
-    """Type hint for Config dictionary."""
+    """Type hint for Config dictionary.
+
+    Attributes:
+        creator_version: The version of the creator.
+        output: The output object to use for logging.
+        subcommand: The subcommand to execute.
+        collection: The name of the collection.
+        init_path: Path to initialize the project.
+        project: The type of project to scaffold.
+        force: Force overwrite of existing directory.
+        scm_org: The SCM organization for the project.
+        scm_project: The SCM project for the project.
+    """
 
     creator_version: str
     output: Output
@@ -417,7 +429,21 @@ def test_collection_name_not_set(output: Output, tmp_path: Path) -> None:
     """
 
     class FakeConfig:
-        """Fake Config class, ours protects from this error."""
+        """Fake Config class, ours protects from this error.
+
+        Attributes:
+            collection: The name of the collection.
+            collection_name: The name of the collection.
+            creator_version: The version of the creator.
+            force: Force overwrite of existing directory.
+            init_path: Path to initialize the project.
+            project: The type of project to scaffold.
+            output: The output object to use for logging.
+            namespace: The namespace for the collection.
+            scm_org: The SCM organization for the project.
+            scm_project: The SCM project for the project.
+            subcommand: The subcommand to execute.
+        """
 
         collection: str = "foo.bar"
         collection_name: str | None = None
@@ -448,7 +474,21 @@ def test_scm_vals_not_set(output: Output, tmp_path: Path) -> None:
     """
 
     class FakeConfig:
-        """Fake Config class, ours protects from this error."""
+        """Fake Config class, ours protects from this error.
+
+        Attributes:
+            collection: The name of the collection.
+            collection_name: The name of the collection.
+            creator_version: The version of the creator.
+            force: Force overwrite of existing directory.
+            init_path: Path to initialize the project.
+            project: The type of project to scaffold.
+            output: The output object to use for logging.
+            namespace: The namespace for the collection.
+            scm_org: The SCM organization for the project.
+            scm_project: The SCM project for the project.
+            subcommand: The subcommand to execute.
+        """
 
         collection: str = "foo.bar"
         collection_name: str | None = None

@@ -20,7 +20,21 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class Config:
-    """The application configuration for ansible-creator."""
+    """The application configuration for ansible-creator.
+
+    Attributes:
+        creator_version: The version of ansible-creator.
+        output: The output object to use for logging.
+        subcommand: The subcommand to execute.
+        collection: The collection name to scaffold.
+        force: Whether to overwrite existing files.
+        init_path: The path to initialize the project.
+        project: The type of project to scaffold.
+        scm_org: The SCM organization for the project.
+        scm_project: The SCM project for the project.
+        collection_name: The name of the collection.
+        namespace: The namespace for the collection.
+    """
 
     creator_version: str
     output: Output
