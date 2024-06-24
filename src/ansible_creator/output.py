@@ -64,7 +64,27 @@ def console_width() -> int:
 
 
 class Color:
-    """Color constants."""
+    """Color constants.
+
+    Attributes:
+        BLACK: Black color
+        RED: Red color
+        GREEN: Green color
+        YELLOW: Yellow color
+        BLUE: Blue color
+        MAGENTA: Magenta color
+        CYAN: Cyan color
+        WHITE: White color
+        GREY: Bright black color
+        BRIGHT_RED: Bright red color
+        BRIGHT_GREEN: Bright green color
+        BRIGHT_YELLOW: Bright yellow color
+        BRIGHT_BLUE: Bright blue color
+        BRIGHT_MAGENTA: Bright magenta color
+        BRIGHT_CYAN: Bright cyan color
+        BRIGHT_WHITE: Bright white color
+        END: End
+    """
 
     BLACK = "\033[30m"
     RED = "\033[31m"
@@ -86,7 +106,17 @@ class Color:
 
 
 class Level(Enum):
-    """An exit message prefix."""
+    """An exit message prefix.
+
+    Attributes:
+        CRITICAL: Critical
+        DEBUG: Debug
+        ERROR: Error
+        HINT: Hint
+        INFO: Info
+        NOTE: Note
+        WARNING: Warning
+    """
 
     CRITICAL = "Critical"
     DEBUG = "Debug"
@@ -142,11 +172,14 @@ class Level(Enum):
 
 @dataclass
 class Msg:
-    """An object to hold a message to present when exiting."""
+    """An object to hold a message to present when exiting.
 
-    #: The message that will be presented
+    Attributes:
+        message: The message that will be presented
+        prefix: The prefix for the message, used for formatting
+    """
+
     message: str
-    #: The prefix for the message, used for formatting
     prefix: Level = Level.ERROR
 
     @property
