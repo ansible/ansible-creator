@@ -27,7 +27,12 @@ PATH_REPLACERS = {
 
 @dataclass
 class TermFeatures:
-    """Terminal features."""
+    """Terminal features.
+
+    Attributes:
+        color: Enable color output.
+        links: Enable clickable links.
+    """
 
     color: bool
     links: bool
@@ -57,26 +62,29 @@ def expand_path(path: str) -> Path:
 
 @dataclass
 class Copier:
-    """Configuration for the Copier class."""
+    """Configuration for the Copier class.
+
+    Attributes:
+        resources: List of resource containers to copy.
+        resource_id: The id of the resource to copy.
+        dest: The destination path to copy resources to.
+        output: An instance of the Output class.
+        allow_overwrite: A list of paths that should be overwritten at destination.
+        index: Index of the current resource being copied.
+        resource_root: Root path for the resources.
+        templar: An instance of the Templar class.
+        template_data: A dictionary containing the original data to render templates with.
+    """
 
     resources: list[str]
-    """ list of resource containers to copy"""
     resource_id: str
-    """the id of the resource to copy"""
     dest: Path
-    """the destination path to copy resources to"""
     output: Output
-    """an instance of the Output class"""
     allow_overwrite: list[str] | None = None
-    """a list of paths that should be overwritten at destination"""
     index: int = 0
-    """index of the current resource being copied"""
     resource_root: str = "ansible_creator.resources"
-    """root path for the resources"""
     templar: Templar | None = None
-    """an instance of the Templar class"""
     template_data: dict[str, str] = field(default_factory=dict)
-    """a dictionary containing the original data to render templates with"""
 
     @property
     def resource(self: Copier) -> str:
