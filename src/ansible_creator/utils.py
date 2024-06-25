@@ -15,9 +15,12 @@ from ansible_creator.constants import GLOBAL_TEMPLATE_VARS, SKIP_DIRS, SKIP_FILE
 
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from ansible_creator.compat import Traversable
     from ansible_creator.output import Output
     from ansible_creator.templar import Templar
+
 
 PATH_REPLACERS = {
     "project_org": "scm_org",
@@ -84,7 +87,7 @@ class Copier:
     index: int = 0
     resource_root: str = "ansible_creator.resources"
     templar: Templar | None = None
-    template_data: dict[str, str] = field(default_factory=dict)
+    template_data: dict[str, Sequence[str]] = field(default_factory=dict)
 
     @property
     def resource(self: Copier) -> str:
@@ -94,13 +97,16 @@ class Copier:
     def _recursive_copy(  # noqa: C901, PLR0912
         self: Copier,
         root: Traversable,
-        template_data: dict[str, str],
+        template_data: dict[str, Sequence[str]],
     ) -> None:
         """Recursively traverses a resource container and copies content to destination.
 
         Args:
             root: A traversable object representing root of the container to copy.
             template_data: A dictionary containing current data to render templates with.
+
+        Raises:
+            TypeError: If template_data for PATH_REPLACERS value is not a string.
         """
         self.output.debug(msg=f"current root set to {root}")
 
@@ -119,6 +125,9 @@ class Copier:
                 if key in str(dest_path) and template_data:
                     str_dest_path = str(dest_path)
                     repl_val = template_data.get(val, "")
+                    if not isinstance(repl_val, str):
+                        msg = "template_data for PATH_REPLACERS value must be a string"
+                        raise TypeError(msg)
                     dest_path = Path(str_dest_path.replace(key, repl_val))
 
             if obj.is_dir():
