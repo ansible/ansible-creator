@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+
 from typing import TYPE_CHECKING
 
 
@@ -37,6 +39,7 @@ class Templar:
             undefined=StrictUndefined,
             keep_trailing_newline=True,
         )
+        self.env.filters["json"] = json.dumps
 
     def render_from_content(self: Templar, template: str, data: dict[str, Any]) -> str:
         """Render a template with provided data.

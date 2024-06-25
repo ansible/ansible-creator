@@ -89,6 +89,13 @@ class Init:
             self.output.debug(msg=f"creating new directory at {self._init_path}")
             self._init_path.mkdir(parents=True)
 
+        common_resources = [
+            "common.devcontainer",
+            "common.devfile",
+            "common.gitignore",
+            "common.vscode",
+        ]
+
         if self._project == "collection":
             if not isinstance(self._collection_name, str):
                 msg = "Collection name is required when scaffolding a collection."
@@ -96,12 +103,7 @@ class Init:
             # copy new_collection container to destination, templating files when found
             self.output.debug(msg="started copying collection skeleton to destination")
             copier = Copier(
-                resources=[
-                    "new_collection",
-                    "common.devcontainer",
-                    "common.devfile",
-                    "common.gitignore",
-                ],
+                resources=["new_collection", *common_resources],
                 resource_id="new_collection",
                 dest=self._init_path,
                 output=self.output,
@@ -133,12 +135,7 @@ class Init:
                 )
                 raise CreatorError(msg)
             copier = Copier(
-                resources=[
-                    "ansible_project",
-                    "common.devcontainer",
-                    "common.devfile",
-                    "common.gitignore",
-                ],
+                resources=["ansible_project", *common_resources],
                 resource_id="ansible_project",
                 dest=self._init_path,
                 output=self.output,
