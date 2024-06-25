@@ -1,6 +1,6 @@
 {
   "name": "ansible-dev-container-codespaces",
-  "image": "{{ DEV_CONTAINER_IMAGE }}",
+  "image": "{{ dev_container_image }}",
   "containerUser": "podman",
   "runArgs": [
     "--security-opt",
@@ -18,7 +18,7 @@
   "updateRemoteUserUID": true,
   "customizations": {
     "vscode": {
-      "extensions": {{ RECOMMENDED_EXTENSIONS | json }}
+      "extensions": {{ recommended_extensions | json }}
     }
   }
 }

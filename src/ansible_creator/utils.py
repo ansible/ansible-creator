@@ -2,24 +2,25 @@
 
 from __future__ import annotations
 
+import copy
 import os
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from importlib import resources as impl_resources
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 import yaml
 
-from ansible_creator.constants import GLOBAL_TEMPLATE_VARS, SKIP_DIRS, SKIP_FILES_TYPES
+from ansible_creator.constants import SKIP_DIRS, SKIP_FILES_TYPES
 
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
 
     from ansible_creator.compat import Traversable
     from ansible_creator.output import Output
     from ansible_creator.templar import Templar
+    from ansible_creator.types import TemplateData
 
 
 PATH_REPLACERS = {
@@ -72,22 +73,22 @@ class Copier:
         resource_id: The id of the resource to copy.
         dest: The destination path to copy resources to.
         output: An instance of the Output class.
+        template_data: A dictionary containing the original data to render templates with.
         allow_overwrite: A list of paths that should be overwritten at destination.
         index: Index of the current resource being copied.
         resource_root: Root path for the resources.
         templar: An instance of the Templar class.
-        template_data: A dictionary containing the original data to render templates with.
     """
 
     resources: list[str]
     resource_id: str
     dest: Path
     output: Output
+    template_data: TemplateData
     allow_overwrite: list[str] | None = None
     index: int = 0
     resource_root: str = "ansible_creator.resources"
     templar: Templar | None = None
-    template_data: dict[str, Sequence[str]] = field(default_factory=dict)
 
     @property
     def resource(self: Copier) -> str:
@@ -97,16 +98,13 @@ class Copier:
     def _recursive_copy(  # noqa: C901, PLR0912
         self: Copier,
         root: Traversable,
-        template_data: dict[str, Sequence[str]],
+        template_data: TemplateData,
     ) -> None:
         """Recursively traverses a resource container and copies content to destination.
 
         Args:
             root: A traversable object representing root of the container to copy.
             template_data: A dictionary containing current data to render templates with.
-
-        Raises:
-            TypeError: If template_data for PATH_REPLACERS value is not a string.
         """
         self.output.debug(msg=f"current root set to {root}")
 
@@ -124,10 +122,7 @@ class Copier:
             for key, val in PATH_REPLACERS.items():
                 if key in str(dest_path) and template_data:
                     str_dest_path = str(dest_path)
-                    repl_val = template_data.get(val, "")
-                    if not isinstance(repl_val, str):
-                        msg = "template_data for PATH_REPLACERS value must be a string"
-                        raise TypeError(msg)
+                    repl_val = getattr(template_data, val)
                     dest_path = Path(str_dest_path.replace(key, repl_val))
 
             if obj.is_dir():
@@ -180,11 +175,8 @@ class Copier:
         )
         self.output.debug(msg=f"allow_overwrite set to {self.allow_overwrite}")
 
-        # Include the global template variables
-        self.template_data.update(GLOBAL_TEMPLATE_VARS)
-
-        # Copy the template data to not pollute the original
-        template_data = self.template_data.copy()
+        # Cast the template data to not pollute the original
+        template_data = copy.deepcopy(self.template_data)
 
         # Collect and template any resource specific variables
         meta_file = impl_resources.files(f"{self.resource_root}.{self.resource}") / "__meta__.yml"
@@ -207,9 +199,9 @@ class Copier:
                     data=template_data,
                 )
                 deserialized = yaml.safe_load(templated)
-                template_data.update({key: deserialized})
+                setattr(template_data, key, deserialized)
             else:
-                template_data.update({key: value["value"]})
+                setattr(template_data, key, value["value"])
 
         self._recursive_copy(
             root=impl_resources.files(f"{self.resource_root}.{self.resource}"),

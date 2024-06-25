@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import json
 
+from dataclasses import asdict
 from typing import TYPE_CHECKING
 
 
 if TYPE_CHECKING:
-    from typing import Any
+    from ansible_creator.types import TemplateData
+
 
 try:
     from jinja2 import Environment, StrictUndefined
@@ -41,7 +43,7 @@ class Templar:
         )
         self.env.filters["json"] = json.dumps
 
-    def render_from_content(self: Templar, template: str, data: dict[str, Any]) -> str:
+    def render_from_content(self: Templar, template: str, data: TemplateData) -> str:
         """Render a template with provided data.
 
         Args:
@@ -51,4 +53,4 @@ class Templar:
         Returns:
             Templated content.
         """
-        return self.env.from_string(template).render(data)
+        return self.env.from_string(template).render(asdict(data))
