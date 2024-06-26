@@ -1,10 +1,9 @@
 black
 coverage[toml]
-flake8
 mypy
 pip-tools
 pre-commit
-pydoclint[flake8]
+pydoclint
 pylint
 pytest
 pytest-xdist
