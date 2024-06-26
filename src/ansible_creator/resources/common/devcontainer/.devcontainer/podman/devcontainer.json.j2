@@ -1,6 +1,6 @@
 {
   "name": "ansible-dev-container-podman",
-  "image": "{{ DEV_CONTAINER_IMAGE }}",
+  "image": "{{ dev_container_image }}",
   "containerUser": "root",
   "runArgs": [
     "--cap-add=SYS_ADMIN",
@@ -20,7 +20,7 @@
   ],
   "customizations": {
     "vscode": {
-      "extensions": ["redhat.ansible"]
+      "extensions": {{ recommended_extensions | json }}
     }
   }
 }

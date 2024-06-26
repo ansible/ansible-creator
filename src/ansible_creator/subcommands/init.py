@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.templar import Templar
+from ansible_creator.types import TemplateData
 from ansible_creator.utils import Copier
 
 
@@ -89,28 +90,31 @@ class Init:
             self.output.debug(msg=f"creating new directory at {self._init_path}")
             self._init_path.mkdir(parents=True)
 
+        common_resources = [
+            "common.devcontainer",
+            "common.devfile",
+            "common.gitignore",
+            "common.vscode",
+        ]
+
         if self._project == "collection":
             if not isinstance(self._collection_name, str):
                 msg = "Collection name is required when scaffolding a collection."
                 raise CreatorError(msg)
             # copy new_collection container to destination, templating files when found
             self.output.debug(msg="started copying collection skeleton to destination")
+            template_data = TemplateData(
+                namespace=self._namespace,
+                collection_name=self._collection_name,
+                creator_version=self._creator_version,
+            )
             copier = Copier(
-                resources=[
-                    "new_collection",
-                    "common.devcontainer",
-                    "common.devfile",
-                    "common.gitignore",
-                ],
+                resources=["new_collection", *common_resources],
                 resource_id="new_collection",
                 dest=self._init_path,
                 output=self.output,
                 templar=self._templar,
-                template_data={
-                    "namespace": self._namespace,
-                    "collection_name": self._collection_name,
-                    "creator_version": self._creator_version,
-                },
+                template_data=template_data,
             )
             copier.copy_containers()
 
@@ -132,22 +136,20 @@ class Init:
                     "scaffolding an ansible-project."
                 )
                 raise CreatorError(msg)
+
+            template_data = TemplateData(
+                creator_version=self._creator_version,
+                scm_org=self._scm_org,
+                scm_project=self._scm_project,
+            )
+
             copier = Copier(
-                resources=[
-                    "ansible_project",
-                    "common.devcontainer",
-                    "common.devfile",
-                    "common.gitignore",
-                ],
+                resources=["ansible_project", *common_resources],
                 resource_id="ansible_project",
                 dest=self._init_path,
                 output=self.output,
                 templar=self._templar,
-                template_data={
-                    "scm_org": self._scm_org,
-                    "scm_project": self._scm_project,
-                    "creator_version": self._creator_version,
-                },
+                template_data=template_data,
             )
             copier.copy_containers()
 

@@ -1,6 +1,6 @@
 {
   "name": "ansible-dev-container-docker",
-  "image": "{{ DEV_CONTAINER_IMAGE }}",
+  "image": "{{ dev_container_image }}",
   "containerUser": "podman",
   "runArgs": [
     "--security-opt",
@@ -18,7 +18,7 @@
   "updateRemoteUserUID": true,
   "customizations": {
     "vscode": {
-      "extensions": ["redhat.ansible"]
+      "extensions": {{ recommended_extensions | json }}
     }
   }
 }

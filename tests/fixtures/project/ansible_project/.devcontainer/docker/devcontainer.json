@@ -18,7 +18,7 @@
   "updateRemoteUserUID": true,
   "customizations": {
     "vscode": {
-      "extensions": ["redhat.ansible"]
+      "extensions": ["redhat.ansible", "redhat.vscode-redhat-account"]
     }
   }
 }
