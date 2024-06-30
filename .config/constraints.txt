@@ -26,7 +26,7 @@ defusedxml==0.7.1
 dill==0.3.8
 distlib==0.3.8
 dnspython==2.6.1
-docstring-parser-fork==0.0.7
+docstring-parser-fork==0.0.9
 exceptiongroup==1.2.1
 execnet==2.1.1
 filelock==3.15.4
@@ -42,7 +42,7 @@ jinja2==3.1.4
 jsmin==3.0.1
 linkchecker==10.4.0
 markdown==3.6
-markdown-exec==1.9.2
+markdown-exec==1.9.3
 markdown-include==0.8.1
 markupsafe==2.1.5
 mccabe==0.7.0
@@ -60,7 +60,7 @@ mkdocs-minify-plugin==0.8.0
 mkdocs-monorepo-plugin==1.1.0
 mkdocstrings==0.25.1
 mkdocstrings-python==1.10.5
-mypy==1.10.0
+mypy==1.10.1
 mypy-extensions==1.0.0
 nodeenv==1.9.1
 packaging==24.1
@@ -74,10 +74,10 @@ pluggy==1.5.0
 pre-commit==3.7.1
 pycodestyle==2.12.0
 pycparser==2.22
-pydoclint==0.5.0
+pydoclint==0.5.3
 pyflakes==3.2.0
 pygments==2.18.0
-pylint==3.2.3
+pylint==3.2.5
 pymdown-extensions==10.8.1
 pyproject-api==1.7.1
 pyproject-hooks==1.1.0
@@ -89,7 +89,7 @@ pyyaml==6.0.1
 pyyaml-env-tag==0.1
 regex==2024.5.15
 requests==2.32.3
-ruff==0.4.10
+ruff==0.5.0
 six==1.16.0
 soupsieve==2.5
 termcolor==2.4.0
