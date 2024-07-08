@@ -99,10 +99,7 @@ disable = [
   # https://gist.github.com/cidrblock/ec3412bacfeb34dbc2d334c1d53bef83
   "C0103", # invalid-name / ruff N815
   "C0105", # typevar-name-incorrect-variance / ruff PLC0105
-  "C0112", # empty-docstring / ruff D419
   "C0113", # unneeded-not / ruff SIM208
-  "C0114", # missing-module-docstring / ruff D100
-  "C0115", # missing-class-docstring / ruff D101
   "C0116", # missing-function-docstring / ruff D103
   "C0121", # singleton-comparison / ruff PLC0121
   "C0123", # unidiomatic-typecheck / ruff E721
