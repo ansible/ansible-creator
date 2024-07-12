@@ -52,8 +52,6 @@ def test_configuration_class(output: Output) -> None:
                 "init_path": "./",
                 "force": False,
                 "project": "collection",  # default value
-                "scm_org": None,
-                "scm_project": None,
             },
         ],
         [
@@ -62,6 +60,8 @@ def test_configuration_class(output: Output) -> None:
                 "init",
                 "--project=ansible-project",
                 "--init-path=/home/ansible/my-ansible-project",
+                "--scm-org=weather",
+                "--scm-project=demo",
             ],
             {
                 "subcommand": "init",
@@ -75,8 +75,8 @@ def test_configuration_class(output: Output) -> None:
                 "init_path": "/home/ansible/my-ansible-project",
                 "force": False,
                 "project": "ansible-project",
-                "scm_org": None,
-                "scm_project": None,
+                "scm_org": "weather",
+                "scm_project": "demo",
             },
         ],
         [
@@ -105,8 +105,6 @@ def test_configuration_class(output: Output) -> None:
                 "init_path": "/home/ansible",
                 "force": True,
                 "project": "collection",  # default value
-                "scm_org": None,
-                "scm_project": None,
             },
         ],
         [
@@ -156,7 +154,8 @@ def test_cli_parser(
         expected: Expected values for the parsed CLI arguments.
     """
     monkeypatch.setattr("sys.argv", sysargs)
-    assert vars(Cli().parse_args()) == expected
+    parsed_args = Cli().args
+    assert parsed_args == expected
 
 
 def test_missing_j2(monkeypatch: pytest.MonkeyPatch) -> None:

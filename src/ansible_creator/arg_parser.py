@@ -200,7 +200,7 @@ class RootParser:
         # The internal still reference the old project name
         if self.args.project == "playbook":
             self.args.project = "ansible-project"
-            del self.args.collection
+            self.args.collection = None
 
         return self.args, self.pending_logs
 
@@ -250,7 +250,7 @@ class RootParser:
 
         # if the user has specified a project type, use it now to set a default
         # project type for backward compatibility
-        if "--project" in self.sys_argv:
+        if any("--project" in argv for argv in self.sys_argv):
             msg = "The `project` flag is no longer needed and will be removed."
             self.pending_logs.append(Msg(prefix=Level.WARNING, message=msg))
             self.pending_logs.append(Msg(prefix=Level.HINT, message=COLLECTION_HINT))
@@ -303,14 +303,14 @@ class RootParser:
             "current working directory.",
         )
         # if init-path is provided, set the positional path
-        if "--init-path" in self.sys_argv:
+        if any("--init-path" in argv for argv in self.sys_argv):
             msg = "The `init-path` flag is no longer needed and will be removed."
             self.pending_logs.append(Msg(prefix=Level.WARNING, message=msg))
             self.pending_logs.append(Msg(prefix=Level.HINT, message=COLLECTION_HINT))
             tmp_parser = argparse.ArgumentParser()
             tmp_parser.add_argument("--init-path", help="")
             tmp_args, _extra = tmp_parser.parse_known_args(self.sys_argv)
-            self.sys_argv.insert(0, tmp_args.init_path)
+            self.sys_argv.insert(1, tmp_args.init_path)
 
         self._add_common(parser)
         self._add_init_common(parser)
@@ -363,7 +363,7 @@ class RootParser:
         )
 
         # if --init-path is provided, prepend sys_argv with the path
-        if "--init-path" in self.sys_argv:
+        if any("--init-path" in argv for argv in self.sys_argv):
             msg = "The `init-path` flag is no longer needed and will be removed."
             self.pending_logs.append(Msg(prefix=Level.WARNING, message=msg))
             self.pending_logs.append(Msg(prefix=Level.HINT, message=PLAYBOOK_HINT))
@@ -373,8 +373,9 @@ class RootParser:
             self.sys_argv.insert(0, tmp_args.init_path)
 
         # if scm-org and scm-project are provided, set the positional collection
-        deprecated_params = ["--scm-org", "--scm-project"]
-        if all(param in self.sys_argv for param in deprecated_params):
+        scm_org_found = any("--scm-org" in argv for argv in self.sys_argv)
+        scm_project_found = any("--scm-project" in argv for argv in self.sys_argv)
+        if scm_org_found or scm_project_found:
             msg = "The `scm-org` and `scm-project` flags are no longer needed and will be removed."
             self.pending_logs.append(Msg(prefix=Level.WARNING, message=msg))
             self.pending_logs.append(Msg(prefix=Level.HINT, message=PLAYBOOK_HINT))
@@ -383,7 +384,7 @@ class RootParser:
             tmp_parser.add_argument("--scm-project", help="")
             tmp_args, _extra = tmp_parser.parse_known_args(self.sys_argv)
             self.sys_argv.insert(0, f"{tmp_args.scm_org}.{tmp_args.scm_project}")
-        elif any(param in self.sys_argv for param in deprecated_params):
+        elif scm_org_found or scm_project_found:
             parser.print_help()
             sys.exit(1)
 
@@ -391,7 +392,6 @@ class RootParser:
         self._add_init_common(parser)
 
         args, extra = parser.parse_known_args(self.sys_argv)
-        breakpoint()
 
         # use the collection name to populate the scm org and project until
         # those can be dereferenced in the codebase
