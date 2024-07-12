@@ -33,7 +33,7 @@ Commands:
 
 ## Usage
 
-Full documentation on how to use this, along with it's integration with VS Code Ansible Extension can be found in https://ansible.readthedocs.io/projects/creator/.
+Full documentation on how to use this, along with its integration with VS Code Ansible Extension can be found in https://ansible.readthedocs.io/projects/creator/.
 
 ## Upcoming features
 

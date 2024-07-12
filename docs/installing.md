@@ -171,13 +171,17 @@ $ tree -lla /home/ansible-dev/collections/ansible_collections/testns/testname
 
 **Note:**
 
-The scaffolded collection includes a `hello_world` filter plugin, along with a molecule scenario and an integration test target for it, that can be run using `pytest`. This serves as an example for you to refer when writing tests for your Ansible plugins and can be removed when it is no longer required.
+1. The scaffolded collection includes a `LICENSE` template. This serves as
+   an example and can be replaced with a licensing policy of your choice. Feel free to adapt the license to best suit your project's needs and
+   legal requirements.
 
-To run the `hello_world` integration test, follow these steps:
+2. The scaffolded collection includes a `hello_world` filter plugin, along with a molecule scenario and an integration test target for it, that can be run using `pytest`. This serves as an example for you to refer when writing tests for your Ansible plugins and can be removed when it is no longer required.
 
-- Git initialize the repository containing the scaffolded collection with `git init`.
-- `pip install ansible-core molecule pytest-xdist pytest-ansible`.
-- Invoke `pytest` from collection root.
+   To run the `hello_world` integration test, follow these steps:
+
+   - Git initialize the repository containing the scaffolded collection with `git init`.
+   - `pip install ansible-core molecule pytest-xdist pytest-ansible`.
+   - Invoke `pytest` from collection root.
 
 ### Initialize Ansible Project
 
