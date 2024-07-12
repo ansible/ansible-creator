@@ -26,9 +26,10 @@ def test_run_help(cli: cli_type) -> None:
     result = cli(f"{CREATOR_BIN} --help")
     assert result.returncode == 0, (result.stdout, result.stderr)
 
-    assert "Print ansible-creator version and exit." in result.stdout
-    assert "The subcommand to invoke." in result.stdout
-    assert "Initialize an Ansible Collection." in result.stdout
+    assert "The fastest way to generate all your ansible content." in result.stdout
+    assert "Commands:" in result.stdout
+    assert "init" in result.stdout
+    assert "Create a new Ansible project" in result.stdout
 
 
 def test_run_no_subcommand(cli: cli_type) -> None:
@@ -39,7 +40,7 @@ def test_run_no_subcommand(cli: cli_type) -> None:
     """
     result = cli(str(CREATOR_BIN))
     assert result.returncode != 0
-    assert "the following arguments are required: subcommand" in result.stderr
+    assert "Create a new Ansible project." in result.stdout
 
 
 def test_run_init_no_input(cli: cli_type) -> None:
@@ -50,10 +51,9 @@ def test_run_init_no_input(cli: cli_type) -> None:
     """
     result = cli(f"{CREATOR_BIN} init")
     assert result.returncode != 0
-    assert (
-        "Error: The argument 'collection' is required when scaffolding a collection"
-        in result.stderr
-    )
+    assert "Project types" in result.stdout
+    assert "Create a new Ansible collection project." in result.stdout
+    assert "Create a new Ansible playbook project." in result.stdout
 
 
 def test_run_init_basic(cli: cli_type, tmp_path: Path) -> None:
