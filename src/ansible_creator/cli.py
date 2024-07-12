@@ -10,7 +10,7 @@ from importlib import import_module
 from ansible_creator.arg_parser import RootParser
 from ansible_creator.config import Config
 from ansible_creator.exceptions import CreatorError
-from ansible_creator.output import Output
+from ansible_creator.output import Msg, Output
 from ansible_creator.utils import TermFeatures, expand_path
 
 
@@ -29,7 +29,7 @@ class Cli:
         """Initialize the Cli and parse Cli args."""
         self.args: dict[str, Any]
         self.output: Output
-        self.pending_logs: list[tuple[str, str]]
+        self.pending_logs: list[Msg]
         self.term_features: TermFeatures
         self.parse_args()
 

@@ -15,7 +15,9 @@ from ansible_creator.output import Level, Msg
 
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
     from typing import Any
+
 
 try:
     from ._version import version as __version__  # type: ignore[unused-ignore,import-not-found]
@@ -81,7 +83,7 @@ class RootParser:
         self.sys_argv = sys.argv[1:]
         self.subcommand: str
         self.args: argparse.Namespace
-        self.pending_logs: list[tuple[str, str]] = []
+        self.pending_logs: list[Msg] = []
 
     def _add_common(self, parser: ArgumentParser) -> None:
         """Add common arguments to the parser.
@@ -436,7 +438,8 @@ class ArgumentParser(argparse.ArgumentParser):
             The argument group
         """
         group = super().add_argument_group(*args, **kwargs)
-        group.title = group.title.capitalize()
+        if group.title:
+            group.title = group.title.capitalize()
         return group
 
 
@@ -488,7 +491,7 @@ class CustomHelpFormatter(HelpFormatter):
         msg = "Too many option strings"
         raise ValueError(msg)
 
-    def add_arguments(self, actions: argparse.Action) -> None:
+    def add_arguments(self, actions: Iterable[argparse.Action]) -> None:
         """Add arguments sorted by option strings.
 
         Args:
