@@ -22,16 +22,7 @@ if TYPE_CHECKING:
 try:
     from ._version import version as __version__  # type: ignore[unused-ignore,import-not-found]
 except ImportError:  # pragma: no cover
-    try:
-        import pkg_resources
-
-        __version__ = pkg_resources.get_distribution(
-            "ansible_dev_environment",
-        ).version
-    except Exception:  # pylint: disable=broad-except # noqa: BLE001
-        # this is the fallback SemVer version picked by setuptools_scm when tag
-        # information is not available.
-        __version__ = "0.1.dev1"
+    __version__ = "source"
 
 MIN_COLLECTION_NAME_LEN = 2
 PLAYBOOK_HINT = (

@@ -98,7 +98,6 @@ repos:
           - jinja2
           - pytest
           - types-pyyaml
-          - types-setuptools
         # Override default pre-commit '--ignore-missing-imports'
         args: [--strict]
 
