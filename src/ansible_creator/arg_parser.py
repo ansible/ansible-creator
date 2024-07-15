@@ -72,9 +72,9 @@ class RootParser:
     def __init__(self: RootParser) -> None:
         """Initialize the parser."""
         self.sys_argv = sys.argv[1:]
-        self.subcommand: str
         self.args: argparse.Namespace
         self.pending_logs: list[Msg] = []
+        self.deprecated_flags_used: bool = False
 
     def _add_common(self, parser: ArgumentParser) -> None:
         """Add common arguments to the parser.
@@ -261,8 +261,9 @@ class RootParser:
                 self.sys_argv.insert(0, "playbook")
             else:
                 self.sys_argv.insert(0, "collection")
-            msg = "project flag removed, sys.argv now: {self.sys_argv}"
+            msg = f"project flag removed, sys.argv now: {self.sys_argv}"
             self.pending_logs.append(Msg(prefix=Level.DEBUG, message=msg))
+            self.deprecated_flags_used = True
 
         # Set the default init type to collection for backward compatibility
         if not self.sys_argv or self.sys_argv[0] not in ["collection", "playbook"]:
@@ -311,15 +312,25 @@ class RootParser:
             self.sys_argv = [arg for arg in self.sys_argv if not arg.startswith("--init-path")]
             self.sys_argv = [arg for arg in self.sys_argv if arg != tmp_args.init_path]
             self.sys_argv.insert(1, tmp_args.init_path)
-            msg = "init-path flag removed, sys.argv now: {self.sys_argv}"
+            msg = f"init-path flag removed, sys.argv now: {self.sys_argv}"
             self.pending_logs.append(Msg(prefix=Level.DEBUG, message=msg))
+            self.deprecated_flags_used = True
 
         self._add_common(parser)
         self._add_init_common(parser)
+
+        msg = "args right before parse: {self.sys_argv}"
+        self.pending_logs.append(Msg(prefix=Level.DEBUG, message=msg))
         args = parser.parse_args(self.sys_argv)
+        msg = (
+            "Please use the following command in the future:"
+            " ansible-creator {self.args.subcommand} {self.args.project} {' '.join(self.sys_argv)}"
+        )
+        prefix = Level.HINT if self.deprecated_flags_used else Level.DEBUG
+        self.pending_logs.append(Msg(prefix=prefix, message=msg))
         self.args = argparse.Namespace(**vars(args), **vars(self.args))
 
-    def init_playbook(self: RootParser) -> None:
+    def init_playbook(self: RootParser) -> None:  # noqa: PLR0915
         """Initialize an Ansible playbook."""
         parser = ArgumentParser(
             description="Create a new Ansible playbook project.",
@@ -375,8 +386,9 @@ class RootParser:
             self.sys_argv = [arg for arg in self.sys_argv if not arg.startswith("--init-path")]
             self.sys_argv = [arg for arg in self.sys_argv if arg != tmp_args.init_path]
             self.sys_argv.insert(0, tmp_args.init_path)
-            msg = "init-path flag removed, sys.argv now: {self.sys_argv}"
+            msg = f"init-path flag removed, sys.argv now: {self.sys_argv}"
             self.pending_logs.append(Msg(prefix=Level.DEBUG, message=msg))
+            self.deprecated_flags_used = True
 
         # if scm-org and scm-project are provided, set the positional collection
         scm_org_found = any("--scm-org" in argv for argv in self.sys_argv)
@@ -394,8 +406,9 @@ class RootParser:
             self.sys_argv = [arg for arg in self.sys_argv if arg != tmp_args.scm_org]
             self.sys_argv = [arg for arg in self.sys_argv if arg != tmp_args.scm_project]
             self.sys_argv.insert(0, f"{tmp_args.scm_org}.{tmp_args.scm_project}")
-            msg = "scm-org and/or scm-project flags removed, sys.argv now: {self.sys_argv}"
+            msg = f"scm-org and/or scm-project flags removed, sys.argv now: {self.sys_argv}"
             self.pending_logs.append(Msg(prefix=Level.DEBUG, message=msg))
+            self.deprecated_flags_used = True
 
         elif scm_org_found or scm_project_found:
             parser.print_help()
@@ -404,14 +417,21 @@ class RootParser:
         self._add_common(parser)
         self._add_init_common(parser)
 
+        msg = "args right before parse: {self.sys_argv}"
+        self.pending_logs.append(Msg(prefix=Level.DEBUG, message=msg))
         args = parser.parse_args(self.sys_argv)
 
         # use the collection name to populate the scm org and project until
         # those can be dereferenced in the codebase
         if args.collection:
             args.scm_org, args.scm_project = args.collection.split(".", maxsplit=1)
+        msg = (
+            "Please use the following command in the future:"
+            " ansible-creator {self.args.subcommand} {self.args.project} {' '.join(self.sys_argv)}"
+        )
+        prefix = Level.HINT if self.deprecated_flags_used else Level.DEBUG
+        self.pending_logs.append(Msg(prefix=prefix, message=msg))
         self.args = argparse.Namespace(**vars(args), **vars(self.args))
-        breakpoint()
 
 
 class ArgumentParser(argparse.ArgumentParser):
