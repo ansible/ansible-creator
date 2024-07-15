@@ -251,13 +251,18 @@ class RootParser:
             tmp_parser = argparse.ArgumentParser()
             tmp_parser.add_argument("--project", help="")
             tmp_args, _extra = tmp_parser.parse_known_args(self.sys_argv)
-            if tmp_args.project not in ["collection", "ansible-project"]:
+            possible_values = ["collection", "ansible-project"]
+            if tmp_args.project not in possible_values:
                 parser.print_help()
                 sys.exit(1)
             if tmp_args.project == "ansible-project":
                 self.sys_argv.insert(0, "playbook")
             else:
                 self.sys_argv.insert(0, "collection")
+            self.sys_argv = [arg for arg in self.sys_argv if not arg.startswith("--project")]
+            self.sys_argv = [arg for arg in self.sys_argv if arg not in possible_values]
+            msg = "project flag removed, sys.argv now: {self.sys_argv}"
+            self.pending_logs.append(Msg(prefix=Level.DEBUG, message=msg))
 
         # Set the default init type to collection for backward compatibility
         if not self.sys_argv or self.sys_argv[0] not in ["collection", "playbook"]:
@@ -304,6 +309,10 @@ class RootParser:
             tmp_parser.add_argument("--init-path", help="")
             tmp_args, _extra = tmp_parser.parse_known_args(self.sys_argv)
             self.sys_argv.insert(1, tmp_args.init_path)
+            self.sys_argv = [arg for arg in self.sys_argv if not arg.startswith("--init-path")]
+            self.sys_argv = [arg for arg in self.sys_argv if arg != tmp_args.init_path]
+            msg = "init-path flag removed, sys.argv now: {self.sys_argv}"
+            self.pending_logs.append(Msg(prefix=Level.DEBUG, message=msg))
 
         self._add_common(parser)
         self._add_init_common(parser)
@@ -364,6 +373,10 @@ class RootParser:
             tmp_parser.add_argument("--init-path", help="")
             tmp_args, _extra = tmp_parser.parse_known_args(self.sys_argv)
             self.sys_argv.insert(0, tmp_args.init_path)
+            self.sys_argv = [arg for arg in self.sys_argv if not arg.startswith("--init-path")]
+            self.sys_argv = [arg for arg in self.sys_argv if arg != tmp_args.init_path]
+            msg = "init-path flag removed, sys.argv now: {self.sys_argv}"
+            self.pending_logs.append(Msg(prefix=Level.DEBUG, message=msg))
 
         # if scm-org and scm-project are provided, set the positional collection
         scm_org_found = any("--scm-org" in argv for argv in self.sys_argv)
@@ -377,6 +390,13 @@ class RootParser:
             tmp_parser.add_argument("--scm-project", help="")
             tmp_args, _extra = tmp_parser.parse_known_args(self.sys_argv)
             self.sys_argv.insert(0, f"{tmp_args.scm_org}.{tmp_args.scm_project}")
+            self.sys_argv = [arg for arg in self.sys_argv if not arg.startswith("--scm-org")]
+            self.sys_argv = [arg for arg in self.sys_argv if not arg.startswith("--scm-project")]
+            self.sys_argv = [arg for arg in self.sys_argv if arg != tmp_args.scm_org]
+            self.sys_argv = [arg for arg in self.sys_argv if arg != tmp_args.scm_project]
+            msg = "scm-org and/or scm-project flags removed, sys.argv now: {self.sys_argv}"
+            self.pending_logs.append(Msg(prefix=Level.DEBUG, message=msg))
+
         elif scm_org_found or scm_project_found:
             parser.print_help()
             sys.exit(1)
@@ -384,7 +404,7 @@ class RootParser:
         self._add_common(parser)
         self._add_init_common(parser)
 
-        args, extra = parser.parse_known_args(self.sys_argv)
+        args = parser.parse_args(self.sys_argv)
 
         # use the collection name to populate the scm org and project until
         # those can be dereferenced in the codebase
