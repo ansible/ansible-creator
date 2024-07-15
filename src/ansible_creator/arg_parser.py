@@ -25,18 +25,6 @@ except ImportError:  # pragma: no cover
     __version__ = "source"
 
 MIN_COLLECTION_NAME_LEN = 2
-PLAYBOOK_HINT = (
-    "Use `ansible-creator init playbook <namespace.name> <path>`"
-    " to create a new playbook project."
-    " See `ansible-creator init playbook --help` for more information."
-)
-
-COLLECTION_HINT = (
-    "Use `ansible-creator init collection <namespace.name> <path>`"
-    " to create a new collection project."
-    " See `ansible-creator init collection --help` for more information."
-)
-
 
 def valid_collection_name(collection: str) -> str:
     """Validate the collection name.
