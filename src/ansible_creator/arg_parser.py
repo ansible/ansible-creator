@@ -26,6 +26,7 @@ except ImportError:  # pragma: no cover
 
 MIN_COLLECTION_NAME_LEN = 2
 
+
 def valid_collection_name(collection: str) -> str:
     """Validate the collection name.
 
@@ -309,13 +310,14 @@ class RootParser:
         args = parser.parse_args(self.sys_argv)
         msg = (
             "Please use the following command in the future:"
-            f" `ansible-creator {self.args.subcommand} {self.args.project} {' '.join(self.sys_argv)}`"
+            f" `ansible-creator {self.args.subcommand} {self.args.project}"
+            f" {' '.join(self.sys_argv)}`"
         )
         prefix = Level.HINT if self.deprecated_flags_used else Level.DEBUG
         self.pending_logs.append(Msg(prefix=prefix, message=msg))
         self.args = argparse.Namespace(**vars(args), **vars(self.args))
 
-    def init_playbook(self: RootParser) -> None:  # noqa: PLR0915
+    def init_playbook(self: RootParser) -> None:
         """Initialize an Ansible playbook."""
         parser = ArgumentParser(
             description="Create a new Ansible playbook project.",
@@ -410,7 +412,8 @@ class RootParser:
             args.scm_org, args.scm_project = args.collection.split(".", maxsplit=1)
         msg = (
             "Please use the following command in the future:"
-            f" `ansible-creator {self.args.subcommand} {self.args.project} {' '.join(self.sys_argv)}`"
+            f" `ansible-creator {self.args.subcommand} {self.args.project}"
+            f" {' '.join(self.sys_argv)}`"
         )
         prefix = Level.HINT if self.deprecated_flags_used else Level.DEBUG
         self.pending_logs.append(Msg(prefix=prefix, message=msg))
