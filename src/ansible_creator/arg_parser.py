@@ -324,7 +324,7 @@ class RootParser:
         args = parser.parse_args(self.sys_argv)
         msg = (
             "Please use the following command in the future:"
-            " ansible-creator {self.args.subcommand} {self.args.project} {' '.join(self.sys_argv)}"
+            f" ansible-creator {self.args.subcommand} {self.args.project} {' '.join(self.sys_argv)}"
         )
         prefix = Level.HINT if self.deprecated_flags_used else Level.DEBUG
         self.pending_logs.append(Msg(prefix=prefix, message=msg))
@@ -427,7 +427,7 @@ class RootParser:
             args.scm_org, args.scm_project = args.collection.split(".", maxsplit=1)
         msg = (
             "Please use the following command in the future:"
-            " ansible-creator {self.args.subcommand} {self.args.project} {' '.join(self.sys_argv)}"
+            f" ansible-creator {self.args.subcommand} {self.args.project} {' '.join(self.sys_argv)}"
         )
         prefix = Level.HINT if self.deprecated_flags_used else Level.DEBUG
         self.pending_logs.append(Msg(prefix=prefix, message=msg))
