@@ -246,8 +246,6 @@ class RootParser:
         if any("--project" in argv for argv in self.sys_argv):
             msg = "The `project` flag is no longer needed and will be removed."
             self.pending_logs.append(Msg(prefix=Level.WARNING, message=msg))
-            self.pending_logs.append(Msg(prefix=Level.HINT, message=COLLECTION_HINT))
-            self.pending_logs.append(Msg(prefix=Level.HINT, message=PLAYBOOK_HINT))
             tmp_parser = argparse.ArgumentParser()
             tmp_parser.add_argument("--project", help="")
             tmp_args, _extra = tmp_parser.parse_known_args(self.sys_argv)
@@ -305,7 +303,6 @@ class RootParser:
         if any("--init-path" in argv for argv in self.sys_argv):
             msg = "The `init-path` flag is no longer needed and will be removed."
             self.pending_logs.append(Msg(prefix=Level.WARNING, message=msg))
-            self.pending_logs.append(Msg(prefix=Level.HINT, message=COLLECTION_HINT))
             tmp_parser = argparse.ArgumentParser()
             tmp_parser.add_argument("--init-path", help="")
             tmp_args, _extra = tmp_parser.parse_known_args(self.sys_argv)
@@ -324,7 +321,7 @@ class RootParser:
         args = parser.parse_args(self.sys_argv)
         msg = (
             "Please use the following command in the future:"
-            f" ansible-creator {self.args.subcommand} {self.args.project} {' '.join(self.sys_argv)}"
+            f" `ansible-creator {self.args.subcommand} {self.args.project} {' '.join(self.sys_argv)}`"
         )
         prefix = Level.HINT if self.deprecated_flags_used else Level.DEBUG
         self.pending_logs.append(Msg(prefix=prefix, message=msg))
@@ -379,7 +376,6 @@ class RootParser:
         if any("--init-path" in argv for argv in self.sys_argv):
             msg = "The `init-path` flag is no longer needed and will be removed."
             self.pending_logs.append(Msg(prefix=Level.WARNING, message=msg))
-            self.pending_logs.append(Msg(prefix=Level.HINT, message=PLAYBOOK_HINT))
             tmp_parser = argparse.ArgumentParser()
             tmp_parser.add_argument("--init-path", help="")
             tmp_args, _extra = tmp_parser.parse_known_args(self.sys_argv)
@@ -396,7 +392,6 @@ class RootParser:
         if scm_org_found or scm_project_found:
             msg = "The `scm-org` and `scm-project` flags are no longer needed and will be removed."
             self.pending_logs.append(Msg(prefix=Level.WARNING, message=msg))
-            self.pending_logs.append(Msg(prefix=Level.HINT, message=PLAYBOOK_HINT))
             tmp_parser = argparse.ArgumentParser()
             tmp_parser.add_argument("--scm-org", help="")
             tmp_parser.add_argument("--scm-project", help="")
@@ -427,7 +422,7 @@ class RootParser:
             args.scm_org, args.scm_project = args.collection.split(".", maxsplit=1)
         msg = (
             "Please use the following command in the future:"
-            f" ansible-creator {self.args.subcommand} {self.args.project} {' '.join(self.sys_argv)}"
+            f" `ansible-creator {self.args.subcommand} {self.args.project} {' '.join(self.sys_argv)}`"
         )
         prefix = Level.HINT if self.deprecated_flags_used else Level.DEBUG
         self.pending_logs.append(Msg(prefix=prefix, message=msg))
