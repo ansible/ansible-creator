@@ -28,6 +28,7 @@ Positional arguments:
   init          Initialize a new Ansible project.
 
 Options:
+ --version      Print ansible-creator version and exit.
  -h     --help  Show this help message and exit
 ```
 

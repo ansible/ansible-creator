@@ -61,6 +61,12 @@ class Parser:
             description="The fastest way to generate all your ansible content.",
             formatter_class=CustomHelpFormatter,
         )
+        parser.add_argument(
+            "--version",
+            action="version",
+            help="Print ansible-creator version and exit.",
+            version=__version__,
+        )
         subparser = parser.add_subparsers(
             dest="subcommand",
             metavar="command",
