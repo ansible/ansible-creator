@@ -84,8 +84,8 @@ class Parser:
         # The internal still reference the old project name
         if self.args.project == "playbook":
             self.args.project = "ansible-project"
-            self.args.collection = None
             self.args.scm_org, self.args.scm_project = self.args.collection.split(".", maxsplit=1)
+            self.args.collection = None
 
         return self.args, self.pending_logs
 
@@ -453,7 +453,6 @@ class Parser:
             The parsed arguments.
         """
         parser = argparse.ArgumentParser()
-        # parser.add_argument("exec", help="")
         parser.add_argument("command", help="")
         parser.add_argument("collection", nargs="?", help="")
         parser.add_argument("--project", help="")
@@ -491,7 +490,6 @@ class Parser:
 
         base_cli = [args.command[0], args.command, args.project, args.collection]
         new_cli = base_cli + extras
-        breakpoint()
         hint = f"Please use the following command in the future: {' '.join(new_cli)}"
         self.pending_logs.append(Msg(prefix=Level.HINT, message=hint))
 
