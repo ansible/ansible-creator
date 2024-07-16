@@ -18,22 +18,31 @@ $ pip install ansible-creator
 
 ```shell
 $ ansible-creator --help
-usage: ansible-creator [-h] [--version] {init} ...
+usage: ansible-creator [-h] command ...
 
-Tool to scaffold Ansible Content. Get started by looking at the help text.
+The fastest way to generate all your ansible content.
 
-optional arguments:
-  -h, --help  show this help message and exit
-  --version   Print ansible-creator version and exit.
+Positional arguments:
+ command
+  add           Add resources to an existing Ansible project.
+  init          Initialize a new Ansible project.
 
-Commands:
-  {init}      The subcommand to invoke.
-    init      Initialize an Ansible Collection.
+Options:
+ -h     --help  Show this help message and exit
 ```
 
 ## Usage
 
 Full documentation on how to use this, along with it's integration with VS Code Ansible Extension can be found in https://ansible.readthedocs.io/projects/creator/.
+
+## Command line completion
+
+`ansible-creator` has experimental command line completion for common shells. Please ensure you have the `argcomplete` package installed and configured.
+
+```shell
+$ pip install argcomplete --user
+$ activate-global-python-argcomplete --user
+```
 
 ## Upcoming features
 

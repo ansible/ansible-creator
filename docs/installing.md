@@ -18,6 +18,15 @@ The Command-Line Interface (CLI) for ansible-creator provides a straightforward 
 
 If command line is not your preferred method, you can also leverage the GUI interface within VS Code's Ansible extension that offers a more visually intuitive experience of ansible-creator. See [here](collection_creation.md).
 
+## Command line completion
+
+`ansible-creator` has experimental command line completion for common shells. Please ensure you have the `argcomplete` package installed and configured.
+
+```shell
+$ pip install argcomplete --user
+$ activate-global-python-argcomplete --user
+```
+
 ### General Usage
 
 Get an overview of available commands and options by running:
@@ -26,48 +35,45 @@ Get an overview of available commands and options by running:
 $ ansible-creator --help
 ```
 
-### Initialize Ansible Collection (`init` subcommand)
+### Initialize an Ansible collection project
 
-The `init` command enables you to initialize an Ansible Collection to create a foundational structure for the project. Use the following command template:
+The `init collection` command enables you to initialize an Ansible collection project. Use the following command template:
 
 ```console
-$ ansible-creator init <collection-name> --init-path <path>
+$ ansible-creator init collection <collection-name> <path>
 ```
 
-#### Positional Argument(s)
+#### Positional Arguments
 
-| Parameter  | Description                                                          |
-| ---------- | -------------------------------------------------------------------- |
-| collection | The name of the collection in the format `<namespace>.<collection>`. |
+| Parameter       | Description                                             |
+| --------------- | ------------------------------------------------------- |
+| collection-name | The collection name in the format '<namespace>.<name>'. |
+| path            | The destination directory for the collection project.   |
 
 #### Optional Arguments
 
-| Parameter                 | Description                                                                                                                                                                          |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| -h, --help                | Show help message and exit.                                                                                                                                                          |
-| --na, --no-ansi           | Disable the use of ANSI codes for terminal color.                                                                                                                                    |
-| --lf, --log-file <file>   | Log file to write to.                                                                                                                                                                |
-| --ll, --log-level <level> | Log level (notset, debug, info, warning, error, critical) for file output.                                                                                                           |
-| --la, --log-append <bool> | Append to log file.                                                                                                                                                                  |
-| --json                    | Output messages as JSON.                                                                                                                                                             |
-| -v, --verbose             | Give more CLI output. Option is additive and can be used up to 3 times.                                                                                                              |
-| --project                 | Project type to scaffold. Valid choices are collection, ansible-project.                                                                                                             |
-| --scm-org                 | The SCM org where the ansible-project will be hosted. This value is used as the namespace for the playbook adjacent collection. Required when `--project=ansible-project`.           |
-| --scm-project             | The SCM project where the ansible-project will be hosted. This value is used as the collection_name for the playbook adjacent collection. Required when `--project=ansible-project`. |
-| --init-path <path>        | The path where the skeleton collection will be scaffolded (default is the current working directory).                                                                                |
-| --force                   | Force re-initialize the specified directory as an Ansible collection.                                                                                                                |
+| Sort flag | Long flag    | Flag argument | Description                                                                                           |
+| --------- | ------------ | ------------- | ----------------------------------------------------------------------------------------------------- |
+| -f        | --force      |               | Force re-initialize the specified directory as an Ansible collection. (default: False)                |
+|           | --json       |               | Output messages as JSON (default: False)                                                              |
+| --la      | --log-append | bool          | Append to log file. (choices: true, false) (default: true)                                            |
+| --lf      | --log-file   | file          | Log file to write to. (default: ./ansible-creator.log)                                                |
+| --ll      | --log-level  | level         | Log level for file output. (choices: notset, debug, info, warning, error, critical) (default: notset) |
+| --na      | --no-ansi    |               | Disable the use of ANSI codes for terminal color. (default: False)                                    |
+| -h        | --help       |               | Show this help message and exit                                                                       |
+| -v        | --verbosity  |               | Give more Cli output. Option is additive, and can be used up to 3 times. (default: 0)                 |
 
 #### Example
 
 ```console
-$ ansible-creator init testns.testname --init-path $HOME/collections/ansible_collections
+$ ansible-creator init collection testns.testname $HOME/collections/ansible_collections
 ```
 
 This command will scaffold the collection `testns.testname` at `/home/ansible-dev/collections/ansible_collections/testns/testname`
 
 #### Generated Ansible Collection Structure
 
-Running the init command generates an Ansible Collection with a comprehensive directory structure. Explore it using:
+Running the `init collection` command generates an Ansible collection project with a comprehensive directory structure. Explore it using:
 
 ```console
 $ tree -lla /home/ansible-dev/collections/ansible_collections/testns/testname
@@ -176,34 +182,58 @@ The scaffolded collection includes a `hello_world` filter plugin, along with a m
 To run the `hello_world` integration test, follow these steps:
 
 - Git initialize the repository containing the scaffolded collection with `git init`.
-- `pip install ansible-core molecule pytest-xdist pytest-ansible`.
+- `pip install ansible-dev-tools`.
 - Invoke `pytest` from collection root.
 
-### Initialize Ansible Project
+### Initialize Ansible playbook project
 
-The `init` command along with parameters `--project`, `--scm-org` and `--scm-project` enables you to initialize an Ansible Project to create a foundational structure for the project. Use the following command template:
-
-#### Example
+The `init playbook` command enables you to initialize an Ansible playbook project. Use the following command template:
 
 ```console
-$ ansible-creator init --project=ansible-project --scm-org=weather --scm-project=demo --init-path $HOME/path/to/scaffold/your/new_ansible_project
+$ ansible-creator init playbook <collection-name> <path>
 ```
 
-This command will scaffold the ansible-project `new_ansible_project` at `/home/user/path/to/your/new_ansible_project`
+#### Positional Arguments
 
-#### Generated Ansible Project Structure
+| Parameter       | Description                                                                       |
+| --------------- | --------------------------------------------------------------------------------- |
+| collection-name | The name for the playbook adjacent collection in the format '<namespace>.<name>'. |
+| path            | The destination directory for the playbook project.                               |
 
-Running the init command with parameters `--project`, `--scm-org` and `--scm-project` generates an Ansible Project with a comprehensive directory structure. Explore it using:
+#### Optional Arguments
+
+| Sort flag | Long flag    | Flag argument | Description                                                                                           |
+| --------- | ------------ | ------------- | ----------------------------------------------------------------------------------------------------- |
+| -f        | --force      |               | Force re-initialize the specified directory as an Ansible collection. (default: False)                |
+|           | --json       |               | Output messages as JSON (default: False)                                                              |
+| --la      | --log-append | bool          | Append to log file. (choices: true, false) (default: true)                                            |
+| --lf      | --log-file   | file          | Log file to write to. (default: ./ansible-creator.log)                                                |
+| --ll      | --log-level  | level         | Log level for file output. (choices: notset, debug, info, warning, error, critical) (default: notset) |
+| --na      | --no-ansi    |               | Disable the use of ANSI codes for terminal color. (default: False)                                    |
+| -h        | --help       |               | Show this help message and exit                                                                       |
+| -v        | --verbosity  |               | Give more Cli output. Option is additive, and can be used up to 3 times. (default: 0)                 |
+
+Example:
 
 ```console
-$ tree -la /home/user/path/to/your/new_ansible_project
+$ ansible-creator init playbook myorg.myproject $HOME/ansible-projects/playbook-project
+```
+
+This command will scaffold the new Ansible playbook project at `/home/user/ansible-projects/playbook-project`.
+
+#### Generated Ansible playbook project Structure
+
+Running the `init playbook` command generates an Ansible playbook project with a comprehensive directory structure. Explore it using:
+
+```console
+$ tree -la /home/user/ansible-projects/playbook-project
 .
 ├── ansible.cfg
 ├── ansible-navigator.yml
 ├── collections
 │   ├── ansible_collections
-│   │   └── weather
-│   │       └── demo
+│   │   └── myorg
+│   │       └── myproject
 │   │           ├── README.md
 │   │           └── roles
 │   │               └── run

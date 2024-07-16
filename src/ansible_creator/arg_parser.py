@@ -150,6 +150,7 @@ class Parser:
 
         parser.add_argument(
             "-v",
+            "--verbosity",
             dest="verbose",
             action="count",
             default=0,
@@ -163,12 +164,12 @@ class Parser:
             parser: The parser to add common init arguments to
         """
         parser.add_argument(
-            "--f",
+            "-f",
             "--force",
             default=False,
             dest="force",
             action="store_true",
-            help="Force re-initialize the specified directory as an Ansible collection.",
+            help="Force re-initialize the specified directory.",
         )
 
     def _add_args_plugin_common(self, parser: ArgumentParser) -> None:
