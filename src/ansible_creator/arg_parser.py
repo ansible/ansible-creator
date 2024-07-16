@@ -373,7 +373,7 @@ class Parser:
         )
         parser.add_argument(
             "collection",
-            help="The collection name in the format '<namespace>.<collection>'.",
+            help="The collection name in the format '<namespace>.<name>'.",
             metavar="collection-name",
             type=self._valid_collection_name,
         )
@@ -404,7 +404,7 @@ class Parser:
         parser.add_argument(
             "collection",
             help="The name for the playbook adjacent collection in the format"
-            " '<namespace>.<collection>'.",
+            " '<namespace>.<name>'.",
             metavar="collection-name",
             type=self._valid_collection_name,
         )
@@ -430,16 +430,21 @@ class Parser:
             The validated collection name
         """
         fqcn = collection.split(".", maxsplit=1)
+        if len(fqcn) != 2:
+            msg = "Collection name must be in the format '<namespace>.<name>'."
+            self.pending_logs.append(Msg(prefix=Level.CRITICAL, message=msg))
+            return collection
+
         name_filter = re.compile(r"^(?!_)[a-z0-9_]+$")
 
-        if not name_filter.match(fqcn[0]) or not name_filter.match(fqcn[-1]):
+        if not name_filter.match(fqcn[0]) or not name_filter.match(fqcn[1]):
             msg = (
                 "Collection name can only contain lower case letters, underscores, and numbers"
                 " and cannot begin with an underscore."
             )
             self.pending_logs.append(Msg(prefix=Level.CRITICAL, message=msg))
 
-        if len(fqcn[0]) <= MIN_COLLECTION_NAME_LEN or len(fqcn[-1]) <= MIN_COLLECTION_NAME_LEN:
+        if len(fqcn[0]) <= MIN_COLLECTION_NAME_LEN or len(fqcn[1]) <= MIN_COLLECTION_NAME_LEN:
             msg = "Both the collection namespace and name must be longer than 2 characters."
             self.pending_logs.append(Msg(prefix=Level.CRITICAL, message=msg))
         return collection
