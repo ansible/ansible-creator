@@ -544,11 +544,7 @@ class ArgumentParser(argparse.ArgumentParser):
 
 
 if TYPE_CHECKING:
-    SubParser: TypeAlias = (
-        argparse._SubParsersAction[  # pylint: disable=unsubscriptable-object, # noqa: SLF001
-            ArgumentParser
-        ]
-    )
+    SubParser: TypeAlias = argparse._SubParsersAction[ArgumentParser]  # noqa: SLF001
 
 
 class CustomHelpFormatter(HelpFormatter):
