@@ -1,3 +1,4 @@
+# PYTHON_ARGCOMPLETE_OK
 """The ansible-creator Cli."""
 
 from __future__ import annotations
