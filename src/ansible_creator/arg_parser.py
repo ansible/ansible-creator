@@ -34,6 +34,15 @@ except ImportError:  # pragma: no cover
 
 MIN_COLLECTION_NAME_LEN = 2
 
+COMING_SOON = (
+    "add resource devcontainer",
+    "add resource devfile",
+    "add resource role",
+    "add plugin action",
+    "add plugin filter",
+    "add plugin lookup",
+)
+
 
 class Parser:
     """A parser for the command line arguments."""
@@ -78,6 +87,21 @@ class Parser:
         if HAS_ARGCOMPLETE:
             argcomplete.autocomplete(parser)
         self.args = parser.parse_args()
+
+        combinations = (
+            ("subcommand", "type", "resource_type"),
+            ("subcommand", "type", "plugin_type"),
+            ("subcommand", "project"),
+        )
+        for combination in combinations:
+            with contextlib.suppress(AttributeError):
+                name = " ".join(getattr(self.args, part) for part in combination)
+
+        if name in COMING_SOON:
+            msg = f"The `{name}` command is coming soon. Please try in the next release."
+            self.pending_logs.append(Msg(prefix=Level.HINT, message=msg))
+            self.pending_logs.append(Msg(prefix=Level.CRITICAL, message="Goodbye."))
+            return self.args, self.pending_logs
 
         # The internal still reference the old project name
         if self.args.project == "playbook":
@@ -237,7 +261,6 @@ class Parser:
             "path",
             default="./",
             metavar="path",
-            nargs="?",
             help="The destination directory for the devcontainer files. The default is the "
             "current working directory.",
         )
