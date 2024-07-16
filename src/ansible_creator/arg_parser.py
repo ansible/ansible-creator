@@ -430,7 +430,8 @@ class Parser:
             The validated collection name
         """
         fqcn = collection.split(".", maxsplit=1)
-        if len(fqcn) != 2:
+        expected_parts = 2
+        if len(fqcn) != expected_parts:
             msg = "Collection name must be in the format '<namespace>.<name>'."
             self.pending_logs.append(Msg(prefix=Level.CRITICAL, message=msg))
             return collection
