@@ -42,7 +42,6 @@ class Parser:
         """Initialize the parser."""
         self.args: argparse.Namespace
         self.pending_logs: list[Msg] = []
-        self.deprecated_flags_used: bool = False
 
     def parse_args(self: Parser) -> tuple[argparse.Namespace, list[Msg]]:
         """Parse the root arguments.
@@ -54,7 +53,9 @@ class Parser:
         not_empty = sys.argv[2:] != []
         not_help = not any(arg in sys.argv for arg in ["-h", "--help"])
         if all((is_init, not_empty, not_help)):
-            self.handle_deprecations()
+            proceed = self.handle_deprecations()
+            if not proceed:
+                return argparse.Namespace(), self.pending_logs
 
         parser = ArgumentParser(
             description="The fastest way to generate all your ansible content.",
@@ -446,11 +447,11 @@ class Parser:
             self.pending_logs.append(Msg(prefix=Level.CRITICAL, message=msg))
         return collection
 
-    def handle_deprecations(self: Parser) -> None:
+    def handle_deprecations(self: Parser) -> bool:
         """Start parsing args passed from Cli.
 
         Returns:
-            The parsed arguments.
+            True if parsing can procedd, False otherwise
         """
         parser = argparse.ArgumentParser()
         parser.add_argument("command", help="")
@@ -465,7 +466,7 @@ class Parser:
             msg = "The `project` flag is no longer needed and will be removed."
             self.pending_logs.append(Msg(prefix=Level.WARNING, message=msg))
         if not args.project:
-            msg = "The default value for project type will be removed."
+            msg = "The default value `collection` for project type will be removed."
             self.pending_logs.append(Msg(prefix=Level.WARNING, message=msg))
             args.project = "collection"
         if args.scm_org:
@@ -477,23 +478,30 @@ class Parser:
         if args.init_path:
             msg = "The `init-path` flag is no longer needed and will be removed."
             self.pending_logs.append(Msg(prefix=Level.WARNING, message=msg))
+
+        exit_msg = "The CLI has changed. Please refer to `--help` for the new syntax."
         if args.project == "ansible-project":
             args.project = "playbook"
             if not args.scm_org or not args.scm_project:
-                return
+                self.pending_logs.append(Msg(prefix=Level.CRITICAL, message=exit_msg))
+                return False
+            msg = "The `ansible-project` project type is deprecated. Please use `playbook`."
+            self.pending_logs.append(Msg(prefix=Level.WARNING, message=msg))
             args.collection = f"{args.scm_org}.{args.scm_project}"
         if args.project == "collection" and not args.collection:
-            return
+            self.pending_logs.append(Msg(prefix=Level.CRITICAL, message=exit_msg))
+            return False
         # ansible-creator init collection, ansible-creator init playbook
         if args.collection in ["playbook", "collection"]:
-            return
-
-        base_cli = [args.command[0], args.command, args.project, args.collection]
+            return True
+        base_cli = ["ansible-creator", args.command, args.project, args.collection]
+        if args.init_path:
+            base_cli.append(args.init_path)
         new_cli = base_cli + extras
-        hint = f"Please use the following command in the future: {' '.join(new_cli)}"
+        hint = f"Please use the following command in the future: `{' '.join(new_cli)}`"
         self.pending_logs.append(Msg(prefix=Level.HINT, message=hint))
-
         sys.argv = new_cli
+        return True
 
 
 class ArgumentParser(argparse.ArgumentParser):

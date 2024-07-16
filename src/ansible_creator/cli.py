@@ -34,8 +34,11 @@ class Cli:
         self.parse_args()
 
     def init_output(self: Cli) -> None:
-        """Initialize the output object."""
-        no_ansi = self.args.pop("no_ansi")
+        """Initialize the output object.
+
+        In case the arg parsing exited early, set some sane default values.
+        """
+        no_ansi = self.args.pop("no_ansi", False)
         if not sys.stdout.isatty():
             self.term_features = TermFeatures(color=False, links=False)
         else:
@@ -45,12 +48,12 @@ class Cli:
             )
 
         self.output = Output(
-            log_append=self.args.pop("log_append"),
-            log_file=str(expand_path(self.args.pop("log_file"))),
-            log_level=self.args.pop("log_level"),
+            log_append=self.args.pop("log_append", False),
+            log_file=str(expand_path(self.args.pop("log_file", "./ansible-creator.log"))),
+            log_level=self.args.pop("log_level", "info"),
             term_features=self.term_features,
-            verbosity=self.args.pop("verbose"),
-            display="json" if self.args.pop("json") else "text",
+            verbosity=self.args.pop("verbose", 0),
+            display="json" if self.args.pop("json", None) else "text",
         )
 
     def parse_args(self: Cli) -> None:
