@@ -5,6 +5,7 @@ argvalues
 capsys
 chakarborty
 conftest
+delenv
 devcontainer
 devfile
 docsite
