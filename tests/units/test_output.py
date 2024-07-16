@@ -18,6 +18,6 @@ def test_console_width(width: int, expected: int, monkeypatch: pytest.MonkeyPatc
 
     monkeypatch.setattr("shutil.get_terminal_size", mock_get_terminal_size)
 
-    monkeypatch.delenv("COLUMNS")
+    monkeypatch.delenv("COLUMNS", raising=False)
 
     assert console_width() == expected
