@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import runpy
 import sys
 
 from pathlib import Path
@@ -345,3 +346,79 @@ def test_collection_name_invalid(
         " and numbers and cannot begin with an underscore."
     )
     assert any(msg in log.message for log in cli.pending_logs)
+
+
+def test_is_a_tty(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test is a tty.
+
+    Args:
+        monkeypatch: Pytest monkeypatch fixture.
+    """
+    sysargs = [
+        "ansible-creator",
+        "init",
+        "testorg.testcol",
+        "/home/ansible",
+    ]
+
+    monkeypatch.setattr("sys.argv", sysargs)
+    monkeypatch.setattr("sys.stdout.isatty", lambda: True)
+
+    cli = Cli()
+    cli.init_output()
+    assert cli.output.term_features.color is True
+    assert cli.output.term_features.links is True
+    assert cli.output.term_features.any_enabled() is True
+
+
+def test_not_a_tty(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test not a tty.
+
+    Args:
+        monkeypatch: Pytest monkeypatch fixture.
+    """
+    sysargs = [
+        "ansible-creator",
+        "init",
+        "testorg.testcol",
+        "/home/ansible",
+    ]
+
+    monkeypatch.setattr("sys.argv", sysargs)
+    monkeypatch.setattr("sys.stdout.isatty", lambda: False)
+
+    cli = Cli()
+    cli.init_output()
+    assert cli.output.term_features.color is False
+    assert cli.output.term_features.links is False
+    assert cli.output.term_features.any_enabled() is False
+
+
+def test_main(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture) -> None:
+    """Test cli main.
+
+    Args:
+        monkeypatch: Pytest monkeypatch fixture.
+        capsys: Pytest capsys fixture.
+    """
+    monkeypatch.setattr("sys.argv", ["ansible-creator", "--help"])
+
+    with pytest.raises(SystemExit):
+        runpy.run_module("ansible_creator.cli", run_name="__main__")
+    stdout, stderr = capsys.readouterr()
+    assert "The fastest way" in stdout
+
+
+def test_proj_main(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture) -> None:
+    """Test project main.
+
+    Args:
+        monkeypatch: Pytest monkeypatch fixture.
+        capsys: Pytest capsys fixture.
+    """
+    monkeypatch.setattr("sys.argv", ["ansible-creator", "--help"])
+
+    with pytest.raises(SystemExit):
+        runpy.run_module("ansible_creator", run_name="__main__")
+    stdout, stderr = capsys.readouterr()
+    assert "The fastest way" in stdout

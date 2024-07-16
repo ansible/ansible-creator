@@ -7,6 +7,7 @@ import os
 import sys
 
 from importlib import import_module
+from typing import Any
 
 from ansible_creator.arg_parser import Parser
 from ansible_creator.config import Config
@@ -16,10 +17,8 @@ from ansible_creator.utils import TermFeatures, expand_path
 
 
 try:
-    from typing import Any
-
     from ._version import version as __version__
-except ImportError:
+except ImportError:  # pragma: no cover
     __version__ = "source"
 
 

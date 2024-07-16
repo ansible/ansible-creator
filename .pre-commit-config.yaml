@@ -95,6 +95,7 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies:
+          - argcomplete
           - jinja2
           - pytest
           - types-pyyaml

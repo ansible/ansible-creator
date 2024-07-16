@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
 import re
 import sys
 
@@ -20,10 +21,10 @@ if TYPE_CHECKING:
 
 
 try:
-    import argcomplete  # type: ignore[import-not-found]
+    import argcomplete
 
     HAS_ARGCOMPLETE = True
-except ImportError:
+except ImportError:  # pragma: no cover
     HAS_ARGCOMPLETE = False
 
 try:
@@ -75,7 +76,11 @@ class Parser:
         # The internal still reference the old project name
         if self.args.project == "playbook":
             self.args.project = "ansible-project"
-            self.args.scm_org, self.args.scm_project = self.args.collection.split(".", maxsplit=1)
+            with contextlib.suppress(ValueError):
+                self.args.scm_org, self.args.scm_project = self.args.collection.split(
+                    ".",
+                    maxsplit=1,
+                )
             self.args.collection = None
 
         return self.args, self.pending_logs
@@ -445,6 +450,7 @@ class Parser:
                 " and cannot begin with an underscore."
             )
             self.pending_logs.append(Msg(prefix=Level.CRITICAL, message=msg))
+            return collection
 
         if len(fqcn[0]) <= MIN_COLLECTION_NAME_LEN or len(fqcn[1]) <= MIN_COLLECTION_NAME_LEN:
             msg = "Both the collection namespace and name must be longer than 2 characters."

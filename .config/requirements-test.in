@@ -1,3 +1,4 @@
+argcomplete
 black
 coverage[toml]
 mypy

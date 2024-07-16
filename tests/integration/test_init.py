@@ -10,6 +10,8 @@ from pathlib import Path
 from subprocess import CalledProcessError, CompletedProcess
 from typing import Any
 
+import pytest
+
 
 cli_type = Callable[[Any], CompletedProcess[str] | CalledProcessError]
 
@@ -55,6 +57,49 @@ def test_run_init_no_input(cli: cli_type) -> None:
     assert result.returncode != 0
     err = "the following arguments are required: project-type"
     assert err in result.stderr
+
+
+@pytest.mark.parametrize(
+    argnames="command",
+    argvalues=["init --project ansible-project", "init --init-path /tmp"],
+    ids=["project_no_scm", "collection_no_name"],
+)
+def test_run_deprecated_failure(command: str, cli: cli_type) -> None:
+    """Test running ansible-creator init with deprecated options.
+
+    Args:
+        command: Command to run.
+        cli: cli_run function.
+    """
+    result = cli(f"{CREATOR_BIN} {command}")
+    assert result.returncode != 0
+    assert "is no longer needed and will be removed." in result.stdout
+    assert "The CLI has changed." in result.stderr
+
+
+@pytest.mark.parametrize(
+    argnames=("args", "expected"),
+    argvalues=(
+        ("a.b", "must be longer than 2 characters."),
+        ("_a.b", "cannot begin with an underscore."),
+        ("foo", "must be in the format '<namespace>.<name>'."),
+    ),
+    ids=("short", "underscore", "no_dot"),
+)
+@pytest.mark.parametrize("command", ("collection", "playbook"))
+def test_run_init_invalid_name(command: str, args: str, expected: str, cli: cli_type) -> None:
+    """Test running ansible-creator init with invalid collection name.
+
+    Args:
+        command: Command to run.
+        args: Arguments to pass to the CLI.
+        expected: Expected error message.
+        cli: cli_run function.
+    """
+    result = cli(f"{CREATOR_BIN} init {command} {args}")
+    assert result.returncode != 0
+    assert result.stderr.startswith("Critical:")
+    assert expected in result.stderr
 
 
 def test_run_init_basic(cli: cli_type, tmp_path: Path) -> None:
