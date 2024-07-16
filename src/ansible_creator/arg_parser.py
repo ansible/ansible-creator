@@ -49,7 +49,7 @@ class Parser:
         Returns:
             The parsed arguments and any pending logs
         """
-        is_init = sys.argv[1] == "init"
+        is_init = sys.argv[1:2] == ["init"]
         not_empty = sys.argv[2:] != []
         not_help = not any(arg in sys.argv for arg in ["-h", "--help"])
         if all((is_init, not_empty, not_help)):
@@ -74,13 +74,13 @@ class Parser:
         self.args = parser.parse_args()
 
         # Some cleanup for unused arguments
-        try:
-            del self.args.deprecated_project
-            del self.args.deprecated_init_path
-            del self.args.deprecated_scm_org
-            del self.args.deprecated_scm_project
-        except AttributeError:
-            pass
+        # try:
+        #     del self.args.deprecated_project
+        #     del self.args.deprecated_init_path
+        #     del self.args.deprecated_scm_org
+        #     del self.args.deprecated_scm_project
+        # except AttributeError:
+        #     pass
 
         # The internal still reference the old project name
         if self.args.project == "playbook":
@@ -91,11 +91,15 @@ class Parser:
         return self.args, self.pending_logs
 
     def _add(self: Parser, subparser: argparse._SubParsersAction) -> None:
-        """Add resources to an existing Ansible project."""
+        """Add resources to an existing Ansible project.
+
+        Args:
+            subparser: The subparser to add the resources to
+        """
         parser = subparser.add_parser(
             "add",
             formatter_class=CustomHelpFormatter,
-            help="Add resources to an exisiting Ansible project.",
+            help="Add resources to an existing Ansible project.",
         )
         subparser = parser.add_subparsers(
             dest="type",
@@ -109,7 +113,7 @@ class Parser:
         """Add common arguments to the parser.
 
         Args:
-            parser: The parser to add the arguments to
+            parser: The parser to add common arguments to
         """
         parser.add_argument(
             "--na",
@@ -166,7 +170,7 @@ class Parser:
         """Add common init arguments to the parser.
 
         Args:
-            parser: The parser to add the arguments to
+            parser: The parser to add common init arguments to
         """
         parser.add_argument(
             "--f",
@@ -181,7 +185,7 @@ class Parser:
         """Add common plugin arguments to the parser.
 
         Args:
-            parser: The parser to add the arguments to
+            parser: The parser to add common plugin arguments to
         """
         parser.add_argument(
             "plugin_name",
@@ -195,7 +199,11 @@ class Parser:
         )
 
     def _add_resource(self: Parser, subparser: argparse._SubParsersAction) -> None:
-        """Add resources to an existing Ansible project."""
+        """Add resources to an existing Ansible project.
+
+        Args:
+            subparser: The subparser to add resource to
+        """
         parser = subparser.add_parser(
             "resource",
             help="Add resources to an existing Ansible project.",
@@ -212,7 +220,11 @@ class Parser:
         self._add_resource_role(subparser=subparser)
 
     def _add_resource_devcontainer(self: Parser, subparser: argparse._SubParsersAction) -> None:
-        """Add devcontainer files to an existing Ansible project."""
+        """Add devcontainer files to an existing Ansible project.
+
+        Args:
+            subparser: The subparser to add devcontainer files to
+        """
         parser = subparser.add_parser(
             "devcontainer",
             help="Add devcontainer files to an existing Ansible project.",
@@ -231,7 +243,11 @@ class Parser:
         self._add_args_common(parser)
 
     def _add_resource_devfile(self: Parser, subparser: argparse._SubParsersAction) -> None:
-        """Add a devfile file to an existing Ansible project."""
+        """Add a devfile file to an existing Ansible project.
+
+        Args:
+            subparser: The subparser to add devfile file to
+        """
         parser = subparser.add_parser(
             "devfile",
             help="Add a devfile file to an existing Ansible project.",
@@ -247,7 +263,11 @@ class Parser:
         self._add_args_common(parser)
 
     def _add_resource_role(self: Parser, subparser: argparse._SubParsersAction) -> None:
-        """Add a role to an existing Ansible collection."""
+        """Add a role to an existing Ansible collection.
+
+        Args:
+            subparser: The subparser to add role to
+        """
         parser = subparser.add_parser(
             "role",
             help="Add a role to an existing Ansible collection.",
@@ -267,7 +287,11 @@ class Parser:
         self._add_args_common(parser)
 
     def _add_plugin(self: Parser, subparser: argparse._SubParsersAction) -> None:
-        """Add a plugin to an Ansible project."""
+        """Add a plugin to an Ansible project.
+
+        Args:
+            subparser: The subparser to add plugin to
+        """
         parser = subparser.add_parser(
             "plugin",
             help="Add a plugin to an Ansible collection",
@@ -285,7 +309,11 @@ class Parser:
         self._add_plugin_lookup(subparser=subparser)
 
     def _add_plugin_action(self: Parser, subparser: argparse._SubParsersAction) -> None:
-        """Add an action plugin to an existing Ansible collection project."""
+        """Add an action plugin to an existing Ansible collection project.
+
+        Args:
+            subparser: The subparser to add action plugin to
+        """
         parser = subparser.add_parser(
             "action",
             help="Add an action plugin to an existing Ansible collection.",
@@ -295,7 +323,11 @@ class Parser:
         self._add_args_plugin_common(parser)
 
     def _add_plugin_filter(self: Parser, subparser: argparse._SubParsersAction) -> None:
-        """Add a filter plugin to an existing Ansible collection project."""
+        """Add a filter plugin to an existing Ansible collection project.
+
+        Args:
+            subparser: The subparser to add filter plugin to
+        """
         parser = subparser.add_parser(
             "filter",
             help="Add a filter plugin to an existing Ansible collection.",
@@ -305,7 +337,11 @@ class Parser:
         self._add_args_plugin_common(parser)
 
     def _add_plugin_lookup(self: Parser, subparser: argparse._SubParsersAction) -> None:
-        """Add a lookup plugin to an existing Ansible collection project."""
+        """Add a lookup plugin to an existing Ansible collection project.
+
+        Args:
+            subparser: The subparser to add lookup plugin to
+        """
         parser = subparser.add_parser(
             "lookup",
             help="Add a lookup plugin to an existing Ansible collection.",
@@ -315,21 +351,25 @@ class Parser:
         self._add_args_plugin_common(parser)
 
     def _init(self: Parser, subparser: argparse._SubParsersAction) -> None:
-        """Initialize an Ansible project."""
+        """Initialize an Ansible project.
+
+        Args:
+            subparser: The subparser add init to
+        """
         parser = subparser.add_parser(
             "init",
             formatter_class=CustomHelpFormatter,
             help="Initialize a new Ansible project.",
         )
-        parser.add_argument(
-            "--p",
-            "--project",
-            choices=["ansible-project", "collection"],
-            dest="deprecated_project",
-            default="collection",
-            help="(deprecated) Project type to scaffold."
-            " Valid choices are collection, ansible-project.",
-        )
+        # parser.add_argument(
+        #     "--p",
+        #     "--project",
+        #     choices=["ansible-project", "collection"],
+        #     dest="deprecated_project",
+        #     default="collection",
+        #     help="(deprecated) Project type to scaffold."
+        #     " Valid choices are collection, ansible-project.",
+        # )
         subparser = parser.add_subparsers(
             dest="project",
             metavar="project-type",
@@ -343,23 +383,24 @@ class Parser:
         """Initialize an Ansible collection.
 
         Args:
-            subparser: The subparser to add the collection to
+            subparser: The subparser to add collection to
         """
         parser = subparser.add_parser(
             "collection",
             help="Create a new Ansible collection project.",
             formatter_class=CustomHelpFormatter,
         )
-        parser.add_argument(
-            "--init-path",
-            default="./",
-            dest="deprecated_init_path",
-            help="(deprecated) The path in which the skeleton collection will be created."
-            " The default is the current working directory.",
-        )
+        # parser.add_argument(
+        #     "--init-path",
+        #     default="./",
+        #     dest="deprecated_init_path",
+        #     help="(deprecated) The path in which the skeleton collection will be created."
+        #     " The default is the current working directory.",
+        # )
         parser.add_argument(
             "collection",
             help="The collection name in the format '<namespace>.<collection>'.",
+            metavar="collection-name",
             type=self._valid_collection_name,
         )
         parser.add_argument(
@@ -375,40 +416,45 @@ class Parser:
         self._add_args_init_common(parser)
 
     def _init_playbook(self: Parser, subparser: argparse._SubParsersAction) -> None:
-        """Initialize an Ansible playbook."""
+        """Initialize an Ansible playbook.
+
+        Args:
+            subparser: The subparser to add playbook to
+        """
         parser = subparser.add_parser(
             "playbook",
             help="Create a new Ansible playbook project.",
             formatter_class=CustomHelpFormatter,
         )
-        parser.add_argument(
-            "--init-path",
-            default="./",
-            dest="deprecated_init_path",
-            help="(deprecated) The path in which the skeleton collection will be created."
-            " The default is the current working directory.",
-        )
-        parser.add_argument(
-            "--scm-org",
-            dest="deprecated_scm_org",
-            help=(
-                "(deprecated) The SCM org where the ansible-project will be hosted."
-                " This value is used as the namespace for the playbook adjacent collection."
-            ),
-        )
-        parser.add_argument(
-            "--scm-project",
-            dest="deprecated_scm_project",
-            help=(
-                "(deprecated) The SCM project where the ansible-project will be hosted."
-                "This value is used as the collection_name for the playbook adjacent collection."
-                " Required when `--project=ansible-project`."
-            ),
-        )
+        # parser.add_argument(
+        #     "--init-path",
+        #     default="./",
+        #     dest="deprecated_init_path",
+        #     help="(deprecated) The path in which the skeleton collection will be created."
+        #     " The default is the current working directory.",
+        # )
+        # parser.add_argument(
+        #     "--scm-org",
+        #     dest="deprecated_scm_org",
+        #     help=(
+        #         "(deprecated) The SCM org where the ansible-project will be hosted."
+        #         " This value is used as the namespace for the playbook adjacent collection."
+        #     ),
+        # )
+        # parser.add_argument(
+        #     "--scm-project",
+        #     dest="deprecated_scm_project",
+        #     help=(
+        #         "(deprecated) The SCM project where the ansible-project will be hosted."
+        #         "This value is used as the collection_name for the playbook adjacent collection."
+        #         " Required when `--project=ansible-project`."
+        #     ),
+        # )
         parser.add_argument(
             "collection",
             help="The name for the playbook adjacent collection in the format"
-            "'<namespace>.<collection>'.",
+            " '<namespace>.<collection>'.",
+            metavar="collection-name",
             type=self._valid_collection_name,
         )
 
@@ -447,7 +493,7 @@ class Parser:
             self.pending_logs.append(Msg(prefix=Level.CRITICAL, message=msg))
         return collection
 
-    def handle_deprecations(self: Parser) -> bool:
+    def handle_deprecations(self: Parser) -> bool:  # noqa: C901
         """Start parsing args passed from Cli.
 
         Returns:
@@ -462,6 +508,8 @@ class Parser:
         parser.add_argument("--init-path", help="")
         args, extras = parser.parse_known_args()
 
+        if args.collection in ["playbook", "collection"]:
+            return True
         if args.project:
             msg = "The `project` flag is no longer needed and will be removed."
             self.pending_logs.append(Msg(prefix=Level.WARNING, message=msg))
@@ -492,8 +540,7 @@ class Parser:
             self.pending_logs.append(Msg(prefix=Level.CRITICAL, message=exit_msg))
             return False
         # ansible-creator init collection, ansible-creator init playbook
-        if args.collection in ["playbook", "collection"]:
-            return True
+
         base_cli = ["ansible-creator", args.command, args.project, args.collection]
         if args.init_path:
             base_cli.append(args.init_path)

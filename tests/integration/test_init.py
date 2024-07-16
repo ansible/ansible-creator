@@ -27,9 +27,11 @@ def test_run_help(cli: cli_type) -> None:
     assert result.returncode == 0, (result.stdout, result.stderr)
 
     assert "The fastest way to generate all your ansible content." in result.stdout
-    assert "Commands:" in result.stdout
+    assert "Positional arguments:" in result.stdout
+    assert "add" in result.stdout
+    assert "Add resources to an existing Ansible project." in result.stdout
     assert "init" in result.stdout
-    assert "Create a new Ansible project" in result.stdout
+    assert "Initialize a new Ansible project." in result.stdout
 
 
 def test_run_no_subcommand(cli: cli_type) -> None:
@@ -40,7 +42,7 @@ def test_run_no_subcommand(cli: cli_type) -> None:
     """
     result = cli(str(CREATOR_BIN))
     assert result.returncode != 0
-    assert "Create a new Ansible project." in result.stdout
+    assert "the following arguments are required: command" in result.stderr
 
 
 def test_run_init_no_input(cli: cli_type) -> None:
@@ -51,9 +53,8 @@ def test_run_init_no_input(cli: cli_type) -> None:
     """
     result = cli(f"{CREATOR_BIN} init")
     assert result.returncode != 0
-    assert "Project types" in result.stdout
-    assert "Create a new Ansible collection project." in result.stdout
-    assert "Create a new Ansible playbook project." in result.stdout
+    err = "the following arguments are required: project-type"
+    assert err in result.stderr
 
 
 def test_run_init_basic(cli: cli_type, tmp_path: Path) -> None:
