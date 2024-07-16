@@ -409,7 +409,7 @@ def test_main(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str
     assert "The fastest way" in stdout
 
 
-def test_proj_main(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture) -> None:
+def test_proj_main(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
     """Test project main.
 
     Args:
