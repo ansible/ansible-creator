@@ -292,3 +292,56 @@ def test_cli_main(
     result = capsys.readouterr().out
     # check stdout
     assert re.search("collection testns.testcol created", result) is not None
+
+
+@pytest.mark.parametrize(argnames=["project"], argvalues=[["collection"], ["playbook"]])
+def test_collection_name_short(
+    project: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test invalid collection name.
+
+    Args:
+        project: The project type.
+        monkeypatch: Pytest monkeypatch fixture.
+    """
+    sysargs = [
+        "ansible-creator",
+        "init",
+        project,
+        "a.b",
+    ]
+    monkeypatch.setattr("sys.argv", sysargs)
+
+    cli = Cli()
+
+    msg = "Both the collection namespace and name must be longer than 2 characters."
+    assert any(msg in log.message for log in cli.pending_logs)
+
+
+@pytest.mark.parametrize(argnames=["project"], argvalues=[["collection"], ["playbook"]])
+def test_collection_name_invalid(
+    project: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test invalid collection name.
+
+    Args:
+        project: The project type.
+        monkeypatch: Pytest monkeypatch fixture.
+    """
+    sysargs = [
+        "ansible-creator",
+        "init",
+        project,
+        "$____.^____",
+    ]
+    monkeypatch.setattr("sys.argv", sysargs)
+
+    cli = Cli()
+
+    msg = (
+        "Collection name can only contain lower case letters, underscores,"
+        " and numbers and cannot begin with an underscore."
+    )
+    assert any(msg in log.message for log in cli.pending_logs)

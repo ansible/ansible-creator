@@ -7,7 +7,7 @@ import sys
 
 from importlib import import_module
 
-from ansible_creator.arg_parser import RootParser
+from ansible_creator.arg_parser import Parser
 from ansible_creator.config import Config
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.output import Msg, Output
@@ -55,7 +55,7 @@ class Cli:
 
     def parse_args(self: Cli) -> None:
         """Start parsing args passed from Cli."""
-        args, pending_logs = RootParser().parse_args()
+        args, pending_logs = Parser().parse_args()
         self.args = vars(args)
         self.pending_logs = pending_logs
 
