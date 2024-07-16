@@ -394,7 +394,7 @@ def test_not_a_tty(monkeypatch: pytest.MonkeyPatch) -> None:
     assert cli.output.term_features.any_enabled() is False
 
 
-def test_main(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture) -> None:
+def test_main(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
     """Test cli main.
 
     Args:
