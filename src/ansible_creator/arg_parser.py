@@ -236,9 +236,8 @@ class Parser:
             formatter_class=CustomHelpFormatter,
         )
         subparser = parser.add_subparsers(
-            title="Resource type",
             dest="resource_type",
-            metavar="",
+            metavar="resource-type",
             required=True,
         )
         self._add_resource_devcontainer(subparser=subparser)
@@ -323,9 +322,8 @@ class Parser:
             formatter_class=CustomHelpFormatter,
         )
         subparser = parser.add_subparsers(
-            title="Plugin type",
             dest="plugin_type",
-            metavar="resource",
+            metavar="plugin-type",
             required=True,
         )
 
