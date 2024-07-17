@@ -5,6 +5,7 @@ argvalues
 capsys
 chakarborty
 conftest
+delenv
 devcontainer
 devfile
 docsite
@@ -18,6 +19,8 @@ kubedock
 levelname
 libera
 maxsplit
+myproject
+myorg
 myuser
 netcommon
 nilashish

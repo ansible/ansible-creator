@@ -12,11 +12,7 @@ This documentation serves as a detailed guide for using ansible-creator, emphasi
 
 ## Upcoming Features
 
-The `create` command is currently under development which will allow you scaffold ansible plugins of your choice.
-
-!!! notice
-
-    Switch to the create [create branch](https://github.com/ansible/ansible-creator/tree/create) of the project to try it out!
+The `add` command is currently under development which will allow you scaffold ansible plugins of your choice.
 
 ## Licensing
 

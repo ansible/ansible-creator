@@ -3,13 +3,16 @@
 from __future__ import annotations
 
 import re
+import runpy
 import sys
 
 from pathlib import Path
 
 import pytest
 
+from ansible_creator.arg_parser import COMING_SOON
 from ansible_creator.cli import Cli
+from ansible_creator.cli import main as cli_main
 from ansible_creator.config import Config
 from ansible_creator.output import Output
 from ansible_creator.utils import TermFeatures, expand_path
@@ -52,8 +55,6 @@ def test_configuration_class(output: Output) -> None:
                 "init_path": "./",
                 "force": False,
                 "project": "collection",  # default value
-                "scm_org": None,
-                "scm_project": None,
             },
         ],
         [
@@ -62,6 +63,8 @@ def test_configuration_class(output: Output) -> None:
                 "init",
                 "--project=ansible-project",
                 "--init-path=/home/ansible/my-ansible-project",
+                "--scm-org=weather",
+                "--scm-project=demo",
             ],
             {
                 "subcommand": "init",
@@ -75,8 +78,8 @@ def test_configuration_class(output: Output) -> None:
                 "init_path": "/home/ansible/my-ansible-project",
                 "force": False,
                 "project": "ansible-project",
-                "scm_org": None,
-                "scm_project": None,
+                "scm_org": "weather",
+                "scm_project": "demo",
             },
         ],
         [
@@ -105,8 +108,6 @@ def test_configuration_class(output: Output) -> None:
                 "init_path": "/home/ansible",
                 "force": True,
                 "project": "collection",  # default value
-                "scm_org": None,
-                "scm_project": None,
             },
         ],
         [
@@ -141,6 +142,54 @@ def test_configuration_class(output: Output) -> None:
                 "scm_project": "demo",
             },
         ],
+        [
+            [
+                "ansible-creator",
+                "init",
+                "collection",
+                "foo.bar",
+                "/test/test",
+                "--lf=test.log",
+            ],
+            {
+                "subcommand": "init",
+                "project": "collection",
+                "collection": "foo.bar",
+                "init_path": "/test/test",
+                "force": False,
+                "json": False,
+                "log_append": "true",
+                "log_file": "test.log",
+                "log_level": "notset",
+                "no_ansi": False,
+                "verbose": 0,
+            },
+        ],
+        [
+            [
+                "ansible-creator",
+                "init",
+                "playbook",
+                "foo.bar",
+                "/test/test",
+                "--lf=test.log",
+            ],
+            {
+                "subcommand": "init",
+                "project": "ansible-project",
+                "scm_org": "foo",
+                "scm_project": "bar",
+                "collection": None,
+                "init_path": "/test/test",
+                "force": False,
+                "json": False,
+                "log_append": "true",
+                "log_file": "test.log",
+                "log_level": "notset",
+                "no_ansi": False,
+                "verbose": 0,
+            },
+        ],
     ],
 )
 def test_cli_parser(
@@ -156,7 +205,8 @@ def test_cli_parser(
         expected: Expected values for the parsed CLI arguments.
     """
     monkeypatch.setattr("sys.argv", sysargs)
-    assert vars(Cli().parse_args()) == expected
+    parsed_args = Cli().args
+    assert parsed_args == expected
 
 
 def test_missing_j2(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -245,3 +295,161 @@ def test_cli_main(
     result = capsys.readouterr().out
     # check stdout
     assert re.search("collection testns.testcol created", result) is not None
+
+
+@pytest.mark.parametrize(argnames=["project"], argvalues=[["collection"], ["playbook"]])
+def test_collection_name_short(
+    project: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test invalid collection name.
+
+    Args:
+        project: The project type.
+        monkeypatch: Pytest monkeypatch fixture.
+    """
+    sysargs = [
+        "ansible-creator",
+        "init",
+        project,
+        "a.b",
+    ]
+    monkeypatch.setattr("sys.argv", sysargs)
+
+    cli = Cli()
+
+    msg = "Both the collection namespace and name must be longer than 2 characters."
+    assert any(msg in log.message for log in cli.pending_logs)
+
+
+@pytest.mark.parametrize(argnames=["project"], argvalues=[["collection"], ["playbook"]])
+def test_collection_name_invalid(
+    project: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test invalid collection name.
+
+    Args:
+        project: The project type.
+        monkeypatch: Pytest monkeypatch fixture.
+    """
+    sysargs = [
+        "ansible-creator",
+        "init",
+        project,
+        "$____.^____",
+    ]
+    monkeypatch.setattr("sys.argv", sysargs)
+
+    cli = Cli()
+
+    msg = (
+        "Collection name can only contain lower case letters, underscores,"
+        " and numbers and cannot begin with an underscore."
+    )
+    assert any(msg in log.message for log in cli.pending_logs)
+
+
+def test_is_a_tty(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test is a tty.
+
+    Args:
+        monkeypatch: Pytest monkeypatch fixture.
+    """
+    sysargs = [
+        "ansible-creator",
+        "init",
+        "testorg.testcol",
+        "/home/ansible",
+    ]
+
+    monkeypatch.setattr("sys.argv", sysargs)
+    monkeypatch.setattr("sys.stdout.isatty", lambda: True)
+
+    cli = Cli()
+    cli.init_output()
+    assert cli.output.term_features.color is True
+    assert cli.output.term_features.links is True
+    assert cli.output.term_features.any_enabled() is True
+
+
+def test_not_a_tty(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test not a tty.
+
+    Args:
+        monkeypatch: Pytest monkeypatch fixture.
+    """
+    sysargs = [
+        "ansible-creator",
+        "init",
+        "testorg.testcol",
+        "/home/ansible",
+    ]
+
+    monkeypatch.setattr("sys.argv", sysargs)
+    monkeypatch.setattr("sys.stdout.isatty", lambda: False)
+
+    cli = Cli()
+    cli.init_output()
+    assert cli.output.term_features.color is False
+    assert cli.output.term_features.links is False
+    assert cli.output.term_features.any_enabled() is False
+
+
+def test_main(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    """Test cli main.
+
+    Args:
+        monkeypatch: Pytest monkeypatch fixture.
+        capsys: Pytest capsys fixture.
+    """
+    monkeypatch.setattr("sys.argv", ["ansible-creator", "--help"])
+
+    with pytest.raises(SystemExit):
+        runpy.run_module("ansible_creator.cli", run_name="__main__")
+    stdout, stderr = capsys.readouterr()
+    assert "The fastest way" in stdout
+
+
+def test_proj_main(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    """Test project main.
+
+    Args:
+        monkeypatch: Pytest monkeypatch fixture.
+        capsys: Pytest capsys fixture.
+    """
+    monkeypatch.setattr("sys.argv", ["ansible-creator", "--help"])
+
+    with pytest.raises(SystemExit):
+        runpy.run_module("ansible_creator", run_name="__main__")
+    stdout, stderr = capsys.readouterr()
+    assert "The fastest way" in stdout
+
+
+@pytest.mark.parametrize(argnames="args", argvalues=COMING_SOON, ids=lambda s: s.replace(" ", "_"))
+def test_coming_soon(
+    args: str,
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test coming soon.
+
+    Args:
+        args: The name of the command.
+        capsys: Pytest capsys fixture.
+        monkeypatch: Pytest monkeypatch fixture.
+    """
+    arg_parts = args.split()
+    resource = arg_parts[2]
+    if resource in ("devcontainer", "devfile"):
+        monkeypatch.setattr("sys.argv", ["ansible-creator", *arg_parts, "/foo"])
+    elif resource in ("action", "filter", "lookup", "role"):
+        monkeypatch.setattr("sys.argv", ["ansible-creator", *arg_parts, "name", "/foo"])
+    else:
+        pytest.fail("Fix this test with new COMING_SOON commands")
+
+    with pytest.raises(SystemExit):
+        cli_main()
+    stdout, stderr = capsys.readouterr()
+    assert f"`{args}` command is coming soon" in stdout
+    assert "Goodbye" in stderr
