@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 import subprocess
-
+from pathlib import Path
 from subprocess import CalledProcessError, CompletedProcess
 from typing import TYPE_CHECKING, Any
 
@@ -13,13 +13,12 @@ import pytest
 from ansible_creator.output import Output
 from ansible_creator.utils import TermFeatures
 
-
 if TYPE_CHECKING:
     from collections.abc import Callable
     from pathlib import Path
 
 
-os.environ["HOME"] = "/home/ansible"
+os.environ["HOME"] = str(Path.home())
 os.environ["DEV_WORKSPACE"] = "collections/ansible_collections"
 
 
@@ -51,6 +50,16 @@ def output(tmp_path: Path) -> Output:
         term_features=TermFeatures(color=False, links=False),
         verbosity=0,
     )
+
+
+@pytest.fixture()
+def home_path() -> Path:
+    """Create the home directory as a fixture.
+
+    Returns:
+        Path: Home directory.
+    """
+    return Path.home()
 
 
 def cli_run(args: list[str]) -> CompletedProcess[str] | CalledProcessError:
