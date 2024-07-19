@@ -33,9 +33,8 @@ def test_configuration_class(output: Output) -> None:
     )
     assert app_config.namespace == "testorg"
     assert app_config.collection_name == "testcol"
-    linux_path = Path.home()
-    mac_os_path = Path.home()
-    assert app_config.init_path in [linux_path, mac_os_path]
+    home_path = Path.home()
+    assert app_config.init_path == home_path
 
 
 @pytest.mark.parametrize(
