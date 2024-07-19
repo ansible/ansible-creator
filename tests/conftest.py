@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+
 from pathlib import Path
 from subprocess import CalledProcessError, CompletedProcess
 from typing import TYPE_CHECKING, Any
@@ -12,6 +13,7 @@ import pytest
 
 from ansible_creator.output import Output
 from ansible_creator.utils import TermFeatures
+
 
 if TYPE_CHECKING:
     from collections.abc import Callable
