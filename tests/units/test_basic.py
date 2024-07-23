@@ -5,8 +5,7 @@ from __future__ import annotations
 import re
 import runpy
 import sys
-
-from pathlib import Path
+from pathlib import Path, PosixPath
 
 import pytest
 
@@ -230,12 +229,12 @@ def test_missing_j2(monkeypatch: pytest.MonkeyPatch) -> None:
         ansible_creator.templar.Templar()
 
 
-def test_cli_init_output(monkeypatch: pytest.MonkeyPatch, home_path: Path.home) -> None:
+def test_cli_init_output(monkeypatch: pytest.MonkeyPatch, home_path: PosixPath) -> None:
     """Test CLI init_output method.
 
     Args:
-        home_path: Home directory
         monkeypatch: Pytest monkeypatch fixture.
+        home_path: Home directory.
     """
     sysargs = [
         "ansible-creator",

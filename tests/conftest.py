@@ -17,7 +17,6 @@ from ansible_creator.utils import TermFeatures
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-    from pathlib import Path
 
 
 os.environ["HOME"] = str(Path.home())
