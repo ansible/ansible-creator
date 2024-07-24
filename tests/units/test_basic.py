@@ -6,7 +6,7 @@ import re
 import runpy
 import sys
 
-from pathlib import Path
+from pathlib import Path, PosixPath
 
 import pytest
 
@@ -33,9 +33,8 @@ def test_configuration_class(output: Output) -> None:
     )
     assert app_config.namespace == "testorg"
     assert app_config.collection_name == "testcol"
-    linux_path = Path("/home/ansible")
-    mac_os_path = Path("/System/Volumes/Data/home/ansible")
-    assert app_config.init_path in [linux_path, mac_os_path]
+    home_path = Path.home()
+    assert app_config.init_path == home_path
 
 
 @pytest.mark.parametrize(
@@ -62,7 +61,7 @@ def test_configuration_class(output: Output) -> None:
                 "ansible-creator",
                 "init",
                 "--project=ansible-project",
-                "--init-path=/home/ansible/my-ansible-project",
+                f"--init-path={Path.home()}/my-ansible-project",
                 "--scm-org=weather",
                 "--scm-project=demo",
             ],
@@ -75,7 +74,7 @@ def test_configuration_class(output: Output) -> None:
                 "json": False,
                 "verbose": 0,
                 "collection": None,
-                "init_path": "/home/ansible/my-ansible-project",
+                "init_path": f"{Path.home()}/my-ansible-project",
                 "force": False,
                 "project": "ansible-project",
                 "scm_org": "weather",
@@ -87,7 +86,7 @@ def test_configuration_class(output: Output) -> None:
                 "ansible-creator",
                 "init",
                 "testorg.testcol",
-                "--init-path=/home/ansible",
+                f"--init-path={Path.home()}",
                 "-vvv",
                 "--json",
                 "--no-ansi",
@@ -105,7 +104,7 @@ def test_configuration_class(output: Output) -> None:
                 "json": True,
                 "verbose": 3,
                 "collection": "testorg.testcol",
-                "init_path": "/home/ansible",
+                "init_path": f"{Path.home()}",
                 "force": True,
                 "project": "collection",  # default value
             },
@@ -117,7 +116,7 @@ def test_configuration_class(output: Output) -> None:
                 "--project=ansible-project",
                 "--scm-org=weather",
                 "--scm-project=demo",
-                "--init-path=/home/ansible/my-ansible-project",
+                f"--init-path={Path.home()}/my-ansible-project",
                 "-vvv",
                 "--json",
                 "--no-ansi",
@@ -135,7 +134,7 @@ def test_configuration_class(output: Output) -> None:
                 "json": True,
                 "verbose": 3,
                 "collection": None,
-                "init_path": "/home/ansible/my-ansible-project",
+                "init_path": f"{Path.home()}/my-ansible-project",
                 "force": True,
                 "project": "ansible-project",
                 "scm_org": "weather",
@@ -231,17 +230,18 @@ def test_missing_j2(monkeypatch: pytest.MonkeyPatch) -> None:
         ansible_creator.templar.Templar()
 
 
-def test_cli_init_output(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_cli_init_output(monkeypatch: pytest.MonkeyPatch, home_path: PosixPath) -> None:
     """Test CLI init_output method.
 
     Args:
         monkeypatch: Pytest monkeypatch fixture.
+        home_path: Home directory.
     """
     sysargs = [
         "ansible-creator",
         "init",
         "testorg.testcol",
-        "--init-path=/home/ansible",
+        f"--init-path={home_path}",
         "-vvv",
         "--json",
         "--no-ansi",
@@ -360,7 +360,7 @@ def test_is_a_tty(monkeypatch: pytest.MonkeyPatch) -> None:
         "ansible-creator",
         "init",
         "testorg.testcol",
-        "/home/ansible",
+        f"{Path.home()}",
     ]
 
     monkeypatch.setattr("sys.argv", sysargs)
@@ -383,7 +383,7 @@ def test_not_a_tty(monkeypatch: pytest.MonkeyPatch) -> None:
         "ansible-creator",
         "init",
         "testorg.testcol",
-        "/home/ansible",
+        f"{Path.home()}",
     ]
 
     monkeypatch.setattr("sys.argv", sysargs)
