@@ -81,7 +81,7 @@ def test_lint_collection(collection_path: Path) -> None:
     # Check stdout for the linting success message.
     assert (
         re.search(
-            r"Passed: 0 failures, 0 warnings on d+ files.*",
+            r"Passed: 0 failures, 0 warnings on \d+ files.*",
             result.stdout,
         )
         is not None
