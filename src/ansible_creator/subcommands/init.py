@@ -60,9 +60,7 @@ class Init:
 
         if self._init_path.exists():
             self.init_exists()
-        else:
-            self.output.debug(msg=f"creating new directory at {self._init_path}")
-            self._init_path.mkdir(parents=True)
+        self._init_path.mkdir(parents=True, exist_ok=True)
 
         if self._project == "collection":
             self._collection()
