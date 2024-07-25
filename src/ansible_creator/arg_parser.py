@@ -115,7 +115,7 @@ class Parser:
 
         return self.args, self.pending_logs
 
-    def _add(self: Parser, subparser: SubParser) -> None:
+    def _add(self: Parser, subparser: SubParser[ArgumentParser]) -> None:
         """Add resources to an existing Ansible project.
 
         Args:
@@ -224,7 +224,7 @@ class Parser:
             "current working directory.",
         )
 
-    def _add_resource(self: Parser, subparser: SubParser) -> None:
+    def _add_resource(self: Parser, subparser: SubParser[ArgumentParser]) -> None:
         """Add resources to an existing Ansible project.
 
         Args:
@@ -244,7 +244,7 @@ class Parser:
         self._add_resource_devfile(subparser=subparser)
         self._add_resource_role(subparser=subparser)
 
-    def _add_resource_devcontainer(self: Parser, subparser: SubParser) -> None:
+    def _add_resource_devcontainer(self: Parser, subparser: SubParser[ArgumentParser]) -> None:
         """Add devcontainer files to an existing Ansible project.
 
         Args:
@@ -266,7 +266,7 @@ class Parser:
 
         self._add_args_common(parser)
 
-    def _add_resource_devfile(self: Parser, subparser: SubParser) -> None:
+    def _add_resource_devfile(self: Parser, subparser: SubParser[ArgumentParser]) -> None:
         """Add a devfile file to an existing Ansible project.
 
         Args:
@@ -286,7 +286,7 @@ class Parser:
         )
         self._add_args_common(parser)
 
-    def _add_resource_role(self: Parser, subparser: SubParser) -> None:
+    def _add_resource_role(self: Parser, subparser: SubParser[ArgumentParser]) -> None:
         """Add a role to an existing Ansible collection.
 
         Args:
@@ -310,7 +310,7 @@ class Parser:
         )
         self._add_args_common(parser)
 
-    def _add_plugin(self: Parser, subparser: SubParser) -> None:
+    def _add_plugin(self: Parser, subparser: SubParser[ArgumentParser]) -> None:
         """Add a plugin to an Ansible project.
 
         Args:
@@ -331,7 +331,7 @@ class Parser:
         self._add_plugin_filter(subparser=subparser)
         self._add_plugin_lookup(subparser=subparser)
 
-    def _add_plugin_action(self: Parser, subparser: SubParser) -> None:
+    def _add_plugin_action(self: Parser, subparser: SubParser[ArgumentParser]) -> None:
         """Add an action plugin to an existing Ansible collection project.
 
         Args:
@@ -345,7 +345,7 @@ class Parser:
         self._add_args_common(parser)
         self._add_args_plugin_common(parser)
 
-    def _add_plugin_filter(self: Parser, subparser: SubParser) -> None:
+    def _add_plugin_filter(self: Parser, subparser: SubParser[ArgumentParser]) -> None:
         """Add a filter plugin to an existing Ansible collection project.
 
         Args:
@@ -359,7 +359,7 @@ class Parser:
         self._add_args_common(parser)
         self._add_args_plugin_common(parser)
 
-    def _add_plugin_lookup(self: Parser, subparser: SubParser) -> None:
+    def _add_plugin_lookup(self: Parser, subparser: SubParser[ArgumentParser]) -> None:
         """Add a lookup plugin to an existing Ansible collection project.
 
         Args:
@@ -373,7 +373,7 @@ class Parser:
         self._add_args_common(parser)
         self._add_args_plugin_common(parser)
 
-    def _init(self: Parser, subparser: SubParser) -> None:
+    def _init(self: Parser, subparser: SubParser[ArgumentParser]) -> None:
         """Initialize an Ansible project.
 
         Args:
@@ -393,7 +393,7 @@ class Parser:
         self._init_collection(subparser=subparser)
         self._init_playbook(subparser=subparser)
 
-    def _init_collection(self: Parser, subparser: SubParser) -> None:
+    def _init_collection(self: Parser, subparser: SubParser[ArgumentParser]) -> None:
         """Initialize an Ansible collection.
 
         Args:
@@ -422,7 +422,7 @@ class Parser:
         self._add_args_common(parser)
         self._add_args_init_common(parser)
 
-    def _init_playbook(self: Parser, subparser: SubParser) -> None:
+    def _init_playbook(self: Parser, subparser: SubParser[ArgumentParser]) -> None:
         """Initialize an Ansible playbook.
 
         Args:
@@ -453,7 +453,7 @@ class Parser:
         self._add_args_common(parser)
         self._add_args_init_common(parser)
 
-    def _valid_collection_name(self, collection: str) -> str | Msg:
+    def _valid_collection_name(self, collection: str) -> str:
         """Validate the collection name.
 
         Args:
@@ -464,22 +464,18 @@ class Parser:
         """
         fqcn = collection.split(".", maxsplit=1)
         expected_parts = 2
+        name_filter = re.compile(r"^(?!_)[a-z0-9_]+$")
+
         if len(fqcn) != expected_parts:
             msg = "Collection name must be in the format '<namespace>.<name>'."
             self.pending_logs.append(Msg(prefix=Level.CRITICAL, message=msg))
-            return collection
-
-        name_filter = re.compile(r"^(?!_)[a-z0-9_]+$")
-
-        if not name_filter.match(fqcn[0]) or not name_filter.match(fqcn[1]):
+        elif not name_filter.match(fqcn[0]) or not name_filter.match(fqcn[1]):
             msg = (
                 "Collection name can only contain lower case letters, underscores, and numbers"
                 " and cannot begin with an underscore."
             )
             self.pending_logs.append(Msg(prefix=Level.CRITICAL, message=msg))
-            return collection
-
-        if len(fqcn[0]) <= MIN_COLLECTION_NAME_LEN or len(fqcn[1]) <= MIN_COLLECTION_NAME_LEN:
+        elif len(fqcn[0]) <= MIN_COLLECTION_NAME_LEN or len(fqcn[1]) <= MIN_COLLECTION_NAME_LEN:
             msg = "Both the collection namespace and name must be longer than 2 characters."
             self.pending_logs.append(Msg(prefix=Level.CRITICAL, message=msg))
         return collection
@@ -584,7 +580,7 @@ class ArgumentParser(argparse.ArgumentParser):
 
 
 if TYPE_CHECKING:
-    SubParser: TypeAlias = argparse._SubParsersAction[ArgumentParser]  # noqa: SLF001
+    SubParser: TypeAlias = argparse._SubParsersAction  # noqa: SLF001
 
 
 class CustomHelpFormatter(HelpFormatter):
