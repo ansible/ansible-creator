@@ -1,4 +1,4 @@
 {
-    "sonarCloudOrganization": "ansible",
-    "projectKey": "ansible_ansible-creator"
+  "sonarCloudOrganization": "ansible",
+  "projectKey": "ansible_ansible-creator"
 }
