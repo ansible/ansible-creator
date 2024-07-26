@@ -3,4 +3,4 @@
 
 def test_basic() -> None:
     """Dummy unit test that always passes."""
-    assert True
+    assert bool(1) is True
