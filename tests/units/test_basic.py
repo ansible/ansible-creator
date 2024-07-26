@@ -407,7 +407,7 @@ def test_main(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str
 
     with pytest.raises(SystemExit):
         runpy.run_module("ansible_creator.cli", run_name="__main__")
-    stdout, stderr = capsys.readouterr()
+    stdout, _stderr = capsys.readouterr()
     assert "The fastest way" in stdout
 
 
@@ -422,7 +422,7 @@ def test_proj_main(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixtur
 
     with pytest.raises(SystemExit):
         runpy.run_module("ansible_creator", run_name="__main__")
-    stdout, stderr = capsys.readouterr()
+    stdout, _stderr = capsys.readouterr()
     assert "The fastest way" in stdout
 
 

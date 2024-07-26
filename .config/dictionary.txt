@@ -1,5 +1,6 @@
 addopts
 antsibull
+argcomplete
 argnames
 argvalues
 capsys
@@ -30,6 +31,7 @@ rulebook
 rulebooks
 sysargs
 templated
+templating
 testcol
 testname
 testns
