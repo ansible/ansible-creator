@@ -63,9 +63,9 @@ class Init:
         self._init_path.mkdir(parents=True, exist_ok=True)
 
         if self._project == "collection":
-            self._collection()
+            self._scaffold_collection()
         elif self._project == "ansible-project":
-            self._playbook()
+            self._scaffold_playbook()
 
     def _construct_init_path(self: Init) -> None:
         """Construct the init path based on project type."""
@@ -110,7 +110,7 @@ class Init:
                 err = f"failed to remove existing directory {self._init_path}: {e}"
                 raise CreatorError(err) from e
 
-    def _collection(self) -> None:
+    def _scaffold_collection(self) -> None:
         """Scaffold a collection project."""
         self.output.debug(msg="started copying collection skeleton to destination")
         template_data = TemplateData(
@@ -133,7 +133,7 @@ class Init:
             f"created at {self._init_path}",
         )
 
-    def _playbook(self: Init) -> None:
+    def _scaffold_playbook(self: Init) -> None:
         """Scaffold a playbook project."""
         self.output.debug(msg="started copying ansible-project skeleton to destination")
 
