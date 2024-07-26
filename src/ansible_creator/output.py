@@ -144,7 +144,7 @@ class Level(Enum):
         return mapping[self]
 
     @classmethod
-    def _longest_name(cls: type[T]) -> int:
+    def _longest_name(cls) -> int:
         """Return the longest exit message prefix.
 
         Returns:
@@ -153,7 +153,7 @@ class Level(Enum):
         return max(len(member.value) for member in cls)
 
     @classmethod
-    def longest_formatted(cls: type[T]) -> int:
+    def longest_formatted(cls) -> int:
         """Return the longest exit message prefix.
 
         Returns:
