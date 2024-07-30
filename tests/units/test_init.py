@@ -167,7 +167,7 @@ def test_run_success_ansible_project(
     # recursively assert files created
     cmp = dircmp(
         str(tmp_path / "new_project"),
-        str(FIXTURES_DIR / "project" / "ansible_project"),
+        str(FIXTURES_DIR / "project" / "playbook_project"),
     )
     diff = has_differences(dcmp=cmp, errors=[])
     assert diff == [], diff
