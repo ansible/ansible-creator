@@ -1,9 +1,9 @@
-new_collection:
+collection_project:
   additions:
     template: False
     value: ""
 
-ansible_project:
+playbook_project:
   additions:
     template: True
     value: |

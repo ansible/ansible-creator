@@ -119,8 +119,8 @@ class Init:
             creator_version=self._creator_version,
         )
         copier = Copier(
-            resources=["new_collection", *self.common_resources],
-            resource_id="new_collection",
+            resources=["collection_project", *self.common_resources],
+            resource_id="collection_project",
             dest=self._init_path,
             output=self.output,
             templar=self._templar,
@@ -144,8 +144,8 @@ class Init:
         )
 
         copier = Copier(
-            resources=["ansible_project", *self.common_resources],
-            resource_id="ansible_project",
+            resources=["playbook_project", *self.common_resources],
+            resource_id="playbook_project",
             dest=self._init_path,
             output=self.output,
             templar=self._templar,

@@ -351,8 +351,8 @@ lines-between-types = 1 # Separate import/from with 1 line
 
 [tool.ruff.lint.per-file-ignores]
 "_version.py" = ["SIM108"]
-"src/ansible_creator/resources/new_collection/tests/**" = ["SLF001", "S101", "S602", "T201"]
-"src/ansible_creator/resources/new_collection/tests/unit/__init__.py" = ["D104"]
+"src/ansible_creator/resources/collection_project/tests/**" = ["SLF001", "S101", "S602", "T201"]
+"src/ansible_creator/resources/collection_project/tests/unit/__init__.py" = ["D104"]
 "tests/**" = ["SLF001", "S101", "S602", "T201"]
 
 [tool.ruff.lint.pydocstyle]
