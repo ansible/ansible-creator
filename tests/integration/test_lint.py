@@ -4,6 +4,7 @@ import re
 import shutil
 import subprocess
 import sys
+
 from pathlib import Path
 
 import pytest
@@ -41,7 +42,6 @@ def create_scaffolded_collection(collection_path: Path) -> Path:
     Returns:
         Path: Path for scaffolded collection.
     """
-
     creator_command = [
         sys.executable,
         "-Im",
