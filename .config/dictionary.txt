@@ -40,3 +40,4 @@ testpaths
 webservers
 autouse
 setenv
+ansiblelint
