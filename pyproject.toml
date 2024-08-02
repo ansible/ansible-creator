@@ -340,7 +340,7 @@ line-length = 100
 target-version = "py310"
 
 [tool.ruff.lint]
-ignore = ["S603"]
+ignore = ["S603"] # This rule does not make sense in tests.
 select = ["ALL"]
 
 [tool.ruff.lint.flake8-pytest-style]
