@@ -78,8 +78,9 @@ def test_lint_collection(scaffold_collection: Path) -> None:
 
     assert (
         re.search(
-            r"Passed: 0 failure\(s\), 0 warning\(s\) on \d+ files.",
+            r".*Passed: 0 failure\(s\), 0 warning\(s\) on \d+ files\..*",
             result.stdout + result.stderr,
+            re.DOTALL,
         )
         is not None
     )
