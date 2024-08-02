@@ -56,7 +56,10 @@ def create_scaffolded_collection(collection_path: Path) -> Path:
         str(collection_path),
     ]
 
-    result = subprocess.check_output(creator_command, text=True)  # noqa: S603
+    result = subprocess.check_output(
+        creator_command,
+        text=True,
+    )
 
     assert re.search("Note: collection testorg.testcol created at", result) is not None
 
@@ -76,7 +79,7 @@ def test_lint_collection(scaffold_collection: Path) -> None:
     ansible_lint_executable = shutil.which("ansible-lint")
     assert ansible_lint_executable is not None
 
-    result = subprocess.run(  # noqa: S603
+    result = subprocess.run(
         [ansible_lint_executable, scaffold_collection],
         text=True,
         capture_output=True,
