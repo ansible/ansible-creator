@@ -3,7 +3,6 @@
 import re
 import subprocess
 import sys
-
 from pathlib import Path
 
 import pytest
@@ -13,6 +12,7 @@ import pytest
 def _demand_non_ansi_cli_output(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("FORCE_COLOR", raising=False)
     monkeypatch.setenv("NO_COLOR", "1")
+
 
 @pytest.fixture()
 def collection_path(tmp_path: Path) -> Path:
@@ -59,19 +59,6 @@ def scaffold_collection(collection_path: Path) -> Path:
     return collection_path
 
 
-def remove_ansi_escape_codes(text: str) -> str:
-    """Clean up ansi escape codes from stdout and stderr.
-
-    Args:
-        text: The input text string.
-
-    Returns:
-        str: The text string without ansi escape codes.
-    """
-    ansi_escape = re.compile(r"(?:\x1B[@-_][0-?]*[ -/]*[@-~])")
-    return ansi_escape.sub("", text)
-
-
 def test_lint_collection(scaffold_collection: Path) -> None:
     """Lint the scaffolded collection with ansible-lint.
 
@@ -87,15 +74,12 @@ def test_lint_collection(scaffold_collection: Path) -> None:
         check=False,
     )
 
-    clean_stdout = remove_ansi_escape_codes(result.stdout)
-    clean_stderr = remove_ansi_escape_codes(result.stderr)
-
     assert result.returncode == 0
 
     assert (
         re.search(
             r"Passed: 0 failure\(s\), 0 warning\(s\) on \d+ files.",
-            clean_stdout + clean_stderr,
+            result.stdout + result.stderr,
         )
         is not None
     )
