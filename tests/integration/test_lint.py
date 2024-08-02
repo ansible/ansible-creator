@@ -9,6 +9,11 @@ from pathlib import Path
 import pytest
 
 
+@pytest.fixture(autouse=True)
+def _demand_non_ansi_cli_output(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("FORCE_COLOR", raising=False)
+    monkeypatch.setenv("NO_COLOR", "1")
+
 @pytest.fixture()
 def collection_path(tmp_path: Path) -> Path:
     """Create a temporary directory for the collection.
