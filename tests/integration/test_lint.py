@@ -55,7 +55,7 @@ def create_scaffolded_collection(collection_path: Path) -> Path:
         str(collection_path),
     ]
 
-    result = subprocess.check_output(creator_command, text=True)
+    result = subprocess.check_output(creator_command, text=True, shell=True)
 
     assert re.search("Note: collection testorg.testcol created at", result) is not None
 
@@ -77,6 +77,7 @@ def test_lint_collection(scaffold_collection: Path) -> None:
         text=True,
         capture_output=True,
         check=False,
+        shell=True,
     )
 
     assert result.returncode == 0
