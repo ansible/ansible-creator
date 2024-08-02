@@ -41,7 +41,9 @@ def scaffold_collection(collection_path: Path) -> Path:
     Returns:
         Path: Path for scaffolded collection.
     """
-    assert collection_path.exists
+    assert (
+        collection_path.exists()
+    ), f"Expected to find the {collection_path} directory but it does not exist."
 
     creator_command = [
         sys.executable,
@@ -66,7 +68,9 @@ def test_lint_collection(scaffold_collection: Path) -> None:
     Args:
         scaffold_collection: Path for scaffolded collection.
     """
-    assert scaffold_collection.exists
+    assert (
+        scaffold_collection.exists()
+    ), f"Expected to find the {scaffold_collection} directory but it does not exist."
 
     result = subprocess.run(
         ["ansible-lint", scaffold_collection],
