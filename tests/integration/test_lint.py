@@ -1,6 +1,7 @@
 """Check scaffolded content integration with ansible-lint."""
 
 import re
+import shutil
 import subprocess
 import sys
 
@@ -72,8 +73,11 @@ def test_lint_collection(scaffold_collection: Path) -> None:
         scaffold_collection.exists()
     ), f"Expected to find the {scaffold_collection} directory but it does not exist."
 
+    ansible_lint_executable = shutil.which("ansible-lint")
+    assert ansible_lint_executable is not None
+
     result = subprocess.run(  # noqa: S603
-        ["ansible-lint", scaffold_collection],
+        [ansible_lint_executable, scaffold_collection],
         text=True,
         capture_output=True,
         check=False,
