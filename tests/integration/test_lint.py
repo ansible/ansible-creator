@@ -10,13 +10,13 @@ import pytest
 
 
 @pytest.fixture(autouse=True)
-def _demand_non_ansi_cli_output(monkeypatch: pytest.MonkeyPatch) -> None:
+def _disable_ansi_cli_output(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("FORCE_COLOR", raising=False)
     monkeypatch.setenv("NO_COLOR", "1")
 
 
-@pytest.fixture()
-def collection_path(tmp_path: Path) -> Path:
+@pytest.fixture(name="collection_path")
+def create_collection_path(tmp_path: Path) -> Path:
     """Create a temporary directory for the collection.
 
     Args:
@@ -31,8 +31,8 @@ def collection_path(tmp_path: Path) -> Path:
     return final_dest
 
 
-@pytest.fixture()
-def scaffold_collection(collection_path: Path) -> Path:
+@pytest.fixture(name="scaffold_collection")
+def create_scaffolded_collection(collection_path: Path) -> Path:
     """Scaffold a collection with ansible-creator.
 
     Args:
