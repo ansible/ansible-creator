@@ -38,3 +38,5 @@ testns
 testorg
 testpaths
 webservers
+autouse
+setenv
