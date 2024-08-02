@@ -55,7 +55,7 @@ def create_scaffolded_collection(collection_path: Path) -> Path:
         str(collection_path),
     ]
 
-    result = subprocess.check_output(creator_command, text=True)
+    result = subprocess.check_output(creator_command, text=True)  # noqa: S603
 
     assert re.search("Note: collection testorg.testcol created at", result) is not None
 
@@ -72,7 +72,7 @@ def test_lint_collection(scaffold_collection: Path) -> None:
         scaffold_collection.exists()
     ), f"Expected to find the {scaffold_collection} directory but it does not exist."
 
-    result = subprocess.run(
+    result = subprocess.run(  # noqa: S603
         ["ansible-lint", scaffold_collection],
         text=True,
         capture_output=True,
