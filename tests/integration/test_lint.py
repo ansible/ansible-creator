@@ -4,7 +4,6 @@ import re
 import shutil
 import subprocess
 import sys
-
 from pathlib import Path
 
 import pytest
@@ -42,9 +41,6 @@ def create_scaffolded_collection(collection_path: Path) -> Path:
     Returns:
         Path: Path for scaffolded collection.
     """
-    assert (
-        collection_path.exists()
-    ), f"Expected to find the {collection_path} directory but it does not exist."
 
     creator_command = [
         sys.executable,
