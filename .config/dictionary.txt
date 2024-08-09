@@ -29,6 +29,7 @@ notesdir
 pydoclint
 rulebook
 rulebooks
+
 sysargs
 templated
 templating
@@ -38,6 +39,3 @@ testns
 testorg
 testpaths
 webservers
-autouse
-setenv
-ansiblelint

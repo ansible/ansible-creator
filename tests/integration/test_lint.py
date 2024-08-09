@@ -1,100 +1,105 @@
-"""Check scaffolded content integration with ansible-lint."""
+"""Check fixture content integration with ansible-lint.
+
+The fixture content is compared to the output of ansible-creator in the
+test_run_success_for_collection and test_run_success_ansible_project
+tests.
+"""
+
+from __future__ import annotations
 
 import re
-import subprocess
 import sys
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-import pytest
-
-
-@pytest.fixture(autouse=True)
-def _disable_ansi_cli_output(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.delenv("FORCE_COLOR", raising=False)
-    monkeypatch.setenv("NO_COLOR", "1")
+from tests.defaults import FIXTURES_DIR
 
 
-@pytest.fixture(name="collection_path")
-def create_collection_path(tmp_path: Path) -> Path:
-    """Create a temporary directory for the collection.
+if TYPE_CHECKING:
+    import pytest
 
-    Args:
-        tmp_path: Temporary path.
+    from tests.conftest import CliRunCallable
 
-    Returns:
-        Path: Temporary directory for the collection.
-    """
-    test_path = ("collections", "ansible_collections")
-    final_dest = tmp_path.joinpath(*test_path)
-    final_dest.mkdir(parents=True, exist_ok=True)
-    return final_dest
+GALAXY_BIN = Path(sys.executable).parent / "ansible-galaxy"
+LINT_BIN = Path(sys.executable).parent / "ansible-lint"
 
-
-@pytest.fixture(name="scaffold_collection")
-def create_scaffolded_collection(collection_path: Path) -> Path:
-    """Scaffold a collection with ansible-creator.
-
-    Args:
-        collection_path: Path for scaffolded collection.
-
-    Returns:
-        Path: Path for scaffolded collection.
-    """
-    creator_command = [
-        sys.executable,
-        "-Im",
-        "ansible_creator",
-        "init",
-        "testorg.testcol",
-        "--init-path",
-        str(collection_path),
-    ]
-
-    result = subprocess.check_output(
-        creator_command,
-        text=True,
-    )
-
-    assert re.search("Note: collection testorg.testcol created at", result) is not None
-
-    return collection_path
+LINT_RE = re.compile(
+    r"Passed: (?P<failures>\d+) failure\(s\),"
+    r" (?P<warnings>\d+) warning\(s\) on (?P<files>\d+) files.",
+)
+LINT_PROFILE_RE = re.compile(
+    r"Last profile that met the validation criteria was '(?P<profile>\w+)'.",
+)
 
 
-def test_lint_collection(scaffold_collection: Path) -> None:
+def test_lint_collection(
+    cli: CliRunCallable,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Lint the scaffolded collection with ansible-lint.
 
     Args:
-        scaffold_collection: Path for scaffolded collection.
+        cli: CLI callable.
+        monkeypatch: Monkeypatch fixture.
     """
-    assert (
-        scaffold_collection.exists()
-    ), f"Expected to find the {scaffold_collection} directory but it does not exist."
+    project_path = FIXTURES_DIR / "collection"
+    monkeypatch.chdir(project_path)
 
-    lint_command = [
-        sys.executable,
-        "-Im",
-        "ansiblelint",
-        str(scaffold_collection),
-    ]
+    args = str(LINT_BIN)
+    env = {"NO_COLOR": "1"}
+    result = cli(args=args, env=env)
 
-    try:
-        result = subprocess.run(
-            lint_command,
-            text=True,
-            capture_output=True,
-            check=False,
-        )
-        output = result.stdout + result.stderr
-    except subprocess.CalledProcessError as e:
-        output = e.stdout + e.stderr
-        print("ansible-lint failed with return code:", e.returncode)
+    assert result.returncode == 0
 
-    print("Ansible-lint output:")
-    print(output)
-
-    lint_pass = r"Passed: 0 failure\(s\), 0 warning\(s\) on \d+ files\."  # noqa: S105 # ignore rule for hardcoded password
-
-    match = re.search(lint_pass, output, re.MULTILINE)
-
+    match = LINT_RE.search(result.stderr)
     assert match is not None
+    assert int(match.group("failures")) == 0
+    assert int(match.group("warnings")) == 0
+    assert int(match.group("files")) > 0
+
+    match = LINT_PROFILE_RE.search(result.stderr)
+    assert match is not None
+    assert match.group("profile") == "production"
+
+
+def test_lint_playbook_project(
+    tmp_path: Path,
+    cli: CliRunCallable,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Lint the scaffolded playbook project with ansible-lint.
+
+    This is an expensive test as it installs collections from the requirements.yml file.
+    If it becomes necessary again, consider using a session fixture to install the collections.
+
+    Args:
+        tmp_path: Temporary path.
+        cli: CLI callable.
+        monkeypatch: Monkeypatch fixture.
+    """
+    req_path = str(
+        FIXTURES_DIR / "project" / "playbook_project" / "collections" / "requirements.yml",
+    )
+    dest_path = tmp_path / "collections"
+    galaxy_cmd = f"{GALAXY_BIN} collection install -r {req_path} -p {dest_path}"
+    result = cli(args=galaxy_cmd)
+    assert result.returncode == 0
+
+    project_path = FIXTURES_DIR / "project" / "playbook_project"
+    monkeypatch.chdir(project_path)
+    args = str(LINT_BIN)
+    env = {"NO_COLOR": "1", "ANSIBLE_COLLECTIONS_PATH": str(dest_path)}
+    result = cli(args=args, env=env)
+
+    assert result.returncode == 0
+
+    match = LINT_RE.search(result.stderr)
+    assert match is not None
+    assert int(match.group("failures")) == 0
+    assert int(match.group("warnings")) == 0
+    assert int(match.group("files")) > 0
+
+    match = LINT_PROFILE_RE.search(result.stderr)
+    assert match is not None
+    assert match.group("profile") == "production"
