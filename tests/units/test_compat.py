@@ -1,5 +1,7 @@
 """Tests for compat module."""
 
+from __future__ import annotations
+
 from ansible_creator.compat import Traversable
 
 

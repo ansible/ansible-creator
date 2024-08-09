@@ -5,6 +5,8 @@ When we need to import a module differently depending on python versions, we do 
 here.
 """
 
+from __future__ import annotations
+
 import sys
 
 
