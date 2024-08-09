@@ -7,7 +7,7 @@ import subprocess
 
 from pathlib import Path
 from subprocess import CalledProcessError, CompletedProcess
-from typing import TYPE_CHECKING, Any
+from typing import Protocol
 
 import pytest
 
@@ -15,16 +15,12 @@ from ansible_creator.output import Output
 from ansible_creator.utils import TermFeatures
 
 
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
-
 os.environ["HOME"] = str(Path.home())
 os.environ["DEV_WORKSPACE"] = "collections/ansible_collections"
 
 
 @pytest.fixture()
-def cli() -> Callable[[Any], CompletedProcess[str] | CalledProcessError]:
+def cli() -> CliRunCallable:
     """Fixture to run CLI commands.
 
     Returns:
@@ -63,11 +59,35 @@ def home_path() -> Path:
     return Path.home()
 
 
-def cli_run(args: list[str]) -> CompletedProcess[str] | CalledProcessError:
-    """Execute a command using subprocess.
+class CliRunCallable(Protocol):
+    """Callable protocol for cli_run function."""
+
+    def __call__(
+        self,
+        args: str,
+        env: dict[str, str] | None = None,
+    ) -> CompletedProcess[str] | CalledProcessError:
+        """Run a command using subprocess.
+
+        Args:
+            args: Command to run.
+            env: Supplemental environment variables.
+
+        Returns:
+            CompletedProcess: CompletedProcess object.
+            CalledProcessError: CalledProcessError object.
+        """
+
+
+def cli_run(
+    args: str,
+    env: dict[str, str] | None = None,
+) -> CompletedProcess[str] | CalledProcessError:
+    """Run a command using subprocess.
 
     Args:
         args: Command to run.
+        env: Supplemental environment variables.
 
     Returns:
         CompletedProcess: CompletedProcess object.
@@ -76,6 +96,8 @@ def cli_run(args: list[str]) -> CompletedProcess[str] | CalledProcessError:
     updated_env = os.environ.copy()
     # this helps asserting stdout/stderr
     updated_env.update({"LINES": "40", "COLUMNS": "300", "TERM": "xterm-256color"})
+    if env:
+        updated_env.update(env)
     try:
         result = subprocess.run(
             args,

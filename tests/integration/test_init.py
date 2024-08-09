@@ -5,20 +5,20 @@ from __future__ import annotations
 import re
 import sys
 
-from collections.abc import Callable
 from pathlib import Path
-from subprocess import CalledProcessError, CompletedProcess
-from typing import Any
+from typing import TYPE_CHECKING
 
 import pytest
 
 
-cli_type = Callable[[Any], CompletedProcess[str] | CalledProcessError]
+if TYPE_CHECKING:
+    from tests.conftest import CliRunCallable
+
 
 CREATOR_BIN = Path(sys.executable).parent / "ansible-creator"
 
 
-def test_run_help(cli: cli_type) -> None:
+def test_run_help(cli: CliRunCallable) -> None:
     """Test running ansible-creator --help.
 
     Args:
@@ -36,7 +36,7 @@ def test_run_help(cli: cli_type) -> None:
     assert "Initialize a new Ansible project." in result.stdout
 
 
-def test_run_no_subcommand(cli: cli_type) -> None:
+def test_run_no_subcommand(cli: CliRunCallable) -> None:
     """Test running ansible-creator without subcommand.
 
     Args:
@@ -47,7 +47,7 @@ def test_run_no_subcommand(cli: cli_type) -> None:
     assert "the following arguments are required: command" in result.stderr
 
 
-def test_run_init_no_input(cli: cli_type) -> None:
+def test_run_init_no_input(cli: CliRunCallable) -> None:
     """Test running ansible-creator init without any input.
 
     Args:
@@ -64,7 +64,7 @@ def test_run_init_no_input(cli: cli_type) -> None:
     argvalues=["init --project ansible-project", "init --init-path /tmp"],
     ids=["project_no_scm", "collection_no_name"],
 )
-def test_run_deprecated_failure(command: str, cli: cli_type) -> None:
+def test_run_deprecated_failure(command: str, cli: CliRunCallable) -> None:
     """Test running ansible-creator init with deprecated options.
 
     Args:
@@ -87,7 +87,7 @@ def test_run_deprecated_failure(command: str, cli: cli_type) -> None:
     ids=("short", "underscore", "no_dot"),
 )
 @pytest.mark.parametrize("command", ("collection", "playbook"))
-def test_run_init_invalid_name(command: str, args: str, expected: str, cli: cli_type) -> None:
+def test_run_init_invalid_name(command: str, args: str, expected: str, cli: CliRunCallable) -> None:
     """Test running ansible-creator init with invalid collection name.
 
     Args:
@@ -102,7 +102,7 @@ def test_run_init_invalid_name(command: str, args: str, expected: str, cli: cli_
     assert expected in result.stderr
 
 
-def test_run_init_basic(cli: cli_type, tmp_path: Path) -> None:
+def test_run_init_basic(cli: CliRunCallable, tmp_path: Path) -> None:
     """Test running ansible-creator init with empty/non-empty/force.
 
     Args:
