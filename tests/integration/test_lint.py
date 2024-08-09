@@ -3,6 +3,7 @@
 import re
 import subprocess
 import sys
+
 from pathlib import Path
 
 import pytest
@@ -92,7 +93,7 @@ def test_lint_collection(scaffold_collection: Path) -> None:
     print("Ansible-lint output:")
     print(output)
 
-    lint_pass = r"Passed: 0 failure\(s\), 0 warning\(s\) on \d+ files\."
+    lint_pass = r"Passed: 0 failure\(s\), 0 warning\(s\) on \d+ files\."  # noqa: S105 # ignore rule for hardcoded password
 
     match = re.search(lint_pass, output, re.MULTILINE)
 
