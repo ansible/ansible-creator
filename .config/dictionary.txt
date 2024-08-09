@@ -29,7 +29,6 @@ notesdir
 pydoclint
 rulebook
 rulebooks
-
 sysargs
 templated
 templating
