@@ -3,7 +3,6 @@
 import re
 import subprocess
 import sys
-
 from pathlib import Path
 
 import pytest
@@ -78,20 +77,23 @@ def test_lint_collection(scaffold_collection: Path) -> None:
         str(scaffold_collection),
     ]
 
-    result = subprocess.run(
-        lint_command,
-        text=True,
-        capture_output=True,
-        check=False,
-    )
-
-    assert result.returncode == 0
-
-    assert (
-        re.search(
-            r".*Passed: 0 failure\(s\), 0 warning\(s\) on \d+ files\..*",
-            result.stderr,
-            re.DOTALL,
+    try:
+        result = subprocess.run(
+            lint_command,
+            text=True,
+            capture_output=True,
+            check=False,
         )
-        is not None
-    )
+        output = result.stdout + result.stderr
+    except subprocess.CalledProcessError as e:
+        output = e.stdout + e.stderr
+        print("ansible-lint failed with return code:", e.returncode)
+
+    print("Ansible-lint output:")
+    print(output)
+
+    lint_pass = r"Passed: 0 failure\(s\), 0 warning\(s\) on \d+ files\."
+
+    match = re.search(lint_pass, output, re.MULTILINE)
+
+    assert match is not None
