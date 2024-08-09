@@ -38,3 +38,6 @@ testns
 testorg
 testpaths
 webservers
+autouse
+setenv
+ansiblelint
