@@ -1,9 +1,15 @@
 """A home for shared types."""
 
-from collections.abc import Sequence
+from __future__ import annotations
+
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
 from ansible_creator.constants import GLOBAL_TEMPLATE_VARS
+
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 @dataclass

@@ -4,6 +4,8 @@ This makes it possible to invoke CLI
 via :command:`python3 -m ansible_creator`.
 """
 
+from __future__ import annotations
+
 from .cli import main
 
 

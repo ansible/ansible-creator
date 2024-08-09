@@ -1,12 +1,18 @@
 """Test the utils module."""
 
+from __future__ import annotations
+
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-import pytest
-
-from ansible_creator.output import Output
 from ansible_creator.types import TemplateData
 from ansible_creator.utils import Copier, expand_path
+
+
+if TYPE_CHECKING:
+    import pytest
+
+    from ansible_creator.output import Output
 
 
 def test_expand_path() -> None:

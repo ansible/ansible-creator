@@ -1,5 +1,7 @@
 """Tests for templar."""
 
+from __future__ import annotations
+
 from ansible_creator.templar import Templar
 from ansible_creator.types import TemplateData
 
