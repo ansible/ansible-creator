@@ -4,8 +4,8 @@
 #
 #    pip-compile --all-extras --no-annotate --output-file=.config/constraints.txt --strip-extras .config/requirements.in pyproject.toml
 #
-astroid==3.2.4
-babel==2.15.0
+astroid==3.3.1
+babel==2.16.0
 beautifulsoup4==4.12.3
 black==24.8.0
 build==1.2.1
@@ -13,13 +13,13 @@ cachetools==5.4.0
 cairocffi==1.7.1
 cairosvg==2.7.1
 certifi==2024.7.4
-cffi==1.16.0
+cffi==1.17.0
 cfgv==3.4.0
 chardet==5.2.0
 charset-normalizer==3.3.2
 click==8.1.7
 colorama==0.4.6
-coverage==7.6.0
+coverage==7.6.1
 csscompressor==0.9.5
 cssselect2==0.7.0
 defusedxml==0.7.1
@@ -30,7 +30,7 @@ docstring-parser-fork==0.0.9
 exceptiongroup==1.2.2
 execnet==2.1.1
 filelock==3.15.4
-flake8==7.1.0
+flake8==7.1.1
 ghp-import==2.1.0
 griffe==0.48.0
 htmlmin2==0.1.13
@@ -72,7 +72,7 @@ pipdeptree==2.23.1
 platformdirs==4.2.2
 pluggy==1.5.0
 pre-commit==3.8.0
-pycodestyle==2.12.0
+pycodestyle==2.12.1
 pycparser==2.22
 pydoclint==0.5.6
 pyflakes==3.2.0
@@ -85,11 +85,11 @@ pytest==8.3.2
 pytest-xdist==3.6.1
 python-dateutil==2.9.0.post0
 python-slugify==8.0.4
-pyyaml==6.0.1
+pyyaml==6.0.2
 pyyaml-env-tag==0.1
 regex==2024.7.24
 requests==2.32.3
-ruff==0.5.6
+ruff==0.5.7
 six==1.16.0
 soupsieve==2.5
 termcolor==2.4.0
@@ -98,14 +98,14 @@ tinycss2==1.3.0
 toml-sort==0.23.1
 tomli==2.0.1
 tomlkit==0.13.0
-tox==4.16.0
-types-pyyaml==6.0.12.20240724
+tox==4.17.1
+types-pyyaml==6.0.12.20240808
 typing-extensions==4.12.2
 urllib3==2.2.2
 virtualenv==20.26.3
 watchdog==4.0.1
 webencodings==0.5.1
-wheel==0.43.0
+wheel==0.44.0
 
 # The following packages are considered to be unsafe in a requirements file:
 # pip
