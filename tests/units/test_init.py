@@ -94,6 +94,7 @@ def test_run_success_for_collection(
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
     cli_args: ConfigDict,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Test Init.run().
 
@@ -101,11 +102,26 @@ def test_run_success_for_collection(
         capsys: Pytest fixture to capture stdout and stderr.
         tmp_path: Temporary directory path.
         cli_args: Dictionary, partial Init class object.
+        monkeypatch: Pytest monkeypatch fixture.
     """
     cli_args["project"] = "collection"
     init = Init(
         Config(**cli_args),
     )
+
+    # Mock the "unique_name_in_devfile" method
+    def mock_unique_name_in_devfile(self: Init) -> str:
+        res1 = self._namespace
+        res2 = self._collection_name
+        return f"{res1}.{res2}"
+
+    # Apply the mock
+    monkeypatch.setattr(
+        Init,
+        "unique_name_in_devfile",
+        mock_unique_name_in_devfile,
+    )
+
     init.run()
     result = capsys.readouterr().out
 
@@ -140,6 +156,7 @@ def test_run_success_ansible_project(
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
     cli_args: ConfigDict,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Test Init.run().
 
@@ -149,6 +166,7 @@ def test_run_success_ansible_project(
         capsys: Pytest fixture to capture stdout and stderr.
         tmp_path: Temporary directory path.
         cli_args: Dictionary, partial Init class object.
+        monkeypatch: Pytest monkeypatch fixture.
     """
     cli_args["collection"] = ""
     cli_args["project"] = "ansible-project"
@@ -158,6 +176,20 @@ def test_run_success_ansible_project(
     init = Init(
         Config(**cli_args),
     )
+
+    # Mock the "unique_name_in_devfile" method
+    def mock_unique_name_in_devfile(self: Init) -> str:
+        res1 = self._scm_org
+        res2 = self._scm_project
+        return f"{res1}.{res2}"
+
+    # Apply the mock
+    monkeypatch.setattr(
+        Init,
+        "unique_name_in_devfile",
+        mock_unique_name_in_devfile,
+    )
+
     init.run()
     result = capsys.readouterr().out
 
