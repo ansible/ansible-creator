@@ -112,10 +112,10 @@ class Init:
                 raise CreatorError(err) from e
 
     def unique_name_in_devfile(self) -> str:
-        """Unique name entry for devfile.
+        """Use project specific name in devfile.
 
         Returns:
-            Unique name entry for devfile.
+            Unique name entry.
         """
         final_name: str
         if self._project == "collection":
