@@ -17,7 +17,7 @@ from ansible_creator.exceptions import CreatorError
 from ansible_creator.output import Output
 from ansible_creator.subcommands.init import Init
 from ansible_creator.utils import TermFeatures
-from tests.defaults import FIXTURES_DIR
+from tests.defaults import FIXTURES_DIR, UUID_LENGTH
 
 
 class ConfigDict(TypedDict):
@@ -324,3 +324,79 @@ def test_is_file_error(tmp_path: Path) -> None:
     with pytest.raises(CreatorError) as exc_info:
         init.run()
     assert "but is a file" in str(exc_info.value)
+
+
+@pytest.fixture(name="config_collection_fixture")
+def config_collection(tmp_path: Path, output: Output) -> Config:
+    """Fixture for Config object with collection project.
+
+    Args:
+        tmp_path: App configuration object.
+        output: Output class object.
+
+    Returns:
+        dict: Dictionary, partial Init class object.
+    """
+    return Config(
+        subcommand="init",
+        namespace="test_namespace",
+        collection_name="test_collection",
+        init_path=str(tmp_path / "test_path"),
+        force=False,
+        creator_version="1.0.0",
+        project="collection",
+        scm_org="",
+        scm_project="",
+        output=output,
+    )
+
+
+@pytest.fixture(name="config_ansible_project_fixture")
+def config_ansible_project(tmp_path: Path, output: Output) -> Config:
+    """Fixture for Config object with ansible-project.
+
+    Args:
+        tmp_path: App configuration object.
+        output: Output class object.
+
+    Returns:
+        dict: Dictionary, partial Init class object.
+    """
+    return Config(
+        subcommand="init",
+        namespace="",
+        collection_name="",
+        init_path=str(tmp_path / "test_path"),
+        force=False,
+        creator_version="1.0.0",
+        project="ansible-project",
+        scm_org="test_org",
+        scm_project="test_project",
+        output=output,
+    )
+
+
+def test_unique_name_in_devfile_collection(config_collection_fixture: Config) -> None:
+    """Test unique_name_in_devfile for collection project.
+
+    Args:
+        config_collection_fixture: Configuration object for the collection project.
+    """
+    init = Init(config_collection_fixture)
+    unique_name = init.unique_name_in_devfile()
+    assert unique_name.startswith("test_namespace.test_collection-")
+    assert len(unique_name.split("-")[-1]) == UUID_LENGTH  # Check UUID part length
+
+
+def test_unique_name_in_devfile_ansible_project(
+    config_ansible_project_fixture: Config,
+) -> None:
+    """Test unique_name_in_devfile for ansible-project.
+
+    Args:
+        config_ansible_project_fixture: Configuration object for the ansible-project.
+    """
+    init = Init(config_ansible_project_fixture)
+    unique_name = init.unique_name_in_devfile()
+    assert unique_name.startswith("test_org.test_project-")
+    assert len(unique_name.split("-")[-1]) == UUID_LENGTH  # Check UUID part length
