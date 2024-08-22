@@ -117,9 +117,10 @@ class Init:
         Returns:
             Unique name entry for devfile.
         """
+        final_name: str
         if self._project == "collection":
             final_name = f"{self._namespace}.{self._collection_name}"
-        else:
+        if self._project == "ansible-project":
             final_name = f"{self._scm_org}.{self._scm_project}"
         final_uuid = str(uuid.uuid4())[:8]
         return f"{final_name}-{final_uuid}"
