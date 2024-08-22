@@ -22,6 +22,7 @@ class TemplateData:
         creator_version: The version of the creator.
         dev_container_image: The devcontainer image.
         dev_file_image: The devfile image.
+        dev_file_name: The unique name entry in devfile.
         namespace: The namespace of the collection.
         recommended_extensions: A list of recommended VsCode extensions.
         scm_org: The organization of the source control management.
@@ -33,6 +34,7 @@ class TemplateData:
     creator_version: str = ""
     dev_container_image: Sequence[str] = GLOBAL_TEMPLATE_VARS["DEV_CONTAINER_IMAGE"]
     dev_file_image: Sequence[str] = GLOBAL_TEMPLATE_VARS["DEV_FILE_IMAGE"]
+    dev_file_name: str = ""
     namespace: str = ""
     recommended_extensions: Sequence[str] = field(
         default_factory=lambda: GLOBAL_TEMPLATE_VARS["RECOMMENDED_EXTENSIONS"],

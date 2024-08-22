@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import shutil
+import uuid
 
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -110,6 +111,20 @@ class Init:
                 err = f"failed to remove existing directory {self._init_path}: {e}"
                 raise CreatorError(err) from e
 
+    def unique_name_in_devfile(self) -> str:
+        """Use project specific name in devfile.
+
+        Returns:
+            Unique name entry.
+        """
+        final_name: str
+        if self._project == "collection":
+            final_name = f"{self._namespace}.{self._collection_name}"
+        if self._project == "ansible-project":
+            final_name = f"{self._scm_org}.{self._scm_project}"
+        final_uuid = str(uuid.uuid4())[:8]
+        return f"{final_name}-{final_uuid}"
+
     def _scaffold_collection(self) -> None:
         """Scaffold a collection project."""
         self.output.debug(msg="started copying collection skeleton to destination")
@@ -117,6 +132,7 @@ class Init:
             namespace=self._namespace,
             collection_name=self._collection_name,
             creator_version=self._creator_version,
+            dev_file_name=self.unique_name_in_devfile(),
         )
         copier = Copier(
             resources=["collection_project", *self.common_resources],
@@ -141,6 +157,7 @@ class Init:
             creator_version=self._creator_version,
             scm_org=self._scm_org,
             scm_project=self._scm_project,
+            dev_file_name=self.unique_name_in_devfile(),
         )
 
         copier = Copier(

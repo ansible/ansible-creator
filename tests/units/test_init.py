@@ -17,7 +17,7 @@ from ansible_creator.exceptions import CreatorError
 from ansible_creator.output import Output
 from ansible_creator.subcommands.init import Init
 from ansible_creator.utils import TermFeatures
-from tests.defaults import FIXTURES_DIR
+from tests.defaults import FIXTURES_DIR, UUID_LENGTH
 
 
 class ConfigDict(TypedDict):
@@ -51,7 +51,7 @@ def fixture_cli_args(tmp_path: Path, output: Output) -> ConfigDict:
     """Create a dict to use for a Init class object as fixture.
 
     Args:
-        tmp_path: App configuration object.
+        tmp_path: Temporary directory path.
         output: Output class object.
 
     Returns:
@@ -94,6 +94,7 @@ def test_run_success_for_collection(
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
     cli_args: ConfigDict,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Test Init.run().
 
@@ -101,11 +102,26 @@ def test_run_success_for_collection(
         capsys: Pytest fixture to capture stdout and stderr.
         tmp_path: Temporary directory path.
         cli_args: Dictionary, partial Init class object.
+        monkeypatch: Pytest monkeypatch fixture.
     """
     cli_args["project"] = "collection"
     init = Init(
         Config(**cli_args),
     )
+
+    # Mock the "unique_name_in_devfile" method
+    def mock_unique_name_in_devfile(self: Init) -> str:
+        coll_namespace = self._namespace
+        coll_name = self._collection_name
+        return f"{coll_namespace}.{coll_name}"
+
+    # Apply the mock
+    monkeypatch.setattr(
+        Init,
+        "unique_name_in_devfile",
+        mock_unique_name_in_devfile,
+    )
+
     init.run()
     result = capsys.readouterr().out
 
@@ -140,6 +156,7 @@ def test_run_success_ansible_project(
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
     cli_args: ConfigDict,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Test Init.run().
 
@@ -149,6 +166,7 @@ def test_run_success_ansible_project(
         capsys: Pytest fixture to capture stdout and stderr.
         tmp_path: Temporary directory path.
         cli_args: Dictionary, partial Init class object.
+        monkeypatch: Pytest monkeypatch fixture.
     """
     cli_args["collection"] = ""
     cli_args["project"] = "ansible-project"
@@ -158,6 +176,20 @@ def test_run_success_ansible_project(
     init = Init(
         Config(**cli_args),
     )
+
+    # Mock the "unique_name_in_devfile" method
+    def mock_unique_name_in_devfile(self: Init) -> str:
+        coll_namespace = self._scm_org
+        coll_name = self._scm_project
+        return f"{coll_namespace}.{coll_name}"
+
+    # Apply the mock
+    monkeypatch.setattr(
+        Init,
+        "unique_name_in_devfile",
+        mock_unique_name_in_devfile,
+    )
+
     init.run()
     result = capsys.readouterr().out
 
@@ -292,3 +324,81 @@ def test_is_file_error(tmp_path: Path) -> None:
     with pytest.raises(CreatorError) as exc_info:
         init.run()
     assert "but is a file" in str(exc_info.value)
+
+
+@pytest.fixture(name="cli_args_collection")
+def fixture_collection_project(tmp_path: Path, output: Output) -> Config:
+    """Fixture for Config object with collection project.
+
+    Args:
+        tmp_path: Temporary directory path.
+        output: Output class object.
+
+    Returns:
+        Config: Config class object.
+    """
+    return Config(
+        subcommand="init",
+        namespace="testns",
+        collection_name="testname",
+        init_path=str(tmp_path / "test_path"),
+        force=False,
+        creator_version="1.0.0",
+        project="collection",
+        scm_org="",
+        scm_project="",
+        output=output,
+    )
+
+
+@pytest.fixture(name="cli_args_playbook")
+def fixture_playbook_project(tmp_path: Path, output: Output) -> Config:
+    """Fixture for Config object with ansible-project.
+
+    Args:
+        tmp_path: Temporary directory path.
+        output: Output class object.
+
+    Returns:
+        Config: Config class object.
+    """
+    return Config(
+        subcommand="init",
+        namespace="",
+        collection_name="",
+        init_path=str(tmp_path / "test_path"),
+        force=False,
+        creator_version="1.0.0",
+        project="ansible-project",
+        scm_org="foo",
+        scm_project="bar",
+        output=output,
+    )
+
+
+def test_name_in_devfile_collection(cli_args_collection: Config) -> None:
+    """Test unique_name_in_devfile method for collection project.
+
+    Args:
+        cli_args_collection: Configuration object for collection project.
+    """
+    init = Init(cli_args_collection)
+    unique_name = init.unique_name_in_devfile()
+    assert unique_name.startswith("testns.testname-")
+    uuid_part = unique_name.split("-")[-1]  # Extract the UUID part
+    assert len(uuid_part) == UUID_LENGTH, "UUID part length mismatch"
+
+
+def test_name_in_devfile_playbook(
+    cli_args_playbook: Config,
+) -> None:
+    """Test unique_name_in_devfile method for playbook project.
+
+    Args:
+        cli_args_playbook: Configuration object for playbook project.
+    """
+    init = Init(cli_args_playbook)
+    unique_name = init.unique_name_in_devfile()
+    assert unique_name.startswith("foo.bar-")
+    uuid_part = unique_name.split("-")[-1]  # Extract the UUID part
+    assert len(uuid_part) == UUID_LENGTH, "UUID part length mismatch"
