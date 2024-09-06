@@ -13,7 +13,7 @@ A CLI tool for scaffolding all your Ansible Content.
 ## Installation
 
 ```shell
-$ pip install ansible-creator
+pip install ansible-creator
 ```
 
 ```shell
@@ -34,21 +34,39 @@ Options:
 
 ## Usage
 
-Full documentation on how to use this, along with it's integration with VS Code Ansible Extension can be found in https://ansible.readthedocs.io/projects/creator/.
+Full documentation on how to use `ansible-creator`, including integration with the VS Code Ansible Extension, is available in
+[ansible-creator documentation](https://ansible.readthedocs.io/projects/creator/).
 
 ## Command line completion
 
 `ansible-creator` has experimental command line completion for common shells. Please ensure you have the `argcomplete` package installed and configured.
 
 ```shell
-$ pip install argcomplete --user
-$ activate-global-python-argcomplete --user
+pip install argcomplete --user
+activate-global-python-argcomplete --user
 ```
 
 ## Upcoming features
 
 - Scaffold Ansible plugins of your choice with the `create` action.
   Switch to the [create](https://github.com/ansible-community/ansible-creator/tree/create) branch and try it out!
+
+## Communication
+
+Refer to the [Get in Touch](https://ansible.readthedocs.io/projects/creator/contributing/#get-in-touch)
+section of the Contributor Guide to find out how to communicate with us.
+
+You can also find more information in the
+[Ansible communication guide](https://docs.ansible.com/ansible/devel/community/communication.html).
+
+## Contributing
+
+See [Contributing to ansible-creator](https://ansible.readthedocs.io/projects/creator/contributing/).
+
+## Code of Conduct
+
+Please see the
+[Ansible Community Code of Conduct](https://docs.ansible.com/ansible/latest/community/code_of_conduct.html).
 
 ## Licensing
 
