@@ -17,9 +17,23 @@
       "module": "ansible_creator",
       "args": [
         "init",
+        "playbook",
         "testns.testname",
-        "--init-path",
-        "/home/user/..path/to/collections/ansible_collections"
+        "/home/user/..path/to/your/new_playbook_project"
+      ],
+      "cwd": "${workspaceFolder}/src",
+      "justMyCode": false
+    },
+    {
+      "name": "Debug subcommand: add",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "ansible_creator",
+      "args": [
+        "add",
+        "resource",
+        "devcontainer",
+        "/home/user/..path/to/your/existing_project"
       ],
       "cwd": "${workspaceFolder}/src",
       "justMyCode": false
