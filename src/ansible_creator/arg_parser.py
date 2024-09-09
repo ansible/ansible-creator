@@ -106,12 +106,6 @@ class Parser:
         # The internal still reference the old project name
         if self.args.project == "playbook":
             self.args.project = "ansible-project"
-            with contextlib.suppress(ValueError):
-                self.args.scm_org, self.args.scm_project = self.args.collection.split(
-                    ".",
-                    maxsplit=1,
-                )
-            self.args.collection = None
 
         return self.args, self.pending_logs
 
