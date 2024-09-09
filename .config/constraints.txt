@@ -4,7 +4,7 @@
 #
 #    pip-compile --all-extras --no-annotate --output-file=.config/constraints.txt --strip-extras .config/requirements.in pyproject.toml
 #
-astroid==3.3.2
+astroid==3.2.4
 babel==2.16.0
 beautifulsoup4==4.12.3
 black==24.8.0
