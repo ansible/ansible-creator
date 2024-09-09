@@ -76,7 +76,7 @@ def test_configuration_class(output: Output) -> None:
                 "collection": "weather.demo",
                 "init_path": f"{Path.home()}/my-ansible-project",
                 "force": False,
-                "project": "ansible-project",
+                "project": "playbook",
             },
         ],
         [
@@ -134,7 +134,7 @@ def test_configuration_class(output: Output) -> None:
                 "collection": "weather.demo",
                 "init_path": f"{Path.home()}/my-ansible-project",
                 "force": True,
-                "project": "ansible-project",
+                "project": "playbook",
             },
         ],
         [
@@ -171,7 +171,7 @@ def test_configuration_class(output: Output) -> None:
             ],
             {
                 "subcommand": "init",
-                "project": "ansible-project",
+                "project": "playbook",
                 "collection": "foo.bar",
                 "init_path": "/test/test",
                 "force": False,

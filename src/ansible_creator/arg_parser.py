@@ -103,10 +103,6 @@ class Parser:
             self.pending_logs.append(Msg(prefix=Level.CRITICAL, message="Goodbye."))
             return self.args, self.pending_logs
 
-        # The internal still reference the old project name
-        if self.args.project == "playbook":
-            self.args.project = "ansible-project"
-
         return self.args, self.pending_logs
 
     def _add(self: Parser, subparser: SubParser[ArgumentParser]) -> None:
