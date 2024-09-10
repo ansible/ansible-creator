@@ -33,5 +33,5 @@ extra_links:
 # than one place for communication per communication tool to avoid confusion.
 communication:
   forum:
-    - topic: Ansible Creator project-related conversations
-      url: https://forum.ansible.com/tag/ansible-creator
+    - topic: Ansible Forum
+      url: https://forum.ansible.com/
