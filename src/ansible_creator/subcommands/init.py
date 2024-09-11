@@ -49,8 +49,6 @@ class Init:
         self._force = config.force
         self._creator_version = config.creator_version
         self._project = config.project
-        self._scm_org = config.scm_org or ""
-        self._scm_project = config.scm_project or ""
         self._templar = Templar()
         self.output: Output = config.output
 
@@ -118,10 +116,7 @@ class Init:
             Unique name entry.
         """
         final_name: str = ""
-        if self._project == "collection":
-            final_name = f"{self._namespace}.{self._collection_name}"
-        if self._project == "playbook":
-            final_name = f"{self._scm_org}.{self._scm_project}"
+        final_name = f"{self._namespace}.{self._collection_name}"
         final_uuid = str(uuid.uuid4())[:8]
         return f"{final_name}-{final_uuid}"
 
@@ -155,8 +150,8 @@ class Init:
 
         template_data = TemplateData(
             creator_version=self._creator_version,
-            scm_org=self._scm_org,
-            scm_project=self._scm_project,
+            namespace=self._namespace,
+            collection_name=self._collection_name,
             dev_file_name=self.unique_name_in_devfile(),
         )
 
