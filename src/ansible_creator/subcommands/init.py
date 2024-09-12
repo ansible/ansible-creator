@@ -115,7 +115,6 @@ class Init:
         Returns:
             Unique name entry.
         """
-        final_name: str = ""
         final_name = f"{self._namespace}.{self._collection_name}"
         final_uuid = str(uuid.uuid4())[:8]
         return f"{final_name}-{final_uuid}"
