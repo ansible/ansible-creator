@@ -25,8 +25,6 @@ class TemplateData:
         dev_file_name: The unique name entry in devfile.
         namespace: The namespace of the collection.
         recommended_extensions: A list of recommended VsCode extensions.
-        scm_org: The organization of the source control management.
-        scm_project: The project of the source control management.
     """
 
     additions: dict[str, dict[str, dict[str, str | bool]]] = field(default_factory=dict)
@@ -39,5 +37,3 @@ class TemplateData:
     recommended_extensions: Sequence[str] = field(
         default_factory=lambda: GLOBAL_TEMPLATE_VARS["RECOMMENDED_EXTENSIONS"],
     )
-    scm_org: str = ""
-    scm_project: str = ""

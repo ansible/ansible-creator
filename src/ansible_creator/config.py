@@ -26,8 +26,6 @@ class Config:
         force: Whether to overwrite existing files.
         init_path: The path to initialize the project.
         project: The type of project to scaffold.
-        scm_org: The SCM organization for the project.
-        scm_project: The SCM project for the project.
         collection_name: The name of the collection.
         namespace: The namespace for the collection.
     """
@@ -40,8 +38,6 @@ class Config:
     force: bool = False
     init_path: str | Path = "./"
     project: str = ""
-    scm_org: str | None = None
-    scm_project: str | None = None
     collection_name: str | None = None
     namespace: str = ""
 

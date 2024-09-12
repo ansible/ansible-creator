@@ -1,6 +1,6 @@
-# {{ scm_org|capitalize }} {{ scm_project|capitalize }} Collection
+# {{ namespace|capitalize }} {{ collection_name|capitalize }} Collection
 
-This repository contains the `{{ scm_org }}.{{ scm_project }}` Ansible Collection.
+This repository contains the `{{ namespace }}.{{ collection_name }}` Ansible Collection.
 
 ## Tested with Ansible
 
@@ -12,31 +12,31 @@ Some modules and plugins require external libraries. Please check the requiremen
 
 ## Included content
 
-Please check the included content on the [Ansible Galaxy page for this collection](https://galaxy.ansible.com/{{ scm_org }}/{{ scm_project }}).
+Please check the included content on the [Ansible Galaxy page for this collection](https://galaxy.ansible.com/{{ namespace }}/{{ collection_name }}).
 
 ## Using this collection
 
 ```
-    ansible-galaxy collection install {{ scm_org }}.{{ scm_project }}
+    ansible-galaxy collection install {{ namespace }}.{{ collection_name }}
 ```
 
 You can also include it in a `requirements.yml` file and install it via `ansible-galaxy collection install -r requirements.yml` using the format:
 
 ```yaml
 collections:
-  - name: {{ scm_org }}.{{ scm_project }}
+  - name: {{ namespace }}.{{ collection_name }}
 ```
 
 To upgrade the collection to the latest available version, run the following command:
 
 ```bash
-ansible-galaxy collection install {{ scm_org }}.{{ scm_project }} --upgrade
+ansible-galaxy collection install {{ namespace }}.{{ collection_name }} --upgrade
 ```
 
-You can also install a specific version of the collection, for example, if you need to downgrade when something is broken in the latest version (please report an issue in this repository). Use the following syntax where `X.Y.Z` can be any [available version](https://galaxy.ansible.com/{{ scm_org }}/{{ scm_project }}):
+You can also install a specific version of the collection, for example, if you need to downgrade when something is broken in the latest version (please report an issue in this repository). Use the following syntax where `X.Y.Z` can be any [available version](https://galaxy.ansible.com/{{ namespace }}/{{ collection_name }}):
 
 ```bash
-ansible-galaxy collection install {{ scm_org }}.{{ scm_project }}:==X.Y.Z
+ansible-galaxy collection install {{ namespace }}.{{ collection_name }}:==X.Y.Z
 ```
 
 See [Ansible Using Collections](https://docs.ansible.com/ansible/latest/user_guide/collections_using.html) for more details.
