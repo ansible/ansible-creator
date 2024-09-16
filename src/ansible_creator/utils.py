@@ -24,8 +24,8 @@ if TYPE_CHECKING:
 
 
 PATH_REPLACERS = {
-    "project_org": "scm_org",
-    "project_repo": "scm_project",
+    "project_org": "namespace",
+    "project_repo": "collection_name",
 }
 
 

@@ -49,8 +49,6 @@ class Init:
         self._force = config.force
         self._creator_version = config.creator_version
         self._project = config.project
-        self._scm_org = config.scm_org or ""
-        self._scm_project = config.scm_project or ""
         self._templar = Templar()
         self.output: Output = config.output
 
@@ -65,12 +63,12 @@ class Init:
 
         if self._project == "collection":
             self._scaffold_collection()
-        elif self._project == "ansible-project":
+        elif self._project == "playbook":
             self._scaffold_playbook()
 
     def _construct_init_path(self: Init) -> None:
         """Construct the init path based on project type."""
-        if self._project == "ansible-project":
+        if self._project == "playbook":
             return
 
         if (
@@ -117,11 +115,7 @@ class Init:
         Returns:
             Unique name entry.
         """
-        final_name: str
-        if self._project == "collection":
-            final_name = f"{self._namespace}.{self._collection_name}"
-        if self._project == "ansible-project":
-            final_name = f"{self._scm_org}.{self._scm_project}"
+        final_name = f"{self._namespace}.{self._collection_name}"
         final_uuid = str(uuid.uuid4())[:8]
         return f"{final_name}-{final_uuid}"
 
@@ -151,12 +145,12 @@ class Init:
 
     def _scaffold_playbook(self: Init) -> None:
         """Scaffold a playbook project."""
-        self.output.debug(msg="started copying ansible-project skeleton to destination")
+        self.output.debug(msg="started copying playbook skeleton to destination")
 
         template_data = TemplateData(
             creator_version=self._creator_version,
-            scm_org=self._scm_org,
-            scm_project=self._scm_project,
+            namespace=self._namespace,
+            collection_name=self._collection_name,
             dev_file_name=self.unique_name_in_devfile(),
         )
 

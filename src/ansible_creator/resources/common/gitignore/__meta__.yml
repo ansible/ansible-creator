@@ -14,6 +14,6 @@ playbook_project:
       !collections/ansible_collections
       !collections/requirements.yml
       collections/ansible_collections/*
-      !collections/ansible_collections/{{ scm_org}}
-      collections/ansible_collections/{{ scm_org }}/*
-      !collections/ansible_collections/{{ scm_org }}/{{ scm_project }}
+      !collections/ansible_collections/{{ namespace }}
+      collections/ansible_collections/{{ namespace }}/*
+      !collections/ansible_collections/{{ namespace }}/{{ collection_name }}

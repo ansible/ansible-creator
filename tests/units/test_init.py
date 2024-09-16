@@ -31,8 +31,6 @@ class ConfigDict(TypedDict):
         init_path: Path to initialize the project.
         project: The type of project to scaffold.
         force: Force overwrite of existing directory.
-        scm_org: The SCM organization for the project.
-        scm_project: The SCM project for the project.
     """
 
     creator_version: str
@@ -42,8 +40,6 @@ class ConfigDict(TypedDict):
     init_path: str
     project: str
     force: bool
-    scm_org: str | None
-    scm_project: str | None
 
 
 @pytest.fixture(name="cli_args")
@@ -65,8 +61,6 @@ def fixture_cli_args(tmp_path: Path, output: Output) -> ConfigDict:
         "init_path": str(tmp_path / "testorg" / "testcol"),
         "project": "",
         "force": False,
-        "scm_org": "",
-        "scm_project": "",
     }
 
 
@@ -160,7 +154,7 @@ def test_run_success_ansible_project(
 ) -> None:
     """Test Init.run().
 
-    Successfully create new ansible-project
+    Successfully create new playbook project
 
     Args:
         capsys: Pytest fixture to capture stdout and stderr.
@@ -168,19 +162,17 @@ def test_run_success_ansible_project(
         cli_args: Dictionary, partial Init class object.
         monkeypatch: Pytest monkeypatch fixture.
     """
-    cli_args["collection"] = ""
-    cli_args["project"] = "ansible-project"
+    cli_args["collection"] = "weather.demo"
+    cli_args["project"] = "playbook"
     cli_args["init_path"] = str(tmp_path / "new_project")
-    cli_args["scm_org"] = "weather"
-    cli_args["scm_project"] = "demo"
     init = Init(
         Config(**cli_args),
     )
 
     # Mock the "unique_name_in_devfile" method
     def mock_unique_name_in_devfile(self: Init) -> str:
-        coll_namespace = self._scm_org
-        coll_name = self._scm_project
+        coll_namespace = self._namespace
+        coll_name = self._collection_name
         return f"{coll_namespace}.{coll_name}"
 
     # Apply the mock
@@ -204,7 +196,7 @@ def test_run_success_ansible_project(
     diff = has_differences(dcmp=cmp, errors=[])
     assert diff == [], diff
 
-    # fail to override existing ansible-project directory with force=false (default)
+    # fail to override existing playbook directory with force=false (default)
     fail_msg = (
         f"The directory {tmp_path}/new_project is not empty."
         "\nYou can use --force to re-initialize this directory."
@@ -213,7 +205,7 @@ def test_run_success_ansible_project(
     with pytest.raises(CreatorError, match=fail_msg):
         init.run()
 
-    # override existing ansible-project directory with force=true
+    # override existing playbook directory with force=true
     cli_args["force"] = True
     init = Init(
         Config(**cli_args),
@@ -345,15 +337,13 @@ def fixture_collection_project(tmp_path: Path, output: Output) -> Config:
         force=False,
         creator_version="1.0.0",
         project="collection",
-        scm_org="",
-        scm_project="",
         output=output,
     )
 
 
 @pytest.fixture(name="cli_args_playbook")
 def fixture_playbook_project(tmp_path: Path, output: Output) -> Config:
-    """Fixture for Config object with ansible-project.
+    """Fixture for Config object with playbook.
 
     Args:
         tmp_path: Temporary directory path.
@@ -364,14 +354,12 @@ def fixture_playbook_project(tmp_path: Path, output: Output) -> Config:
     """
     return Config(
         subcommand="init",
-        namespace="",
-        collection_name="",
+        namespace="foo",
+        collection_name="bar",
         init_path=str(tmp_path / "test_path"),
         force=False,
         creator_version="1.0.0",
-        project="ansible-project",
-        scm_org="foo",
-        scm_project="bar",
+        project="playbook",
         output=output,
     )
 
