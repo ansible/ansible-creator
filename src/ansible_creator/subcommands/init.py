@@ -61,7 +61,7 @@ class Init:
             self.init_exists()
         self._init_path.mkdir(parents=True, exist_ok=True)
 
-        self._scaffold(self._project)
+        self._scaffold()
 
     def _construct_init_path(self: Init) -> None:
         """Construct the init path based on project type."""
@@ -116,19 +116,9 @@ class Init:
         final_uuid = str(uuid.uuid4())[:8]
         return f"{final_name}-{final_uuid}"
 
-    def _scaffold(self, kind: str) -> None:
-        """Scaffold an ansible project.
-
-        Args:
-            kind: The kind of project to scaffold (collection or playbook)
-
-        Raises:
-            CreatorError: When given an unsupported project type
-        """
-        if kind not in ("collection", "playbook"):
-            message = f"Tried to scaffold unknown project type {kind}"
-            raise CreatorError(message)
-        self.output.debug(msg=f"started copying {kind} skeleton to destination")
+    def _scaffold(self) -> None:
+        """Scaffold an ansible project."""
+        self.output.debug(msg=f"started copying {self._project} skeleton to destination")
         template_data = TemplateData(
             namespace=self._namespace,
             collection_name=self._collection_name,
@@ -137,8 +127,8 @@ class Init:
         )
 
         copier = Copier(
-            resources=[f"{kind}_project", *self.common_resources],
-            resource_id=f"{kind}_project",
+            resources=[f"{self._project}_project", *self.common_resources],
+            resource_id=f"{self._project}_project",
             dest=self._init_path,
             output=self.output,
             templar=self._templar,
@@ -147,5 +137,5 @@ class Init:
         copier.copy_containers()
 
         self.output.note(
-            f"{kind} project created at {self._init_path}",
+            f"{self._project} project created at {self._init_path}",
         )
