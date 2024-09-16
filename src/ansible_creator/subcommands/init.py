@@ -61,10 +61,7 @@ class Init:
             self.init_exists()
         self._init_path.mkdir(parents=True, exist_ok=True)
 
-        if self._project == "collection":
-            self._scaffold_collection()
-        elif self._project == "playbook":
-            self._scaffold_playbook()
+        self._scaffold(self._project)
 
     def _construct_init_path(self: Init) -> None:
         """Construct the init path based on project type."""
@@ -119,18 +116,29 @@ class Init:
         final_uuid = str(uuid.uuid4())[:8]
         return f"{final_name}-{final_uuid}"
 
-    def _scaffold_collection(self) -> None:
-        """Scaffold a collection project."""
-        self.output.debug(msg="started copying collection skeleton to destination")
+    def _scaffold(self, kind: str) -> None:
+        """Scaffold an ansible project.
+
+        Args:
+            kind: The kind of project to scaffold (collection or playbook)
+
+        Raises:
+            CreatorError: When given an unsupported project type
+        """
+        if kind not in ("collection", "playbook"):
+            message = f"Tried to scaffold unknown project type {kind}"
+            raise CreatorError(message)
+        self.output.debug(msg=f"started copying {kind} skeleton to destination")
         template_data = TemplateData(
             namespace=self._namespace,
             collection_name=self._collection_name,
             creator_version=self._creator_version,
             dev_file_name=self.unique_name_in_devfile(),
         )
+
         copier = Copier(
-            resources=["collection_project", *self.common_resources],
-            resource_id="collection_project",
+            resources=[f"{kind}_project", *self.common_resources],
+            resource_id=f"{kind}_project",
             dest=self._init_path,
             output=self.output,
             templar=self._templar,
@@ -139,31 +147,5 @@ class Init:
         copier.copy_containers()
 
         self.output.note(
-            f"collection {self._namespace}.{self._collection_name} "
-            f"created at {self._init_path}",
-        )
-
-    def _scaffold_playbook(self: Init) -> None:
-        """Scaffold a playbook project."""
-        self.output.debug(msg="started copying playbook skeleton to destination")
-
-        template_data = TemplateData(
-            creator_version=self._creator_version,
-            namespace=self._namespace,
-            collection_name=self._collection_name,
-            dev_file_name=self.unique_name_in_devfile(),
-        )
-
-        copier = Copier(
-            resources=["playbook_project", *self.common_resources],
-            resource_id="playbook_project",
-            dest=self._init_path,
-            output=self.output,
-            templar=self._templar,
-            template_data=template_data,
-        )
-        copier.copy_containers()
-
-        self.output.note(
-            f"ansible project created at {self._init_path}",
+            f"{kind} project created at {self._init_path}",
         )
