@@ -136,6 +136,9 @@ class Init:
         )
         copier.copy_containers()
 
-        self.output.note(
-            f"{self._project} project created at {self._init_path}",
-        )
+        note = f" created at {self._init_path}"
+        if self._project == "collection":
+            note = f"collection {self._namespace}.{self._collection_name}" + note
+        elif self._project == "playbook":
+            note = "playbook project" + note
+        self.output.note(note)

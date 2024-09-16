@@ -186,7 +186,7 @@ def test_run_success_ansible_project(
     result = capsys.readouterr().out
 
     # check stdout
-    assert re.search("Note: ansible project created", result) is not None
+    assert re.search("Note: playbook project created", result) is not None
 
     # recursively assert files created
     cmp = dircmp(
