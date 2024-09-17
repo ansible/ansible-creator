@@ -118,7 +118,7 @@ def test_run_init_basic(cli: CliRunCallable, tmp_path: Path) -> None:
     assert result.returncode == 0
 
     # check stdout
-    assert re.search("Note: collection testorg.testcol created at", result.stdout) is not None
+    assert re.search("Note: collection project created at", result.stdout) is not None
 
     # fail to override existing collection with force=false (default)
     result = cli(
