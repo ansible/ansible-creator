@@ -120,7 +120,7 @@ def test_run_success_for_collection(
     result = capsys.readouterr().out
 
     # check stdout
-    assert re.search("Note: collection testorg.testcol created", result) is not None
+    assert re.search("Note: collection project created", result) is not None
 
     # recursively assert files created
     cmp = dircmp(str(tmp_path), str(FIXTURES_DIR / "collection"))
@@ -243,7 +243,7 @@ def test_run_success_collections_alt_dir(
 
     assert (
         re.search(
-            rf"Note:\s*collection\s*testorg.testcol\s*created\s*at\s*{final_path}",
+            rf"Note:\s*collection\s*project\s*created\s*at\s*{final_path}",
             mod_result,
         )
         is not None

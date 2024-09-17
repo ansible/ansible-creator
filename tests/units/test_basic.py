@@ -288,7 +288,7 @@ def test_cli_main(
 
     result = capsys.readouterr().out
     # check stdout
-    assert re.search("collection testns.testcol created", result) is not None
+    assert re.search("collection project created", result) is not None
 
 
 @pytest.mark.parametrize(argnames=["project"], argvalues=[["collection"], ["playbook"]])
