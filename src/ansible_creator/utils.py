@@ -68,12 +68,12 @@ class DestinationFile:
     """Container to hold information about a file to be copied.
 
     Attributes:
-        destination_path: The path the file will be written to.
-        original_path: The path of the original copy.
+        source: The path of the original copy.
+        dest: The path the file will be written to.
     """
 
-    destination_path: Path
-    original_path: Traversable
+    source: Traversable
+    dest: Path
 
     def __str__(self) -> str:
         """Supports str() on DestinationFile.
@@ -81,7 +81,7 @@ class DestinationFile:
         Returns:
             A string representation of the destination path.
         """
-        return str(self.destination_path)
+        return str(self.dest)
 
     @property
     def conflicts(self) -> bool:
@@ -90,10 +90,10 @@ class DestinationFile:
         Returns:
             True if a conflict exists on the destination else False.
         """
-        if not self.exists():
+        if not self.dest.exists():
             return False
 
-        return not (self.dest_is_dir() and self.is_dir())
+        return not (self.dest.is_dir() and self.source.is_dir())
 
     @property
     def needs_templating(self) -> bool:
@@ -102,54 +102,14 @@ class DestinationFile:
         Returns:
             True if the file needs to be templated else False.
         """
-        return self.original_path.name.endswith(".j2")
-
-    def exists(self) -> bool:
-        """Check if a file exists at the destination.
-
-        Returns:
-            True if the destination path exists else False.
-        """
-        return self.destination_path.exists()
-
-    def dest_is_dir(self) -> bool:
-        """Check if the destination path is an existing directory.
-
-        Returns:
-            True if the destination path exists and is a directory.
-        """
-        return self.destination_path.exists() and self.destination_path.is_dir()
-
-    def dest_is_file(self) -> bool:
-        """Check if the destination path is an existing file.
-
-        Returns:
-            True if the destination path exists and is a file.
-        """
-        return self.destination_path.exists() and self.destination_path.is_file()
-
-    def is_dir(self) -> bool:
-        """Check if the source path is a directory.
-
-        Returns:
-            True if the source path is a directory.
-        """
-        return self.original_path.is_dir()
-
-    def is_file(self) -> bool:
-        """Check if the source path is a file.
-
-        Returns:
-            True if the source path is a file.
-        """
-        return self.original_path.is_file()
+        return self.source.name.endswith(".j2")
 
     def remove_existing(self) -> None:
         """Remove existing files or directories at destination path."""
-        if self.dest_is_file():
-            self.destination_path.unlink()
-        elif self.dest_is_dir():
-            self.destination_path.rmdir()
+        if self.dest.is_file():
+            self.dest.unlink()
+        elif self.dest.is_dir():
+            self.dest.rmdir()
 
 
 @dataclass
@@ -231,18 +191,18 @@ class Walker:
                 dest_name = dest_name.replace(key, repl_val)
         dest_name = dest_name.removesuffix(".j2")
 
-        dest_path = DestinationFile(self.dest / dest_name, obj)
+        dest_path = DestinationFile(dest=self.dest / dest_name, source=obj)
         self.output.debug(f"Working on {dest_path}")
 
         if dest_path.conflicts:
-            if dest_path.dest_is_dir():
+            if dest_path.dest.is_dir():
                 self.output.warning(f"{dest_path} already exists and is a directory!")
-            elif dest_path.is_dir():
+            elif obj.is_dir():
                 self.output.warning(f"{dest_path} already exists and is a file!")
             else:
                 self.output.warning(f"{dest_path} will be overwritten!")
 
-        if dest_path.is_dir() and obj.name not in SKIP_DIRS:
+        if obj.is_dir() and obj.name not in SKIP_DIRS:
             return [
                 dest_path,
                 *self._recursive_walk(root=obj, resource=resource, template_data=template_data),
@@ -344,7 +304,7 @@ class Copier:
         # remove .j2 suffix at destination
         self.output.debug(msg=f"dest file is {dest_path}")
 
-        content = dest_path.original_path.read_text(encoding="utf-8")
+        content = dest_path.source.read_text(encoding="utf-8")
         # only render as templates if both of these are provided,
         # and original file suffix was j2
         if self.templar and template_data and dest_path.needs_templating:
@@ -352,7 +312,7 @@ class Copier:
                 template=content,
                 data=template_data,
             )
-        with dest_path.destination_path.open("w", encoding="utf-8") as df_handle:
+        with dest_path.dest.open("w", encoding="utf-8") as df_handle:
             df_handle.write(content)
 
     def copy_containers(self: Copier, paths: list[DestinationFile]) -> None:
@@ -365,8 +325,8 @@ class Copier:
             if path.conflicts:
                 path.remove_existing()
 
-            if path.is_dir():
-                path.destination_path.mkdir(parents=True, exist_ok=True)
+            if path.source.is_dir():
+                path.dest.mkdir(parents=True, exist_ok=True)
 
-            elif path.is_file():
+            elif path.source.is_file():
                 self._copy_file(path, self.template_data)
