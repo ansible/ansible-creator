@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from ansible_creator.types import TemplateData
-from ansible_creator.utils import Copier, expand_path
+from ansible_creator.utils import Copier, Walker, expand_path
 
 
 if TYPE_CHECKING:
@@ -35,13 +35,20 @@ def test_skip_dirs(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, output: Outp
         output: Output class object.
     """
     monkeypatch.setattr("ansible_creator.utils.SKIP_DIRS", ["docker"])
-    copier = Copier(
-        resources=["common.devcontainer"],
+
+    walker = Walker(
+        resources=("common.devcontainer",),
         resource_id="common.devcontainer",
         dest=tmp_path,
         output=output,
         template_data=TemplateData(),
     )
-    copier.copy_containers()
+    paths = walker.collect_paths()
+
+    copier = Copier(
+        output=output,
+        template_data=TemplateData(),
+    )
+    copier.copy_containers(paths)
     assert (tmp_path / ".devcontainer" / "podman").exists()
     assert not (tmp_path / ".devcontainer" / "docker").exists()
