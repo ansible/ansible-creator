@@ -47,7 +47,6 @@ def test_skip_dirs(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, output: Outp
 
     copier = Copier(
         output=output,
-        template_data=TemplateData(),
     )
     copier.copy_containers(paths)
     assert (tmp_path / ".devcontainer" / "podman").exists()

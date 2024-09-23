@@ -70,10 +70,12 @@ class DestinationFile:
     Attributes:
         source: The path of the original copy.
         dest: The path the file will be written to.
+        template_data: A dictionary containing the customized data to render templates with.
     """
 
     source: Traversable
     dest: Path
+    template_data: TemplateData
 
     def __str__(self) -> str:
         """Supports str() on DestinationFile.
@@ -191,7 +193,11 @@ class Walker:
                 dest_name = dest_name.replace(key, repl_val)
         dest_name = dest_name.removesuffix(".j2")
 
-        dest_path = DestinationFile(dest=self.dest / dest_name, source=obj)
+        dest_path = DestinationFile(
+            dest=self.dest / dest_name,
+            source=obj,
+            template_data=template_data,
+        )
         self.output.debug(f"Working on {dest_path}")
 
         if dest_path.conflicts:
@@ -282,24 +288,20 @@ class Copier:
 
     Attributes:
         output: An instance of the Output class.
-        template_data: A dictionary containing the original data to render templates with.
         templar: An instance of the Templar class.
     """
 
     output: Output
-    template_data: TemplateData
     templar: Templar | None = None
 
     def _copy_file(
         self,
         dest_path: DestinationFile,
-        template_data: TemplateData,
     ) -> None:
         """Copy a file to destination.
 
         Args:
             dest_path: The destination path to copy the file to.
-            template_data: A dictionary containing current data to render templates with.
         """
         # remove .j2 suffix at destination
         self.output.debug(msg=f"dest file is {dest_path}")
@@ -307,10 +309,10 @@ class Copier:
         content = dest_path.source.read_text(encoding="utf-8")
         # only render as templates if both of these are provided,
         # and original file suffix was j2
-        if self.templar and template_data and dest_path.needs_templating:
+        if self.templar and dest_path.template_data and dest_path.needs_templating:
             content = self.templar.render_from_content(
                 template=content,
-                data=template_data,
+                data=dest_path.template_data,
             )
         with dest_path.dest.open("w", encoding="utf-8") as df_handle:
             df_handle.write(content)
@@ -329,4 +331,4 @@ class Copier:
                 path.dest.mkdir(parents=True, exist_ok=True)
 
             elif path.source.is_file():
-                self._copy_file(path, self.template_data)
+                self._copy_file(path)
