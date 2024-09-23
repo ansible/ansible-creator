@@ -77,20 +77,20 @@ def test_overwrite(tmp_path: Path, output: Output) -> None:
     copier.copy_containers(paths)
 
     # Replace podman with a file
-    podman = tmp_path / ".devcontainer" / "podman"
-    shutil.rmtree(podman)
-    podman.write_text("This is an error")
+    podman_dir = tmp_path / ".devcontainer" / "podman"
+    shutil.rmtree(podman_dir)
+    podman_dir.write_text("This is an error")
     # Replace docker devcontainer with a directory
-    docker = tmp_path / ".devcontainer" / "docker" / "devcontainer.json"
-    docker.unlink()
-    docker.mkdir()
+    docker_file = tmp_path / ".devcontainer" / "docker" / "devcontainer.json"
+    docker_file.unlink()
+    docker_file.mkdir()
 
     # Re-walk directory to generate warnings, but not make changes
     paths = walker.collect_paths()
-    assert podman.is_file()
-    assert docker.is_dir()
+    assert podman_dir.is_file()
+    assert docker_file.is_dir()
 
     # Re-copy to overwrite structure
     copier.copy_containers(paths)
-    assert podman.is_dir()
-    assert docker.is_file()
+    assert podman_dir.is_dir()
+    assert docker_file.is_file()
