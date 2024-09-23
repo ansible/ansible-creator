@@ -198,7 +198,7 @@ class Walker:
             source=obj,
             template_data=template_data,
         )
-        self.output.debug(f"Working on {dest_path}")
+        self.output.debug(f"Looking at {dest_path}")
 
         if dest_path.conflicts:
             if dest_path.dest.is_dir():
@@ -304,7 +304,7 @@ class Copier:
             dest_path: The destination path to copy the file to.
         """
         # remove .j2 suffix at destination
-        self.output.debug(msg=f"dest file is {dest_path}")
+        self.output.debug(msg=f"Writing to {dest_path}")
 
         content = dest_path.source.read_text(encoding="utf-8")
         # only render as templates if both of these are provided,
