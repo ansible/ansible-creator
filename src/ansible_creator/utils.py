@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copy
 import os
+import shutil
 
 from dataclasses import dataclass
 from importlib import resources as impl_resources
@@ -111,7 +112,7 @@ class DestinationFile:
         if self.dest.is_file():
             self.dest.unlink()
         elif self.dest.is_dir():
-            self.dest.rmdir()
+            shutil.rmtree(self.dest)
 
 
 @dataclass
