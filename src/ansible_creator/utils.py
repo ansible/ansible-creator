@@ -71,12 +71,12 @@ class DestinationFile:
     Attributes:
         source: The path of the original copy.
         dest: The path the file will be written to.
-        template_data: A dictionary containing the customized data to render templates with.
+        content: The templated content to be written to dest.
     """
 
     source: Traversable
     dest: Path
-    template_data: TemplateData
+    content: str = ""
 
     def __str__(self) -> str:
         """Supports str() on DestinationFile.
@@ -87,25 +87,62 @@ class DestinationFile:
         return str(self.dest)
 
     @property
-    def conflicts(self) -> bool:
+    def conflict(self) -> str:
         """Check for file conflicts.
 
         Returns:
-            True if a conflict exists on the destination else False.
+            String describing the file conflict, if any.
         """
         if not self.dest.exists():
-            return False
+            return ""
 
-        return not (self.dest.is_dir() and self.source.is_dir())
+        if self.source.is_file():
+            if self.dest.is_file():
+                dest_content = self.dest.read_text("utf8")
+                if self.content != dest_content:
+                    return f"{self.dest} will be overwritten!"
+            else:
+                return f"{self.dest} already exists and is a directory!"
+
+        if self.source.is_dir() and not self.dest.is_dir():
+            return f"{self.dest} already exists and is a file!"
+
+        return ""
 
     @property
-    def needs_templating(self) -> bool:
-        """Check if templating is required.
+    def needs_write(self) -> bool:
+        """Check if file needs to be written to.
 
         Returns:
-            True if the file needs to be templated else False.
+            True if dest differs from source else False.
         """
-        return self.source.name.endswith(".j2")
+        # Skip files in SKIP_FILES_TYPES and __meta__.yaml
+        if self.source.is_file() and (
+            self.source.name.split(".")[-1] in SKIP_FILES_TYPES
+            or self.source.name == "__meta__.yml"
+        ):
+            return False
+
+        if not self.dest.exists():
+            return True
+        return bool(self.conflict)
+
+    def set_content(self, template_data: TemplateData, templar: Templar | None) -> None:
+        """Set expected content from source file, templated by templar if necessary.
+
+        Args:
+            template_data: A dictionary containing current data to render templates with.
+            templar: An instance of the Templar class.
+        """
+        content = self.source.read_text(encoding="utf-8")
+        # only render as templates if both of these are provided,
+        # and original file suffix was j2
+        if templar and template_data and self.source.name.endswith("j2"):
+            content = templar.render_from_content(
+                template=content,
+                data=template_data,
+            )
+        self.content = content
 
     def remove_existing(self) -> None:
         """Remove existing files or directories at destination path."""
@@ -197,29 +234,22 @@ class Walker:
         dest_path = DestinationFile(
             dest=self.dest / dest_name,
             source=obj,
-            template_data=template_data,
         )
         self.output.debug(f"Looking at {dest_path}")
 
-        if dest_path.conflicts:
-            if dest_path.dest.is_dir():
-                self.output.warning(f"{dest_path} already exists and is a directory!")
-            elif obj.is_dir():
-                self.output.warning(f"{dest_path} already exists and is a file!")
-            else:
-                self.output.warning(f"{dest_path} will be overwritten!")
+        if obj.is_file():
+            dest_path.set_content(template_data, self.templar)
 
+        conflict_msg = dest_path.conflict
+        if dest_path.needs_write and conflict_msg:
+            self.output.warning(conflict_msg)
         if obj.is_dir() and obj.name not in SKIP_DIRS:
             return [
                 dest_path,
                 *self._recursive_walk(root=obj, resource=resource, template_data=template_data),
             ]
 
-        if (
-            obj.is_file()
-            and obj.name.split(".")[-1] not in SKIP_FILES_TYPES
-            and obj.name != "__meta__.yml"
-        ):
+        if obj.is_file():
             return [dest_path]
 
         return []
@@ -289,11 +319,9 @@ class Copier:
 
     Attributes:
         output: An instance of the Output class.
-        templar: An instance of the Templar class.
     """
 
     output: Output
-    templar: Templar | None = None
 
     def _copy_file(
         self,
@@ -307,16 +335,8 @@ class Copier:
         # remove .j2 suffix at destination
         self.output.debug(msg=f"Writing to {dest_path}")
 
-        content = dest_path.source.read_text(encoding="utf-8")
-        # only render as templates if both of these are provided,
-        # and original file suffix was j2
-        if self.templar and dest_path.template_data and dest_path.needs_templating:
-            content = self.templar.render_from_content(
-                template=content,
-                data=dest_path.template_data,
-            )
         with dest_path.dest.open("w", encoding="utf-8") as df_handle:
-            df_handle.write(content)
+            df_handle.write(dest_path.content)
 
     def copy_containers(self: Copier, paths: list[DestinationFile]) -> None:
         """Copy multiple containers to destination.
@@ -325,7 +345,7 @@ class Copier:
             paths: A list of paths to create in the destination.
         """
         for path in paths:
-            if path.conflicts:
+            if path.conflict:
                 path.remove_existing()
 
             if path.source.is_dir():

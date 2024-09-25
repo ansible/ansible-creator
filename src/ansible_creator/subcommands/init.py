@@ -137,7 +137,6 @@ class Init:
 
         copier = Copier(
             output=self.output,
-            templar=self._templar,
         )
         copier.copy_containers(paths)
 
