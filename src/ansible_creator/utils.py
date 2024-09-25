@@ -240,17 +240,22 @@ class Walker:
         if obj.is_file():
             dest_path.set_content(template_data, self.templar)
 
-        conflict_msg = dest_path.conflict
-        if dest_path.needs_write and conflict_msg:
-            self.output.warning(conflict_msg)
-        if obj.is_dir() and obj.name not in SKIP_DIRS:
-            return [
-                dest_path,
-                *self._recursive_walk(root=obj, resource=resource, template_data=template_data),
-            ]
+        if dest_path.needs_write:
+            # Warn on conflict
+            conflict_msg = dest_path.conflict
+            if conflict_msg:
+                self.output.warning(conflict_msg)
 
-        if obj.is_file():
-            return [dest_path]
+            if obj.is_dir() and obj.name not in SKIP_DIRS:
+                return [
+                    dest_path,
+                    *self._recursive_walk(root=obj, resource=resource, template_data=template_data),
+                ]
+            if obj.is_file():
+                return [dest_path]
+
+        if obj.is_dir() and obj.name not in SKIP_DIRS:
+            return self._recursive_walk(root=obj, resource=resource, template_data=template_data)
 
         return []
 
@@ -345,8 +350,7 @@ class Copier:
             paths: A list of paths to create in the destination.
         """
         for path in paths:
-            if path.conflict:
-                path.remove_existing()
+            path.remove_existing()
 
             if path.source.is_dir():
                 path.dest.mkdir(parents=True, exist_ok=True)

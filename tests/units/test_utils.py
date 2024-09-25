@@ -104,3 +104,30 @@ def test_overwrite(tmp_path: Path, output: Output) -> None:
     assert base_file.read_text() == base_contents
     assert podman_dir.is_dir()
     assert docker_file.is_file()
+
+
+def test_skip_repeats(tmp_path: Path, output: Output) -> None:
+    """Test Copier skipping existing files.
+
+    Args:
+        tmp_path: Temporary directory path.
+        output: Output class object.
+    """
+    walker = Walker(
+        resources=("common.devcontainer",),
+        resource_id="common.devcontainer",
+        dest=tmp_path,
+        output=output,
+        template_data=TemplateData(),
+    )
+    paths = walker.collect_paths()
+    assert paths
+
+    copier = Copier(
+        output=output,
+    )
+    copier.copy_containers(paths)
+
+    # Re-walk directory to generate new path list
+    paths = walker.collect_paths()
+    assert not paths
