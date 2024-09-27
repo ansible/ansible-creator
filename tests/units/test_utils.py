@@ -98,6 +98,7 @@ def test_overwrite(tmp_path: Path, output: Output) -> None:
     assert base_file.read_text() != base_contents
     assert podman_dir.is_file()
     assert docker_file.is_dir()
+    assert paths.has_conflicts()
 
     # Re-copy to overwrite structure
     copier.copy_containers(paths)
