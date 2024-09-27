@@ -154,7 +154,7 @@ class DestinationFile:
 
 
 class FileList(list[DestinationFile]):
-    """list subclass holding DestinationFiles with convenience methods."""
+    """A list subclass holding DestinationFiles with convenience methods."""
 
     def has_conflicts(self) -> bool:
         """Check if any files have conflicts in the destination.
