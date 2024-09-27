@@ -7,6 +7,7 @@ import os
 import shutil
 
 from dataclasses import dataclass
+from functools import cached_property
 from importlib import resources as impl_resources
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -86,7 +87,7 @@ class DestinationFile:
         """
         return str(self.dest)
 
-    @property
+    @cached_property
     def conflict(self) -> str:
         """Check for file conflicts.
 
@@ -109,7 +110,7 @@ class DestinationFile:
 
         return ""
 
-    @property
+    @cached_property
     def needs_write(self) -> bool:
         """Check if file needs to be written to.
 
@@ -152,6 +153,18 @@ class DestinationFile:
             shutil.rmtree(self.dest)
 
 
+class FileList(list[DestinationFile]):
+    """list subclass holding DestinationFiles with convenience methods."""
+
+    def has_conflicts(self) -> bool:
+        """Check if any files have conflicts in the destination.
+
+        Returns:
+            True if there are any conflicts else False.
+        """
+        return any(path.conflict for path in self)
+
+
 @dataclass
 class Walker:
     """Configuration for the Walker class.
@@ -179,7 +192,7 @@ class Walker:
         root: Traversable,
         resource: str,
         template_data: TemplateData,
-    ) -> list[DestinationFile]:
+    ) -> FileList:
         """Recursively traverses a resource container looking for content to copy.
 
         Args:
@@ -192,7 +205,7 @@ class Walker:
         """
         self.output.debug(msg=f"current root set to {root}")
 
-        file_list = []
+        file_list = FileList()
         for obj in root.iterdir():
             file_list.extend(
                 self.each_obj(
@@ -208,7 +221,7 @@ class Walker:
         obj: Traversable,
         resource: str,
         template_data: TemplateData,
-    ) -> list[DestinationFile]:
+    ) -> FileList:
         """Recursively traverses a resource container and copies content to destination.
 
         Args:
@@ -247,19 +260,25 @@ class Walker:
                 self.output.warning(conflict_msg)
 
             if obj.is_dir() and obj.name not in SKIP_DIRS:
-                return [
-                    dest_path,
-                    *self._recursive_walk(root=obj, resource=resource, template_data=template_data),
-                ]
+                return FileList(
+                    [
+                        dest_path,
+                        *self._recursive_walk(
+                            root=obj,
+                            resource=resource,
+                            template_data=template_data,
+                        ),
+                    ],
+                )
             if obj.is_file():
-                return [dest_path]
+                return FileList([dest_path])
 
         if obj.is_dir() and obj.name not in SKIP_DIRS:
             return self._recursive_walk(root=obj, resource=resource, template_data=template_data)
 
-        return []
+        return FileList()
 
-    def _per_container(self, resource: str) -> list[DestinationFile]:
+    def _per_container(self, resource: str) -> FileList:
         """Generate a list of all paths that will be written to for a particular resource.
 
         Args:
@@ -305,13 +324,13 @@ class Walker:
             template_data,
         )
 
-    def collect_paths(self) -> list[DestinationFile]:
+    def collect_paths(self) -> FileList:
         """Determine paths that will be written to.
 
         Returns:
             A list of paths to be written to.
         """
-        file_list = []
+        file_list = FileList()
         for resource in self.resources:
             file_list.extend(self._per_container(resource))
 
@@ -343,7 +362,7 @@ class Copier:
         with dest_path.dest.open("w", encoding="utf-8") as df_handle:
             df_handle.write(dest_path.content)
 
-    def copy_containers(self: Copier, paths: list[DestinationFile]) -> None:
+    def copy_containers(self: Copier, paths: FileList) -> None:
         """Copy multiple containers to destination.
 
         Args:
