@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.templar import Templar
 from ansible_creator.types import TemplateData
-from ansible_creator.utils import Copier
+from ansible_creator.utils import Copier, Walker
 
 
 if TYPE_CHECKING:
@@ -125,14 +125,19 @@ class Init:
             dev_file_name=self.unique_name_in_devfile(),
         )
 
-        copier = Copier(
-            resources=[f"{self._project}_project", *self.common_resources],
+        walker = Walker(
+            resources=(f"{self._project}_project", *self.common_resources),
             resource_id=f"{self._project}_project",
             dest=self._init_path,
             output=self.output,
             templar=self._templar,
             template_data=template_data,
         )
-        copier.copy_containers()
+        paths = walker.collect_paths()
+
+        copier = Copier(
+            output=self.output,
+        )
+        copier.copy_containers(paths)
 
         self.output.note(f"{self._project} project created at {self._init_path}")
