@@ -31,6 +31,7 @@ class ConfigDict(TypedDict):
         init_path: Path to initialize the project.
         project: The type of project to scaffold.
         force: Force overwrite of existing directory.
+        overwrite: Overwrites content of existing directory.
     """
 
     creator_version: str
@@ -40,6 +41,7 @@ class ConfigDict(TypedDict):
     init_path: str
     project: str
     force: bool
+    overwrite: bool
 
 
 @pytest.fixture(name="cli_args")
@@ -61,6 +63,7 @@ def fixture_cli_args(tmp_path: Path, output: Output) -> ConfigDict:
         "init_path": str(tmp_path / "testorg" / "testcol"),
         "project": "",
         "force": False,
+        "overwrite": False,
     }
 
 
@@ -130,8 +133,9 @@ def test_run_success_for_collection(
     # fail to override existing collection with force=false (default)
     fail_msg = (
         f"The directory {tmp_path}/testorg/testcol is not empty."
-        "\nYou can use --force to re-initialize this directory."
-        "\nHowever it will delete ALL existing contents in it."
+        "\nYou can use --overwrite to preserve the existing directory content"
+        " or --force to re-initialize this directory."
+        "\nHowever force will delete ALL existing contents in it."
     )
     with pytest.raises(CreatorError, match=fail_msg):
         init.run()
@@ -199,8 +203,9 @@ def test_run_success_ansible_project(
     # fail to override existing playbook directory with force=false (default)
     fail_msg = (
         f"The directory {tmp_path}/new_project is not empty."
-        "\nYou can use --force to re-initialize this directory."
-        "\nHowever it will delete ALL existing contents in it."
+        "\nYou can use --overwrite to preserve the existing directory content"
+        " or --force to re-initialize this directory."
+        "\nHowever force will delete ALL existing contents in it."
     )
     with pytest.raises(CreatorError, match=fail_msg):
         init.run()
