@@ -46,6 +46,7 @@ class Init:
         self._collection_name = config.collection_name or ""
         self._init_path: Path = Path(config.init_path)
         self._force = config.force
+        self._overwrite = config.overwrite
         self._creator_version = config.creator_version
         self._project = config.project
         self._templar = Templar()
@@ -87,23 +88,25 @@ class Init:
             raise CreatorError(msg)
         if next(self._init_path.iterdir(), None):
             # init-path exists and is not empty, but user did not request --force
-            if not self._force:
+            if self._force is False and self._overwrite is False:
                 msg = (
                     f"The directory {self._init_path} is not empty.\n"
-                    f"You can use --force to re-initialize this directory."
-                    f"\nHowever it will delete ALL existing contents in it."
+                    f"You can use --overwrite to preserve the existing directory content"
+                    f" or --force to re-initialize this directory."
+                    f"\nHowever force will delete ALL existing contents in it."
                 )
                 raise CreatorError(msg)
 
-            # user requested --force, re-initializing existing directory
-            self.output.warning(
-                f"re-initializing existing directory {self._init_path}",
-            )
-            try:
-                shutil.rmtree(self._init_path)
-            except OSError as e:
-                err = f"failed to remove existing directory {self._init_path}: {e}"
-                raise CreatorError(err) from e
+            if self._force:
+                # user requested --force, re-initializing existing directory
+                self.output.warning(
+                    f"re-initializing existing directory {self._init_path}",
+                )
+                try:
+                    shutil.rmtree(self._init_path)
+                except OSError as e:
+                    err = f"failed to remove existing directory {self._init_path}: {e}"
+                    raise CreatorError(err) from e
 
     def unique_name_in_devfile(self) -> str:
         """Use project specific name in devfile.

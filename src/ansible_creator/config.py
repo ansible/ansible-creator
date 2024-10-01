@@ -24,6 +24,7 @@ class Config:
         subcommand: The subcommand to execute.
         collection: The collection name to scaffold.
         force: Whether to overwrite existing files.
+        overwrite: To overwrite files in an existing directory.
         init_path: The path to initialize the project.
         project: The type of project to scaffold.
         collection_name: The name of the collection.
@@ -36,6 +37,7 @@ class Config:
 
     collection: str = ""
     force: bool = False
+    overwrite: bool = False
     init_path: str | Path = "./"
     project: str = ""
     collection_name: str | None = None
