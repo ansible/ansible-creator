@@ -5,7 +5,6 @@ from __future__ import annotations
 import copy
 import os
 import shutil
-import sys
 
 from dataclasses import dataclass
 from functools import cached_property
@@ -16,6 +15,7 @@ from typing import TYPE_CHECKING
 import yaml
 
 from ansible_creator.constants import SKIP_DIRS, SKIP_FILES_TYPES
+from ansible_creator.output import Color
 
 
 if TYPE_CHECKING:
@@ -102,7 +102,7 @@ class DestinationFile:
             if self.dest.is_file():
                 dest_content = self.dest.read_text("utf8")
                 if self.content != dest_content:
-                    return f"{self.dest} is a conflicting file and can be overwritten!"
+                    return f"{self.dest} already exists"
             else:
                 return f"{self.dest} already exists and is a directory!"
 
@@ -379,17 +379,20 @@ class Copier:
                 self._copy_file(path)
 
 
-def handle_overwrite(response: str) -> None:
-    """Handle the user response for overwriting files.
+def ask_yes_no(question: str, yes: bool, no: bool) -> bool:
+    """Ask a question.
 
     Args:
-        response: The user's response, either 'yes' or 'no'.
+        question: The question to ask
+
+    Returns:
+        The answer
     """
-    if response == "yes":
-        print("Overwriting files...")  # noqa: T201
-    elif response == "no":
-        print("Aborting the operation.")  # noqa: T201
-        sys.exit(1)
-    else:
-        print("Invalid input. Please enter 'yes' or 'no'.")  # noqa: T201
-        sys.exit(1)
+    if yes:
+        return True
+    if no:
+        return False
+    answer = ""
+    while answer not in ["y", "n"]:
+        answer = input(f"{Color.BRIGHT_WHITE}{question} (y/n){Color.END}: ").lower()
+    return answer == "y"

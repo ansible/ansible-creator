@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.templar import Templar
 from ansible_creator.types import TemplateData
-from ansible_creator.utils import Copier, Walker, handle_overwrite
+from ansible_creator.utils import Copier, Walker, ask_yes_no
 
 
 if TYPE_CHECKING:
@@ -47,6 +47,8 @@ class Init:
         self._init_path: Path = Path(config.init_path)
         self._force = config.force
         self._overwrite = config.overwrite
+        self._yes = config.yes
+        self._no = config.no
         self._creator_version = config.creator_version
         self._project = config.project
         self._templar = Templar()
@@ -87,16 +89,6 @@ class Init:
             msg = f"the path {self._init_path} already exists, but is a file - aborting"
             raise CreatorError(msg)
         if next(self._init_path.iterdir(), None):
-            # init-path exists and is not empty, but user did not request --force
-            if self._force is False and not self._overwrite:
-                msg = (
-                    f"The directory {self._init_path} is not empty.\n"
-                    f"You can use --overwrite to preserve the existing directory content"
-                    f" or --force to re-initialize this directory."
-                    f"\nHowever force will delete ALL existing contents in it."
-                )
-                raise CreatorError(msg)
-
             if self._force:
                 # user requested --force, re-initializing existing directory
                 self.output.warning(
@@ -138,13 +130,28 @@ class Init:
         )
         paths = walker.collect_paths()
 
-        if self._overwrite:
-            res = str(self._overwrite)
-            handle_overwrite(res)
-
         copier = Copier(
             output=self.output,
         )
-        copier.copy_containers(paths)
+        if not paths.has_conflicts():
+            copier.copy_containers(paths)
+            self.output.note(f"{self._project} project created at {self._init_path}")
+            return
+
+        if self._force:
+            copier.copy_containers(paths)
+            self.output.note(f"{self._project} project created at {self._init_path}")
+            return
+
+        if not self._overwrite:
+            question = (
+                "Files in the destination directory will be overwritten. Do you want to proceed?"
+            )
+            answer = ask_yes_no(question, self._yes, self._no)
+            if answer:
+                copier.copy_containers(paths)
+            else:
+                msg = "The destination directory contains files that will be overwritten. Please rerun ansible-creator with --overwrite to continue."
+                raise CreatorError(msg)
 
         self.output.note(f"{self._project} project created at {self._init_path}")

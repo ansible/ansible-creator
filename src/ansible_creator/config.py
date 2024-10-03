@@ -38,6 +38,8 @@ class Config:
     collection: str = ""
     force: bool = False
     overwrite: bool = False
+    yes: bool = False
+    no: bool = False
     init_path: str | Path = "./"
     project: str = ""
     collection_name: str | None = None
