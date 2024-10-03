@@ -388,7 +388,7 @@ def handle_overwrite(response: str) -> None:
     if response == "yes":
         print("Overwriting files...")  # noqa: T201
     elif response == "no":
-        print("Operation cancelled.")  # noqa: T201
+        print("Aborting the operation.")  # noqa: T201
         sys.exit(1)
     else:
         print("Invalid input. Please enter 'yes' or 'no'.")  # noqa: T201
