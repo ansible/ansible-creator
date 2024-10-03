@@ -5,6 +5,7 @@ from __future__ import annotations
 import copy
 import os
 import shutil
+import sys
 
 from dataclasses import dataclass
 from functools import cached_property
@@ -101,7 +102,7 @@ class DestinationFile:
             if self.dest.is_file():
                 dest_content = self.dest.read_text("utf8")
                 if self.content != dest_content:
-                    return f"{self.dest} will be overwritten!"
+                    return f"{self.dest} is a conflicting file and can be overwritten!"
             else:
                 return f"{self.dest} already exists and is a directory!"
 
@@ -376,3 +377,18 @@ class Copier:
 
             elif path.source.is_file():
                 self._copy_file(path)
+
+
+def handle_overwrite() -> None:
+    """This is a placeholder docstring."""
+    response = (
+        input("Do you want to proceed with overwriting these files? (yes/no): ").strip().lower()
+    )
+    if response == "yes":
+        print("Overwriting files...")  # noqa: T201
+    elif response == "no":
+        print("Operation cancelled.")  # noqa: T201
+        sys.exit(1)
+    else:
+        print("Invalid input. Please enter 'yes' or 'no'.")  # noqa: T201
+        sys.exit(1)

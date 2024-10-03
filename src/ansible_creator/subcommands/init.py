@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.templar import Templar
 from ansible_creator.types import TemplateData
-from ansible_creator.utils import Copier, Walker
+from ansible_creator.utils import Copier, Walker, handle_overwrite
 
 
 if TYPE_CHECKING:
@@ -137,6 +137,9 @@ class Init:
             template_data=template_data,
         )
         paths = walker.collect_paths()
+
+        if self._overwrite:
+            handle_overwrite()
 
         copier = Copier(
             output=self.output,
