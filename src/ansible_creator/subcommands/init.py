@@ -88,7 +88,7 @@ class Init:
             raise CreatorError(msg)
         if next(self._init_path.iterdir(), None):
             # init-path exists and is not empty, but user did not request --force
-            if self._force is False and self._overwrite is False:
+            if self._force is False and not self._overwrite:
                 msg = (
                     f"The directory {self._init_path} is not empty.\n"
                     f"You can use --overwrite to preserve the existing directory content"
@@ -139,7 +139,8 @@ class Init:
         paths = walker.collect_paths()
 
         if self._overwrite:
-            handle_overwrite()
+            res = str(self._overwrite)
+            handle_overwrite(res)
 
         copier = Copier(
             output=self.output,

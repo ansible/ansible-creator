@@ -379,11 +379,12 @@ class Copier:
                 self._copy_file(path)
 
 
-def handle_overwrite() -> None:
-    """This is a placeholder docstring."""
-    response = (
-        input("Do you want to proceed with overwriting these files? (yes/no): ").strip().lower()
-    )
+def handle_overwrite(response: str) -> None:
+    """Handle the user response for overwriting files.
+
+    Args:
+        response: The user's response, either 'yes' or 'no'.
+    """
     if response == "yes":
         print("Overwriting files...")  # noqa: T201
     elif response == "no":

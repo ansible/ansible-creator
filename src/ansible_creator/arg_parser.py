@@ -199,9 +199,10 @@ class Parser:
         parser.add_argument(
             "-o",
             "--overwrite",
+            nargs="?",
+            const="no",
             default=False,
             dest="overwrite",
-            action="store_true",
             help="Overwrite the existing file or directory.",
         )
 
