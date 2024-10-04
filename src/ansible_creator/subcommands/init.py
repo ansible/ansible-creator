@@ -47,6 +47,7 @@ class Init:
         self._init_path: Path = Path(config.init_path)
         self._force = config.force
         self._overwrite = config.overwrite
+        self._no_overwrite = config.no_overwrite
         self._creator_version = config.creator_version
         self._project = config.project
         self._templar = Templar()
@@ -135,6 +136,15 @@ class Init:
         copier = Copier(
             output=self.output,
         )
+
+        if self._no_overwrite:
+            msg = "The flag `--no-overwrite` restricts overwriting."
+            if paths.has_conflicts():
+                msg += (
+                    "\nAlthough destination directory contains files that can be overwritten."
+                    "\nPlease re-run ansible-creator with --overwrite to continue."
+                )
+            raise CreatorError(msg)
 
         if not paths.has_conflicts() or self._force:
             copier.copy_containers(paths)

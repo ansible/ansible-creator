@@ -204,6 +204,14 @@ class Parser:
             action="store_true",
             help="Overwrite existing files or directories.",
         )
+        parser.add_argument(
+            "-no",
+            "--no-overwrite",
+            default=False,
+            dest="no_overwrite",
+            action="store_true",
+            help="Flag that restricts overwriting operation.",
+        )
 
     def _add_args_plugin_common(self, parser: ArgumentParser) -> None:
         """Add common plugin arguments to the parser.
