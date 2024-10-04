@@ -112,7 +112,7 @@ class Init:
 
         Raises:
             CreatorError: When the destination directory contains files that will be overwritten and
-                          the user chooses not to proceed.
+                the user chooses not to proceed.
         """
         self.output.debug(msg=f"started copying {self._project} skeleton to destination")
         template_data = TemplateData(
