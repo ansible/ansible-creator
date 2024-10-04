@@ -204,22 +204,6 @@ class Parser:
             action="store_true",
             help="Overwrite existing files or directories.",
         )
-        parser.add_argument(
-            "-y",
-            "--yes",
-            default=False,
-            dest="yes",
-            action="store_true",
-            help="Answer all prompts with yes.",
-        )
-        parser.add_argument(
-            "-n",
-            "--no",
-            default=False,
-            dest="no",
-            action="store_true",
-            help="Answer all prompts with no.",
-        )
 
     def _add_args_plugin_common(self, parser: ArgumentParser) -> None:
         """Add common plugin arguments to the parser.

@@ -379,19 +379,15 @@ class Copier:
                 self._copy_file(path)
 
 
-def ask_yes_no(question: str, yes: bool, no: bool) -> bool:
-    """Ask a question.
+def ask_yes_no(question: str) -> bool:
+    """Ask a question and return the answer.
 
     Args:
-        question: The question to ask
+        question: The question to ask.
 
     Returns:
-        The answer
+        The answer as a boolean.
     """
-    if yes:
-        return True
-    if no:
-        return False
     answer = ""
     while answer not in ["y", "n"]:
         answer = input(f"{Color.BRIGHT_WHITE}{question} (y/n){Color.END}: ").lower()

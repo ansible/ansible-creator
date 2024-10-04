@@ -136,8 +136,8 @@ def test_run_init_basic(cli: CliRunCallable, tmp_path: Path) -> None:
         )
         is not None
     )
-    assert "You can use --overwrite to preserve the existing directory content" in result.stderr
-    assert "However force will delete ALL existing contents in it." in result.stderr
+    assert "You can use --force to re-initialize this directory." in result.stderr
+    assert "However it will delete ALL existing contents in it." in result.stderr
 
     # override existing collection with force=true
     result = cli(f"{CREATOR_BIN} init testorg.testcol --init-path {tmp_path} --force")
