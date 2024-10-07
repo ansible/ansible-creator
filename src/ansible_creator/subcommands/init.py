@@ -146,7 +146,7 @@ class Init:
                 )
             raise CreatorError(msg)
 
-        if not paths.has_conflicts() or self._force:
+        if not paths.has_conflicts() or self._force or self._overwrite:
             copier.copy_containers(paths)
             self.output.note(f"{self._project} project created at {self._init_path}")
             return
