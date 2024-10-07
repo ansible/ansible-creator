@@ -147,6 +147,18 @@ def test_run_success_for_collection(
     ):
         init.run()
 
+    # expect a warning followed by a project creation msg here
+    monkeypatch.setattr("builtins.input", lambda _: "y")
+    init.run()
+    result = capsys.readouterr().out
+    assert (
+        re.search(
+            "already exists",
+            result,
+        )
+        is not None
+    ), result
+
     # override existing collection with force=true
     cli_args["force"] = True
     init = Init(

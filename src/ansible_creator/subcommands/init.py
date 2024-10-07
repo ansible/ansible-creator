@@ -141,7 +141,7 @@ class Init:
             msg = "The flag `--no-overwrite` restricts overwriting."
             if paths.has_conflicts():
                 msg += (
-                    r"\The destination directory contains files that can be overwritten."
+                    "\nThe destination directory contains files that can be overwritten."
                     "\nPlease re-run ansible-creator with --overwrite to continue."
                 )
             raise CreatorError(msg)

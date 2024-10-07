@@ -18,8 +18,8 @@
       "args": [
         "init",
         "playbook",
-        "foo.bar",
-        "/Users/shamishr/Ansible/test_stuff/test_creator_force"
+        "testns.testname",
+        "/home/user/..path/to/your/new_playbook_project"
       ],
       "cwd": "${workspaceFolder}/src",
       "justMyCode": false
