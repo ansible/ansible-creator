@@ -31,6 +31,8 @@ class ConfigDict(TypedDict):
         init_path: Path to initialize the project.
         project: The type of project to scaffold.
         force: Force overwrite of existing directory.
+        overwrite: xyz.
+        no_overwrite: xyz.
     """
 
     creator_version: str
@@ -40,6 +42,8 @@ class ConfigDict(TypedDict):
     init_path: str
     project: str
     force: bool
+    overwrite: bool
+    no_overwrite: bool
 
 
 @pytest.fixture(name="cli_args")
@@ -61,6 +65,8 @@ def fixture_cli_args(tmp_path: Path, output: Output) -> ConfigDict:
         "init_path": str(tmp_path / "testorg" / "testcol"),
         "project": "",
         "force": False,
+        "overwrite": False,
+        "no_overwrite": False,
     }
 
 
@@ -109,14 +115,14 @@ def test_run_success_for_collection(
         coll_name = self._collection_name
         return f"{coll_namespace}.{coll_name}"
 
-    # Apply the mock
-    monkeypatch.setattr(
-        Init,
-        "unique_name_in_devfile",
-        mock_unique_name_in_devfile,
-    )
-
-    init.run()
+    with pytest.MonkeyPatch.context() as mp:
+        # Apply the mock
+        mp.setattr(
+            Init,
+            "unique_name_in_devfile",
+            mock_unique_name_in_devfile,
+        )
+        init.run()
     result = capsys.readouterr().out
 
     # check stdout
@@ -128,7 +134,18 @@ def test_run_success_for_collection(
     assert diff == [], diff
 
     # fail to override existing collection with force=false (default)
-    # add some test here
+    monkeypatch.setattr("builtins.input", lambda _: "n")
+
+    # expect a CreatorError here
+    fail_msg = (
+        "The destination directory contains files that will be overwritten."
+        " Please re-run ansible-creator with --overwrite to continue."
+    )
+    with pytest.raises(
+        CreatorError,
+        match=fail_msg,
+    ):
+        init.run()
 
     # override existing collection with force=true
     cli_args["force"] = True
