@@ -133,7 +133,7 @@ def test_run_success_for_collection(
     diff = has_differences(dcmp=cmp, errors=[])
     assert diff == [], diff
 
-    # expect a CreatorError when the response for ask_yes_no is no.
+    # expect a CreatorError when the response to overwrite is no.
     monkeypatch.setattr("builtins.input", lambda _: "n")
     fail_msg = (
         "The destination directory contains files that will be overwritten."
@@ -145,7 +145,8 @@ def test_run_success_for_collection(
     ):
         init.run()
 
-    # expect a warning followed by a project creation msg here
+    # expect a warning followed by collection project creation msg
+    # when response to overwrite is yes.
     monkeypatch.setattr("builtins.input", lambda _: "y")
     init.run()
     result = capsys.readouterr().out
@@ -197,14 +198,14 @@ def test_run_success_ansible_project(
         coll_name = self._collection_name
         return f"{coll_namespace}.{coll_name}"
 
-    # Apply the mock
-    monkeypatch.setattr(
-        Init,
-        "unique_name_in_devfile",
-        mock_unique_name_in_devfile,
-    )
-
-    init.run()
+    with pytest.MonkeyPatch.context() as mp:
+        # Apply the mock
+        mp.setattr(
+            Init,
+            "unique_name_in_devfile",
+            mock_unique_name_in_devfile,
+        )
+        init.run()
     result = capsys.readouterr().out
 
     # check stdout
@@ -218,8 +219,31 @@ def test_run_success_ansible_project(
     diff = has_differences(dcmp=cmp, errors=[])
     assert diff == [], diff
 
-    # fail to override existing playbook directory with force=false (default)
-    # add some test here
+    # expect a CreatorError when the response to overwrite is no.
+    monkeypatch.setattr("builtins.input", lambda _: "n")
+    fail_msg = (
+        "The destination directory contains files that will be overwritten."
+        " Please re-run ansible-creator with --overwrite to continue."
+    )
+    with pytest.raises(
+        CreatorError,
+        match=fail_msg,
+    ):
+        init.run()
+
+    # expect a warning followed by playbook project creation msg
+    # when response to overwrite is yes.
+    monkeypatch.setattr("builtins.input", lambda _: "y")
+    init.run()
+    result = capsys.readouterr().out
+    assert (
+        re.search(
+            "already exists",
+            result,
+        )
+        is not None
+    ), result
+    assert re.search("Note: playbook project created at", result) is not None, result
 
     # override existing playbook directory with force=true
     cli_args["force"] = True
