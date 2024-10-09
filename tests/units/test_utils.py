@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from ansible_creator.types import TemplateData
-from ansible_creator.utils import Copier, Walker, expand_path
+from ansible_creator.utils import Copier, Walker, ask_yes_no, expand_path
 
 
 if TYPE_CHECKING:
@@ -132,3 +132,49 @@ def test_skip_repeats(tmp_path: Path, output: Output) -> None:
     # Re-walk directory to generate new path list
     paths = walker.collect_paths()
     assert not paths
+
+
+def test_ask_yes_no_yes(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test ask_yes_no function with 'y' input.
+
+    Args:
+        monkeypatch: Pytest monkeypatch fixture.
+    """
+    # Mock input to return 'y'
+    monkeypatch.setattr("builtins.input", lambda _: "y")
+    assert ask_yes_no("Do you want to continue?") is True
+
+
+def test_ask_yes_no_no(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test ask_yes_no function with 'n' input.
+
+    Args:
+        monkeypatch: Pytest monkeypatch fixture.
+    """
+    # Mock input to return 'n'
+    monkeypatch.setattr("builtins.input", lambda _: "n")
+    assert ask_yes_no("Do you want to continue?") is False
+
+
+def test_ask_yes_no_invalid_then_yes(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test ask_yes_no function with invalid then 'y' input.
+
+    Args:
+        monkeypatch: Pytest monkeypatch fixture.
+    """
+    # Mock input to return an invalid response first, then 'y'
+    inputs = iter(["invalid", "y"])
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+    assert ask_yes_no("Do you want to continue?") is True
+
+
+def test_ask_yes_no_invalid_then_no(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test ask_yes_no function with invalid then 'n' input.
+
+    Args:
+        monkeypatch: Pytest monkeypatch fixture.
+    """
+    # Mock input to return an invalid response first, then 'n'
+    inputs = iter(["invalid", "n"])
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+    assert ask_yes_no("Do you want to continue?") is False

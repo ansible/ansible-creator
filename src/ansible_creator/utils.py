@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING
 import yaml
 
 from ansible_creator.constants import SKIP_DIRS, SKIP_FILES_TYPES
+from ansible_creator.output import Color
 
 
 if TYPE_CHECKING:
@@ -101,7 +102,7 @@ class DestinationFile:
             if self.dest.is_file():
                 dest_content = self.dest.read_text("utf8")
                 if self.content != dest_content:
-                    return f"{self.dest} will be overwritten!"
+                    return f"{self.dest} already exists"
             else:
                 return f"{self.dest} already exists and is a directory!"
 
@@ -376,3 +377,18 @@ class Copier:
 
             elif path.source.is_file():
                 self._copy_file(path)
+
+
+def ask_yes_no(question: str) -> bool:
+    """Ask a question and return the answer.
+
+    Args:
+        question: The question to ask.
+
+    Returns:
+        The answer as a boolean.
+    """
+    answer = ""
+    while answer not in ["y", "n"]:
+        answer = input(f"{Color.BRIGHT_WHITE}{question} (y/n){Color.END}: ").lower()
+    return answer == "y"

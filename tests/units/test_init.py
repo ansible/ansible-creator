@@ -31,6 +31,8 @@ class ConfigDict(TypedDict):
         init_path: Path to initialize the project.
         project: The type of project to scaffold.
         force: Force overwrite of existing directory.
+        overwrite: To overwrite files in an existing directory.
+        no_overwrite: To not overwrite files in an existing directory.
     """
 
     creator_version: str
@@ -40,6 +42,8 @@ class ConfigDict(TypedDict):
     init_path: str
     project: str
     force: bool
+    overwrite: bool
+    no_overwrite: bool
 
 
 @pytest.fixture(name="cli_args")
@@ -61,6 +65,8 @@ def fixture_cli_args(tmp_path: Path, output: Output) -> ConfigDict:
         "init_path": str(tmp_path / "testorg" / "testcol"),
         "project": "",
         "force": False,
+        "overwrite": False,
+        "no_overwrite": False,
     }
 
 
@@ -109,14 +115,14 @@ def test_run_success_for_collection(
         coll_name = self._collection_name
         return f"{coll_namespace}.{coll_name}"
 
-    # Apply the mock
-    monkeypatch.setattr(
-        Init,
-        "unique_name_in_devfile",
-        mock_unique_name_in_devfile,
-    )
-
-    init.run()
+    with pytest.MonkeyPatch.context() as mp:
+        # Apply the mock
+        mp.setattr(
+            Init,
+            "unique_name_in_devfile",
+            mock_unique_name_in_devfile,
+        )
+        init.run()
     result = capsys.readouterr().out
 
     # check stdout
@@ -127,14 +133,31 @@ def test_run_success_for_collection(
     diff = has_differences(dcmp=cmp, errors=[])
     assert diff == [], diff
 
-    # fail to override existing collection with force=false (default)
+    # expect a CreatorError when the response to overwrite is no.
+    monkeypatch.setattr("builtins.input", lambda _: "n")
     fail_msg = (
-        f"The directory {tmp_path}/testorg/testcol is not empty."
-        "\nYou can use --force to re-initialize this directory."
-        "\nHowever it will delete ALL existing contents in it."
+        "The destination directory contains files that will be overwritten."
+        " Please re-run ansible-creator with --overwrite to continue."
     )
-    with pytest.raises(CreatorError, match=fail_msg):
+    with pytest.raises(
+        CreatorError,
+        match=fail_msg,
+    ):
         init.run()
+
+    # expect a warning followed by collection project creation msg
+    # when response to overwrite is yes.
+    monkeypatch.setattr("builtins.input", lambda _: "y")
+    init.run()
+    result = capsys.readouterr().out
+    assert (
+        re.search(
+            "already exists",
+            result,
+        )
+        is not None
+    ), result
+    assert re.search("Note: collection project created at", result) is not None, result
 
     # override existing collection with force=true
     cli_args["force"] = True
@@ -175,14 +198,14 @@ def test_run_success_ansible_project(
         coll_name = self._collection_name
         return f"{coll_namespace}.{coll_name}"
 
-    # Apply the mock
-    monkeypatch.setattr(
-        Init,
-        "unique_name_in_devfile",
-        mock_unique_name_in_devfile,
-    )
-
-    init.run()
+    with pytest.MonkeyPatch.context() as mp:
+        # Apply the mock
+        mp.setattr(
+            Init,
+            "unique_name_in_devfile",
+            mock_unique_name_in_devfile,
+        )
+        init.run()
     result = capsys.readouterr().out
 
     # check stdout
@@ -196,14 +219,31 @@ def test_run_success_ansible_project(
     diff = has_differences(dcmp=cmp, errors=[])
     assert diff == [], diff
 
-    # fail to override existing playbook directory with force=false (default)
+    # expect a CreatorError when the response to overwrite is no.
+    monkeypatch.setattr("builtins.input", lambda _: "n")
     fail_msg = (
-        f"The directory {tmp_path}/new_project is not empty."
-        "\nYou can use --force to re-initialize this directory."
-        "\nHowever it will delete ALL existing contents in it."
+        "The destination directory contains files that will be overwritten."
+        " Please re-run ansible-creator with --overwrite to continue."
     )
-    with pytest.raises(CreatorError, match=fail_msg):
+    with pytest.raises(
+        CreatorError,
+        match=fail_msg,
+    ):
         init.run()
+
+    # expect a warning followed by playbook project creation msg
+    # when response to overwrite is yes.
+    monkeypatch.setattr("builtins.input", lambda _: "y")
+    init.run()
+    result = capsys.readouterr().out
+    assert (
+        re.search(
+            "already exists",
+            result,
+        )
+        is not None
+    ), result
+    assert re.search("Note: playbook project created at", result) is not None, result
 
     # override existing playbook directory with force=true
     cli_args["force"] = True
