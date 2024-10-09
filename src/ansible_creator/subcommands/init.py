@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.templar import Templar
 from ansible_creator.types import TemplateData
-from ansible_creator.utils import Copier, Walker
+from ansible_creator.utils import Copier, Walker, ask_yes_no
 
 
 if TYPE_CHECKING:
@@ -46,6 +46,8 @@ class Init:
         self._collection_name = config.collection_name or ""
         self._init_path: Path = Path(config.init_path)
         self._force = config.force
+        self._overwrite = config.overwrite
+        self._no_overwrite = config.no_overwrite
         self._creator_version = config.creator_version
         self._project = config.project
         self._templar = Templar()
@@ -85,16 +87,7 @@ class Init:
         if self._init_path.is_file():
             msg = f"the path {self._init_path} already exists, but is a file - aborting"
             raise CreatorError(msg)
-        if next(self._init_path.iterdir(), None):
-            # init-path exists and is not empty, but user did not request --force
-            if not self._force:
-                msg = (
-                    f"The directory {self._init_path} is not empty.\n"
-                    f"You can use --force to re-initialize this directory."
-                    f"\nHowever it will delete ALL existing contents in it."
-                )
-                raise CreatorError(msg)
-
+        if next(self._init_path.iterdir(), None) and self._force:
             # user requested --force, re-initializing existing directory
             self.output.warning(
                 f"re-initializing existing directory {self._init_path}",
@@ -116,7 +109,12 @@ class Init:
         return f"{final_name}-{final_uuid}"
 
     def _scaffold(self) -> None:
-        """Scaffold an ansible project."""
+        """Scaffold an ansible project.
+
+        Raises:
+            CreatorError: When the destination directory contains files that will be overwritten and
+                the user chooses not to proceed.
+        """
         self.output.debug(msg=f"started copying {self._project} skeleton to destination")
         template_data = TemplateData(
             namespace=self._namespace,
@@ -138,6 +136,33 @@ class Init:
         copier = Copier(
             output=self.output,
         )
-        copier.copy_containers(paths)
+
+        if self._no_overwrite:
+            msg = "The flag `--no-overwrite` restricts overwriting."
+            if paths.has_conflicts():
+                msg += (
+                    "\nThe destination directory contains files that can be overwritten."
+                    "\nPlease re-run ansible-creator with --overwrite to continue."
+                )
+            raise CreatorError(msg)
+
+        if not paths.has_conflicts() or self._force or self._overwrite:
+            copier.copy_containers(paths)
+            self.output.note(f"{self._project} project created at {self._init_path}")
+            return
+
+        if not self._overwrite:
+            question = (
+                "Files in the destination directory will be overwritten. Do you want to proceed?"
+            )
+            answer = ask_yes_no(question)
+            if answer:
+                copier.copy_containers(paths)
+            else:
+                msg = (
+                    "The destination directory contains files that will be overwritten."
+                    " Please re-run ansible-creator with --overwrite to continue."
+                )
+                raise CreatorError(msg)
 
         self.output.note(f"{self._project} project created at {self._init_path}")
