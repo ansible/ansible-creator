@@ -373,7 +373,7 @@ def test_name_in_devfile_collection(cli_args_collection: Config) -> None:
     init = Init(cli_args_collection)
     unique_name = init.unique_name_in_devfile()
     assert unique_name.startswith("testns.testname-")
-    uuid_part = unique_name.split("-")[-1]  # Extract the UUID part
+    uuid_part = unique_name.rsplit("-", maxsplit=1)[-1]  # Extract the UUID part
     assert len(uuid_part) == UUID_LENGTH, "UUID part length mismatch"
 
 
@@ -388,5 +388,5 @@ def test_name_in_devfile_playbook(
     init = Init(cli_args_playbook)
     unique_name = init.unique_name_in_devfile()
     assert unique_name.startswith("foo.bar-")
-    uuid_part = unique_name.split("-")[-1]  # Extract the UUID part
+    uuid_part = unique_name.rsplit("-", maxsplit=1)[-1]  # Extract the UUID part
     assert len(uuid_part) == UUID_LENGTH, "UUID part length mismatch"
