@@ -31,8 +31,8 @@ class ConfigDict(TypedDict):
         init_path: Path to initialize the project.
         project: The type of project to scaffold.
         force: Force overwrite of existing directory.
-        overwrite: xyz.
-        no_overwrite: xyz.
+        overwrite: To overwrite files in an existing directory.
+        no_overwrite: To not overwrite files in an existing directory.
     """
 
     creator_version: str
@@ -133,10 +133,8 @@ def test_run_success_for_collection(
     diff = has_differences(dcmp=cmp, errors=[])
     assert diff == [], diff
 
-    # fail to override existing collection with force=false (default)
+    # expect a CreatorError when the response for ask_yes_no is no.
     monkeypatch.setattr("builtins.input", lambda _: "n")
-
-    # expect a CreatorError here
     fail_msg = (
         "The destination directory contains files that will be overwritten."
         " Please re-run ansible-creator with --overwrite to continue."
@@ -158,6 +156,7 @@ def test_run_success_for_collection(
         )
         is not None
     ), result
+    assert re.search("Note: collection project created at", result) is not None, result
 
     # override existing collection with force=true
     cli_args["force"] = True
