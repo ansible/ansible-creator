@@ -251,7 +251,7 @@ class Msg:
 class Output:
     """Output functionality."""
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # pylint: disable=too-many-positional-arguments
         self: Output,
         log_file: str,
         log_level: str,
