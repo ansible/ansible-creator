@@ -27,6 +27,7 @@ class TemplateData:
         recommended_extensions: A list of recommended VsCode extensions.
     """
 
+    resource_type: str = ""
     additions: dict[str, dict[str, dict[str, str | bool]]] = field(default_factory=dict)
     collection_name: str = ""
     creator_version: str = ""
