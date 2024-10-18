@@ -8,24 +8,29 @@ from typing import TYPE_CHECKING
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.templar import Templar
 from ansible_creator.types import TemplateData
-from ansible_creator.utils import Walker, Copier, ask_yes_no
+from ansible_creator.utils import Copier, Walker, ask_yes_no
 
 
 if TYPE_CHECKING:
     from ansible_creator.config import Config
     from ansible_creator.output import Output
 
+
 class Add:
     """Class to handle the add subcommand."""
 
     common_resources = ("common.devfile",)
-    
-    
+
     def __init__(
         self: Add,
         config: Config,
     ) -> None:
-        
+        """Initialize the add action.
+
+        Args:
+            config: App configuration object.
+        """
+
         self._resource_type: str = config.resource_type
         self._add_path: Path = Path(config.path)
         self._force = config.force
@@ -35,7 +40,7 @@ class Add:
         self._project = config.project
         self.output: Output = config.output
         self.templar = Templar()
-        
+
     def run(self) -> None:
         """Start scaffolding the resource file."""
         self._check_add_path()
@@ -46,7 +51,9 @@ class Add:
     def _check_add_path(self) -> None:
         """Validate the provided add path."""
         if not self._add_path.exists():
-            raise CreatorError(f"The path {self._add_path} does not exist. Please provide an existing directory.")
+            raise CreatorError(
+                f"The path {self._add_path} does not exist. Please provide an existing directory.",
+            )
 
     def _scaffold(self) -> None:
         """Scaffold the specified resource file."""
@@ -59,8 +66,7 @@ class Add:
         )
 
         # Initialize Walker and Copier for file operations
-    
-    
+
         walker = Walker(
             resources=self.common_resources,
             resource_id="common.devfile",
@@ -71,28 +77,30 @@ class Add:
         )
         paths = walker.collect_paths()
         copier = Copier(output=self.output)
-        
+
         if self._no_overwrite:
+            msg = "The flag `--no-overwrite` restricts overwriting."
             if paths.has_conflicts():
-                raise CreatorError(
-                    "The destination directory contains files that may be overwritten. "
-                    "Please re-run ansible-creator with --overwrite to proceed."
+                msg += (
+                    "\nThe destination directory contains files that can be overwritten."
+                    "\nPlease re-run ansible-creator with --overwrite to continue."
                 )
+            raise CreatorError(msg)
 
         if not paths.has_conflicts() or self._force or self._overwrite:
             copier.copy_containers(paths)
             self.output.note(f"Resource added to {self._add_path}")
             return
 
-        
         if not self._overwrite:
             question = "Some files in the destination directory may be overwritten. Do you want to proceed?"
             if ask_yes_no(question):
                 copier.copy_containers(paths)
             else:
-                raise CreatorError(
-                    "The destination contains files that could be overwritten. "
-                    "Please re-run ansible-creator with --overwrite to continue."
+                msg = (
+                    "The destination directory contains files that will be overwritten."
+                    " Please re-run ansible-creator with --overwrite to continue."
                 )
+                raise CreatorError(msg)
 
         self.output.note(f"Resource added to {self._add_path}")

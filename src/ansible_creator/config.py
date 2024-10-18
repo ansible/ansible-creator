@@ -30,14 +30,17 @@ class Config:
         project: The type of project to scaffold.
         collection_name: The name of the collection.
         namespace: The namespace for the collection.
+        resource_type: The type of resource to be scaffolded.
+        path: The file path where the resource should be added.
+        type: The type of the project for which the resource is being scaffolded.
     """
 
     creator_version: str
     output: Output
     subcommand: str
     type: str = ""
-    resource_type :str = ""
-    path :str = ""
+    resource_type: str = ""
+    path: str = ""
     collection: str = ""
     force: bool = False
     overwrite: bool = False
