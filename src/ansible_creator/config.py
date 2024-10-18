@@ -35,7 +35,9 @@ class Config:
     creator_version: str
     output: Output
     subcommand: str
-
+    type: str = ""
+    resource_type :str = ""
+    path :str = ""
     collection: str = ""
     force: bool = False
     overwrite: bool = False
