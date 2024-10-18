@@ -47,6 +47,9 @@ class Config:
 
     def __post_init__(self: Config) -> None:
         """Post process config values."""
+        if self.project == "ansible-project":
+            object.__setattr__(self, "project", "playbook")
+
         if self.collection:
             fqcn = self.collection.split(".", maxsplit=1)
             object.__setattr__(self, "namespace", fqcn[0])

@@ -459,3 +459,25 @@ def test_coming_soon(
     stdout, stderr = capsys.readouterr()
     assert f"`{args}` command is coming soon" in stdout
     assert "Goodbye" in stderr
+
+
+def test_config_post_init(
+    tmp_path: Path,
+    output: Output,
+) -> None:
+    """Test for a check in post_init in Config class.
+
+    Args:
+        tmp_path: Temporary directory path.
+        output: Output class object.
+    """
+    config = Config(
+        creator_version="24.10.0",
+        output=output,
+        subcommand="init",
+        collection="foo.bar",
+        init_path=str(tmp_path / "test_path"),
+        project="ansible-project",
+    )
+    config.__post_init__()
+    assert config.project == "playbook"
