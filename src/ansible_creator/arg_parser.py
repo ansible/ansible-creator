@@ -36,7 +36,7 @@ MIN_COLLECTION_NAME_LEN = 2
 
 COMING_SOON = (
     "add resource devcontainer",
-    "add resource devfile",
+    # "add resource devfile",
     "add resource role",
     "add plugin action",
     "add plugin filter",
