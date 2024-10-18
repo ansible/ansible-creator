@@ -17,7 +17,11 @@ if TYPE_CHECKING:
 
 
 class Add:
-    """Class to handle the add subcommand."""
+    """Class to handle the add subcommand.
+
+    Attributes:
+        common_resources: List of common resources to copy.
+    """
 
     common_resources = ("common.devfile",)
 
@@ -30,7 +34,6 @@ class Add:
         Args:
             config: App configuration object.
         """
-
         self._resource_type: str = config.resource_type
         self._add_path: Path = Path(config.path)
         self._force = config.force
@@ -49,14 +52,21 @@ class Add:
         self._scaffold()
 
     def _check_add_path(self) -> None:
-        """Validate the provided add path."""
+        """Validate the provided add path.
+
+        Raises:
+            CreatorError: If the add path does not exist.
+        """
         if not self._add_path.exists():
-            raise CreatorError(
-                f"The path {self._add_path} does not exist. Please provide an existing directory.",
-            )
+            msg = f"The path {self._add_path} does not exist. Please provide an existing directory."
+            raise CreatorError(msg)
 
     def _scaffold(self) -> None:
-        """Scaffold the specified resource file."""
+        """Scaffold the specified resource file.
+
+        Raises:
+            CreatorError: If there are conflicts and overwriting is not allowed.
+        """
         self.output.debug(f"Started copying {self._project} resource to destination")
 
         # Set up template data
@@ -93,7 +103,9 @@ class Add:
             return
 
         if not self._overwrite:
-            question = "Some files in the destination directory may be overwritten. Do you want to proceed?"
+            question = (
+                "Files in the destination directory will be overwritten. Do you want to proceed?"
+            )
             if ask_yes_no(question):
                 copier.copy_containers(paths)
             else:
