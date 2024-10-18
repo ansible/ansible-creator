@@ -17,6 +17,7 @@ class TemplateData:
     """Dataclass representing the template data.
 
     Attributes:
+        resource_type: The type of resource to be scaffolded.
         additions: A dictionary containing additional data to add to the gitignore.
         collection_name: The name of the collection.
         creator_version: The version of the creator.
