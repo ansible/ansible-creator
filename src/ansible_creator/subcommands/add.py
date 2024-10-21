@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import uuid
+
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -61,6 +63,16 @@ class Add:
             msg = f"The path {self._add_path} does not exist. Please provide an existing directory."
             raise CreatorError(msg)
 
+    def unique_name_in_devfile(self) -> str:
+        """Use project specific name in devfile.
+
+        Returns:
+            Unique name entry.
+        """
+        final_name = Path(self._add_path).name
+        final_uuid = str(uuid.uuid4())[:8]
+        return f"{final_name}-{final_uuid}"
+
     def _scaffold(self) -> None:
         """Scaffold the specified resource file.
 
@@ -73,6 +85,7 @@ class Add:
         template_data = TemplateData(
             resource_type=self._resource_type,
             creator_version=self._creator_version,
+            dev_file_name=self.unique_name_in_devfile(),
         )
 
         # Initialize Walker and Copier for file operations
