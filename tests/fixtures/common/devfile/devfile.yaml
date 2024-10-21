@@ -1,6 +1,6 @@
 schemaVersion: 2.2.2
 metadata:
-  name:
+  name: testorg
 components:
   - name: tooling-container
     container:

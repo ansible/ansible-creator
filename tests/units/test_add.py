@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import re
 
-from filecmp import dircmp
+from filecmp import cmp, dircmp
 from typing import TYPE_CHECKING, TypedDict
 
 import pytest
@@ -111,16 +111,25 @@ def test_run_success_add_devfile(
         Config(**cli_args),
     )
 
-    add.run()
+    # Mock the "unique_name_in_devfile" method
+    def mock_unique_name_in_devfile() -> str:
+        return "testorg"
+
+    with pytest.MonkeyPatch.context() as mp:
+        # Apply the mock
+        mp.setattr(
+            Add,
+            "unique_name_in_devfile",
+            staticmethod(mock_unique_name_in_devfile),
+        )
+        add.run()
     result = capsys.readouterr().out
-    # check stdout
-    print(result)
     assert re.search("Note: Resource added to", result) is not None
 
-    # recursively assert files created
-    cmp = dircmp(str(tmp_path), str(FIXTURES_DIR / "common" / "devfile"))
-    diff = has_differences(dcmp=cmp, errors=[])
-    assert diff == [], diff
+    expected_devfile = tmp_path / "devfile.yaml"
+    effective_devfile = FIXTURES_DIR / "common" / "devfile" / "devfile.yaml"
+    cmp_result = cmp(expected_devfile, effective_devfile, shallow=False)
+    assert cmp_result
 
     conflict_file = tmp_path / "devfile.yaml"
     conflict_file.write_text("schemaVersion: 2.2.2")
