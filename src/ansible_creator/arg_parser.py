@@ -293,6 +293,22 @@ class Parser:
             help="The destination directory for the devfile file. The default is the "
             "current working directory.",
         )
+        parser.add_argument(
+            "-o",
+            "--overwrite",
+            default=False,
+            dest="overwrite",
+            action="store_true",
+            help="Overwrite existing files or directories.",
+        )
+        parser.add_argument(
+            "-no",
+            "--no-overwrite",
+            default=False,
+            dest="no_overwrite",
+            action="store_true",
+            help="Flag that restricts overwriting operation.",
+        )
         self._add_args_common(parser)
 
     def _add_resource_role(self: Parser, subparser: SubParser[ArgumentParser]) -> None:
