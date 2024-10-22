@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import uuid
 
+from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -16,6 +17,16 @@ from ansible_creator.utils import Copier, Walker, ask_yes_no
 if TYPE_CHECKING:
     from ansible_creator.config import Config
     from ansible_creator.output import Output
+
+
+class Resources(Enum):
+    """Enumeration for resource types used in the add action.
+
+    Attributes:
+        devfile (int): Resource type representing a devfile.
+    """
+
+    devfile = 0
 
 
 class Add:
@@ -37,6 +48,7 @@ class Add:
             config: App configuration object.
         """
         self._resource_type: str = config.resource_type
+        self._resource_id: str = self.common_resources[Resources[self._resource_type].value]
         self._add_path: Path = Path(config.path)
         self._force = config.force
         self._overwrite = config.overwrite
@@ -69,7 +81,7 @@ class Add:
         Returns:
             Unique name entry.
         """
-        final_name = Path(self._add_path).name
+        final_name = ".".join(self._add_path.parts[-2:])
         final_uuid = str(uuid.uuid4())[:8]
         return f"{final_name}-{final_uuid}"
 
@@ -92,7 +104,7 @@ class Add:
 
         walker = Walker(
             resources=self.common_resources,
-            resource_id="common.devfile",
+            resource_id=self._resource_id,
             dest=self._add_path,
             output=self.output,
             template_data=template_data,
