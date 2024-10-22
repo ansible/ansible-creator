@@ -91,6 +91,7 @@ def has_differences(dcmp: dircmp[str], errors: list[str]) -> list[str]:
     return errors
 
 
+# Mock trial
 def test_run_success_add_devfile(
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
