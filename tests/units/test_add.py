@@ -10,13 +10,15 @@ from typing import TYPE_CHECKING, TypedDict
 
 import pytest
 
+from ansible_creator.config import Config
+from ansible_creator.exceptions import CreatorError
+
 
 if TYPE_CHECKING:
     from pathlib import Path
 
     from ansible_creator.output import Output
 
-from ansible_creator.config import Config
 from ansible_creator.subcommands.add import Add
 from tests.defaults import FIXTURES_DIR
 
@@ -91,7 +93,6 @@ def has_differences(dcmp: dircmp[str], errors: list[str]) -> list[str]:
     return errors
 
 
-# Mock trial
 def test_run_success_add_devfile(
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
@@ -146,3 +147,73 @@ def test_run_success_add_devfile(
         is not None
     ), result
     assert re.search("Note: Resource added to", result) is not None
+
+
+def test_run_error_no_overwrite(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test Add.run().
+
+    Successfully add devfile to path
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Add class object.
+    """
+    add = Add(
+        Config(**cli_args),
+    )
+
+    # Mock the "unique_name_in_devfile" method
+    def mock_unique_name_in_devfile() -> str:
+        return "testorg"
+
+    with pytest.MonkeyPatch.context() as mp:
+        # Apply the mock
+        mp.setattr(
+            Add,
+            "unique_name_in_devfile",
+            staticmethod(mock_unique_name_in_devfile),
+        )
+        add.run()
+    result = capsys.readouterr().out
+    assert re.search("Note: Resource added to", result) is not None
+
+    expected_devfile = tmp_path / "devfile.yaml"
+    effective_devfile = FIXTURES_DIR / "common" / "devfile" / "devfile.yaml"
+    cmp_result = cmp(expected_devfile, effective_devfile, shallow=False)
+    assert cmp_result
+
+    conflict_file = tmp_path / "devfile.yaml"
+    conflict_file.write_text("schemaVersion: 2.2.2")
+
+    cli_args["no_overwrite"] = True
+    add = Add(
+        Config(**cli_args),
+    )
+    with pytest.raises(CreatorError) as exc_info:
+        add.run()
+    assert "Please re-run ansible-creator with --overwrite to continue." in str(exc_info.value)
+
+
+def test_error_invalid_path(
+    cli_args: ConfigDict,
+) -> None:
+    """Test Add.run().
+
+    Successfully add devfile to path
+
+    Args:
+        cli_args: Dictionary, partial Add class object.
+    """
+    cli_args["path"] = "/invalid"
+    add = Add(
+        Config(**cli_args),
+    )
+
+    with pytest.raises(CreatorError) as exc_info:
+        add.run()
+    assert "does not exist. Please provide an existing directory" in str(exc_info.value)
