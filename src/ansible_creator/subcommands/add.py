@@ -86,22 +86,34 @@ class Add:
         return f"{final_name}-{final_uuid}"
 
     def _scaffold(self) -> None:
-        """Scaffold the specified resource file.
+        """Scaffold the specified resource file based on the resource type.
 
         Raises:
-            CreatorError: If there are conflicts and overwriting is not allowed.
+            CreatorError: If unsupported resource type is given.
         """
         self.output.debug(f"Started copying {self._project} resource to destination")
 
-        # Set up template data
-        template_data = TemplateData(
-            resource_type=self._resource_type,
-            creator_version=self._creator_version,
-            dev_file_name=self.unique_name_in_devfile(),
-        )
+        # Call the appropriate scaffolding function based on the resource type
+        if self._resource_type == "devfile":
+            template_data = self._get_devfile_template_data()
 
-        # Initialize Walker and Copier for file operations
+        else:
 
+            msg = f"Unsupported resource type: {self._resource_type}"
+            raise CreatorError(msg)
+
+        self._perform_scaffold(template_data)
+
+    def _perform_scaffold(self, template_data: TemplateData) -> None:
+        """Perform the actual scaffolding process using the provided template data.
+
+        Args:
+            template_data: TemplateData
+
+        Raises:
+            CreatorError: If there are conflicts and overwriting is not allowed, or if the
+                      destination directory contains files that will be overwritten.
+        """
         walker = Walker(
             resources=self.common_resources,
             resource_id=self._resource_id,
@@ -141,3 +153,15 @@ class Add:
                 raise CreatorError(msg)
 
         self.output.note(f"Resource added to {self._add_path}")
+
+    def _get_devfile_template_data(self) -> TemplateData:
+        """Get the template data for devfile resources.
+
+        Returns:
+            TemplateData: Data required for templating the devfile resource.
+        """
+        return TemplateData(
+            resource_type=self._resource_type,
+            creator_version=self._creator_version,
+            dev_file_name=self.unique_name_in_devfile(),
+        )

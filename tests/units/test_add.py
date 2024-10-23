@@ -136,6 +136,20 @@ def test_run_success_add_devfile(
     conflict_file = tmp_path / "devfile.yaml"
     conflict_file.write_text("schemaVersion: 2.2.2")
 
+    # expect a CreatorError when the response to overwrite is no.
+    monkeypatch.setattr("builtins.input", lambda _: "n")
+    fail_msg = (
+        "The destination directory contains files that will be overwritten."
+        " Please re-run ansible-creator with --overwrite to continue."
+    )
+    with pytest.raises(
+        CreatorError,
+        match=fail_msg,
+    ):
+        add.run()
+
+    # expect a warning followed by playbook project creation msg
+    # when response to overwrite is yes.
     monkeypatch.setattr("builtins.input", lambda _: "y")
     add.run()
     result = capsys.readouterr().out
