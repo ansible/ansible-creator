@@ -90,6 +90,9 @@ class Init:
         if next(self._init_path.iterdir(), None) and self._force:
             # user requested --force, re-initializing existing directory
             self.output.warning(
+                "The `force` flag will be deprecated soon. Please start using `overwrite` flag.",
+            )
+            self.output.warning(
                 f"re-initializing existing directory {self._init_path}",
             )
             try:

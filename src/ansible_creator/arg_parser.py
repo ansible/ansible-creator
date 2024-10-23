@@ -194,7 +194,7 @@ class Parser:
             default=False,
             dest="force",
             action="store_true",
-            help="Force re-initialize the specified directory.",
+            help="Force re-initialize the specified directory. This flag will be deprecated soon.",
         )
         parser.add_argument(
             "-o",
