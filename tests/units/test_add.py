@@ -231,3 +231,28 @@ def test_error_invalid_path(
     with pytest.raises(CreatorError) as exc_info:
         add.run()
     assert "does not exist. Please provide an existing directory" in str(exc_info.value)
+
+
+def test_run_error_unsupported_resource_type(
+    cli_args: ConfigDict,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test Add.run() with an unsupported resource type.
+
+    This test checks if the CreatorError is raised when an unsupported
+    resource type is provided.
+
+    Args:
+        cli_args: Dictionary, partial Add class object.
+        monkeypatch: Pytest monkeypatch fixture.
+    """
+    add = Add(
+        Config(**cli_args),
+    )
+    # Mock the _resource_type to bypass the validation step
+    monkeypatch.setattr(add, "_resource_type", "unsupported_type")
+
+    # Expect a CreatorError with the appropriate message
+    with pytest.raises(CreatorError) as exc_info:
+        add.run()
+    assert "Unsupported resource type: unsupported_type" in str(exc_info.value)
