@@ -115,6 +115,11 @@ def test_run_success_add_devfile(
 
     # Mock the "unique_name_in_devfile" method
     def mock_unique_name_in_devfile() -> str:
+        """Mock function to generate a unique name for use in a devfile.
+
+        Returns:
+            str: A placeholder name, "testorg".
+        """
         return "testorg"
 
     with pytest.MonkeyPatch.context() as mp:
@@ -183,6 +188,11 @@ def test_run_error_no_overwrite(
 
     # Mock the "unique_name_in_devfile" method
     def mock_unique_name_in_devfile() -> str:
+        """Mock function to generate a unique name for use in a devfile.
+
+        Returns:
+            str: A placeholder name, "testorg".
+        """
         return "testorg"
 
     with pytest.MonkeyPatch.context() as mp:

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import uuid
 
-from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -19,24 +18,8 @@ if TYPE_CHECKING:
     from ansible_creator.output import Output
 
 
-class Resources(Enum):
-    """Enumeration for resource types used in the add action.
-
-    Attributes:
-        devfile (int): Resource type representing a devfile.
-    """
-
-    devfile = 0
-
-
 class Add:
-    """Class to handle the add subcommand.
-
-    Attributes:
-        common_resources: List of common resources to copy.
-    """
-
-    common_resources = ("common.devfile",)
+    """Class to handle the add subcommand."""
 
     def __init__(
         self: Add,
@@ -48,7 +31,7 @@ class Add:
             config: App configuration object.
         """
         self._resource_type: str = config.resource_type
-        self._resource_id: str = self.common_resources[Resources[self._resource_type].value]
+        self._resource_id: str = f"common.{self._resource_type}"
         self._add_path: Path = Path(config.path)
         self._force = config.force
         self._overwrite = config.overwrite
@@ -115,7 +98,7 @@ class Add:
                       destination directory contains files that will be overwritten.
         """
         walker = Walker(
-            resources=self.common_resources,
+            resources=(f"common.{self._resource_type}",),
             resource_id=self._resource_id,
             dest=self._add_path,
             output=self.output,
