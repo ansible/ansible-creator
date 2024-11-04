@@ -19,7 +19,7 @@ os.environ["HOME"] = str(Path.home())
 os.environ["DEV_WORKSPACE"] = "collections/ansible_collections"
 
 
-@pytest.fixture()
+@pytest.fixture
 def cli() -> CliRunCallable:
     """Fixture to run CLI commands.
 
@@ -29,7 +29,7 @@ def cli() -> CliRunCallable:
     return cli_run
 
 
-@pytest.fixture()
+@pytest.fixture
 def output(tmp_path: Path) -> Output:
     """Create an Output class object as fixture.
 
@@ -49,7 +49,7 @@ def output(tmp_path: Path) -> Output:
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def home_path() -> Path:
     """Create the home directory as a fixture.
 
