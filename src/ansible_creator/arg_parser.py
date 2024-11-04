@@ -194,7 +194,10 @@ class Parser:
             default=False,
             dest="force",
             action="store_true",
-            help="Force re-initialize the specified directory. This flag is deprecated and will be removed soon.",
+            help=(
+                "Force re-initialize the specified directory. "
+                "This flag is deprecated and will be removed soon."
+            ),
         )
         parser.add_argument(
             "-o",
