@@ -52,18 +52,18 @@ $ ansible-creator init collection <collection-name> <path>
 
 #### Optional Arguments
 
-| Sort flag | Long flag      | Flag argument | Description                                                                                                                              |
-| --------- | -------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| -f        | --force        |               | Force re-initialize the specified directory as an Ansible collection. This flag is deprecated and will be removed soon. (default: False) |
-| -o        | --overwrite    |               | Overwrites existing files or directories. (default: False)                                                                               |
-| -no       | --no-overwrite |               | Restricts the overwriting operation for files or directories. (default: False)                                                           |
-|           | --json         |               | Output messages as JSON (default: False)                                                                                                 |
-| --la      | --log-append   | bool          | Append to log file. (choices: true, false) (default: true)                                                                               |
-| --lf      | --log-file     | file          | Log file to write to. (default: ./ansible-creator.log)                                                                                   |
-| --ll      | --log-level    | level         | Log level for file output. (choices: notset, debug, info, warning, error, critical) (default: notset)                                    |
-| --na      | --no-ansi      |               | Disable the use of ANSI codes for terminal color. (default: False)                                                                       |
-| -h        | --help         |               | Show this help message and exit                                                                                                          |
-| -v        | --verbosity    |               | Give more Cli output. Option is additive, and can be used up to 3 times. (default: 0)                                                    |
+| Short flag | Long flag      | Flag argument | Description                                                                                                                              |
+| ---------- | -------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| -f         | --force        |               | Force re-initialize the specified directory as an Ansible collection. This flag is deprecated and will be removed soon. (default: False) |
+| -o         | --overwrite    |               | Overwrites existing files or directories. (default: False)                                                                               |
+| -no        | --no-overwrite |               | Restricts the overwriting operation for files or directories. (default: False)                                                           |
+|            | --json         |               | Output messages as JSON (default: False)                                                                                                 |
+| --la       | --log-append   | bool          | Append to log file. (choices: true, false) (default: true)                                                                               |
+| --lf       | --log-file     | file          | Log file to write to. (default: ./ansible-creator.log)                                                                                   |
+| --ll       | --log-level    | level         | Log level for file output. (choices: notset, debug, info, warning, error, critical) (default: notset)                                    |
+| --na       | --no-ansi      |               | Disable the use of ANSI codes for terminal color. (default: False)                                                                       |
+| -h         | --help         |               | Show this help message and exit                                                                                                          |
+| -v         | --verbosity    |               | Give more Cli output. Option is additive, and can be used up to 3 times. (default: 0)                                                    |
 
 #### Example
 
@@ -204,18 +204,18 @@ $ ansible-creator init playbook <collection-name> <path>
 
 #### Optional Arguments
 
-| Sort flag | Long flag      | Flag argument | Description                                                                                                                              |
-| --------- | -------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| -f        | --force        |               | Force re-initialize the specified directory as an Ansible collection. This flag is deprecated and will be removed soon. (default: False) |
-| -o        | --overwrite    |               | Overwrites existing files or directories. (default: False)                                                                               |
-| -no       | --no-overwrite |               | Restricts the overwriting operation for files or directories. (default: False)                                                           |
-|           | --json         |               | Output messages as JSON (default: False)                                                                                                 |
-| --la      | --log-append   | bool          | Append to log file. (choices: true, false) (default: true)                                                                               |
-| --lf      | --log-file     | file          | Log file to write to. (default: ./ansible-creator.log)                                                                                   |
-| --ll      | --log-level    | level         | Log level for file output. (choices: notset, debug, info, warning, error, critical) (default: notset)                                    |
-| --na      | --no-ansi      |               | Disable the use of ANSI codes for terminal color. (default: False)                                                                       |
-| -h        | --help         |               | Show this help message and exit                                                                                                          |
-| -v        | --verbosity    |               | Give more Cli output. Option is additive, and can be used up to 3 times. (default: 0)                                                    |
+| Short flag | Long flag      | Flag argument | Description                                                                                                                              |
+| ---------- | -------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| -f         | --force        |               | Force re-initialize the specified directory as an Ansible collection. This flag is deprecated and will be removed soon. (default: False) |
+| -o         | --overwrite    |               | Overwrites existing files or directories. (default: False)                                                                               |
+| -no        | --no-overwrite |               | Restricts the overwriting operation for files or directories. (default: False)                                                           |
+|            | --json         |               | Output messages as JSON (default: False)                                                                                                 |
+| --la       | --log-append   | bool          | Append to log file. (choices: true, false) (default: true)                                                                               |
+| --lf       | --log-file     | file          | Log file to write to. (default: ./ansible-creator.log)                                                                                   |
+| --ll       | --log-level    | level         | Log level for file output. (choices: notset, debug, info, warning, error, critical) (default: notset)                                    |
+| --na       | --no-ansi      |               | Disable the use of ANSI codes for terminal color. (default: False)                                                                       |
+| -h         | --help         |               | Show this help message and exit                                                                                                          |
+| -v         | --verbosity    |               | Give more Cli output. Option is additive, and can be used up to 3 times. (default: 0)                                                    |
 
 Example:
 
