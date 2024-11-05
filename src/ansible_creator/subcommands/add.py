@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import uuid
 
-from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -19,24 +18,8 @@ if TYPE_CHECKING:
     from ansible_creator.output import Output
 
 
-class Resources(Enum):
-    """Enumeration for resource types used in the add action.
-
-    Attributes:
-        devfile (int): Resource type representing a devfile.
-    """
-
-    devfile = 0
-
-
 class Add:
-    """Class to handle the add subcommand.
-
-    Attributes:
-        common_resources: List of common resources to copy.
-    """
-
-    common_resources = ("common.devfile",)
+    """Class to handle the add subcommand."""
 
     def __init__(
         self: Add,
@@ -48,7 +31,7 @@ class Add:
             config: App configuration object.
         """
         self._resource_type: str = config.resource_type
-        self._resource_id: str = self.common_resources[Resources[self._resource_type].value]
+        self._resource_id: str = f"common.{self._resource_type}"
         self._add_path: Path = Path(config.path)
         self._force = config.force
         self._overwrite = config.overwrite
@@ -86,24 +69,36 @@ class Add:
         return f"{final_name}-{final_uuid}"
 
     def _scaffold(self) -> None:
-        """Scaffold the specified resource file.
+        """Scaffold the specified resource file based on the resource type.
 
         Raises:
-            CreatorError: If there are conflicts and overwriting is not allowed.
+            CreatorError: If unsupported resource type is given.
         """
         self.output.debug(f"Started copying {self._project} resource to destination")
 
-        # Set up template data
-        template_data = TemplateData(
-            resource_type=self._resource_type,
-            creator_version=self._creator_version,
-            dev_file_name=self.unique_name_in_devfile(),
-        )
+        # Call the appropriate scaffolding function based on the resource type
+        if self._resource_type == "devfile":
+            template_data = self._get_devfile_template_data()
 
-        # Initialize Walker and Copier for file operations
+        else:
 
+            msg = f"Unsupported resource type: {self._resource_type}"
+            raise CreatorError(msg)
+
+        self._perform_scaffold(template_data)
+
+    def _perform_scaffold(self, template_data: TemplateData) -> None:
+        """Perform the actual scaffolding process using the provided template data.
+
+        Args:
+            template_data: TemplateData
+
+        Raises:
+            CreatorError: If there are conflicts and overwriting is not allowed, or if the
+                      destination directory contains files that will be overwritten.
+        """
         walker = Walker(
-            resources=self.common_resources,
+            resources=(f"common.{self._resource_type}",),
             resource_id=self._resource_id,
             dest=self._add_path,
             output=self.output,
@@ -141,3 +136,15 @@ class Add:
                 raise CreatorError(msg)
 
         self.output.note(f"Resource added to {self._add_path}")
+
+    def _get_devfile_template_data(self) -> TemplateData:
+        """Get the template data for devfile resources.
+
+        Returns:
+            TemplateData: Data required for templating the devfile resource.
+        """
+        return TemplateData(
+            resource_type=self._resource_type,
+            creator_version=self._creator_version,
+            dev_file_name=self.unique_name_in_devfile(),
+        )

@@ -194,24 +194,12 @@ class Parser:
             default=False,
             dest="force",
             action="store_true",
-            help="Force re-initialize the specified directory.",
+            help=(
+                "Force re-initialize the specified directory. "
+                "This flag is deprecated and will be removed soon."
+            ),
         )
-        parser.add_argument(
-            "-o",
-            "--overwrite",
-            default=False,
-            dest="overwrite",
-            action="store_true",
-            help="Overwrite existing files or directories.",
-        )
-        parser.add_argument(
-            "-no",
-            "--no-overwrite",
-            default=False,
-            dest="no_overwrite",
-            action="store_true",
-            help="Flag that restricts overwriting operation.",
-        )
+        self._add_overwrite(parser)
 
     def _add_args_plugin_common(self, parser: ArgumentParser) -> None:
         """Add common plugin arguments to the parser.
@@ -290,22 +278,8 @@ class Parser:
             help="The destination directory for the devfile file. The default is the "
             "current working directory.",
         )
-        parser.add_argument(
-            "-o",
-            "--overwrite",
-            default=False,
-            dest="overwrite",
-            action="store_true",
-            help="Overwrite existing files or directories.",
-        )
-        parser.add_argument(
-            "-no",
-            "--no-overwrite",
-            default=False,
-            dest="no_overwrite",
-            action="store_true",
-            help="Flag that restricts overwriting operation.",
-        )
+
+        self._add_overwrite(parser)
         self._add_args_common(parser)
 
     def _add_resource_role(self: Parser, subparser: SubParser[ArgumentParser]) -> None:
@@ -394,6 +368,29 @@ class Parser:
         )
         self._add_args_common(parser)
         self._add_args_plugin_common(parser)
+
+    def _add_overwrite(self, parser: ArgumentParser) -> None:
+        """Add overwrite and no-overwrite arguments to the parser.
+
+        Args:
+            parser: The parser to add overwrite and no_overwrite options
+        """
+        parser.add_argument(
+            "-o",
+            "--overwrite",
+            default=False,
+            dest="overwrite",
+            action="store_true",
+            help="Overwrite existing files or directories.",
+        )
+        parser.add_argument(
+            "-no",
+            "--no-overwrite",
+            default=False,
+            dest="no_overwrite",
+            action="store_true",
+            help="Flag that restricts overwriting operation.",
+        )
 
     def _init(self: Parser, subparser: SubParser[ArgumentParser]) -> None:
         """Initialize an Ansible project.
