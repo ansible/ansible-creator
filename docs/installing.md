@@ -1,6 +1,6 @@
 # Installation and Usage
 
-ansible-creator provides two main functionalities: `init` and `create`. The `init` command allows you to initialize an Ansible Collection, while `create` command allows you scaffold ansible plugins of your choice.
+ansible-creator provides two main functionalities: `init` and `add`. The `init` command allows you to initialize an Ansible project, while `add` command allows you to add resources to an existing ansible project.
 
 ## Installation
 
