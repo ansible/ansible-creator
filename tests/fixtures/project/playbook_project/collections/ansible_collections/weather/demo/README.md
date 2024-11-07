@@ -43,7 +43,7 @@ See [Ansible Using Collections](https://docs.ansible.com/ansible/latest/user_gui
 
 ## Release notes
 
-See the [changelog](https://github.com/ansible-collections/REPONAMEHERE/tree/main/CHANGELOG.rst).
+See the [changelog](https://github.com/ansible-collections/weather.demo/tree/main/CHANGELOG.rst).
 
 ## Roadmap
 
