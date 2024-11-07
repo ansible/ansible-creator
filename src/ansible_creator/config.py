@@ -30,12 +30,14 @@ class Config:
         project: The type of project to scaffold.
         collection_name: The name of the collection.
         namespace: The namespace for the collection.
+        resource_type: The type of resource to be scaffolded.
+        type: The type of the project for which the resource is being scaffolded.
+        path: The file path where the resource should be added.
     """
 
     creator_version: str
     output: Output
     subcommand: str
-
     collection: str = ""
     force: bool = False
     overwrite: bool = False
@@ -44,6 +46,9 @@ class Config:
     project: str = ""
     collection_name: str | None = None
     namespace: str = ""
+    resource_type: str = ""
+    type: str = ""
+    path: str = ""
 
     def __post_init__(self: Config) -> None:
         """Post process config values."""
