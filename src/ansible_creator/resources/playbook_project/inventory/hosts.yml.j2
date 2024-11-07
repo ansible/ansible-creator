@@ -25,8 +25,10 @@ all:
     production:
       hosts:
         server1:
+          ansible_host: 192.168.1.101
         server2:
+          ansible_host: 192.168.1.102
     test:
       hosts:
-        server1:
-        server2:
+        server3:
+          ansible_host: 192.168.1.103
