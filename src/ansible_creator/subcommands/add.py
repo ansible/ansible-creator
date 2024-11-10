@@ -79,6 +79,8 @@ class Add:
         # Call the appropriate scaffolding function based on the resource type
         if self._resource_type == "devfile":
             template_data = self._get_devfile_template_data()
+        elif self._resource_type == "devcontainer":
+            template_data = self._get_devcontainer_template_data()
 
         else:
 
@@ -142,6 +144,18 @@ class Add:
 
         Returns:
             TemplateData: Data required for templating the devfile resource.
+        """
+        return TemplateData(
+            resource_type=self._resource_type,
+            creator_version=self._creator_version,
+            dev_file_name=self.unique_name_in_devfile(),
+        )
+
+    def _get_devcontainer_template_data(self) -> TemplateData:
+        """Get the template data for devcontainer resources.
+
+        Returns:
+            TemplateData: Data required for templating the devcontainer resource.
         """
         return TemplateData(
             resource_type=self._resource_type,
