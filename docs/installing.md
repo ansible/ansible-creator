@@ -1,6 +1,6 @@
 # Installation and Usage
 
-ansible-creator provides two main functionalities: `init` and `create`. The `init` command allows you to initialize an Ansible Collection, while `create` command allows you scaffold ansible plugins of your choice.
+ansible-creator provides two main functionalities: `init` and `add`. The `init` command allows you to initialize an Ansible project, while `add` command allows you to add resources to an existing ansible project.
 
 ## Installation
 
@@ -281,3 +281,69 @@ It also comes equipped with Github Action Workflows that use [ansible-content-ac
 - [Using the release workflow](https://ansible.readthedocs.io/projects/dev-tools/user-guide/content-release/)
 
 Please ensure that you review any potential `TO-DO` items in the scaffolded content and make the necessary modifications according to your requirements.
+
+### Add support to existing project
+
+The `add` subcommand allows users to scaffold content types like resources and plugins into an existing project. This feature is designed to streamline the development environment setup by automatically generating the necessary configuration files.
+
+### General Usage
+
+Get an overview of available commands and options by running:
+
+```console
+$ ansible-creator add --help
+```
+
+#### Positional Arguments
+
+| Parameter    | Description                                   |
+| ------------ | --------------------------------------------- |
+| content-type | Specifies the type of content to add.         |
+| resource     | Add resources to an existing Ansible project. |
+| plugin       | Add a plugin to an Ansible collection.        |
+
+#### Optional Arguments
+
+| Short flag | Long flag | Flag argument | Description                      |
+| ---------- | --------- | ------------- | -------------------------------- |
+| -h         | --help    |               | Show this help message and exit. |
+
+### Add support to scaffold resource in an existing project
+
+The `add resource` command enables you to add a resource to an already existing project. Use the following command template:
+
+```console
+$ ansible-creator add resource <resource-type> <path>
+```
+
+#### Positional Arguments
+
+| Parameter     | Description                                            |
+| ------------- | ------------------------------------------------------ |
+| resource-type | Specifies the type of resource to add to the project.  |
+| devcontainer  | Add devcontainer files to an existing Ansible project. |
+| devfile       | Add a devfile file to an existing Ansible project.     |
+| role          | Add a role to an existing Ansible collection.          |
+
+### Add support to scaffold resource in an existing project
+
+The `add resource devfile` command enables you to add a devfile resource type to an already existing project. Use the following command template:
+
+```console
+$ ansible-creator add resource devfile <path>
+```
+
+#### Positional Arguments
+
+| Parameter | Description                                                                                                   |
+| --------- | ------------------------------------------------------------------------------------------------------------- |
+| devfile   | Add a devfile file to an existing Ansible project.                                                            |
+| path      | The destination directory for the devfile file. The default is the current working directory. (default: `./`) |
+
+#### Example
+
+```console
+$ ansible-creator add resource devfile /home/user/..path/to/your/existing_project
+```
+
+This command will scaffold the devfile.yaml file at `/home/user/..path/to/your/existing_project`
