@@ -22,7 +22,7 @@ class Add:
     """Class to handle the add subcommand."""
 
     def __init__(
-        self: Add,
+        self,
         config: Config,
     ) -> None:
         """Initialize the add action.
@@ -81,7 +81,6 @@ class Add:
             template_data = self._get_devfile_template_data()
 
         else:
-
             msg = f"Unsupported resource type: {self._resource_type}"
             raise CreatorError(msg)
 

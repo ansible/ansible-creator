@@ -34,7 +34,7 @@ class Init:
     )
 
     def __init__(
-        self: Init,
+        self,
         config: Config,
     ) -> None:
         """Initialize the init action.
@@ -53,7 +53,7 @@ class Init:
         self._templar = Templar()
         self.output: Output = config.output
 
-    def run(self: Init) -> None:
+    def run(self) -> None:
         """Start scaffolding skeleton."""
         self._construct_init_path()
         self.output.debug(msg=f"final collection path set to {self._init_path}")
@@ -64,7 +64,7 @@ class Init:
 
         self._scaffold()
 
-    def _construct_init_path(self: Init) -> None:
+    def _construct_init_path(self) -> None:
         """Construct the init path based on project type."""
         if self._project == "playbook":
             return
@@ -119,7 +119,9 @@ class Init:
             CreatorError: When the destination directory contains files that will be overwritten and
                 the user chooses not to proceed.
         """
-        self.output.debug(msg=f"started copying {self._project} skeleton to destination")
+        self.output.debug(
+            msg=f"started copying {self._project} skeleton to destination",
+        )
         template_data = TemplateData(
             namespace=self._namespace,
             collection_name=self._collection_name,

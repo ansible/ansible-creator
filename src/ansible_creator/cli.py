@@ -25,7 +25,7 @@ except ImportError:  # pragma: no cover
 class Cli:
     """Class representing the ansible-creator Cli."""
 
-    def __init__(self: Cli) -> None:
+    def __init__(self) -> None:
         """Initialize the Cli and parse Cli args."""
         self.args: dict[str, Any]
         self.output: Output
@@ -33,7 +33,7 @@ class Cli:
         self.term_features: TermFeatures
         self.parse_args()
 
-    def init_output(self: Cli) -> None:
+    def init_output(self) -> None:
         """Initialize the output object.
 
         In case the arg parsing exited early, set some sane default values.
@@ -56,18 +56,18 @@ class Cli:
             display="json" if self.args.pop("json", None) else "text",
         )
 
-    def parse_args(self: Cli) -> None:
+    def parse_args(self) -> None:
         """Start parsing args passed from Cli."""
         args, pending_logs = Parser().parse_args()
         self.args = vars(args)
         self.pending_logs = pending_logs
 
-    def process_pending_logs(self: Cli) -> None:
+    def process_pending_logs(self) -> None:
         """Log any pending logs."""
         for msg in self.pending_logs:
             getattr(self.output, msg.prefix.value.lower())(msg.message)
 
-    def run(self: Cli) -> None:
+    def run(self) -> None:
         """Dispatch work to correct subcommand class."""
         self.output.debug(msg=f"parsed args {self.args!s}")
         subcommand = self.args["subcommand"]

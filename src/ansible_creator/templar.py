@@ -23,7 +23,7 @@ except ImportError:
 class Templar:
     """Class representing a Jinja2 template engine."""
 
-    def __init__(self: Templar) -> None:
+    def __init__(self) -> None:
         """Instantiate the template engine.
 
         Raises:
@@ -43,7 +43,7 @@ class Templar:
         )
         self.env.filters["json"] = json.dumps
 
-    def render_from_content(self: Templar, template: str, data: TemplateData) -> str:
+    def render_from_content(self, template: str, data: TemplateData) -> str:
         """Render a template with provided data.
 
         Args:

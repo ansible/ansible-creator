@@ -49,7 +49,7 @@ def _hello_world(name: str) -> str:
 class FilterModule:
     """filter plugin."""
 
-    def filters(self: FilterModule) -> dict[str, Callable[[str], str]]:
+    def filters(self) -> dict[str, Callable[[str], str]]:
         """Map filter plugin names to their functions.
 
         Returns:

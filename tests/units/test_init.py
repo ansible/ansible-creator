@@ -110,9 +110,9 @@ def test_run_success_for_collection(
     )
 
     # Mock the "unique_name_in_devfile" method
-    def mock_unique_name_in_devfile(self: Init) -> str:
-        coll_namespace = self._namespace
-        coll_name = self._collection_name
+    def mock_unique_name_in_devfile(init: Init) -> str:
+        coll_namespace = init._namespace
+        coll_name = init._collection_name
         return f"{coll_namespace}.{coll_name}"
 
     with pytest.MonkeyPatch.context() as mp:
@@ -193,9 +193,9 @@ def test_run_success_ansible_project(
     )
 
     # Mock the "unique_name_in_devfile" method
-    def mock_unique_name_in_devfile(self: Init) -> str:
-        coll_namespace = self._namespace
-        coll_name = self._collection_name
+    def mock_unique_name_in_devfile(init: Init) -> str:
+        coll_namespace = init._namespace
+        coll_name = init._collection_name
         return f"{coll_namespace}.{coll_name}"
 
     with pytest.MonkeyPatch.context() as mp:
