@@ -153,7 +153,7 @@ def test_run_success_add_devfile(
     ):
         add.run()
 
-    # expect a warning followed by playbook project creation msg
+    # expect a warning followed by devfile resource creation msg
     # when response to overwrite is yes.
     monkeypatch.setattr("builtins.input", lambda _: "y")
     add.run()
@@ -266,3 +266,66 @@ def test_run_error_unsupported_resource_type(
     with pytest.raises(CreatorError) as exc_info:
         add.run()
     assert "Unsupported resource type: unsupported_type" in str(exc_info.value)
+
+
+def test_run_success_add_devcontainer(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test Add.run() for adding a devcontainer.
+
+    Successfully adds devcontainer to path.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Add class object.
+        monkeypatch: Pytest monkeypatch fixture.
+    """
+    # Set the resource_type to devcontainer
+    cli_args["resource_type"] = "devcontainer"
+    add = Add(
+        Config(**cli_args),
+    )
+    add.run()
+    result = capsys.readouterr().out
+    assert re.search("Note: Resource added to", result) is not None
+
+    # Verify the generated devcontainer files match the expected structure
+    expected_devcontainer = tmp_path / ".devcontainer"
+    effective_devcontainer = FIXTURES_DIR / "collection" / "testorg" / "testcol" / ".devcontainer"
+    cmp_result = dircmp(expected_devcontainer, effective_devcontainer)
+    diff = has_differences(dcmp=cmp_result, errors=[])
+    assert diff == [], diff
+
+    # Test for overwrite prompt and failure with no overwrite option
+    conflict_file = tmp_path / ".devcontainer" / "devcontainer.json"
+    conflict_file.write_text('{ "name": "conflict" }')
+
+    # expect a CreatorError when the response to overwrite is no.
+    monkeypatch.setattr("builtins.input", lambda _: "n")
+    fail_msg = (
+        "The destination directory contains files that will be overwritten."
+        " Please re-run ansible-creator with --overwrite to continue."
+    )
+    with pytest.raises(
+        CreatorError,
+        match=fail_msg,
+    ):
+        add.run()
+
+    # expect a warning followed by devcontainer resource creation msg
+    # when response to overwrite is yes.
+    monkeypatch.setattr("builtins.input", lambda _: "y")
+    add.run()
+    result = capsys.readouterr().out
+    assert (
+        re.search(
+            "already exists",
+            result,
+        )
+        is not None
+    ), result
+    assert re.search("Note: Resource added to", result) is not None
