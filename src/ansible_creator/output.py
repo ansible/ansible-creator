@@ -127,7 +127,7 @@ class Level(Enum):
     WARNING = "Warning"
 
     @property
-    def log_level(self: Level) -> int:
+    def log_level(self) -> int:
         """Return a log level.
 
         :returns: The log level
@@ -161,7 +161,7 @@ class Level(Enum):
         """
         return max(len(str(member)) for member in cls)
 
-    def __str__(self: Level) -> str:
+    def __str__(self) -> str:
         """Return the exit message prefix as a string.
 
         Returns:
@@ -183,7 +183,7 @@ class Msg:
     prefix: Level = Level.ERROR
 
     @property
-    def color(self: Msg) -> str:
+    def color(self) -> str:
         """Return a color for the prefix.
 
         :returns: The color for the prefix
@@ -200,7 +200,7 @@ class Msg:
         return color_mapping[self.prefix]
 
     def to_lines(
-        self: Msg,
+        self,
         color: bool,  # noqa: FBT001
         width: int,
         with_prefix: bool,  # noqa: FBT001
@@ -252,7 +252,7 @@ class Output:
     """Output functionality."""
 
     def __init__(  # noqa: PLR0913 # pylint: disable=too-many-positional-arguments
-        self: Output,
+        self,
         log_file: str,
         log_level: str,
         log_append: str,
@@ -299,7 +299,7 @@ class Output:
             self.log_to_file = False
         self.display = display
 
-    def critical(self: Output, msg: str) -> None:
+    def critical(self, msg: str) -> None:
         """Print a critical message to the console.
 
         Args:
@@ -309,7 +309,7 @@ class Output:
         self.log(msg, level=Level.CRITICAL)
         sys.exit(1)
 
-    def debug(self: Output, msg: str) -> None:
+    def debug(self, msg: str) -> None:
         """Print a debug message to the console.
 
         Args:
@@ -318,7 +318,7 @@ class Output:
         self.call_count["debug"] += 1
         self.log(msg, level=Level.DEBUG)
 
-    def error(self: Output, msg: str) -> None:
+    def error(self, msg: str) -> None:
         """Print an error message to the console.
 
         Args:
@@ -327,7 +327,7 @@ class Output:
         self.call_count["error"] += 1
         self.log(msg, level=Level.ERROR)
 
-    def hint(self: Output, msg: str) -> None:
+    def hint(self, msg: str) -> None:
         """Print a hint message to the console.
 
         Args:
@@ -336,7 +336,7 @@ class Output:
         self.call_count["hint"] += 1
         self.log(msg, level=Level.HINT)
 
-    def info(self: Output, msg: str) -> None:
+    def info(self, msg: str) -> None:
         """Print a info message to the console.
 
         Args:
@@ -345,7 +345,7 @@ class Output:
         self.call_count["info"] += 1
         self.log(msg, level=Level.INFO)
 
-    def note(self: Output, msg: str) -> None:
+    def note(self, msg: str) -> None:
         """Print a note message to the console.
 
         Args:
@@ -354,7 +354,7 @@ class Output:
         self.call_count["note"] += 1
         self.log(msg, level=Level.NOTE)
 
-    def warning(self: Output, msg: str) -> None:
+    def warning(self, msg: str) -> None:
         """Print a warning message to the console.
 
         Args:
@@ -363,7 +363,7 @@ class Output:
         self.call_count["warning"] += 1
         self.log(msg, level=Level.WARNING)
 
-    def log(self: Output, msg: str, level: Level = Level.ERROR) -> None:
+    def log(self, msg: str, level: Level = Level.ERROR) -> None:
         """Print a message to the console.
 
         Args:

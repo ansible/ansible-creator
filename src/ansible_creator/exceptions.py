@@ -6,7 +6,7 @@ from __future__ import annotations
 class CreatorError(Exception):
     """Class representing exceptions raised from creator code."""
 
-    def __init__(self: CreatorError, message: str) -> None:
+    def __init__(self, message: str) -> None:
         """Instantiate an object of this class.
 
         Args:
@@ -16,7 +16,7 @@ class CreatorError(Exception):
         self._message = message
 
     @property
-    def message(self: CreatorError) -> str:
+    def message(self) -> str:
         """Craft and return the CreatorError message.
 
         Includes the 'cause' when raised from another exception.
@@ -29,7 +29,7 @@ class CreatorError(Exception):
             msg += f"\n{self.__cause__!s}"
         return msg
 
-    def __str__(self: CreatorError) -> str:
+    def __str__(self) -> str:
         """Return a string representation of the exception.
 
         Returns:

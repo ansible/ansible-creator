@@ -46,12 +46,12 @@ COMING_SOON = (
 class Parser:
     """A parser for the command line arguments."""
 
-    def __init__(self: Parser) -> None:
+    def __init__(self) -> None:
         """Initialize the parser."""
         self.args: argparse.Namespace
         self.pending_logs: list[Msg] = []
 
-    def parse_args(self: Parser) -> tuple[argparse.Namespace, list[Msg]]:
+    def parse_args(self) -> tuple[argparse.Namespace, list[Msg]]:
         """Parse the root arguments.
 
         Returns:
@@ -104,7 +104,7 @@ class Parser:
 
         return self.args, self.pending_logs
 
-    def _add(self: Parser, subparser: SubParser[ArgumentParser]) -> None:
+    def _add(self, subparser: SubParser[ArgumentParser]) -> None:
         """Add resources to an existing Ansible project.
 
         Args:
@@ -217,7 +217,7 @@ class Parser:
             "current working directory.",
         )
 
-    def _add_resource(self: Parser, subparser: SubParser[ArgumentParser]) -> None:
+    def _add_resource(self, subparser: SubParser[ArgumentParser]) -> None:
         """Add resources to an existing Ansible project.
 
         Args:
@@ -237,7 +237,7 @@ class Parser:
         self._add_resource_devfile(subparser=subparser)
         self._add_resource_role(subparser=subparser)
 
-    def _add_resource_devcontainer(self: Parser, subparser: SubParser[ArgumentParser]) -> None:
+    def _add_resource_devcontainer(self, subparser: SubParser[ArgumentParser]) -> None:
         """Add devcontainer files to an existing Ansible project.
 
         Args:
@@ -259,7 +259,7 @@ class Parser:
 
         self._add_args_common(parser)
 
-    def _add_resource_devfile(self: Parser, subparser: SubParser[ArgumentParser]) -> None:
+    def _add_resource_devfile(self, subparser: SubParser[ArgumentParser]) -> None:
         """Add a devfile file to an existing Ansible project.
 
         Args:
@@ -281,7 +281,7 @@ class Parser:
         self._add_overwrite(parser)
         self._add_args_common(parser)
 
-    def _add_resource_role(self: Parser, subparser: SubParser[ArgumentParser]) -> None:
+    def _add_resource_role(self, subparser: SubParser[ArgumentParser]) -> None:
         """Add a role to an existing Ansible collection.
 
         Args:
@@ -305,7 +305,7 @@ class Parser:
         )
         self._add_args_common(parser)
 
-    def _add_plugin(self: Parser, subparser: SubParser[ArgumentParser]) -> None:
+    def _add_plugin(self, subparser: SubParser[ArgumentParser]) -> None:
         """Add a plugin to an Ansible project.
 
         Args:
@@ -326,7 +326,7 @@ class Parser:
         self._add_plugin_filter(subparser=subparser)
         self._add_plugin_lookup(subparser=subparser)
 
-    def _add_plugin_action(self: Parser, subparser: SubParser[ArgumentParser]) -> None:
+    def _add_plugin_action(self, subparser: SubParser[ArgumentParser]) -> None:
         """Add an action plugin to an existing Ansible collection project.
 
         Args:
@@ -340,7 +340,7 @@ class Parser:
         self._add_args_common(parser)
         self._add_args_plugin_common(parser)
 
-    def _add_plugin_filter(self: Parser, subparser: SubParser[ArgumentParser]) -> None:
+    def _add_plugin_filter(self, subparser: SubParser[ArgumentParser]) -> None:
         """Add a filter plugin to an existing Ansible collection project.
 
         Args:
@@ -354,7 +354,7 @@ class Parser:
         self._add_args_common(parser)
         self._add_args_plugin_common(parser)
 
-    def _add_plugin_lookup(self: Parser, subparser: SubParser[ArgumentParser]) -> None:
+    def _add_plugin_lookup(self, subparser: SubParser[ArgumentParser]) -> None:
         """Add a lookup plugin to an existing Ansible collection project.
 
         Args:
@@ -391,7 +391,7 @@ class Parser:
             help="Flag that restricts overwriting operation.",
         )
 
-    def _init(self: Parser, subparser: SubParser[ArgumentParser]) -> None:
+    def _init(self, subparser: SubParser[ArgumentParser]) -> None:
         """Initialize an Ansible project.
 
         Args:
@@ -411,7 +411,7 @@ class Parser:
         self._init_collection(subparser=subparser)
         self._init_playbook(subparser=subparser)
 
-    def _init_collection(self: Parser, subparser: SubParser[ArgumentParser]) -> None:
+    def _init_collection(self, subparser: SubParser[ArgumentParser]) -> None:
         """Initialize an Ansible collection.
 
         Args:
@@ -440,7 +440,7 @@ class Parser:
         self._add_args_common(parser)
         self._add_args_init_common(parser)
 
-    def _init_playbook(self: Parser, subparser: SubParser[ArgumentParser]) -> None:
+    def _init_playbook(self, subparser: SubParser[ArgumentParser]) -> None:
         """Initialize an Ansible playbook.
 
         Args:
@@ -498,7 +498,7 @@ class Parser:
             self.pending_logs.append(Msg(prefix=Level.CRITICAL, message=msg))
         return collection
 
-    def handle_deprecations(self: Parser) -> bool:  # noqa: C901
+    def handle_deprecations(self) -> bool:  # noqa: C901
         """Start parsing args passed from Cli.
 
         Returns:
@@ -560,7 +560,7 @@ class ArgumentParser(argparse.ArgumentParser):
     """A custom argument parser."""
 
     def add_argument(  # type: ignore[override]
-        self: ArgumentParser,
+        self,
         *args: Any,  # noqa: ANN401
         **kwargs: Any,  # noqa: ANN401
     ) -> None:
@@ -578,7 +578,7 @@ class ArgumentParser(argparse.ArgumentParser):
         super().add_argument(*args, **kwargs)
 
     def add_argument_group(
-        self: ArgumentParser,
+        self,
         *args: Any,  # noqa: ANN401
         **kwargs: Any,  # noqa: ANN401
     ) -> argparse._ArgumentGroup:
@@ -604,7 +604,7 @@ if TYPE_CHECKING:
 class CustomHelpFormatter(HelpFormatter):
     """A custom help formatter."""
 
-    def __init__(self: CustomHelpFormatter, prog: str) -> None:
+    def __init__(self, prog: str) -> None:
         """Initialize the help formatter.
 
         Args:
@@ -620,7 +620,7 @@ class CustomHelpFormatter(HelpFormatter):
         )
 
     def _format_action_invocation(
-        self: CustomHelpFormatter,
+        self,
         action: argparse.Action,
     ) -> str:
         """Format the action invocation.

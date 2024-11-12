@@ -50,7 +50,7 @@ class Config:
     type: str = ""
     path: str = ""
 
-    def __post_init__(self: Config) -> None:
+    def __post_init__(self) -> None:
         """Post process config values."""
         if self.project == "ansible-project":
             object.__setattr__(self, "project", "playbook")
