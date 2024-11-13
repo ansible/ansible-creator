@@ -22,7 +22,7 @@ EXAMPLES = """
 {% raw %}
 - name: Display a hello message
   ansible.builtin.debug:
-    msg: "{{ lookup('{{ namespace }}.{{ collection_name }}.hello_world') }}"
+    msg: "{{ lookup('{%- endraw %}{{ namespace }}.{{ collection_name }}.hello_world') }}"
 """
 
 RETURN = """
