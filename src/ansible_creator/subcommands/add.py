@@ -31,7 +31,9 @@ class Add:
             config: App configuration object.
         """
         self._resource_type: str = config.resource_type
+        self._plugin_type: str = config.plugin_type
         self._resource_id: str = f"common.{self._resource_type}"
+        self._plugin_id: str = f"collection_project.plugins.{self._plugin_type}"
         self._add_path: Path = Path(config.path)
         self._force = config.force
         self._overwrite = config.overwrite
@@ -45,8 +47,10 @@ class Add:
         """Start scaffolding the resource file."""
         self._check_add_path()
         self.output.debug(msg=f"final collection path set to {self._add_path}")
-
-        self._scaffold()
+        if self._resource_type:
+            self._resource_scaffold()
+        elif self._plugin_type:
+            self._plugin_scaffold()
 
     def _check_add_path(self) -> None:
         """Validate the provided add path.
@@ -68,7 +72,7 @@ class Add:
         final_uuid = str(uuid.uuid4())[:8]
         return f"{final_name}-{final_uuid}"
 
-    def _scaffold(self) -> None:
+    def _resource_scaffold(self) -> None:
         """Scaffold the specified resource file based on the resource type.
 
         Raises:
@@ -84,9 +88,9 @@ class Add:
             msg = f"Unsupported resource type: {self._resource_type}"
             raise CreatorError(msg)
 
-        self._perform_scaffold(template_data)
+        self._perform_resource_scaffold(template_data)
 
-    def _perform_scaffold(self, template_data: TemplateData) -> None:
+    def _perform_resource_scaffold(self, template_data: TemplateData) -> None:
         """Perform the actual scaffolding process using the provided template data.
 
         Args:
@@ -136,6 +140,74 @@ class Add:
 
         self.output.note(f"Resource added to {self._add_path}")
 
+    def _plugin_scaffold(self) -> None:
+        """Scaffold the specified plugin file based on the plugin type.
+
+        Raises:
+            CreatorError: If unsupported plugin type is given.
+        """
+        self.output.debug(f"Started copying {self._project} plugin to destination")
+
+        # Call the appropriate scaffolding function based on the plugin type
+        if self._plugin_type == "lookup":
+            template_data = self._get_lookup_plugin_template_data()
+
+        else:
+            msg = f"Unsupported plugin type: {self._plugin_type}"
+            raise CreatorError(msg)
+
+        self._perform_plugin_scaffold(template_data)
+
+    def _perform_plugin_scaffold(self, template_data: TemplateData) -> None:
+        """Perform the actual scaffolding process using the provided template data.
+
+        Args:
+            template_data: TemplateData
+
+        Raises:
+            CreatorError: If there are conflicts and overwriting is not allowed, or if the
+                      destination directory contains files that will be overwritten.
+        """
+        walker = Walker(
+            resources=(f"collection_project.plugins.{self._plugin_type}",),
+            resource_id=self._plugin_id,
+            dest=self._add_path,
+            output=self.output,
+            template_data=template_data,
+            templar=self.templar,
+        )
+        paths = walker.collect_paths()
+        copier = Copier(output=self.output)
+
+        if self._no_overwrite:
+            msg = "The flag `--no-overwrite` restricts overwriting."
+            if paths.has_conflicts():
+                msg += (
+                    "\nThe destination directory contains files that can be overwritten."
+                    "\nPlease re-run ansible-creator with --overwrite to continue."
+                )
+            raise CreatorError(msg)
+
+        if not paths.has_conflicts() or self._force or self._overwrite:
+            copier.copy_containers(paths)
+            self.output.note(f"Plugin added to {self._add_path}")
+            return
+
+        if not self._overwrite:
+            question = (
+                "Files in the destination directory will be overwritten. Do you want to proceed?"
+            )
+            if ask_yes_no(question):
+                copier.copy_containers(paths)
+            else:
+                msg = (
+                    "The destination directory contains files that will be overwritten."
+                    " Please re-run ansible-creator with --overwrite to continue."
+                )
+                raise CreatorError(msg)
+
+        self.output.note(f"Plugin added to {self._add_path}")
+
     def _get_devfile_template_data(self) -> TemplateData:
         """Get the template data for devfile resources.
 
@@ -146,4 +218,14 @@ class Add:
             resource_type=self._resource_type,
             creator_version=self._creator_version,
             dev_file_name=self.unique_name_in_devfile(),
+        )
+
+    def _get_lookup_plugin_template_data(self) -> TemplateData:
+        """Get the template data for lookup plugin.
+
+        Returns:
+            TemplateData: Data required for templating the lookup plugin.
+        """
+        return TemplateData(
+            plugin_type=self._plugin_type,
         )

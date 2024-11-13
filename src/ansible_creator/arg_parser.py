@@ -39,7 +39,7 @@ COMING_SOON = (
     "add resource role",
     "add plugin action",
     "add plugin filter",
-    "add plugin lookup",
+    # "add plugin lookup",
 )
 
 
@@ -366,6 +366,7 @@ class Parser:
             formatter_class=CustomHelpFormatter,
         )
         self._add_args_common(parser)
+        self._add_overwrite(parser)
         self._add_args_plugin_common(parser)
 
     def _add_overwrite(self, parser: ArgumentParser) -> None:
