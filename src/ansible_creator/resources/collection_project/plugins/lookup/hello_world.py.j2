@@ -2,7 +2,6 @@
 
 from __future__ import absolute_import, annotations, division, print_function
 
-
 __metaclass__ = type  # pylint: disable=C0103
 
 DOCUMENTATION = """
@@ -39,5 +38,9 @@ from ansible.plugins.lookup import LookupBase
 
 class LookupModule(LookupBase):
     def run(self, terms, variables=None, **kwargs):
-    # Return a simple Hello, World message
+        """Returns a simple Hello, World message.
+
+        Returns:
+            list: The Hello message as a list.
+        """
         return ["Hello, World!"]
