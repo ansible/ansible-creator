@@ -43,7 +43,7 @@ class TermFeatures:
     color: bool
     links: bool
 
-    def any_enabled(self: TermFeatures) -> bool:
+    def any_enabled(self) -> bool:
         """Return True if any features are enabled.
 
         Returns:
@@ -363,7 +363,7 @@ class Copier:
         with dest_path.dest.open("w", encoding="utf-8") as df_handle:
             df_handle.write(dest_path.content)
 
-    def copy_containers(self: Copier, paths: FileList) -> None:
+    def copy_containers(self, paths: FileList) -> None:
         """Copy multiple containers to destination.
 
         Args:
