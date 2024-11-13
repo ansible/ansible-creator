@@ -1,4 +1,4 @@
-"""A hello-world lookup plugin in {{ namespace }}.{{ collection_name }}."""
+"""A hello-world lookup plugin in testorg.testcol."""
 
 from __future__ import absolute_import, annotations, division, print_function
 from ansible.plugins.lookup import LookupBase
@@ -7,7 +7,7 @@ __metaclass__ = type  # pylint: disable=C0103
 
 DOCUMENTATION = """
     name: hello_world
-    author: {{ namespace | capitalize }} {{ collection_name | capitalize }}
+    author: Testorg Testcol
     version_added: "1.0.0"
     short_description: Demo lookup plugin that returns a Hello message.
     description:
@@ -20,10 +20,10 @@ DOCUMENTATION = """
 
 EXAMPLES = """
 # hello_world lookup example
-{% raw %}
+
 - name: Display a hello message
   ansible.builtin.debug:
-    msg: "{{ lookup('{%- endraw %}{{ namespace }}.{{ collection_name }}.hello_world') }}"
+    msg: "{{ lookup('testorg.testcol.hello_world') }}"
 """
 
 RETURN = """
