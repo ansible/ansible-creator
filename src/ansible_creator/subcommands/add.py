@@ -34,6 +34,7 @@ class Add:
         self._plugin_type: str = config.plugin_type
         self._resource_id: str = f"common.{self._resource_type}"
         self._plugin_id: str = f"collection_project.plugins.{self._plugin_type}"
+        self._plugin_name: str = config.plugin_name
         self._add_path: Path = Path(config.path)
         self._force = config.force
         self._overwrite = config.overwrite
@@ -228,4 +229,6 @@ class Add:
         """
         return TemplateData(
             plugin_type=self._plugin_type,
+            plugin_name=self._plugin_name,
+            creator_version=self._creator_version,
         )

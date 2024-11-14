@@ -19,6 +19,7 @@ class TemplateData:
     Attributes:
         resource_type: The type of resource to be scaffolded.
         plugin_type: The type of plugin to be scaffolded.
+        plugin_name: The name of the plugin to be scaffolded.
         additions: A dictionary containing additional data to add to the gitignore.
         collection_name: The name of the collection.
         creator_version: The version of the creator.
@@ -31,6 +32,7 @@ class TemplateData:
 
     resource_type: str = ""
     plugin_type: str = ""
+    plugin_name: str = ""
     additions: dict[str, dict[str, dict[str, str | bool]]] = field(default_factory=dict)
     collection_name: str = ""
     creator_version: str = ""
