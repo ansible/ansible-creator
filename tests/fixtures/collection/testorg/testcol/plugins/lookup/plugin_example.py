@@ -1,5 +1,5 @@
 # pylint: disable=E0401
-# hello_world.py - A custom lookup plugin for Ansible.
+# plugin_example.py - A custom lookup plugin for Ansible.
 # Author: Your Name
 # License: GPL-3.0-or-later
 
@@ -11,7 +11,7 @@ from typing import Any, Optional, Dict, List
 display = Display()
 
 DOCUMENTATION = """
-    name: hello_world
+    name: plugin_example
     author: Your Name
     version_added: "1.0.0"
     short_description: A custom lookup plugin for Ansible.
@@ -26,9 +26,9 @@ DOCUMENTATION = """
 """
 
 EXAMPLES = """
-- name: Example usage of hello_world
+- name: Example usage of plugin_example
   ansible.builtin.debug:
-    msg: "{{ lookup('hello_world', 'example_term') }}"
+    msg: "{{ lookup('plugin_example', 'example_term') }}"
 """
 
 RETURN = """

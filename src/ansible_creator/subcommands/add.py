@@ -46,11 +46,12 @@ class Add:
 
     def run(self) -> None:
         """Start scaffolding the resource file."""
-        self._check_add_path()
-        self.output.debug(msg=f"final collection path set to {self._add_path}")
         if self._resource_type:
+            self._check_add_path()
+            self.output.debug(msg=f"final collection path set to {self._add_path}")
             self._resource_scaffold()
         elif self._plugin_type:
+            self._add_path.mkdir(parents=True, exist_ok=True)
             self._plugin_scaffold()
 
     def _check_add_path(self) -> None:
