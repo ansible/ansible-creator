@@ -38,7 +38,7 @@ COMING_SOON = (
     "add resource devcontainer",
     "add resource role",
     "add plugin action",
-    "add plugin filter",
+    # "add plugin filter",
     "add plugin lookup",
 )
 
@@ -352,6 +352,7 @@ class Parser:
             formatter_class=CustomHelpFormatter,
         )
         self._add_args_common(parser)
+        self._add_overwrite(parser)
         self._add_args_plugin_common(parser)
 
     def _add_plugin_lookup(self, subparser: SubParser[ArgumentParser]) -> None:
