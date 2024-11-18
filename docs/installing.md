@@ -296,11 +296,10 @@ $ ansible-creator add --help
 
 #### Positional Arguments
 
-| Parameter    | Description                                   |
-| ------------ | --------------------------------------------- |
-| content-type | Specifies the type of content to add.         |
-| resource     | Add resources to an existing Ansible project. |
-| plugin       | Add a plugin to an Ansible collection.        |
+| Parameter | Description                                   |
+| --------- | --------------------------------------------- |
+| resource  | Add resources to an existing Ansible project. |
+| plugin    | Add a plugin to an Ansible collection.        |
 
 #### Optional Arguments
 
@@ -318,27 +317,11 @@ $ ansible-creator add resource <resource-type> <path>
 
 #### Positional Arguments
 
-| Parameter     | Description                                            |
-| ------------- | ------------------------------------------------------ |
-| resource-type | Specifies the type of resource to add to the project.  |
-| devcontainer  | Add devcontainer files to an existing Ansible project. |
-| devfile       | Add a devfile file to an existing Ansible project.     |
-| role          | Add a role to an existing Ansible collection.          |
-
-### Add support to scaffold resource in an existing project
-
-The `add resource devfile` command enables you to add a devfile resource type to an already existing project. Use the following command template:
-
-```console
-$ ansible-creator add resource devfile <path>
-```
-
-#### Positional Arguments
-
-| Parameter | Description                                                                                                   |
-| --------- | ------------------------------------------------------------------------------------------------------------- |
-| devfile   | Add a devfile file to an existing Ansible project.                                                            |
-| path      | The destination directory for the devfile file. The default is the current working directory. (default: `./`) |
+| Parameter    | Description                                            |
+| ------------ | ------------------------------------------------------ |
+| devcontainer | Add devcontainer files to an existing Ansible project. |
+| devfile      | Add a devfile file to an existing Ansible project.     |
+| role         | Add a role to an existing Ansible collection.          |
 
 #### Example
 
