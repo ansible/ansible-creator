@@ -148,7 +148,7 @@ class Add:
         Raises:
             CreatorError: If unsupported plugin type is given.
         """
-        self.output.debug(f"Started copying {self._project} plugin to destination")
+        self.output.debug(f"Started copying {self._plugin_type} plugin to destination")
 
         # Call the appropriate scaffolding function based on the plugin type
         if self._plugin_type == "filter":
@@ -191,7 +191,7 @@ class Add:
 
         if not paths.has_conflicts() or self._force or self._overwrite:
             copier.copy_containers(paths)
-            self.output.note(f"Plugin added to {self._add_path}")
+            self.output.note(f"{self._plugin_type.capitalize()} plugin added to {self._add_path}")
             return
 
         if not self._overwrite:
@@ -207,7 +207,7 @@ class Add:
                 )
                 raise CreatorError(msg)
 
-        self.output.note(f"Plugin added to {self._add_path}")
+        self.output.note(f"{self._plugin_type.capitalize()} plugin added to {self._add_path}")
 
     def _get_devfile_template_data(self) -> TemplateData:
         """Get the template data for devfile resources.
