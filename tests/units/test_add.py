@@ -31,6 +31,8 @@ class ConfigDict(TypedDict):
         output: The output object to use for logging.
         subcommand: The subcommand to execute.
         resource_type: The type of resource to be scaffolded.
+        plugin_type: The type of the plugin to be scaffolded.
+        plugin_name: The name of the plugin to be scaffolded.
         type: The type of the project for which the resource is being scaffolded.
         path: The file path where the resource should be added.
         force: Force overwrite of existing directory.
