@@ -31,7 +31,7 @@ class Config:
         collection_name: The name of the collection.
         namespace: The namespace for the collection.
         resource_type: The type of resource to be scaffolded.
-        plugin_name: The name of the plugin
+        plugin_name: The name of the plugin to be scaffolded.
         plugin_type: The type of plugin to be scaffolded.
         type: The type of the project for which the resource is being scaffolded.
         path: The file path where the resource should be added.

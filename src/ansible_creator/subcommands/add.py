@@ -34,6 +34,7 @@ class Add:
         self._plugin_type: str = config.plugin_type
         self._resource_id: str = f"common.{self._resource_type}"
         self._plugin_id: str = f"collection_project.plugins.{self._plugin_type}"
+        self._plugin_name: str = config.plugin_name
         self._add_path: Path = Path(config.path)
         self._force = config.force
         self._overwrite = config.overwrite
@@ -45,11 +46,12 @@ class Add:
 
     def run(self) -> None:
         """Start scaffolding the resource file."""
-        self._check_add_path()
-        self.output.debug(msg=f"final collection path set to {self._add_path}")
         if self._resource_type:
+            self._check_add_path()
+            self.output.debug(msg=f"final collection path set to {self._add_path}")
             self._resource_scaffold()
         elif self._plugin_type:
+            self._add_path.mkdir(parents=True, exist_ok=True)
             self._plugin_scaffold()
 
     def _check_add_path(self) -> None:
@@ -227,4 +229,6 @@ class Add:
         """
         return TemplateData(
             plugin_type=self._plugin_type,
+            plugin_name=self._plugin_name,
+            creator_version=self._creator_version,
         )
