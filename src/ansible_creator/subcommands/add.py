@@ -46,9 +46,9 @@ class Add:
 
     def run(self) -> None:
         """Start scaffolding the resource file."""
+        self._check_add_path()
+        self.output.debug(msg=f"final collection path set to {self._add_path}")
         if self._resource_type:
-            self._check_add_path()
-            self.output.debug(msg=f"final collection path set to {self._add_path}")
             self._resource_scaffold()
         elif self._plugin_type:
             self._add_path.mkdir(parents=True, exist_ok=True)
@@ -63,6 +63,8 @@ class Add:
         if not self._add_path.exists():
             msg = f"The path {self._add_path} does not exist. Please provide an existing directory."
             raise CreatorError(msg)
+        if self._plugin_type and self._add_path.name not in {self._plugin_type, "plugins"}:
+            self._add_path = self._add_path / "plugins"
 
     def unique_name_in_devfile(self) -> str:
         """Use project specific name in devfile.
