@@ -31,6 +31,8 @@ class ConfigDict(TypedDict):
         output: The output object to use for logging.
         subcommand: The subcommand to execute.
         resource_type: The type of resource to be scaffolded.
+        plugin_type: The type of the plugin to be scaffolded.
+        plugin_name: The name of the plugin to be scaffolded.
         type: The type of the project for which the resource is being scaffolded.
         path: The file path where the resource should be added.
         force: Force overwrite of existing directory.
@@ -42,6 +44,8 @@ class ConfigDict(TypedDict):
     output: Output
     subcommand: str
     resource_type: str
+    plugin_type: str
+    plugin_name: str
     type: str
     path: str
     force: bool
@@ -65,7 +69,9 @@ def fixture_cli_args(tmp_path: Path, output: Output) -> ConfigDict:
         "output": output,
         "subcommand": "add",
         "type": "resource",
-        "resource_type": "devfile",
+        "resource_type": "",
+        "plugin_type": "",
+        "plugin_name": "hello_world",
         "path": str(tmp_path),
         "force": False,
         "overwrite": False,
@@ -109,6 +115,7 @@ def test_run_success_add_devfile(
         cli_args: Dictionary, partial Add class object.
         monkeypatch: Pytest monkeypatch fixture.
     """
+    cli_args["resource_type"] = "devfile"
     add = Add(
         Config(**cli_args),
     )
@@ -182,6 +189,7 @@ def test_run_error_no_overwrite(
         tmp_path: Temporary directory path.
         cli_args: Dictionary, partial Add class object.
     """
+    cli_args["resource_type"] = "devfile"
     add = Add(
         Config(**cli_args),
     )
@@ -233,6 +241,7 @@ def test_error_invalid_path(
     Args:
         cli_args: Dictionary, partial Add class object.
     """
+    cli_args["resource_type"] = "devfile"
     cli_args["path"] = "/invalid"
     add = Add(
         Config(**cli_args),
@@ -256,6 +265,7 @@ def test_run_error_unsupported_resource_type(
         cli_args: Dictionary, partial Add class object.
         monkeypatch: Pytest monkeypatch fixture.
     """
+    cli_args["resource_type"] = "devfile"
     add = Add(
         Config(**cli_args),
     )
@@ -266,3 +276,143 @@ def test_run_error_unsupported_resource_type(
     with pytest.raises(CreatorError) as exc_info:
         add.run()
     assert "Unsupported resource type: unsupported_type" in str(exc_info.value)
+
+
+def test_run_success_add_plugin_filter(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test Add.run().
+
+    Successfully add plugin to path
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Add class object.
+        monkeypatch: Pytest monkeypatch fixture.
+    """
+    cli_args["plugin_type"] = "filter"
+    add = Add(
+        Config(**cli_args),
+    )
+
+    add.run()
+    result = capsys.readouterr().out
+    assert re.search("Note: Filter plugin added to", result) is not None
+
+    expected_devfile = tmp_path / "hello_world.py"
+    effective_devfile = (
+        FIXTURES_DIR
+        / "collection"
+        / "testorg"
+        / "testcol"
+        / "plugins"
+        / "filter"
+        / "hello_world.py"
+    )
+    cmp_result = cmp(expected_devfile, effective_devfile, shallow=False)
+    assert cmp_result
+
+    conflict_file = tmp_path / "hello_world.py"
+    conflict_file.write_text("Author: Your Name")
+
+    # expect a CreatorError when the response to overwrite is no.
+    monkeypatch.setattr("builtins.input", lambda _: "n")
+    fail_msg = (
+        "The destination directory contains files that will be overwritten."
+        " Please re-run ansible-creator with --overwrite to continue."
+    )
+    with pytest.raises(
+        CreatorError,
+        match=fail_msg,
+    ):
+        add.run()
+
+    # expect a warning followed by playbook project creation msg
+    # when response to overwrite is yes.
+    monkeypatch.setattr("builtins.input", lambda _: "y")
+    add.run()
+    result = capsys.readouterr().out
+    assert (
+        re.search(
+            "already exists",
+            result,
+        )
+        is not None
+    ), result
+    assert re.search("Note: Filter plugin added to", result) is not None
+
+
+def test_run_error_plugin_no_overwrite(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test Add.run().
+
+    Successfully add devfile to path
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Add class object.
+    """
+    cli_args["plugin_type"] = "filter"
+    add = Add(
+        Config(**cli_args),
+    )
+
+    add.run()
+    result = capsys.readouterr().out
+    assert re.search("Note: Filter plugin added to", result) is not None
+
+    expected_devfile = tmp_path / "hello_world.py"
+    effective_devfile = (
+        FIXTURES_DIR
+        / "collection"
+        / "testorg"
+        / "testcol"
+        / "plugins"
+        / "filter"
+        / "hello_world.py"
+    )
+    cmp_result = cmp(expected_devfile, effective_devfile, shallow=False)
+    assert cmp_result
+
+    conflict_file = tmp_path / "hello_world.py"
+    conflict_file.write_text("name: Your Name")
+
+    cli_args["no_overwrite"] = True
+    add = Add(
+        Config(**cli_args),
+    )
+    with pytest.raises(CreatorError) as exc_info:
+        add.run()
+    assert "Please re-run ansible-creator with --overwrite to continue." in str(exc_info.value)
+
+
+def test_run_error_unsupported_plugin_type(
+    cli_args: ConfigDict,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test Add.run() with an unsupported plugin type.
+
+    This test checks if the CreatorError is raised when an unsupported
+    resource type is provided.
+
+    Args:
+        cli_args: Dictionary, partial Add class object.
+        monkeypatch: Pytest monkeypatch fixture.
+    """
+    cli_args["plugin_type"] = "filter"
+    add = Add(
+        Config(**cli_args),
+    )
+    # Mock the _plugin_type to bypass the validation step
+    monkeypatch.setattr(add, "_plugin_type", "unsupported_type")
+
+    # Expect a CreatorError with the appropriate message
+    with pytest.raises(CreatorError) as exc_info:
+        add.run()
+    assert "Unsupported plugin type: unsupported_type" in str(exc_info.value)

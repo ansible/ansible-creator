@@ -38,7 +38,6 @@ COMING_SOON = (
     "add resource devcontainer",
     "add resource role",
     "add plugin action",
-    # "add plugin filter",
     "add plugin lookup",
 )
 
