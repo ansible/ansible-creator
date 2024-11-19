@@ -252,6 +252,28 @@ def test_error_invalid_path(
     assert "does not exist. Please provide an existing directory" in str(exc_info.value)
 
 
+def test_error_invalid_collection_path(
+    cli_args: ConfigDict,
+) -> None:
+    """Test Add.run().
+
+    Check if collection exists.
+
+    Args:
+        cli_args: Dictionary, partial Add class object.
+    """
+    cli_args["plugin_type"] = "lookup"
+    add = Add(
+        Config(**cli_args),
+    )
+
+    with pytest.raises(CreatorError) as exc_info:
+        add.run()
+    assert "is not a valid Ansible collection path. Please provide a valid collection path." in str(
+        exc_info.value,
+    )
+
+
 def test_run_error_unsupported_resource_type(
     cli_args: ConfigDict,
     monkeypatch: pytest.MonkeyPatch,
@@ -299,11 +321,20 @@ def test_run_success_add_plugin_lookup(
         Config(**cli_args),
     )
 
+    # Mock the "_check_collection_path" method
+    def mock_check_collection_path() -> None:
+        """Mock function to skip checking collection path."""
+
+    monkeypatch.setattr(
+        Add,
+        "_check_collection_path",
+        staticmethod(mock_check_collection_path),
+    )
     add.run()
     result = capsys.readouterr().out
     assert re.search("Note: Plugin added to", result) is not None
 
-    expected_devfile = tmp_path / "hello_world.py"
+    expected_devfile = tmp_path / "plugins" / "lookup" / "hello_world.py"
     effective_devfile = (
         FIXTURES_DIR
         / "collection"
@@ -316,7 +347,7 @@ def test_run_success_add_plugin_lookup(
     cmp_result = cmp(expected_devfile, effective_devfile, shallow=False)
     assert cmp_result
 
-    conflict_file = tmp_path / "hello_world.py"
+    conflict_file = tmp_path / "plugins" / "lookup" / "hello_world.py"
     conflict_file.write_text("Author: Your Name")
 
     # expect a CreatorError when the response to overwrite is no.
@@ -350,6 +381,7 @@ def test_run_error_plugin_no_overwrite(
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
     cli_args: ConfigDict,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Test Add.run().
 
@@ -359,17 +391,27 @@ def test_run_error_plugin_no_overwrite(
         capsys: Pytest fixture to capture stdout and stderr.
         tmp_path: Temporary directory path.
         cli_args: Dictionary, partial Add class object.
+        monkeypatch: Pytest monkeypatch fixture.
     """
     cli_args["plugin_type"] = "lookup"
     add = Add(
         Config(**cli_args),
     )
 
+    # Mock the "_check_collection_path" method
+    def mock_check_collection_path() -> None:
+        """Mock function to skip checking collection path."""
+
+    monkeypatch.setattr(
+        Add,
+        "_check_collection_path",
+        staticmethod(mock_check_collection_path),
+    )
     add.run()
     result = capsys.readouterr().out
     assert re.search("Note: Plugin added to", result) is not None
 
-    expected_devfile = tmp_path / "hello_world.py"
+    expected_devfile = tmp_path / "plugins" / "lookup" / "hello_world.py"
     effective_devfile = (
         FIXTURES_DIR
         / "collection"
@@ -382,7 +424,7 @@ def test_run_error_plugin_no_overwrite(
     cmp_result = cmp(expected_devfile, effective_devfile, shallow=False)
     assert cmp_result
 
-    conflict_file = tmp_path / "hello_world.py"
+    conflict_file = tmp_path / "plugins" / "lookup" / "hello_world.py"
     conflict_file.write_text("name: Your Name")
 
     cli_args["no_overwrite"] = True
@@ -411,7 +453,16 @@ def test_run_error_unsupported_plugin_type(
     add = Add(
         Config(**cli_args),
     )
-    # Mock the _plugin_type to bypass the validation step
+
+    # Mock the "_check_collection_path" method
+    def mock_check_collection_path() -> None:
+        """Mock function to skip checking collection path."""
+
+    monkeypatch.setattr(
+        Add,
+        "_check_collection_path",
+        staticmethod(mock_check_collection_path),
+    )
     monkeypatch.setattr(add, "_plugin_type", "unsupported_type")
 
     # Expect a CreatorError with the appropriate message

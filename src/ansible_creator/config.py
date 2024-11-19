@@ -52,7 +52,7 @@ class Config:
     plugin_name: str = ""
     plugin_type: str = ""
     type: str = ""
-    path: str = ""
+    path: str | Path = "./"
 
     def __post_init__(self) -> None:
         """Post process config values."""
