@@ -334,8 +334,8 @@ def test_run_success_add_plugin_lookup(
     result = capsys.readouterr().out
     assert re.search("Note: Plugin added to", result) is not None
 
-    expected_devfile = tmp_path / "plugins" / "lookup" / "hello_world.py"
-    effective_devfile = (
+    expected_file = tmp_path / "plugins" / "lookup" / "hello_world.py"
+    effective_file = (
         FIXTURES_DIR
         / "collection"
         / "testorg"
@@ -344,7 +344,7 @@ def test_run_success_add_plugin_lookup(
         / "lookup"
         / "hello_world.py"
     )
-    cmp_result = cmp(expected_devfile, effective_devfile, shallow=False)
+    cmp_result = cmp(expected_file, effective_file, shallow=False)
     assert cmp_result
 
     conflict_file = tmp_path / "plugins" / "lookup" / "hello_world.py"
@@ -411,8 +411,8 @@ def test_run_error_plugin_no_overwrite(
     result = capsys.readouterr().out
     assert re.search("Note: Plugin added to", result) is not None
 
-    expected_devfile = tmp_path / "plugins" / "lookup" / "hello_world.py"
-    effective_devfile = (
+    expected_file = tmp_path / "plugins" / "lookup" / "hello_world.py"
+    effective_file = (
         FIXTURES_DIR
         / "collection"
         / "testorg"
@@ -421,7 +421,7 @@ def test_run_error_plugin_no_overwrite(
         / "lookup"
         / "hello_world.py"
     )
-    cmp_result = cmp(expected_devfile, effective_devfile, shallow=False)
+    cmp_result = cmp(expected_file, effective_file, shallow=False)
     assert cmp_result
 
     conflict_file = tmp_path / "plugins" / "lookup" / "hello_world.py"

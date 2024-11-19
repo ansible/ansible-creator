@@ -76,7 +76,7 @@ class Add:
         if not Path.is_file(galaxy_file_path):
             msg = (
                 f"The path {self._add_path} is not a valid Ansible collection path. "
-                "Please provide a valid collection path."
+                "Please provide the root path of a valid ansible collection."
             )
             raise CreatorError(msg)
 
