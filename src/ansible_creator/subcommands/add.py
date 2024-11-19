@@ -212,7 +212,7 @@ class Add:
 
         if not paths.has_conflicts() or self._force or self._overwrite:
             copier.copy_containers(paths)
-            self.output.note(f"Plugin added to {plugin_path}")
+            self.output.note(f"{self._plugin_type.capitalize()} plugin added to {plugin_path}")
             return
 
         if not self._overwrite:
@@ -228,7 +228,7 @@ class Add:
                 )
                 raise CreatorError(msg)
 
-        self.output.note(f"Plugin added to {plugin_path}")
+        self.output.note(f"{self._plugin_type.capitalize()} plugin added to {plugin_path}")
 
     def _get_devfile_template_data(self) -> TemplateData:
         """Get the template data for devfile resources.
