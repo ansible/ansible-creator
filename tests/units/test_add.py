@@ -269,7 +269,10 @@ def test_error_invalid_collection_path(
 
     with pytest.raises(CreatorError) as exc_info:
         add.run()
-    assert "is not a valid Ansible collection path. Please provide a valid collection path." in str(
+    assert (
+        "is not a valid Ansible collection path. "
+        "Please provide the root path of a valid ansible collection."
+    ) in str(
         exc_info.value,
     )
 
