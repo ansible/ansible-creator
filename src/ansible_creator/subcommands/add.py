@@ -170,8 +170,8 @@ class Add:
         self.output.debug(f"Started copying {self._project} plugin to destination")
 
         # Call the appropriate scaffolding function based on the plugin type
-        if self._plugin_type == "lookup":
-            template_data = self._get_lookup_plugin_template_data()
+        if self._plugin_type in ("lookup", "filter"):
+            template_data = self._get_plugin_template_data()
 
         else:
             msg = f"Unsupported plugin type: {self._plugin_type}"
@@ -242,7 +242,7 @@ class Add:
             dev_file_name=self.unique_name_in_devfile(),
         )
 
-    def _get_lookup_plugin_template_data(self) -> TemplateData:
+    def _get_plugin_template_data(self) -> TemplateData:
         """Get the template data for lookup plugin.
 
         Returns:
