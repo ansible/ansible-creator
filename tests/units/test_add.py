@@ -528,7 +528,6 @@ def test_run_error_unsupported_plugin_type(
         cli_args: Dictionary, partial Add class object.
         monkeypatch: Pytest monkeypatch fixture.
     """
-    cli_args["plugin_type"] = "lookup"
     add = Add(
         Config(**cli_args),
     )
