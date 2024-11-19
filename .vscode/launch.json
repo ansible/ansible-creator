@@ -29,7 +29,12 @@
       "type": "debugpy",
       "request": "launch",
       "module": "ansible_creator",
-      "args": ["add", "plugin", "lookup", "validate", "/Users/abanand/test"],
+      "args": [
+        "add",
+        "resource",
+        "devcontainer",
+        "/home/user/..path/to/your/existing_project"
+      ],
       "cwd": "${workspaceFolder}/src",
       "justMyCode": false
     }
