@@ -35,7 +35,6 @@ except ImportError:  # pragma: no cover
 MIN_COLLECTION_NAME_LEN = 2
 
 COMING_SOON = (
-    # "add resource devcontainer",
     "add resource role",
     "add plugin action",
 )
@@ -253,6 +252,15 @@ class Parser:
             metavar="path",
             help="The destination directory for the devcontainer files. The default is the "
             "current working directory.",
+        )
+
+        parser.add_argument(
+            "-i",
+            "--image",
+            default="auto",
+            dest="image",
+            required=False,
+            help="Image with which devcontainer needs to be scaffolded",
         )
 
         self._add_overwrite(parser)

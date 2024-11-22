@@ -38,6 +38,7 @@ class ConfigDict(TypedDict):
         force: Force overwrite of existing directory.
         overwrite: To overwrite files in an existing directory.
         no_overwrite: To not overwrite files in an existing directory.
+        image: The image to be used while scaffolding devcontainer.
     """
 
     creator_version: str
@@ -51,6 +52,7 @@ class ConfigDict(TypedDict):
     force: bool
     overwrite: bool
     no_overwrite: bool
+    image: str
 
 
 @pytest.fixture(name="cli_args")
@@ -76,6 +78,7 @@ def fixture_cli_args(tmp_path: Path, output: Output) -> ConfigDict:
         "force": False,
         "overwrite": False,
         "no_overwrite": False,
+        "image": "",
     }
 
 
@@ -303,11 +306,13 @@ def test_run_error_unsupported_resource_type(
     assert "Unsupported resource type: unsupported_type" in str(exc_info.value)
 
 
+@pytest.mark.parametrize("dev_container_image", ("auto", "upstream", "aap", "custom_image"))
 def test_run_success_add_devcontainer(
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
     cli_args: ConfigDict,
     monkeypatch: pytest.MonkeyPatch,
+    dev_container_image: str,
 ) -> None:
     """Test Add.run() for adding a devcontainer.
 
@@ -318,9 +323,11 @@ def test_run_success_add_devcontainer(
         tmp_path: Temporary directory path.
         cli_args: Dictionary, partial Add class object.
         monkeypatch: Pytest monkeypatch fixture.
+        dev_container_image: Image with which devcontainer needs to be scaffolded.
     """
     # Set the resource_type to devcontainer
     cli_args["resource_type"] = "devcontainer"
+    cli_args["image"] = dev_container_image
     add = Add(
         Config(**cli_args),
     )
@@ -330,7 +337,14 @@ def test_run_success_add_devcontainer(
 
     # Verify the generated devcontainer files match the expected structure
     expected_devcontainer = tmp_path / ".devcontainer"
-    effective_devcontainer = FIXTURES_DIR / "collection" / "testorg" / "testcol" / ".devcontainer"
+    if dev_container_image in ("auto", "upstream"):
+        effective_devcontainer = (
+            FIXTURES_DIR / "collection" / "testorg" / "testcol" / ".devcontainer"
+        )
+    else:
+        effective_devcontainer = (
+            FIXTURES_DIR / "common" / "devcontainer" / f"{dev_container_image}" / ".devcontainer"
+        )
     cmp_result = dircmp(expected_devcontainer, effective_devcontainer)
     diff = has_differences(dcmp=cmp_result, errors=[])
     assert diff == [], diff

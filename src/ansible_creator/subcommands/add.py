@@ -7,6 +7,7 @@ import uuid
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from ansible_creator.constants import GLOBAL_TEMPLATE_VARS
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.templar import Templar
 from ansible_creator.types import TemplateData
@@ -41,6 +42,7 @@ class Add:
         self._no_overwrite = config.no_overwrite
         self._creator_version = config.creator_version
         self._project = config.project
+        self._dev_container_image = config.image
         self.output: Output = config.output
         self.templar = Templar()
 
@@ -250,10 +252,19 @@ class Add:
         Returns:
             TemplateData: Data required for templating the devcontainer resource.
         """
+        if self._dev_container_image == "auto":
+            dev_container_image = GLOBAL_TEMPLATE_VARS["DEV_CONTAINER_IMAGE"]
+        elif self._dev_container_image == "upstream":
+            dev_container_image = GLOBAL_TEMPLATE_VARS["DEV_CONTAINER_UPSTREAM_IMAGE"]
+        elif self._dev_container_image == "aap":
+            dev_container_image = GLOBAL_TEMPLATE_VARS["DEV_CONTAINER_DOWNSTREAM_IMAGE"]
+        else:
+            dev_container_image = self._dev_container_image
         return TemplateData(
             resource_type=self._resource_type,
             creator_version=self._creator_version,
             dev_file_name=self.unique_name_in_devfile(),
+            dev_container_image=dev_container_image,
         )
 
     def _get_plugin_template_data(self) -> TemplateData:

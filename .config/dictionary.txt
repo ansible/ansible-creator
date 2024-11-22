@@ -26,6 +26,7 @@ myuser
 netcommon
 nilashish
 notesdir
+osbs
 pydoclint
 rulebook
 rulebooks
