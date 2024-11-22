@@ -1,0 +1,80 @@
+# pylint: disable=E0401
+# hello_world.py - A custom lookup plugin for Ansible.
+# Author: Your Name
+# License: GPL-3.0-or-later
+
+from ansible.plugins.lookup import LookupBase  # type: ignore
+from ansible.errors import AnsibleError  # type: ignore
+from ansible.utils.display import Display  # type: ignore
+from typing import Any, Optional, Dict, List
+
+display = Display()
+
+DOCUMENTATION = """
+    name: hello_world
+    author: Your Name
+    version_added: "1.0.0"
+    short_description: A custom lookup plugin for Ansible.
+    description:
+      - This is a custom lookup plugin to provide lookup functionality.
+    options:
+      _terms:
+        description: Terms to lookup
+        required: True
+    notes:
+      - This is a scaffold template. Customize the plugin to fit your needs.
+"""
+
+EXAMPLES = """
+- name: Example usage of hello_world
+  ansible.builtin.debug:
+    msg: "{{ lookup('hello_world', 'example_term') }}"
+"""
+
+RETURN = """
+_list:
+  description: The list of values found by the lookup
+  type: list
+"""
+
+
+class LookupModule(LookupBase):  # type: ignore[misc]
+    """
+    Custom Ansible lookup plugin: hello_world
+    A custom lookup plugin for Ansible.
+    """
+
+    def run(
+        self,
+        terms: List[str],
+        variables: Optional[Dict[str, Any]] = None,
+        **kwargs: Dict[str, Any],
+    ) -> list[str]:
+        """
+        Run the lookup with the specified terms.
+
+        Args:
+            terms: A list of terms to lookup.
+            variables: Additional variables.
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            list: A list of processed results.
+
+        Raises:
+            AnsibleError: If the 'terms' parameter is not a list.
+        """
+        if not isinstance(terms, list):
+            raise AnsibleError("The 'terms' parameter must be a list.")
+
+        display.vvv(f"Running hello_world lookup plugin with terms: {terms}")
+
+        try:
+            # Example processing logic - Replace this with actual lookup code
+            result = [term.upper() for term in terms]
+
+            display.vvv(f"Result from hello_world lookup: {result}")
+            return result
+
+        except Exception as e:
+            raise AnsibleError(f"Error in hello_world plugin: {e}")

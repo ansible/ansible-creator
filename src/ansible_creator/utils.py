@@ -28,6 +28,7 @@ if TYPE_CHECKING:
 PATH_REPLACERS = {
     "project_org": "namespace",
     "project_repo": "collection_name",
+    "hello_world": "plugin_name",
 }
 
 

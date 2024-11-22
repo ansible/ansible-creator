@@ -1,4 +1,6 @@
-"""A hello-world filter plugin in testorg.testcol."""
+# hello_world.py - A custom filter plugin for Ansible.
+# Author: Your Name
+# License: GPL-3.0-or-later
 
 from __future__ import absolute_import, annotations, division, print_function
 
@@ -14,9 +16,9 @@ if TYPE_CHECKING:
 
 DOCUMENTATION = """
     name: hello_world
-    author: Testorg Testcol
+    author: Your Name
     version_added: "1.0.0"
-    short_description: Demo filter plugin that returns a Hello message.
+    short_description: A custom filter plugin for Ansible.
     description:
       - This is a demo filter plugin designed to return Hello message.
     options:
@@ -30,7 +32,7 @@ EXAMPLES = """
 
 - name: Display a hello message
   ansible.builtin.debug:
-    msg: "{{ 'ansible-creator' | testorg.testcol.hello_world }}"
+    msg: "{{ 'ansible-creator' | hello_world }}"
 """
 
 
