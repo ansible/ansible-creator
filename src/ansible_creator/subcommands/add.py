@@ -252,14 +252,17 @@ class Add:
         Returns:
             TemplateData: Data required for templating the devcontainer resource.
         """
-        if self._dev_container_image == "auto":
-            dev_container_image = GLOBAL_TEMPLATE_VARS["DEV_CONTAINER_IMAGE"]
-        elif self._dev_container_image == "upstream":
-            dev_container_image = GLOBAL_TEMPLATE_VARS["DEV_CONTAINER_UPSTREAM_IMAGE"]
-        elif self._dev_container_image == "aap":
-            dev_container_image = GLOBAL_TEMPLATE_VARS["DEV_CONTAINER_DOWNSTREAM_IMAGE"]
-        else:
-            dev_container_image = self._dev_container_image
+        image_mapping = {
+            "auto": GLOBAL_TEMPLATE_VARS["DEV_CONTAINER_IMAGE"],
+            "upstream": GLOBAL_TEMPLATE_VARS["DEV_CONTAINER_UPSTREAM_IMAGE"],
+            "aap": GLOBAL_TEMPLATE_VARS["DEV_CONTAINER_DOWNSTREAM_IMAGE"],
+        }
+
+        dev_container_image = image_mapping.get(
+            self._dev_container_image,
+            self._dev_container_image,
+        )
+
         return TemplateData(
             resource_type=self._resource_type,
             creator_version=self._creator_version,
