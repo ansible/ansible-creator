@@ -1,7 +1,7 @@
 {
   "name": "ansible-dev-container-codespaces",
   "image": "{{ dev_container_image }}",
-  "containerUser": "podman",
+  "containerUser": "root",
   "runArgs": [
     "--security-opt",
     "seccomp=unconfined",
