@@ -17,3 +17,24 @@ concurrency:
 jobs:
   tox:
     uses: ansible/team-devtools/.github/workflows/tox.yml@main
+
+  test-devcontainer:
+    needs: tox
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install devcontainer cli
+        run: npm install -g @devcontainers/cli
+
+      - name: Start Devcontainer
+        run: |
+          devcontainer up --workspace-folder ./tests/fixtures/collection/testorg/testcol
+
+      - name: Run tests
+        run: |
+          devcontainer exec --workspace-folder ./tests/fixtures/collection/testorg/testcol adt --version
