@@ -20,3 +20,10 @@ updates:
     labels:
       - "dependencies"
       - "skip-changelog"
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    labels:
+      - dependabot-deps-updates
+      - skip-changelog
