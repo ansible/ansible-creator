@@ -392,7 +392,7 @@ def test_devcontainer_usability(
         cli_args: Dictionary, partial Add class object.
 
     Raises:
-        FileNotFoundError: If the 'devcontainer' executable is not found in the PATH.
+        FileNotFoundError: If the 'npm' or 'docker' executable is not found in the PATH.
     """
     # Set the resource_type to devcontainer
     cli_args["resource_type"] = "devcontainer"
@@ -404,34 +404,39 @@ def test_devcontainer_usability(
     result = capsys.readouterr().out
     assert re.search("Note: Resource added to", result) is not None
 
-    devcontainer_executable = shutil.which("devcontainer")
-    if not devcontainer_executable:
-        err = "devcontainer executable not found in PATH"
+    npm_executable = shutil.which("npm")
+    if not npm_executable:
+        err = "npm executable not found in PATH"
         raise FileNotFoundError(err)
 
     # Start the devcontainer using devcontainer CLI
-    container_cmd_output = subprocess.run(  # noqa: S603
+    devcontainer_up_cmd = (
+        f"devcontainer up --workspace-folder {tmp_path} --remove-existing-container"
+    )
+    devcontainer_up_output = subprocess.run(  # noqa: S603
         [
-            devcontainer_executable,
-            "up",
-            "--workspace-folder",
-            tmp_path,
-            "--remove-existing-container",
+            npm_executable,
+            "exec",
+            "-c",
+            devcontainer_up_cmd,
         ],
         capture_output=True,
         text=True,
         check=True,
     )
-    container_id = json.loads(container_cmd_output.stdout.strip("\n")).get("containerId")
+    assert devcontainer_up_output.returncode == 0
+
+    devcontainer_id = json.loads(devcontainer_up_output.stdout.strip("\n")).get("containerId")
 
     # Execute the command within the container
-    container_cmd_result = subprocess.run(  # noqa: S603
-        [devcontainer_executable, "exec", "--container-id", container_id, "adt", "--version"],
+    devcontainer_exec_cmd = f"devcontainer exec --container-id {devcontainer_id} adt --version"
+    devcontainer_exec_output = subprocess.run(  # noqa: S603
+        [npm_executable, "exec", "-c", devcontainer_exec_cmd],
         capture_output=True,
         text=True,
         check=True,
     )
-    assert container_cmd_result.returncode == 0
+    assert devcontainer_exec_output.returncode == 0
 
     docker_executable = shutil.which("docker")
     if not docker_executable:
@@ -439,7 +444,7 @@ def test_devcontainer_usability(
         raise FileNotFoundError(err)
     # Stop devcontainer
     stop_container = subprocess.run(  # noqa: S603
-        [docker_executable, "rm", "-f", container_id],
+        [docker_executable, "rm", "-f", devcontainer_id],
         capture_output=True,
         text=True,
         check=True,
