@@ -3,7 +3,11 @@
 
 from __future__ import annotations
 
+import json
 import re
+import shutil
+import subprocess
+import sys
 
 from filecmp import cmp, dircmp
 from typing import TYPE_CHECKING, TypedDict
@@ -369,6 +373,78 @@ def test_run_success_add_devcontainer(
         is not None
     ), result
     assert re.search("Note: Resource added to", result) is not None
+
+
+# Skip this test on macOS due to unavailability of docker on macOS GHA runners
+@pytest.mark.skipif(sys.platform == "darwin", reason="Skip test on macOS")
+def test_devcontainer_usability(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test Add.run() for adding a devcontainer.
+
+    Successfully adds devcontainer to path.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Add class object.
+
+    Raises:
+        FileNotFoundError: If the 'devcontainer' executable is not found in the PATH.
+    """
+    # Set the resource_type to devcontainer
+    cli_args["resource_type"] = "devcontainer"
+    cli_args["image"] = "auto"
+    add = Add(
+        Config(**cli_args),
+    )
+    add.run()
+    result = capsys.readouterr().out
+    assert re.search("Note: Resource added to", result) is not None
+
+    devcontainer_executable = shutil.which("devcontainer")
+    if not devcontainer_executable:
+        err = "devcontainer executable not found in PATH"
+        raise FileNotFoundError(err)
+
+    # Start the devcontainer using devcontainer CLI
+    container_cmd_output = subprocess.run(  # noqa: S603
+        [
+            devcontainer_executable,
+            "up",
+            "--workspace-folder",
+            tmp_path,
+            "--remove-existing-container",
+        ],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    container_id = json.loads(container_cmd_output.stdout.strip("\n")).get("containerId")
+
+    # Execute the command within the container
+    container_cmd_result = subprocess.run(  # noqa: S603
+        [devcontainer_executable, "exec", "--container-id", container_id, "adt", "--version"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert container_cmd_result.returncode == 0
+
+    docker_executable = shutil.which("docker")
+    if not docker_executable:
+        err = "docker executable not found in PATH"
+        raise FileNotFoundError(err)
+    # Stop devcontainer
+    stop_container = subprocess.run(  # noqa: S603
+        [docker_executable, "rm", "-f", container_id],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert stop_container.returncode == 0
 
 
 def test_run_success_add_plugin_filter(
