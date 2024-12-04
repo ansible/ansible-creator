@@ -8,6 +8,7 @@ chakarborty
 conftest
 delenv
 devcontainer
+devcontainers
 devfile
 docsite
 endraw

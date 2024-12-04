@@ -7,6 +7,7 @@ import uuid
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from ansible_creator.constants import GLOBAL_TEMPLATE_VARS
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.templar import Templar
 from ansible_creator.types import TemplateData
@@ -41,6 +42,7 @@ class Add:
         self._no_overwrite = config.no_overwrite
         self._creator_version = config.creator_version
         self._project = config.project
+        self._dev_container_image = config.image
         self.output: Output = config.output
         self.templar = Templar()
 
@@ -101,6 +103,8 @@ class Add:
         # Call the appropriate scaffolding function based on the resource type
         if self._resource_type == "devfile":
             template_data = self._get_devfile_template_data()
+        elif self._resource_type == "devcontainer":
+            template_data = self._get_devcontainer_template_data()
 
         else:
             msg = f"Unsupported resource type: {self._resource_type}"
@@ -240,6 +244,30 @@ class Add:
             resource_type=self._resource_type,
             creator_version=self._creator_version,
             dev_file_name=self.unique_name_in_devfile(),
+        )
+
+    def _get_devcontainer_template_data(self) -> TemplateData:
+        """Get the template data for devcontainer resources.
+
+        Returns:
+            TemplateData: Data required for templating the devcontainer resource.
+        """
+        image_mapping = {
+            "auto": GLOBAL_TEMPLATE_VARS["DEV_CONTAINER_IMAGE"],
+            "upstream": GLOBAL_TEMPLATE_VARS["DEV_CONTAINER_UPSTREAM_IMAGE"],
+            "aap": GLOBAL_TEMPLATE_VARS["DEV_CONTAINER_DOWNSTREAM_IMAGE"],
+        }
+
+        dev_container_image = image_mapping.get(
+            self._dev_container_image,
+            self._dev_container_image,
+        )
+
+        return TemplateData(
+            resource_type=self._resource_type,
+            creator_version=self._creator_version,
+            dev_file_name=self.unique_name_in_devfile(),
+            dev_container_image=dev_container_image,
         )
 
     def _get_plugin_template_data(self) -> TemplateData:

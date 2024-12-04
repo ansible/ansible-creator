@@ -35,7 +35,6 @@ except ImportError:  # pragma: no cover
 MIN_COLLECTION_NAME_LEN = 2
 
 COMING_SOON = (
-    "add resource devcontainer",
     "add resource role",
     "add plugin action",
 )
@@ -255,6 +254,16 @@ class Parser:
             "current working directory.",
         )
 
+        parser.add_argument(
+            "-i",
+            "--image",
+            default="auto",
+            dest="image",
+            required=False,
+            help="Image with which devcontainer needs to be scaffolded",
+        )
+
+        self._add_overwrite(parser)
         self._add_args_common(parser)
 
     def _add_resource_devfile(self, subparser: SubParser[ArgumentParser]) -> None:

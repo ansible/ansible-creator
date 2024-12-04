@@ -3,7 +3,11 @@
 
 from __future__ import annotations
 
+import json
 import re
+import shutil
+import subprocess
+import sys
 
 from filecmp import cmp, dircmp
 from typing import TYPE_CHECKING, TypedDict
@@ -38,6 +42,7 @@ class ConfigDict(TypedDict):
         force: Force overwrite of existing directory.
         overwrite: To overwrite files in an existing directory.
         no_overwrite: To not overwrite files in an existing directory.
+        image: The image to be used while scaffolding devcontainer.
     """
 
     creator_version: str
@@ -51,6 +56,7 @@ class ConfigDict(TypedDict):
     force: bool
     overwrite: bool
     no_overwrite: bool
+    image: str
 
 
 @pytest.fixture(name="cli_args")
@@ -76,6 +82,7 @@ def fixture_cli_args(tmp_path: Path, output: Output) -> ConfigDict:
         "force": False,
         "overwrite": False,
         "no_overwrite": False,
+        "image": "",
     }
 
 
@@ -160,7 +167,7 @@ def test_run_success_add_devfile(
     ):
         add.run()
 
-    # expect a warning followed by playbook project creation msg
+    # expect a warning followed by devfile resource creation msg
     # when response to overwrite is yes.
     monkeypatch.setattr("builtins.input", lambda _: "y")
     add.run()
@@ -301,6 +308,148 @@ def test_run_error_unsupported_resource_type(
     with pytest.raises(CreatorError) as exc_info:
         add.run()
     assert "Unsupported resource type: unsupported_type" in str(exc_info.value)
+
+
+def test_run_success_add_devcontainer(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test Add.run() for adding a devcontainer.
+
+    Successfully adds devcontainer to path.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Add class object.
+        monkeypatch: Pytest monkeypatch fixture.
+    """
+    # Set the resource_type to devcontainer
+    cli_args["resource_type"] = "devcontainer"
+    cli_args["image"] = "auto"
+    add = Add(
+        Config(**cli_args),
+    )
+    add.run()
+    result = capsys.readouterr().out
+    assert re.search("Note: Resource added to", result) is not None
+
+    # Verify the generated devcontainer files match the expected structure
+    expected_devcontainer = tmp_path / ".devcontainer"
+    effective_devcontainer = FIXTURES_DIR / "collection" / "testorg" / "testcol" / ".devcontainer"
+
+    cmp_result = dircmp(expected_devcontainer, effective_devcontainer)
+    diff = has_differences(dcmp=cmp_result, errors=[])
+    assert diff == [], diff
+
+    # Test for overwrite prompt and failure with no overwrite option
+    conflict_file = tmp_path / ".devcontainer" / "devcontainer.json"
+    conflict_file.write_text('{ "name": "conflict" }')
+
+    # expect a CreatorError when the response to overwrite is no.
+    monkeypatch.setattr("builtins.input", lambda _: "n")
+    fail_msg = (
+        "The destination directory contains files that will be overwritten."
+        " Please re-run ansible-creator with --overwrite to continue."
+    )
+    with pytest.raises(
+        CreatorError,
+        match=fail_msg,
+    ):
+        add.run()
+
+    # expect a warning followed by devcontainer resource creation msg
+    # when response to overwrite is yes.
+    monkeypatch.setattr("builtins.input", lambda _: "y")
+    add.run()
+    result = capsys.readouterr().out
+    assert (
+        re.search(
+            "already exists",
+            result,
+        )
+        is not None
+    ), result
+    assert re.search("Note: Resource added to", result) is not None
+
+
+# Skip this test on macOS due to unavailability of docker on macOS GHA runners
+@pytest.mark.skipif(sys.platform == "darwin", reason="Skip test on macOS")
+def test_devcontainer_usability(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test Add.run() for adding a devcontainer.
+
+    Successfully adds devcontainer to path.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Add class object.
+
+    Raises:
+        FileNotFoundError: If the 'npm' or 'docker' executable is not found in the PATH.
+    """
+    # Set the resource_type to devcontainer
+    cli_args["resource_type"] = "devcontainer"
+    cli_args["image"] = "auto"
+    add = Add(
+        Config(**cli_args),
+    )
+    add.run()
+    result = capsys.readouterr().out
+    assert re.search("Note: Resource added to", result) is not None
+
+    npm_executable = shutil.which("npm")
+    if not npm_executable:
+        err = "npm executable not found in PATH"
+        raise FileNotFoundError(err)
+
+    # Start the devcontainer using devcontainer CLI
+    devcontainer_up_cmd = (
+        f"devcontainer up --workspace-folder {tmp_path} --remove-existing-container"
+    )
+    devcontainer_up_output = subprocess.run(  # noqa: S603
+        [
+            npm_executable,
+            "exec",
+            "-c",
+            devcontainer_up_cmd,
+        ],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert devcontainer_up_output.returncode == 0
+
+    devcontainer_id = json.loads(devcontainer_up_output.stdout.strip("\n")).get("containerId")
+
+    # Execute the command within the container
+    devcontainer_exec_cmd = f"devcontainer exec --container-id {devcontainer_id} adt --version"
+    devcontainer_exec_output = subprocess.run(  # noqa: S603
+        [npm_executable, "exec", "-c", devcontainer_exec_cmd],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert devcontainer_exec_output.returncode == 0
+
+    docker_executable = shutil.which("docker")
+    if not docker_executable:
+        err = "docker executable not found in PATH"
+        raise FileNotFoundError(err)
+    # Stop devcontainer
+    stop_container = subprocess.run(  # noqa: S603
+        [docker_executable, "rm", "-f", devcontainer_id],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert stop_container.returncode == 0
 
 
 def test_run_success_add_plugin_filter(

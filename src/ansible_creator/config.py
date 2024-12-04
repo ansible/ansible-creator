@@ -35,6 +35,7 @@ class Config:
         plugin_type: The type of plugin to be scaffolded.
         type: The type of the project for which the resource is being scaffolded.
         path: The file path where the resource should be added.
+        image: The image to be used while scaffolding devcontainer.
     """
 
     creator_version: str
@@ -53,6 +54,7 @@ class Config:
     plugin_type: str = ""
     type: str = ""
     path: str | Path = "./"
+    image: str = ""
 
     def __post_init__(self) -> None:
         """Post process config values."""

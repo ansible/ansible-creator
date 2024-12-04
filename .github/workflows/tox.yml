@@ -19,3 +19,5 @@ concurrency:
 jobs:
   tox:
     uses: ansible/team-devtools/.github/workflows/tox.yml@main
+    with:
+      node-version-file: .tool-versions
