@@ -1,12 +1,14 @@
+"""An example lookup plugin file."""
+
 # pylint: disable=E0401
 # hello_world.py - A custom lookup plugin for Ansible.
 # Author: Your Name
 # License: GPL-3.0-or-later
 
+from typing import Any, Optional, Dict, List
 from ansible.plugins.lookup import LookupBase  # type: ignore
 from ansible.errors import AnsibleError  # type: ignore
 from ansible.utils.display import Display  # type: ignore
-from typing import Any, Optional, Dict, List
 
 display = Display()
 
@@ -77,4 +79,4 @@ class LookupModule(LookupBase):  # type: ignore[misc]
             return result
 
         except Exception as e:
-            raise AnsibleError(f"Error in hello_world plugin: {e}")
+            raise AnsibleError(f"Error in hello_world plugin: {e}") from e
