@@ -321,7 +321,7 @@ class Parser:
         """
         parser = subparser.add_parser(
             "execution-environment",
-            help="Add execution-environment.yml sample file to an existing path.",
+            help="Add a sample execution-environment.yml file to an existing path.",
             formatter_class=CustomHelpFormatter,
         )
 
@@ -331,15 +331,6 @@ class Parser:
             metavar="path",
             help="The destination directory for the execution environment file. "
             "The default is the current working directory.",
-        )
-
-        parser.add_argument(
-            "-i",
-            "--image",
-            default="auto",
-            dest="ee_image",
-            required=False,
-            help="Image with which execution-environment file needs to be scaffolded",
         )
 
         self._add_overwrite(parser)

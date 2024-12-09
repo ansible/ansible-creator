@@ -36,7 +36,6 @@ class Config:
         type: The type of the project for which the resource is being scaffolded.
         path: The file path where the resource should be added.
         image: The image to be used while scaffolding devcontainer.
-        ee_image: The image to be used while scaffolding execution environment sample file.
     """
 
     creator_version: str
@@ -56,7 +55,6 @@ class Config:
     type: str = ""
     path: str | Path = "./"
     image: str = ""
-    ee_image: str = ""
 
     def __post_init__(self) -> None:
         """Post process config values."""

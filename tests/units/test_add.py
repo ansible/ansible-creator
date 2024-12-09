@@ -43,7 +43,6 @@ class ConfigDict(TypedDict):
         overwrite: To overwrite files in an existing directory.
         no_overwrite: To not overwrite files in an existing directory.
         image: The image to be used while scaffolding devcontainer.
-        ee_image: The image to be used while scaffolding execution environment sample file.
     """
 
     creator_version: str
@@ -58,7 +57,6 @@ class ConfigDict(TypedDict):
     overwrite: bool
     no_overwrite: bool
     image: str
-    ee_image: str
 
 
 @pytest.fixture(name="cli_args")
@@ -85,7 +83,6 @@ def fixture_cli_args(tmp_path: Path, output: Output) -> ConfigDict:
         "overwrite": False,
         "no_overwrite": False,
         "image": "",
-        "ee_image": "",
     }
 
 
@@ -719,7 +716,6 @@ def test_run_success_add_execution_env(
     """
     # Set the resource_type to execution-environment
     cli_args["resource_type"] = "execution-environment"
-    cli_args["ee_image"] = "auto"
     add = Add(
         Config(**cli_args),
     )
