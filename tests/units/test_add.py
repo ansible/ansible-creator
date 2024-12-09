@@ -696,3 +696,68 @@ def test_run_error_unsupported_plugin_type(
     with pytest.raises(CreatorError) as exc_info:
         add.run()
     assert "Unsupported plugin type: unsupported_type" in str(exc_info.value)
+
+
+def test_run_success_add_execution_env(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test Add.run() for adding a execution-environment sample file.
+
+    Successfully adds execution-environment.yml sample file to path.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Add class object.
+        monkeypatch: Pytest monkeypatch fixture.
+    """
+    # Set the resource_type to execution-environment
+    cli_args["resource_type"] = "execution-environment"
+    add = Add(
+        Config(**cli_args),
+    )
+    add.run()
+    result = capsys.readouterr().out
+    assert re.search("Note: Resource added to", result) is not None
+
+    # Verify the generated execution-environment file match the expected structure
+    expected_ee_file = tmp_path / "execution-environment.yml"
+    effective_ee_file = (
+        FIXTURES_DIR / "common" / "execution-environment" / "execution-environment.yml"
+    )
+
+    cmp_result = cmp(expected_ee_file, effective_ee_file, shallow=False)
+    assert cmp_result
+
+    # Test for overwrite prompt and failure with no overwrite option
+    conflict_file = tmp_path / "execution-environment.yml"
+    conflict_file.write_text('{ "version": "1" }')
+
+    # expect a CreatorError when the response to overwrite is no.
+    monkeypatch.setattr("builtins.input", lambda _: "n")
+    fail_msg = (
+        "The destination directory contains files that will be overwritten."
+        " Please re-run ansible-creator with --overwrite to continue."
+    )
+    with pytest.raises(
+        CreatorError,
+        match=fail_msg,
+    ):
+        add.run()
+
+    # expect a warning followed by execution-environment resource creation msg
+    # when response to overwrite is yes.
+    monkeypatch.setattr("builtins.input", lambda _: "y")
+    add.run()
+    result = capsys.readouterr().out
+    assert (
+        re.search(
+            "already exists",
+            result,
+        )
+        is not None
+    ), result
+    assert re.search("Note: Resource added to", result) is not None

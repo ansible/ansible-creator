@@ -105,7 +105,8 @@ class Add:
             template_data = self._get_devfile_template_data()
         elif self._resource_type == "devcontainer":
             template_data = self._get_devcontainer_template_data()
-
+        elif self._resource_type == "execution-environment":
+            template_data = self._get_ee_template_data()
         else:
             msg = f"Unsupported resource type: {self._resource_type}"
             raise CreatorError(msg)
@@ -279,5 +280,16 @@ class Add:
         return TemplateData(
             plugin_type=self._plugin_type,
             plugin_name=self._plugin_name,
+            creator_version=self._creator_version,
+        )
+
+    def _get_ee_template_data(self) -> TemplateData:
+        """Get the template data for lookup plugin.
+
+        Returns:
+            TemplateData: Data required for templating the lookup plugin.
+        """
+        return TemplateData(
+            resource_type=self._resource_type,
             creator_version=self._creator_version,
         )

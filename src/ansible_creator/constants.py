@@ -14,6 +14,7 @@ GLOBAL_TEMPLATE_VARS = {
     ),
     "DEV_FILE_IMAGE": "ghcr.io/ansible/ansible-workspace-env-reference:latest",
     "RECOMMENDED_EXTENSIONS": ["redhat.ansible", "redhat.vscode-redhat-account"],
+    "EXECUTION_ENVIRONMENT_DEFAULT_IMAGE": "quay.io/fedora/fedora:41",
 }
 
 MIN_COLLECTION_NAME_LEN = 2

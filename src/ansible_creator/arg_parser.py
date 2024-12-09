@@ -233,6 +233,7 @@ class Parser:
         self._add_resource_devcontainer(subparser=subparser)
         self._add_resource_devfile(subparser=subparser)
         self._add_resource_role(subparser=subparser)
+        self._add_resource_execution_env(subparser=subparser)
 
     def _add_resource_devcontainer(self, subparser: SubParser[ArgumentParser]) -> None:
         """Add devcontainer files to an existing Ansible project.
@@ -310,6 +311,29 @@ class Parser:
             help="The path to the Ansible collection. The default is the "
             "current working directory.",
         )
+        self._add_args_common(parser)
+
+    def _add_resource_execution_env(self, subparser: SubParser[ArgumentParser]) -> None:
+        """Add execution environment sample file to an existing path.
+
+        Args:
+            subparser: The subparser to add execution environment file to
+        """
+        parser = subparser.add_parser(
+            "execution-environment",
+            help="Add a sample execution-environment.yml file to an existing path.",
+            formatter_class=CustomHelpFormatter,
+        )
+
+        parser.add_argument(
+            "path",
+            default="./",
+            metavar="path",
+            help="The destination directory for the execution environment file. "
+            "The default is the current working directory.",
+        )
+
+        self._add_overwrite(parser)
         self._add_args_common(parser)
 
     def _add_plugin(self, subparser: SubParser[ArgumentParser]) -> None:

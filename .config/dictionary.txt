@@ -27,9 +27,11 @@ myuser
 netcommon
 nilashish
 notesdir
+PYCMD
 pydoclint
 rulebook
 rulebooks
+sshpass
 sysargs
 templated
 templating
