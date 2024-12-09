@@ -27,6 +27,7 @@ class TemplateData:
         dev_file_image: The devfile image.
         dev_file_name: The unique name entry in devfile.
         namespace: The namespace of the collection.
+        execution_environment_image: The execution environment image.
         recommended_extensions: A list of recommended VsCode extensions.
     """
 
@@ -40,6 +41,9 @@ class TemplateData:
     dev_file_image: Sequence[str] = GLOBAL_TEMPLATE_VARS["DEV_FILE_IMAGE"]
     dev_file_name: str = ""
     namespace: str = ""
+    execution_environment_image: Sequence[str] = GLOBAL_TEMPLATE_VARS[
+        "EXECUTION_ENVIRONMENT_DEFAULT_IMAGE"
+    ]
     recommended_extensions: Sequence[str] = field(
         default_factory=lambda: GLOBAL_TEMPLATE_VARS["RECOMMENDED_EXTENSIONS"],
     )
