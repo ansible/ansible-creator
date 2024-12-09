@@ -19,7 +19,7 @@ chardet==5.2.0
 charset-normalizer==3.4.0
 click==8.1.7
 colorama==0.4.6
-coverage==7.6.8
+coverage==7.6.9
 csscompressor==0.9.5
 cssselect2==0.7.0
 defusedxml==0.7.1
@@ -42,7 +42,7 @@ jinja2==3.1.4
 jsmin==3.0.1
 linkchecker==10.5.0
 markdown==3.7
-markdown-exec==1.9.3
+markdown-exec==1.10.0
 markdown-include==0.8.1
 markupsafe==3.0.2
 mccabe==0.7.0
@@ -74,7 +74,7 @@ pluggy==1.5.0
 pre-commit==4.0.1
 pycodestyle==2.12.1
 pycparser==2.22
-pydoclint==0.5.9
+pydoclint==0.5.10
 pyflakes==3.2.0
 pygments==2.18.0
 pylint==3.3.2
@@ -89,8 +89,8 @@ pyyaml==6.0.2
 pyyaml-env-tag==0.1
 regex==2024.11.6
 requests==2.32.3
-ruff==0.8.1
-six==1.16.0
+ruff==0.8.2
+six==1.17.0
 soupsieve==2.6
 termcolor==2.5.0
 text-unidecode==1.3
