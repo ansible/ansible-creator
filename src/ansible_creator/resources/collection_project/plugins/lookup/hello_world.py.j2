@@ -3,15 +3,17 @@
 {%- set author = author | default("Your Name") -%}
 {%- set description = description | default("A custom lookup plugin for Ansible.") -%}
 {%- set license = license | default("GPL-3.0-or-later") -%}
+"""An example lookup plugin file."""
+
 # pylint: disable=E0401
 # {{ lookup_name }}.py - {{ description }}
 # Author: {{ author }}
 # License: {{ license }}
 
+from typing import Any, Optional, Dict, List
 from ansible.plugins.lookup import LookupBase  # type: ignore
 from ansible.errors import AnsibleError  # type: ignore
 from ansible.utils.display import Display  # type: ignore
-from typing import Any, Optional, Dict, List
 
 display = Display()
 
@@ -46,7 +48,7 @@ _list:
 
 class LookupModule(LookupBase):  # type: ignore[misc]
     """
-    Custom Ansible lookup plugin: hello_world
+    Custom Ansible lookup plugin: {{ lookup_name }}
     A custom lookup plugin for Ansible.
     """
 
@@ -73,14 +75,14 @@ class LookupModule(LookupBase):  # type: ignore[misc]
         if not isinstance(terms, list):
             raise AnsibleError("The 'terms' parameter must be a list.")
 
-        display.vvv(f"Running hello_world lookup plugin with terms: {terms}")
+        display.vvv(f"Running {{ lookup_name }} lookup plugin with terms: {terms}")
 
         try:
             # Example processing logic - Replace this with actual lookup code
             result = [term.upper() for term in terms]
 
-            display.vvv(f"Result from hello_world lookup: {result}")
+            display.vvv(f"Result from {{ lookup_name }} lookup: {result}")
             return result
 
         except Exception as e:
-            raise AnsibleError(f"Error in hello_world plugin: {e}")
+            raise AnsibleError(f"Error in {{ lookup_name }} plugin: {e}") from e
