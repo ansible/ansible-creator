@@ -134,13 +134,12 @@ class Add:
         paths = walker.collect_paths()
         copier = Copier(output=self.output)
 
-        if self._no_overwrite:
-            msg = "The flag `--no-overwrite` restricts overwriting."
-            if paths.has_conflicts():
-                msg += (
-                    "\nThe destination directory contains files that can be overwritten."
-                    "\nPlease re-run ansible-creator with --overwrite to continue."
-                )
+        if self._no_overwrite and paths.has_conflicts():
+            msg = (
+                "The flag `--no-overwrite` restricts overwriting."
+                "\nThe destination directory contains files that can be overwritten."
+                "\nPlease re-run ansible-creator with --overwrite to continue."
+            )
             raise CreatorError(msg)
 
         if not paths.has_conflicts() or self._force or self._overwrite:
@@ -206,13 +205,12 @@ class Add:
         paths = walker.collect_paths()
         copier = Copier(output=self.output)
 
-        if self._no_overwrite:
-            msg = "The flag `--no-overwrite` restricts overwriting."
-            if paths.has_conflicts():
-                msg += (
-                    "\nThe destination directory contains files that can be overwritten."
-                    "\nPlease re-run ansible-creator with --overwrite to continue."
-                )
+        if self._no_overwrite and paths.has_conflicts():
+            msg = (
+                "The flag `--no-overwrite` restricts overwriting."
+                "\nThe destination directory contains files that can be overwritten."
+                "\nPlease re-run ansible-creator with --overwrite to continue."
+            )
             raise CreatorError(msg)
 
         if not paths.has_conflicts() or self._force or self._overwrite:
