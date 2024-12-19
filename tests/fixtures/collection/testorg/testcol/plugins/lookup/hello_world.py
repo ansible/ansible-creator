@@ -1,20 +1,15 @@
-"""An example lookup plugin file."""
+# hello_world.py - A custom lookup plugin for Ansible.
 
 # pylint: disable=E0401
 # hello_world.py - A custom lookup plugin for Ansible.
-# Author: Your Name
-# License: GPL-3.0-or-later
-
-from typing import Any, Optional, Dict, List
-from ansible.plugins.lookup import LookupBase  # type: ignore
-from ansible.errors import AnsibleError  # type: ignore
-from ansible.utils.display import Display  # type: ignore
-
-display = Display()
+# Author: Your Name (@username)
+# Copyright 2020 Red Hat
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 DOCUMENTATION = """
     name: hello_world
-    author: Your Name
+    author: Your Name (@username)
     version_added: "1.0.0"
     short_description: A custom lookup plugin for Ansible.
     description:
@@ -38,6 +33,14 @@ _list:
   description: The list of values found by the lookup
   type: list
 """
+
+from typing import Any, Dict, List, Optional
+
+from ansible.errors import AnsibleError  # type: ignore
+from ansible.plugins.lookup import LookupBase  # type: ignore
+from ansible.utils.display import Display  # type: ignore
+
+display = Display()
 
 
 class LookupModule(LookupBase):  # type: ignore[misc]

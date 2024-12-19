@@ -1,21 +1,16 @@
 {# lookup_plugin_template.j2 #}
 {%- set lookup_name = plugin_name | default("hello_world") -%}
-{%- set author = author | default("Your Name") -%}
+{%- set author = author | default("Your Name (@username)") -%}
 {%- set description = description | default("A custom lookup plugin for Ansible.") -%}
 {%- set license = license | default("GPL-3.0-or-later") -%}
-"""An example lookup plugin file."""
+# {{ lookup_name }}.py - {{ description }}
 
 # pylint: disable=E0401
 # {{ lookup_name }}.py - {{ description }}
 # Author: {{ author }}
-# License: {{ license }}
-
-from typing import Any, Optional, Dict, List
-from ansible.plugins.lookup import LookupBase  # type: ignore
-from ansible.errors import AnsibleError  # type: ignore
-from ansible.utils.display import Display  # type: ignore
-
-display = Display()
+# Copyright 2020 Red Hat
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 DOCUMENTATION = """
     name: {{ lookup_name }}
@@ -44,6 +39,14 @@ _list:
   description: The list of values found by the lookup
   type: list
 """
+
+from typing import Any, Dict, List, Optional
+
+from ansible.errors import AnsibleError  # type: ignore
+from ansible.plugins.lookup import LookupBase  # type: ignore
+from ansible.utils.display import Display  # type: ignore
+
+display = Display()
 
 
 class LookupModule(LookupBase):  # type: ignore[misc]
