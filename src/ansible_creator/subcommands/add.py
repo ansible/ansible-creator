@@ -174,7 +174,7 @@ class Add:
         self.output.debug(f"Started copying {self._project} plugin to destination")
 
         # Call the appropriate scaffolding function based on the plugin type
-        if self._plugin_type in ("lookup", "filter"):
+        if self._plugin_type in ("action", "filter", "lookup"):
             template_data = self._get_plugin_template_data()
 
         else:
