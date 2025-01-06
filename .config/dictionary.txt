@@ -2,6 +2,7 @@ addopts
 antsibull
 argcomplete
 argnames
+argspec
 argvalues
 capsys
 chakarborty

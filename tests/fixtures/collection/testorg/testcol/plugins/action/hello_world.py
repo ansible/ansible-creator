@@ -9,32 +9,14 @@ __metaclass__ = type  # pylint: disable=C0103
 
 from typing import TYPE_CHECKING
 from ansible.plugins.action import ActionBase  # type: ignore
+from ansible_collections.ansible.utils.plugins.module_utils.common.argspec_validate import (  # type: ignore
+    AnsibleArgSpecValidator,
+)
+from ansible_collections.ansible.utils.plugins.modules.fact_diff import DOCUMENTATION  # type: ignore
 
 
 if TYPE_CHECKING:
     from typing import Optional, Dict, Any
-
-
-DOCUMENTATION = """
-    name: hello_world
-    author: Your Name
-    version_added: "1.0.0"
-    short_description: A custom action plugin for Ansible.
-    description:
-      - This is a custom action plugin to provide action functionality.
-    notes:
-      - This is a scaffold template. Customize the plugin to fit your needs.
-"""
-
-EXAMPLES = """
-- name: Example Action Plugin
-  hosts: localhost
-  tasks:
-    - name: Example hello_world plugin
-      with_prefix:
-        prefix: "Hello, World"
-        msg: "Ansible!"
-"""
 
 
 class ActionModule(ActionBase):  # type: ignore[misc]
@@ -42,6 +24,18 @@ class ActionModule(ActionBase):  # type: ignore[misc]
     Custom Ansible action plugin: hello_world
     A custom action plugin for Ansible.
     """
+
+    def _check_argspec(self) -> None:
+        aav = AnsibleArgSpecValidator(
+            data=self._task.args,
+            schema=DOCUMENTATION,
+            schema_format="doc",
+            name=self._task.action,
+        )
+        valid, errors, self._task.args = aav.validate()
+        if not valid:
+            result["failed"] = True  # type: ignore
+            result["msg"] = errors  # type: ignore
 
     def run(
         self,
@@ -66,7 +60,15 @@ class ActionModule(ActionBase):  # type: ignore[misc]
 
         # Example processing logic - Replace this with actual action code
         result = super(ActionModule, self).run(tmp, task_vars)
+        self._check_argspec()
+
+        # Copy the task arguments
         module_args = self._task.args.copy()
+
+        prefix = module_args.get("prefix", "DefaultPrefix")
+        message = module_args.get("msg", "No message provided")
+        module_args["msg"] = f"{prefix}: {message}"
+
         result.update(
             self._execute_module(
                 module_name="debug",

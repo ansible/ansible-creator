@@ -171,6 +171,7 @@ class Add:
         Raises:
             CreatorError: If unsupported plugin type is given.
         """
+        # fix this: The following line needs to be corrected
         self.output.debug(f"Started copying {self._project} plugin to destination")
 
         # Call the appropriate scaffolding function based on the plugin type
@@ -270,10 +271,10 @@ class Add:
         )
 
     def _get_plugin_template_data(self) -> TemplateData:
-        """Get the template data for lookup plugin.
+        """Get the template data for plugin.
 
         Returns:
-            TemplateData: Data required for templating the lookup plugin.
+            TemplateData: Data required for templating the plugin.
         """
         return TemplateData(
             plugin_type=self._plugin_type,
@@ -282,10 +283,10 @@ class Add:
         )
 
     def _get_ee_template_data(self) -> TemplateData:
-        """Get the template data for lookup plugin.
+        """Get the template data for plugin.
 
         Returns:
-            TemplateData: Data required for templating the lookup plugin.
+            TemplateData: Data required for templating the plugin.
         """
         return TemplateData(
             resource_type=self._resource_type,
