@@ -200,7 +200,10 @@ class Add:
             f"collection_project.plugins.{self._plugin_type}",
             "collection_project.plugins.modules",
         )
-        self._perform_plugin_scaffold(resources, template_data, plugin_path)
+        module_path = self._add_path / "plugins" / "modules"
+        module_path.mkdir(parents=True, exist_ok=True)
+        final_plugin_path = [plugin_path, module_path]
+        self._perform_plugin_scaffold(resources, template_data, final_plugin_path)
 
     def _perform_filter_plugin_scaffold(
         self,
@@ -222,7 +225,7 @@ class Add:
         self,
         resources: tuple[str, ...],
         template_data: TemplateData,
-        plugin_path: Path,
+        plugin_path: Path | list[Path],
     ) -> None:
         """Perform the actual scaffolding process using the provided template data.
 

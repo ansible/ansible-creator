@@ -183,7 +183,7 @@ class Walker:
 
     resources: tuple[str, ...]
     resource_id: str
-    dest: Path
+    dest: Path | list[Path]
     output: Output
     template_data: TemplateData
     resource_root: str = "ansible_creator.resources"
@@ -246,10 +246,19 @@ class Walker:
                 dest_name = dest_name.replace(key, repl_val)
         dest_name = dest_name.removesuffix(".j2")
 
-        dest_path = DestinationFile(
-            dest=self.dest / dest_name,
-            source=obj,
-        )
+        if isinstance(self.dest, list):
+            # If self.dest is a list of Paths
+            dest_path = DestinationFile(
+                dest=self.dest[0] / dest_name,
+                source=obj,
+            )
+        else:
+            # If self.dest is a single Path
+            dest_path = DestinationFile(
+                dest=self.dest / dest_name,
+                source=obj,
+            )
+
         self.output.debug(f"Looking at {dest_path}")
 
         if obj.is_file():
