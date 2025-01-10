@@ -175,19 +175,59 @@ class Add:
         self.output.debug(f"Started copying {self._project} plugin to destination")
 
         # Call the appropriate scaffolding function based on the plugin type
-        if self._plugin_type in ("action", "filter", "lookup"):
+        if self._plugin_type == "action":
             template_data = self._get_plugin_template_data()
+            self._perform_action_plugin_scaffold(template_data, plugin_path)
+
+        elif self._plugin_type == "filter":
+            template_data = self._get_plugin_template_data()
+            self._perform_filter_plugin_scaffold(template_data, plugin_path)
+
+        elif self._plugin_type == "lookup":
+            template_data = self._get_plugin_template_data()
+            self._perform_lookup_plugin_scaffold(template_data, plugin_path)
 
         else:
             msg = f"Unsupported plugin type: {self._plugin_type}"
             raise CreatorError(msg)
 
-        self._perform_plugin_scaffold(template_data, plugin_path)
+    def _perform_action_plugin_scaffold(
+        self,
+        template_data: TemplateData,
+        plugin_path: Path,
+    ) -> None:
+        resources = (
+            f"collection_project.plugins.{self._plugin_type}",
+            "collection_project.plugins.modules",
+        )
+        self._perform_plugin_scaffold(resources, template_data, plugin_path)
 
-    def _perform_plugin_scaffold(self, template_data: TemplateData, plugin_path: Path) -> None:
+    def _perform_filter_plugin_scaffold(
+        self,
+        template_data: TemplateData,
+        plugin_path: Path,
+    ) -> None:
+        resources = (f"collection_project.plugins.{self._plugin_type}",)
+        self._perform_plugin_scaffold(resources, template_data, plugin_path)
+
+    def _perform_lookup_plugin_scaffold(
+        self,
+        template_data: TemplateData,
+        plugin_path: Path,
+    ) -> None:
+        resources = (f"collection_project.plugins.{self._plugin_type}",)
+        self._perform_plugin_scaffold(resources, template_data, plugin_path)
+
+    def _perform_plugin_scaffold(
+        self,
+        resources: tuple[str, ...],
+        template_data: TemplateData,
+        plugin_path: Path,
+    ) -> None:
         """Perform the actual scaffolding process using the provided template data.
 
         Args:
+            resources: Tuple of resources.
             template_data: TemplateData
             plugin_path: Path where the plugin will be scaffolded.
 
@@ -196,7 +236,7 @@ class Add:
                       destination directory contains files that will be overwritten.
         """
         walker = Walker(
-            resources=(f"collection_project.plugins.{self._plugin_type}",),
+            resources=(resources),
             resource_id=self._plugin_id,
             dest=plugin_path,
             output=self.output,
