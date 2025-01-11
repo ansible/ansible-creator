@@ -193,6 +193,7 @@ class Walker:
         self,
         root: Traversable,
         resource: str,
+        current_index: int,
         template_data: TemplateData,
     ) -> FileList:
         """Recursively traverses a resource container looking for content to copy.
@@ -200,6 +201,7 @@ class Walker:
         Args:
             root: A traversable object representing root of the container to copy.
             resource: The resource being scanned.
+            current_index: Current index in the list of objects.
             template_data: A dictionary containing current data to render templates with.
 
         Returns:
@@ -211,6 +213,7 @@ class Walker:
         for obj in root.iterdir():
             file_list.extend(
                 self.each_obj(
+                    current_index,
                     obj,
                     resource=resource,
                     template_data=template_data,
@@ -220,6 +223,7 @@ class Walker:
 
     def each_obj(
         self,
+        current_index: int,
         obj: Traversable,
         resource: str,
         template_data: TemplateData,
@@ -227,6 +231,7 @@ class Walker:
         """Recursively traverses a resource container and copies content to destination.
 
         Args:
+            current_index: Current index in the list of objects.
             obj: A traversable object representing the root of the container to copy.
             resource: The resource to consult for path names.
             template_data: A dictionary containing current data to render templates with.
@@ -247,9 +252,9 @@ class Walker:
         dest_name = dest_name.removesuffix(".j2")
 
         if isinstance(self.dest, list):
-            # If self.dest is a list of Paths
+            # If self.dest is a list of Path
             dest_path = DestinationFile(
-                dest=self.dest[0] / dest_name,
+                dest=self.dest[current_index] / dest_name,
                 source=obj,
             )
         else:
@@ -277,6 +282,7 @@ class Walker:
                         *self._recursive_walk(
                             root=obj,
                             resource=resource,
+                            current_index=current_index,
                             template_data=template_data,
                         ),
                     ],
@@ -285,15 +291,21 @@ class Walker:
                 return FileList([dest_path])
 
         if obj.is_dir() and obj.name not in SKIP_DIRS:
-            return self._recursive_walk(root=obj, resource=resource, template_data=template_data)
+            return self._recursive_walk(
+                root=obj,
+                resource=resource,
+                current_index=current_index,
+                template_data=template_data,
+            )
 
         return FileList()
 
-    def _per_container(self, resource: str) -> FileList:
+    def _per_container(self, resource: str, current_index: int) -> FileList:
         """Generate a list of all paths that will be written to for a particular resource.
 
         Args:
             resource: The resource to search through.
+            current_index: Current index in the list of objects.
 
         Returns:
             A list of paths to be written to.
@@ -332,6 +344,7 @@ class Walker:
         return self._recursive_walk(
             impl_resources.files(f"{self.resource_root}.{resource}"),
             resource,
+            current_index,
             template_data,
         )
 
@@ -342,8 +355,10 @@ class Walker:
             A list of paths to be written to.
         """
         file_list = FileList()
+        current_index: int = 0
         for resource in self.resources:
-            file_list.extend(self._per_container(resource))
+            file_list.extend(self._per_container(resource, current_index))
+            current_index += 1  # noqa: SIM113
 
         return file_list
 
