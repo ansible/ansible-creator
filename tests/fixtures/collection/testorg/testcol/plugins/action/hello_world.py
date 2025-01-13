@@ -8,11 +8,11 @@ from __future__ import absolute_import, annotations, division, print_function
 __metaclass__ = type  # pylint: disable=C0103
 
 from typing import TYPE_CHECKING
-from ansible.plugins.action import ActionBase  # type: ignore
 from ansible_collections.ansible.utils.plugins.module_utils.common.argspec_validate import (  # type: ignore
     AnsibleArgSpecValidator,
 )
 from ansible_collections.ansible.utils.plugins.modules.fact_diff import DOCUMENTATION  # type: ignore
+from ansible.plugins.action import ActionBase  # type: ignore
 
 
 if TYPE_CHECKING:
@@ -25,7 +25,7 @@ class ActionModule(ActionBase):  # type: ignore[misc]
     A custom action plugin for Ansible.
     """
 
-    def _check_argspec(self) -> None:
+    def _check_argspec(self, result: dict[str, Any]) -> None:
         aav = AnsibleArgSpecValidator(
             data=self._task.args,
             schema=DOCUMENTATION,
@@ -34,8 +34,8 @@ class ActionModule(ActionBase):  # type: ignore[misc]
         )
         valid, errors, self._task.args = aav.validate()
         if not valid:
-            result["failed"] = True  # type: ignore
-            result["msg"] = errors  # type: ignore
+            result["failed"] = True
+            result["msg"] = errors
 
     def run(
         self,
@@ -60,7 +60,7 @@ class ActionModule(ActionBase):  # type: ignore[misc]
 
         # Example processing logic - Replace this with actual action code
         result = super(ActionModule, self).run(tmp, task_vars)
-        self._check_argspec()
+        self._check_argspec(result)
 
         # Copy the task arguments
         module_args = self._task.args.copy()
