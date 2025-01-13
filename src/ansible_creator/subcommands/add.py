@@ -11,7 +11,7 @@ from ansible_creator.constants import GLOBAL_TEMPLATE_VARS
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.templar import Templar
 from ansible_creator.types import TemplateData
-from ansible_creator.utils import Copier, Walker, ask_yes_no
+from ansible_creator.utils import Copier, Walker, ask_yes_no, update_galaxy_dependency
 
 
 if TYPE_CHECKING:
@@ -176,6 +176,7 @@ class Add:
 
         # Call the appropriate scaffolding function based on the plugin type
         if self._plugin_type == "action":
+            update_galaxy_dependency(self._add_path)
             template_data = self._get_plugin_template_data()
             self._perform_action_plugin_scaffold(template_data, plugin_path)
 

@@ -417,3 +417,23 @@ def ask_yes_no(question: str) -> bool:
     while answer not in ["y", "n"]:
         answer = input(f"{Color.BRIGHT_WHITE}{question} (y/n){Color.END}: ").lower()
     return answer == "y"
+
+
+def update_galaxy_dependency(collection_path: Path) -> None:
+    """Update galaxy.yml file with the correct dependency.
+
+    Args:
+        collection_path: The question to ask.
+    """
+    galaxy_file_path = collection_path / "galaxy.yml"
+
+    # Read the current content of galaxy.yml
+    with galaxy_file_path.open("r", encoding="utf-8") as file:
+        content = file.read()
+
+    # Update the dependencies field with the new value
+    updated_content = content.replace("{}", "{ansible.utils: '*'}")
+
+    # Write the updated content back to the file
+    with galaxy_file_path.open("w", encoding="utf-8") as file:
+        file.write(updated_content)
