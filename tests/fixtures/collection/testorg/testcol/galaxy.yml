@@ -12,9 +12,13 @@ authors:
 
 description: your collection description
 license_file: LICENSE
+
 # TO-DO: update the tags based on your content type
 tags: ["linux", "tools"]
-dependencies: {}
+
+# TO-DO: maintain this list to reflect the collection's dependencies
+dependencies:
+  "ansible.utils": "*" # note: "*" selects the latest version available
 
 repository: http://example.com/repository
 documentation: http://docs.example.com
