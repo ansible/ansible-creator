@@ -240,7 +240,7 @@ class Add:
                       destination directory contains files that will be overwritten.
         """
         walker = Walker(
-            resources=(resources),
+            resources=resources,
             resource_id=self._plugin_id,
             dest=plugin_path,
             output=self.output,
@@ -257,6 +257,10 @@ class Add:
                 "\nPlease re-run ansible-creator with --overwrite to continue."
             )
             raise CreatorError(msg)
+
+        # This check is for action plugins (having module file as an additional path)
+        if isinstance(plugin_path, list):
+            plugin_path = plugin_path[0]
 
         if not paths.has_conflicts() or self._force or self._overwrite:
             copier.copy_containers(paths)

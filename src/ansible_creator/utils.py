@@ -356,9 +356,8 @@ class Walker:
         """
         file_list = FileList()
         current_index: int = 0
-        for resource in self.resources:
+        for current_index, resource in enumerate(self.resources):
             file_list.extend(self._per_container(resource, current_index))
-            current_index += 1  # noqa: SIM113
 
         return file_list
 
