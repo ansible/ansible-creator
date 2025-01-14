@@ -120,7 +120,7 @@ class Add:
         Raises:
             CreatorError: If unsupported resource type is given.
         """
-        self.output.debug(f"Started copying {self._project} resource to destination")
+        self.output.debug(f"Started adding {self._resource_type} to destination")
 
         # Call the appropriate scaffolding function based on the resource type
         if self._resource_type == "devfile":
@@ -193,8 +193,7 @@ class Add:
         Raises:
             CreatorError: If unsupported plugin type is given.
         """
-        # fix this: The following line needs to be corrected
-        self.output.debug(f"Started copying {self._project} plugin to destination")
+        self.output.debug(f"Started adding {self._plugin_type} plugin to destination")
 
         # Call the appropriate scaffolding function based on the plugin type
         if self._plugin_type == "action":
