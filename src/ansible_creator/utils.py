@@ -416,28 +416,3 @@ def ask_yes_no(question: str) -> bool:
     while answer not in ["y", "n"]:
         answer = input(f"{Color.BRIGHT_WHITE}{question} (y/n){Color.END}: ").lower()
     return answer == "y"
-
-
-def update_galaxy_dependency(collection_path: Path) -> None:
-    """Update galaxy.yml file with the required dependency.
-
-    Args:
-        collection_path: The question to ask.
-    """
-    galaxy_file = collection_path / "galaxy.yml"
-
-    # Load the galaxy.yml file
-    with galaxy_file.open("r", encoding="utf-8") as file:
-        data = yaml.safe_load(file)
-
-    # Ensure the dependencies key exists
-    if "dependencies" not in data:
-        data["dependencies"] = {"ansible.utils": "*"}
-
-    # Empty dependencies key or dependencies key without ansible.utils
-    elif not data["dependencies"] or "ansible.utils" not in data["dependencies"]:
-        data["dependencies"]["ansible.utils"] = "*"
-
-    # Save the updated YAML back to the file
-    with galaxy_file.open("w", encoding="utf-8") as file:
-        yaml.dump(data, file, sort_keys=False)

@@ -7,11 +7,13 @@ import uuid
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import yaml
+
 from ansible_creator.constants import GLOBAL_TEMPLATE_VARS
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.templar import Templar
 from ansible_creator.types import TemplateData
-from ansible_creator.utils import Copier, Walker, ask_yes_no, update_galaxy_dependency
+from ansible_creator.utils import Copier, Walker, ask_yes_no
 
 
 if TYPE_CHECKING:
@@ -91,6 +93,26 @@ class Add:
         final_name = ".".join(self._add_path.parts[-2:])
         final_uuid = str(uuid.uuid4())[:8]
         return f"{final_name}-{final_uuid}"
+
+    def update_galaxy_dependency(self) -> None:
+        """Update galaxy.yml file with the required dependency."""
+        galaxy_file = self._add_path / "galaxy.yml"
+
+        # Load the galaxy.yml file
+        with galaxy_file.open("r", encoding="utf-8") as file:
+            data = yaml.safe_load(file)
+
+        # Ensure the dependencies key exists
+        if "dependencies" not in data:
+            data["dependencies"] = {"ansible.utils": "*"}
+
+        # Empty dependencies key or dependencies key without ansible.utils
+        elif not data["dependencies"] or "ansible.utils" not in data["dependencies"]:
+            data["dependencies"]["ansible.utils"] = "*"
+
+        # Save the updated YAML back to the file
+        with galaxy_file.open("w", encoding="utf-8") as file:
+            yaml.dump(data, file, sort_keys=False)
 
     def _resource_scaffold(self) -> None:
         """Scaffold the specified resource file based on the resource type.
@@ -176,7 +198,7 @@ class Add:
 
         # Call the appropriate scaffolding function based on the plugin type
         if self._plugin_type == "action":
-            update_galaxy_dependency(self._add_path)
+            self.update_galaxy_dependency()
             template_data = self._get_plugin_template_data()
             self._perform_action_plugin_scaffold(template_data, plugin_path)
 
