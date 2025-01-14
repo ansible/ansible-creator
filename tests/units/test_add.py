@@ -10,9 +10,10 @@ import subprocess
 import sys
 
 from filecmp import cmp, dircmp
-from typing import TYPE_CHECKING, TypedDict
+from typing import TYPE_CHECKING, Any, TypedDict
 
 import pytest
+import yaml
 
 from ansible_creator.config import Config
 from ansible_creator.exceptions import CreatorError
@@ -830,3 +831,52 @@ def test_run_success_add_execution_env(
         is not None
     ), result
     assert re.search("Note: Resource added to", result) is not None
+
+
+def test_update_galaxy_dependency(tmp_path: Path, cli_args: ConfigDict) -> None:
+    """Test update_galaxy_dependency method.
+
+    Args:
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Add class object.
+    """
+    galaxy_file = tmp_path / "galaxy.yml"
+    initial_data: dict[str, Any]
+
+    # Test case 1: No dependencies key
+    initial_data = {"name": "test_collection"}
+    galaxy_file.write_text(yaml.dump(initial_data))
+    add = Add(Config(**cli_args))
+    add.update_galaxy_dependency()
+
+    with galaxy_file.open("r") as file:
+        updated_data = yaml.safe_load(file)
+    assert "dependencies" in updated_data
+    assert updated_data["dependencies"] == {"ansible.utils": "*"}
+
+    # Test case 2: Empty dependencies
+    initial_data = {"name": "test_collection", "dependencies": {}}
+    galaxy_file.write_text(yaml.dump(initial_data))
+    add.update_galaxy_dependency()
+
+    with galaxy_file.open("r") as file:
+        updated_data = yaml.safe_load(file)
+    assert updated_data["dependencies"] == {"ansible.utils": "*"}
+
+    # Test case 3: Existing dependencies without ansible.utils
+    initial_data = {"name": "test_collection", "dependencies": {"another.dep": "1.0.0"}}
+    galaxy_file.write_text(yaml.dump(initial_data))
+    add.update_galaxy_dependency()
+
+    with galaxy_file.open("r") as file:
+        updated_data = yaml.safe_load(file)
+    assert updated_data["dependencies"] == {"another.dep": "1.0.0", "ansible.utils": "*"}
+
+    # Test case 4: Existing dependencies with ansible.utils
+    initial_data = {"name": "test_collection", "dependencies": {"ansible.utils": "1.0.0"}}
+    galaxy_file.write_text(yaml.dump(initial_data))
+    add.update_galaxy_dependency()
+
+    with galaxy_file.open("r") as file:
+        updated_data = yaml.safe_load(file)
+    assert updated_data["dependencies"] == {"ansible.utils": "1.0.0"}
