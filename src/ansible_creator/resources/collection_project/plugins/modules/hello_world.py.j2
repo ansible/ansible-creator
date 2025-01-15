@@ -1,10 +1,11 @@
 {%- set module_name = plugin_name | default("hello_world") -%}
+{%- set author = author | default("Your Name (@username)") -%}
 # {{ module_name }}.py
 # GNU General Public License v3.0+
 
 DOCUMENTATION = """
     module: {{ module_name }}
-    author: Ansible Core Team
+    author: {{ author }}
     version_added: "1.0.0"
     short_description: A custom action plugin for Ansible.
     description:

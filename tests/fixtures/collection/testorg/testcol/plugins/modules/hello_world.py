@@ -3,7 +3,7 @@
 
 DOCUMENTATION = """
     module: hello_world
-    author: Ansible Core Team
+    author: Your Name (@username)
     version_added: "1.0.0"
     short_description: A custom action plugin for Ansible.
     description:
