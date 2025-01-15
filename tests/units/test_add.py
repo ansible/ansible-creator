@@ -10,9 +10,10 @@ import subprocess
 import sys
 
 from filecmp import cmp, dircmp
-from typing import TYPE_CHECKING, TypedDict
+from typing import TYPE_CHECKING, Any, TypedDict
 
 import pytest
+import yaml
 
 from ansible_creator.config import Config
 from ansible_creator.exceptions import CreatorError
@@ -513,7 +514,7 @@ def test_run_success_add_plugin_filter(
     ):
         add.run()
 
-    # expect a warning followed by playbook project creation msg
+    # expect a warning followed by filter plugin addition msg
     # when response to overwrite is yes.
     monkeypatch.setattr("builtins.input", lambda _: "y")
     add.run()
@@ -590,7 +591,7 @@ def test_run_success_add_plugin_lookup(
     ):
         add.run()
 
-    # expect a warning followed by playbook project creation msg
+    # expect a warning followed by lookup plugin addition msg
     # when response to overwrite is yes.
     monkeypatch.setattr("builtins.input", lambda _: "y")
     add.run()
@@ -603,6 +604,75 @@ def test_run_success_add_plugin_lookup(
         is not None
     ), result
     assert re.search("Note: Lookup plugin added to", result) is not None
+
+
+def test_run_success_add_plugin_action(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test Add.run().
+
+    Successfully add plugin to path
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Add class object.
+        monkeypatch: Pytest monkeypatch fixture.
+    """
+    cli_args["plugin_type"] = "action"
+    add = Add(
+        Config(**cli_args),
+    )
+
+    # Mock the "_check_collection_path" method
+    def mock_check_collection_path() -> None:
+        """Mock function to skip checking collection path."""
+
+    monkeypatch.setattr(
+        Add,
+        "_check_collection_path",
+        staticmethod(mock_check_collection_path),
+    )
+
+    # Mock the "update_galaxy_dependency" method
+    def mock_update_galaxy_dependency() -> None:
+        """Mock function to skip updating galaxy file."""
+
+    monkeypatch.setattr(
+        Add,
+        "update_galaxy_dependency",
+        staticmethod(mock_update_galaxy_dependency),
+    )
+
+    add.run()
+    result = capsys.readouterr().out
+    assert re.search("Note: Action plugin added to", result) is not None
+
+    expected_plugin_file = tmp_path / "plugins" / "action" / "hello_world.py"
+    expected_module_file = tmp_path / "plugins" / "modules" / "hello_world.py"
+    effective_plugin_file = (
+        FIXTURES_DIR
+        / "collection"
+        / "testorg"
+        / "testcol"
+        / "plugins"
+        / "action"
+        / "hello_world.py"
+    )
+    effective_module_file = (
+        FIXTURES_DIR
+        / "collection"
+        / "testorg"
+        / "testcol"
+        / "plugins"
+        / "modules"
+        / "hello_world.py"
+    )
+    cmp_result1 = cmp(expected_plugin_file, effective_plugin_file, shallow=False)
+    cmp_result2 = cmp(expected_module_file, effective_module_file, shallow=False)
+    assert cmp_result1, cmp_result2
 
 
 def test_run_error_plugin_no_overwrite(
@@ -761,3 +831,52 @@ def test_run_success_add_execution_env(
         is not None
     ), result
     assert re.search("Note: Resource added to", result) is not None
+
+
+def test_update_galaxy_dependency(tmp_path: Path, cli_args: ConfigDict) -> None:
+    """Test update_galaxy_dependency method.
+
+    Args:
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Add class object.
+    """
+    galaxy_file = tmp_path / "galaxy.yml"
+    initial_data: dict[str, Any]
+
+    # Test case 1: No dependencies key
+    initial_data = {"name": "test_collection"}
+    galaxy_file.write_text(yaml.dump(initial_data))
+    add = Add(Config(**cli_args))
+    add.update_galaxy_dependency()
+
+    with galaxy_file.open("r") as file:
+        updated_data = yaml.safe_load(file)
+    assert "dependencies" in updated_data
+    assert updated_data["dependencies"] == {"ansible.utils": "*"}
+
+    # Test case 2: Empty dependencies
+    initial_data = {"name": "test_collection", "dependencies": {}}
+    galaxy_file.write_text(yaml.dump(initial_data))
+    add.update_galaxy_dependency()
+
+    with galaxy_file.open("r") as file:
+        updated_data = yaml.safe_load(file)
+    assert updated_data["dependencies"] == {"ansible.utils": "*"}
+
+    # Test case 3: Existing dependencies without ansible.utils
+    initial_data = {"name": "test_collection", "dependencies": {"another.dep": "1.0.0"}}
+    galaxy_file.write_text(yaml.dump(initial_data))
+    add.update_galaxy_dependency()
+
+    with galaxy_file.open("r") as file:
+        updated_data = yaml.safe_load(file)
+    assert updated_data["dependencies"] == {"another.dep": "1.0.0", "ansible.utils": "*"}
+
+    # Test case 4: Existing dependencies with ansible.utils
+    initial_data = {"name": "test_collection", "dependencies": {"ansible.utils": "1.0.0"}}
+    galaxy_file.write_text(yaml.dump(initial_data))
+    add.update_galaxy_dependency()
+
+    with galaxy_file.open("r") as file:
+        updated_data = yaml.safe_load(file)
+    assert updated_data["dependencies"] == {"ansible.utils": "1.0.0"}

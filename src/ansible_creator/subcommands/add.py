@@ -7,6 +7,8 @@ import uuid
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import yaml
+
 from ansible_creator.constants import GLOBAL_TEMPLATE_VARS
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.templar import Templar
@@ -92,13 +94,33 @@ class Add:
         final_uuid = str(uuid.uuid4())[:8]
         return f"{final_name}-{final_uuid}"
 
+    def update_galaxy_dependency(self) -> None:
+        """Update galaxy.yml file with the required dependency."""
+        galaxy_file = self._add_path / "galaxy.yml"
+
+        # Load the galaxy.yml file
+        with galaxy_file.open("r", encoding="utf-8") as file:
+            data = yaml.safe_load(file)
+
+        # Ensure the dependencies key exists
+        if "dependencies" not in data:
+            data["dependencies"] = {"ansible.utils": "*"}
+
+        # Empty dependencies key or dependencies key without ansible.utils
+        elif not data["dependencies"] or "ansible.utils" not in data["dependencies"]:
+            data["dependencies"]["ansible.utils"] = "*"
+
+        # Save the updated YAML back to the file
+        with galaxy_file.open("w", encoding="utf-8") as file:
+            yaml.dump(data, file, sort_keys=False)
+
     def _resource_scaffold(self) -> None:
         """Scaffold the specified resource file based on the resource type.
 
         Raises:
             CreatorError: If unsupported resource type is given.
         """
-        self.output.debug(f"Started copying {self._project} resource to destination")
+        self.output.debug(f"Started adding {self._resource_type} to destination")
 
         # Call the appropriate scaffolding function based on the resource type
         if self._resource_type == "devfile":
@@ -171,22 +193,66 @@ class Add:
         Raises:
             CreatorError: If unsupported plugin type is given.
         """
-        self.output.debug(f"Started copying {self._project} plugin to destination")
+        self.output.debug(f"Started adding {self._plugin_type} plugin to destination")
 
         # Call the appropriate scaffolding function based on the plugin type
-        if self._plugin_type in ("lookup", "filter"):
+        if self._plugin_type == "action":
+            self.update_galaxy_dependency()
             template_data = self._get_plugin_template_data()
+            self._perform_action_plugin_scaffold(template_data, plugin_path)
+
+        elif self._plugin_type == "filter":
+            template_data = self._get_plugin_template_data()
+            self._perform_filter_plugin_scaffold(template_data, plugin_path)
+
+        elif self._plugin_type == "lookup":
+            template_data = self._get_plugin_template_data()
+            self._perform_lookup_plugin_scaffold(template_data, plugin_path)
 
         else:
             msg = f"Unsupported plugin type: {self._plugin_type}"
             raise CreatorError(msg)
 
-        self._perform_plugin_scaffold(template_data, plugin_path)
+    def _perform_action_plugin_scaffold(
+        self,
+        template_data: TemplateData,
+        plugin_path: Path,
+    ) -> None:
+        resources = (
+            f"collection_project.plugins.{self._plugin_type}",
+            "collection_project.plugins.modules",
+        )
+        module_path = self._add_path / "plugins" / "modules"
+        module_path.mkdir(parents=True, exist_ok=True)
+        final_plugin_path = [plugin_path, module_path]
+        self._perform_plugin_scaffold(resources, template_data, final_plugin_path)
 
-    def _perform_plugin_scaffold(self, template_data: TemplateData, plugin_path: Path) -> None:
+    def _perform_filter_plugin_scaffold(
+        self,
+        template_data: TemplateData,
+        plugin_path: Path,
+    ) -> None:
+        resources = (f"collection_project.plugins.{self._plugin_type}",)
+        self._perform_plugin_scaffold(resources, template_data, plugin_path)
+
+    def _perform_lookup_plugin_scaffold(
+        self,
+        template_data: TemplateData,
+        plugin_path: Path,
+    ) -> None:
+        resources = (f"collection_project.plugins.{self._plugin_type}",)
+        self._perform_plugin_scaffold(resources, template_data, plugin_path)
+
+    def _perform_plugin_scaffold(
+        self,
+        resources: tuple[str, ...],
+        template_data: TemplateData,
+        plugin_path: Path | list[Path],
+    ) -> None:
         """Perform the actual scaffolding process using the provided template data.
 
         Args:
+            resources: Tuple of resources.
             template_data: TemplateData
             plugin_path: Path where the plugin will be scaffolded.
 
@@ -195,7 +261,7 @@ class Add:
                       destination directory contains files that will be overwritten.
         """
         walker = Walker(
-            resources=(f"collection_project.plugins.{self._plugin_type}",),
+            resources=resources,
             resource_id=self._plugin_id,
             dest=plugin_path,
             output=self.output,
@@ -212,6 +278,10 @@ class Add:
                 "\nPlease re-run ansible-creator with --overwrite to continue."
             )
             raise CreatorError(msg)
+
+        # This check is for action plugins (having module file as an additional path)
+        if isinstance(plugin_path, list):
+            plugin_path = plugin_path[0]
 
         if not paths.has_conflicts() or self._force or self._overwrite:
             copier.copy_containers(paths)
@@ -270,10 +340,10 @@ class Add:
         )
 
     def _get_plugin_template_data(self) -> TemplateData:
-        """Get the template data for lookup plugin.
+        """Get the template data for plugin.
 
         Returns:
-            TemplateData: Data required for templating the lookup plugin.
+            TemplateData: Data required for templating the plugin.
         """
         return TemplateData(
             plugin_type=self._plugin_type,
@@ -282,10 +352,10 @@ class Add:
         )
 
     def _get_ee_template_data(self) -> TemplateData:
-        """Get the template data for lookup plugin.
+        """Get the template data for plugin.
 
         Returns:
-            TemplateData: Data required for templating the lookup plugin.
+            TemplateData: Data required for templating the plugin.
         """
         return TemplateData(
             resource_type=self._resource_type,

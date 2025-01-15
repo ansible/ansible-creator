@@ -34,10 +34,7 @@ except ImportError:  # pragma: no cover
 
 MIN_COLLECTION_NAME_LEN = 2
 
-COMING_SOON = (
-    "add resource role",
-    "add plugin action",
-)
+COMING_SOON = ("add resource role",)
 
 
 class Parser:
@@ -369,6 +366,7 @@ class Parser:
             formatter_class=CustomHelpFormatter,
         )
         self._add_args_common(parser)
+        self._add_overwrite(parser)
         self._add_args_plugin_common(parser)
 
     def _add_plugin_filter(self, subparser: SubParser[ArgumentParser]) -> None:
