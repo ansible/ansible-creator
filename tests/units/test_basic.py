@@ -38,9 +38,9 @@ def test_configuration_class(output: Output) -> None:
 
 
 @pytest.mark.parametrize(
-    argnames=["sysargs", "expected"],
-    argvalues=[
-        [
+    argnames=("sysargs", "expected"),
+    argvalues=(
+        (
             ["ansible-creator", "init", "testorg.testcol"],
             {
                 "subcommand": "init",
@@ -57,8 +57,8 @@ def test_configuration_class(output: Output) -> None:
                 "overwrite": False,
                 "project": "collection",  # default value
             },
-        ],
-        [
+        ),
+        (
             [
                 "ansible-creator",
                 "init",
@@ -82,8 +82,8 @@ def test_configuration_class(output: Output) -> None:
                 "overwrite": False,
                 "project": "playbook",
             },
-        ],
-        [
+        ),
+        (
             [
                 "ansible-creator",
                 "init",
@@ -112,8 +112,8 @@ def test_configuration_class(output: Output) -> None:
                 "overwrite": False,
                 "project": "collection",  # default value
             },
-        ],
-        [
+        ),
+        (
             [
                 "ansible-creator",
                 "init",
@@ -144,8 +144,8 @@ def test_configuration_class(output: Output) -> None:
                 "overwrite": False,
                 "project": "playbook",
             },
-        ],
-        [
+        ),
+        (
             [
                 "ansible-creator",
                 "init",
@@ -169,8 +169,8 @@ def test_configuration_class(output: Output) -> None:
                 "no_ansi": False,
                 "verbose": 0,
             },
-        ],
-        [
+        ),
+        (
             [
                 "ansible-creator",
                 "init",
@@ -194,8 +194,8 @@ def test_configuration_class(output: Output) -> None:
                 "no_ansi": False,
                 "verbose": 0,
             },
-        ],
-    ],
+        ),
+    ),
 )
 def test_cli_parser(
     monkeypatch: pytest.MonkeyPatch,
@@ -300,10 +300,10 @@ def test_cli_main(
 
     result = capsys.readouterr().out
     # check stdout
-    assert re.search("collection project created", result) is not None
+    assert re.search(r"collection project created", result) is not None
 
 
-@pytest.mark.parametrize(argnames=["project"], argvalues=[["collection"], ["playbook"]])
+@pytest.mark.parametrize(argnames="project", argvalues=("collection", "playbook"))
 def test_collection_name_short(
     project: str,
     monkeypatch: pytest.MonkeyPatch,
@@ -328,7 +328,7 @@ def test_collection_name_short(
     assert any(msg in log.message for log in cli.pending_logs)
 
 
-@pytest.mark.parametrize(argnames=["project"], argvalues=[["collection"], ["playbook"]])
+@pytest.mark.parametrize(argnames="project", argvalues=("collection", "playbook"))
 def test_collection_name_invalid(
     project: str,
     monkeypatch: pytest.MonkeyPatch,
