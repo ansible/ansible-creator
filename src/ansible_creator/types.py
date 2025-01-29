@@ -1,3 +1,4 @@
+# noqa: A005
 """A home for shared types."""
 
 from __future__ import annotations

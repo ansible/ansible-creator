@@ -15,7 +15,10 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
-@pytest.mark.parametrize(argnames="width, expected", argvalues=((79, 79), (131, 81), (133, 132)))
+@pytest.mark.parametrize(
+    argnames=("width", "expected"),
+    argvalues=((79, 79), (131, 81), (133, 132)),
+)
 def test_console_width(width: int, expected: int, monkeypatch: pytest.MonkeyPatch) -> None:
     """Test the console width function."""
 

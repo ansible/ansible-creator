@@ -1,9 +1,7 @@
-argcomplete
 ansible-lint
-black
+argcomplete
 coverage[toml]
 mypy
-pip-tools
 pre-commit
 pydoclint
 pylint
@@ -13,3 +11,4 @@ ruff
 toml-sort
 tox
 types-PyYAML
+uv

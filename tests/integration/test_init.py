@@ -61,7 +61,7 @@ def test_run_init_no_input(cli: CliRunCallable) -> None:
 
 @pytest.mark.parametrize(
     argnames="command",
-    argvalues=["init --project ansible-project", "init --init-path /tmp"],
+    argvalues=("init --project ansible-project", "init --init-path /tmp"),
     ids=["project_no_scm", "collection_no_name"],
 )
 def test_run_deprecated_failure(command: str, cli: CliRunCallable) -> None:
@@ -118,7 +118,7 @@ def test_run_init_basic(cli: CliRunCallable, tmp_path: Path) -> None:
     assert result.returncode == 0
 
     # check stdout
-    assert re.search("Note: collection project created at", result.stdout) is not None
+    assert re.search(r"Note: collection project created at", result.stdout) is not None
 
     # fail to override existing collection with force=false (default)
     result = cli(
@@ -130,7 +130,7 @@ def test_run_init_basic(cli: CliRunCallable, tmp_path: Path) -> None:
     # override existing collection with force=true
     result = cli(f"{CREATOR_BIN} init testorg.testcol --init-path {tmp_path} --force")
     assert result.returncode == 0
-    assert re.search("Warning: re-initializing existing directory", result.stdout) is not None
+    assert re.search(r"Warning: re-initializing existing directory", result.stdout) is not None
 
     # override existing collection with override=true
     result = cli(f"{CREATOR_BIN} init testorg.testcol --init-path {tmp_path} --overwrite")
@@ -140,4 +140,4 @@ def test_run_init_basic(cli: CliRunCallable, tmp_path: Path) -> None:
     # use no-override=true
     result = cli(f"{CREATOR_BIN} init testorg.testcol --init-path {tmp_path} --no-overwrite")
     assert result.returncode != 0
-    assert re.search("The flag `--no-overwrite` restricts overwriting.", result.stderr) is not None
+    assert re.search(r"The flag `--no-overwrite` restricts overwriting.", result.stderr) is not None

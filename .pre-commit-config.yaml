@@ -4,6 +4,11 @@ ci:
   autoupdate_commit_msg: "chore: pre-commit autoupdate"
   autoupdate_schedule: monthly
   autofix_commit_msg: "chore: auto fixes from pre-commit.com hooks"
+  skip:
+    # https://github.com/pre-commit-ci/issues/issues/55
+    - ccv
+    - lock
+    # No docker on pre-commit.ci
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -17,13 +22,6 @@ repos:
       - id: end-of-file-fixer
       - id: trailing-whitespace
 
-  - repo: https://github.com/asottile/add-trailing-comma.git
-    rev: v3.1.0
-    hooks:
-      - id: add-trailing-comma
-        args:
-          - --py36-plus
-
   - repo: https://github.com/Lucas-C/pre-commit-hooks.git
     rev: v1.5.5
     hooks:
@@ -33,7 +31,7 @@ repos:
             .config/pydoclint-baseline.txt
           )$
 
-  - repo: https://github.com/pycontribs/mirrors-prettier
+  - repo: https://github.com/rbubley/mirrors-prettier
     rev: v3.4.2
     hooks:
       - id: prettier
@@ -49,12 +47,12 @@ repos:
       - id: toml-sort-fix
 
   - repo: https://github.com/tox-dev/tox-ini-fmt
-    rev: 1.4.1
+    rev: 1.5.0
     hooks:
       - id: tox-ini-fmt
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.6
+    rev: v0.9.3
     hooks:
       - id: ruff
         args:
@@ -64,19 +62,14 @@ repos:
       - id: ruff-format # must be after ruff
         types_or: [python, pyi]
 
-  - repo: https://github.com/psf/black # must be after ruff
-    rev: 24.10.0
-    hooks:
-      - id: black
-
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v8.17.0
+    rev: v8.17.1
     hooks:
       - id: cspell
         name: Spell check with cspell
 
   - repo: https://github.com/jsh9/pydoclint
-    rev: "0.5.14"
+    rev: "0.6.0"
     hooks:
       - id: pydoclint
         # This allows automatic reduction of the baseline file when needed.
@@ -84,7 +77,7 @@ repos:
         pass_filenames: false
 
   - repo: https://github.com/pycqa/pylint.git
-    rev: v3.3.3
+    rev: v3.3.4
     hooks:
       - id: pylint
         args:
@@ -106,19 +99,33 @@ repos:
         # Override default pre-commit '--ignore-missing-imports'
         args: [--strict]
 
-  - repo: https://github.com/jazzband/pip-tools
-    rev: 7.4.1
+  # Keep last due to being considerably slower than the others:
+  - repo: local
     hooks:
-      - id: pip-compile
-        name: deps
-        alias: deps
-        stages: [manual]
-        entry: >-
-          pip-compile .config/requirements.in
-          --upgrade
-          --all-extras
-          --no-annotate
-          --strip-extras
-          --output-file=.config/constraints.txt pyproject.toml
-        files: ^.config\/.*requirements.*$
-        language_version: "3.10" # minimal we support officially
+      - id: deps
+        # To run it execute: `pre-commit run pip-compile-upgrade --hook-stage manual`
+        name: Upgrade constraints files and requirements
+        files: ^(pyproject\.toml|\.config/.*)$
+        always_run: true
+        language: python
+        language_version: "3.10" # minimal we support officially https://github.com/astral-sh/uv/issues/3883
+        entry: python3 -m uv pip compile -q --all-extras --universal --output-file=.config/constraints.txt pyproject.toml --upgrade
+        pass_filenames: false
+        stages:
+          - manual
+        additional_dependencies:
+          - uv>=0.5.25
+      - id: lock
+        name: Check constraints files and requirements
+        files: ^(pyproject\.toml|\.config/.*)$
+        language: python
+        language_version: "3.10" # minimal we support officially https://github.com/astral-sh/uv/issues/3883
+        entry: python3 -m uv pip compile -q --all-extras --universal --output-file=.config/constraints.txt pyproject.toml
+        pass_filenames: false
+        additional_dependencies:
+          - uv>=0.5.25
+  - repo: https://github.com/mashi/codecov-validator
+    rev: "1.0.1"
+    hooks:
+      - id: ccv
+        name: codecov

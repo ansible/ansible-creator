@@ -41,10 +41,6 @@ documentation = "https://ansible.readthedocs.io/projects/creator/"
 homepage = "https://github.com/ansible/ansible-creator"
 repository = "https://github.com/ansible/ansible-creator"
 
-[tool.black]
-exclude = "tests/fixtures"
-line-length = 100
-
 [tool.coverage.report]
 exclude_also = ["if TYPE_CHECKING:", "pragma: no cover"]
 fail_under = 93
@@ -383,9 +379,24 @@ git_describe_command = [
   "v*.*"
 ]
 local_scheme = "no-local-version"
+tag_regex = "^(?P<prefix>v)?(?P<version>\\d+[^\\+]*)(?P<suffix>.*)?$"
 write_to = "src/ansible_creator/_version.py"
 
 [tool.tomlsort]
 in_place = true
 sort_inline_tables = true
 sort_table_keys = true
+
+[tool.uv.pip]
+annotation-style = "line"
+custom-compile-command = "tox run -e deps"
+no-emit-package = [
+  "ansible-core",
+  "exceptiongroup",
+  "pip",
+  "resolvelib",
+  "ruamel-yaml-clib",
+  "tomli",
+  "typing_extensions",
+  "uv"
+]
