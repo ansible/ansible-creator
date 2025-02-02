@@ -20,6 +20,9 @@ from ansible_creator.utils import TermFeatures
 from tests.defaults import FIXTURES_DIR, UUID_LENGTH
 
 
+dircmp_ignore = [".DS_Store", ".ansible"]
+
+
 class ConfigDict(TypedDict):
     """Type hint for Config dictionary.
 
@@ -129,7 +132,7 @@ def test_run_success_for_collection(
     assert re.search(r"Note: collection project created", result) is not None
 
     # recursively assert files created
-    cmp = dircmp(str(tmp_path), str(FIXTURES_DIR / "collection"), ignore=[".DS_Store"])
+    cmp = dircmp(str(tmp_path), str(FIXTURES_DIR / "collection"), ignore=dircmp_ignore)
     diff = has_differences(dcmp=cmp, errors=[])
     assert diff == [], diff
 
@@ -215,6 +218,7 @@ def test_run_success_ansible_project(
     cmp = dircmp(
         str(tmp_path / "new_project"),
         str(FIXTURES_DIR / "project" / "playbook_project"),
+        ignore=dircmp_ignore,
     )
     diff = has_differences(dcmp=cmp, errors=[])
     assert diff == [], diff

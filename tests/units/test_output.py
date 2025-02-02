@@ -23,7 +23,7 @@ def test_console_width(width: int, expected: int, monkeypatch: pytest.MonkeyPatc
     """Test the console width function."""
 
     def mock_get_terminal_size() -> SimpleNamespace:
-        return SimpleNamespace(columns=width, lines=24)
+        return SimpleNamespace(columns=width, lines=24, fallback=(width, 24))
 
     monkeypatch.setattr("shutil.get_terminal_size", mock_get_terminal_size)
 
