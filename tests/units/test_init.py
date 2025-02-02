@@ -126,10 +126,10 @@ def test_run_success_for_collection(
     result = capsys.readouterr().out
 
     # check stdout
-    assert re.search("Note: collection project created", result) is not None
+    assert re.search(r"Note: collection project created", result) is not None
 
     # recursively assert files created
-    cmp = dircmp(str(tmp_path), str(FIXTURES_DIR / "collection"))
+    cmp = dircmp(str(tmp_path), str(FIXTURES_DIR / "collection"), ignore=[".DS_Store"])
     diff = has_differences(dcmp=cmp, errors=[])
     assert diff == [], diff
 
@@ -152,12 +152,12 @@ def test_run_success_for_collection(
     result = capsys.readouterr().out
     assert (
         re.search(
-            "already exists",
+            r"already exists",
             result,
         )
         is not None
     ), result
-    assert re.search("Note: collection project created at", result) is not None, result
+    assert re.search(r"Note: collection project created at", result) is not None, result
 
     # override existing collection with force=true
     cli_args["force"] = True
@@ -166,7 +166,7 @@ def test_run_success_for_collection(
     )
     init.run()
     result = capsys.readouterr().out
-    assert re.search("Warning: re-initializing existing directory", result) is not None, result
+    assert re.search(r"Warning: re-initializing existing directory", result) is not None, result
 
 
 def test_run_success_ansible_project(
@@ -209,7 +209,7 @@ def test_run_success_ansible_project(
     result = capsys.readouterr().out
 
     # check stdout
-    assert re.search("Note: playbook project created", result) is not None
+    assert re.search(r"Note: playbook project created", result) is not None
 
     # recursively assert files created
     cmp = dircmp(
@@ -238,12 +238,12 @@ def test_run_success_ansible_project(
     result = capsys.readouterr().out
     assert (
         re.search(
-            "already exists",
+            r"already exists",
             result,
         )
         is not None
     ), result
-    assert re.search("Note: playbook project created at", result) is not None, result
+    assert re.search(r"Note: playbook project created at", result) is not None, result
 
     # override existing playbook directory with force=true
     cli_args["force"] = True
@@ -252,7 +252,7 @@ def test_run_success_ansible_project(
     )
     init.run()
     result = capsys.readouterr().out
-    assert re.search("Warning: re-initializing existing directory", result) is not None, result
+    assert re.search(r"Warning: re-initializing existing directory", result) is not None, result
 
 
 def test_run_success_collections_alt_dir(
