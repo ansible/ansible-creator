@@ -17,7 +17,7 @@ cffi==1.17.1              # via cairocffi, cryptography
 cfgv==3.4.0               # via pre-commit
 chardet==5.2.0            # via tox
 charset-normalizer==3.4.1  # via requests
-click==8.1.8              # via black, mkdocs, mkdocstrings, pydoclint
+click==8.1.8              # via black, mkdocs, pydoclint
 colorama==0.4.6           # via click, griffe, mkdocs, mkdocs-material, pylint, pytest, tox
 coverage==7.6.11          # via ansible-creator (pyproject.toml)
 cryptography==44.0.0      # via ansible-core
@@ -54,7 +54,7 @@ mkdocs==1.6.1             # via mkdocs-ansible, mkdocs-autorefs, mkdocs-gen-file
 mkdocs-ansible==24.12.0   # via ansible-creator (pyproject.toml)
 mkdocs-autorefs==1.3.0    # via mkdocstrings, mkdocstrings-python
 mkdocs-gen-files==0.5.0   # via mkdocs-ansible
-mkdocs-get-deps==0.2.0    # via mkdocs
+mkdocs-get-deps==0.2.0    # via mkdocs, mkdocstrings
 mkdocs-htmlproofer-plugin==1.3.0  # via mkdocs-ansible
 mkdocs-macros-plugin==1.3.7  # via mkdocs-ansible
 mkdocs-material==9.6.3    # via mkdocs-ansible
@@ -70,7 +70,7 @@ packaging==24.2           # via ansible-compat, ansible-core, ansible-lint, blac
 paginate==0.5.7           # via mkdocs-material
 pathspec==0.12.1          # via ansible-lint, black, mkdocs, mkdocs-macros-plugin, yamllint
 pillow==11.1.0            # via cairosvg, mkdocs-ansible
-platformdirs==4.3.6       # via black, mkdocs-get-deps, mkdocstrings, pylint, tox, virtualenv
+platformdirs==4.3.6       # via black, mkdocs-get-deps, pylint, tox, virtualenv
 pluggy==1.5.0             # via pytest, tox
 pre-commit==4.1.0         # via ansible-creator (pyproject.toml)
 pycparser==2.22           # via cffi
@@ -85,7 +85,7 @@ python-dateutil==2.9.0.post0  # via ghp-import, mkdocs-macros-plugin
 python-slugify==8.0.4     # via mkdocs-monorepo-plugin
 pyyaml==6.0.2             # via ansible-compat, ansible-core, ansible-lint, mkdocs, mkdocs-get-deps, mkdocs-macros-plugin, pre-commit, pymdown-extensions, pyyaml-env-tag, yamllint, ansible-creator (pyproject.toml)
 pyyaml-env-tag==0.1       # via mkdocs
-referencing==0.36.2       # via jsonschema, jsonschema-specifications
+referencing==0.36.2       # via ansible-lint, jsonschema, jsonschema-specifications
 regex==2024.11.6          # via mkdocs-material
 requests==2.32.3          # via linkchecker, mkdocs-htmlproofer-plugin, mkdocs-material
 rpds-py==0.22.3           # via jsonschema, referencing
