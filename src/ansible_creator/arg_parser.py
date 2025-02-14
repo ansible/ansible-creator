@@ -231,7 +231,7 @@ class Parser:
         self._add_resource_devfile(subparser=subparser)
         self._add_resource_role(subparser=subparser)
         self._add_resource_execution_env(subparser=subparser)
-        
+
     def _add_resource_devcontainer(self, subparser: SubParser[ArgumentParser]) -> None:
         """Add devcontainer files to an existing Ansible project.
 
@@ -399,7 +399,7 @@ class Parser:
         self._add_args_common(parser)
         self._add_overwrite(parser)
         self._add_args_plugin_common(parser)
-    
+
     def _add_plugin_lookup(self, subparser: SubParser[ArgumentParser]) -> None:
         """Add a lookup plugin to an existing Ansible collection project.
 

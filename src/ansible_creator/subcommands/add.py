@@ -244,7 +244,7 @@ class Add:
     ) -> None:
         resources = (f"collection_project.plugins.{self._plugin_type}",)
         self._perform_plugin_scaffold(resources, template_data, plugin_path)
-    
+
     def _perform_lookup_plugin_scaffold(
         self,
         template_data: TemplateData,
