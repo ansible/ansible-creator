@@ -231,30 +231,6 @@ class Parser:
         self._add_resource_devfile(subparser=subparser)
         self._add_resource_role(subparser=subparser)
         self._add_resource_execution_env(subparser=subparser)
-        #self._add_resource_module(subparser=subparser)
-    
-    def _add_resource_module(self, subparser: SubParser[ArgumentParser]) -> None:
-        """Add generic modules files to an existing Ansible project.
-
-        Args:
-            subparser: The subparser to add generic modules files to
-        """
-        parser = subparser.add_parser(
-            "module",
-            help="Add a generic module to an existing Ansible collection.",
-            formatter_class=CustomHelpFormatter,
-        )
-        parser.add_argument(
-            "module_name",
-            help="The name of the module to add.",
-        )
-        parser.add_argument(
-            "path",
-            default="./",
-            help="The path to the Ansible collection. The default is the current working directory.",
-        )
-        self._add_overwrite(parser)
-        self._add_args_common(parser)
         
     def _add_resource_devcontainer(self, subparser: SubParser[ArgumentParser]) -> None:
         """Add devcontainer files to an existing Ansible project.
