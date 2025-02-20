@@ -353,7 +353,7 @@ class Parser:
         self._add_plugin_action(subparser=subparser)
         self._add_plugin_filter(subparser=subparser)
         self._add_plugin_lookup(subparser=subparser)
-        self._add_plugin_modules(subparser=subparser)
+        self._add_plugin_module(subparser=subparser)
 
     def _add_plugin_action(self, subparser: SubParser[ArgumentParser]) -> None:
         """Add an action plugin to an existing Ansible collection project.
@@ -385,7 +385,7 @@ class Parser:
         self._add_overwrite(parser)
         self._add_args_plugin_common(parser)
 
-    def _add_plugin_modules(self, subparser: SubParser[ArgumentParser]) -> None:
+    def _add_plugin_module(self, subparser: SubParser[ArgumentParser]) -> None:
         """Add a module plugin to an existing Ansible collection project.
 
         Args:
