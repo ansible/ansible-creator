@@ -34,7 +34,7 @@
         "plugin",
         "module",
         "plugin_name",
-        "/Users/shvenkat/trial"
+        "/home/user/..path/to/your/new_playbook_project"
       ],
       "cwd": "${workspaceFolder}/src",
       "justMyCode": false
