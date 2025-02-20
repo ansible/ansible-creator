@@ -749,7 +749,7 @@ def test_run_success_add_plugin_module(
         )
         is not None
     ), result
-    assert re.search("Note: Lookup plugin added to", result) is not None
+    assert re.search("Note: Module plugin added to", result) is not None
 
 
 def test_run_error_plugin_no_overwrite(
