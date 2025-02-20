@@ -341,12 +341,12 @@ $ ansible-creator add plugin <plugin-type> <path>
 
 #### Positional Arguments
 
-| Parameter    | Description                                                |
-| ------------ | ---------------------------------------------------------- |
-| action       | Add an action plugin to an existing Ansible project.       |
-| filter       | Add a filter plugin to an existing Ansible project.        |
-| lookup       | Add a lookup plugin to an existing Ansible project.        |
-| module       | Add a generic module plugin to an existing Ansible project.|
+| Parameter | Description                                                 |
+| --------- | ----------------------------------------------------------- |
+| action    | Add an action plugin to an existing Ansible project.        |
+| filter    | Add a filter plugin to an existing Ansible project.         |
+| lookup    | Add a lookup plugin to an existing Ansible project.         |
+| module    | Add a generic module plugin to an existing Ansible project. |
 
 #### Example
 
