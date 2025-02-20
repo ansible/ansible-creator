@@ -674,6 +674,7 @@ def test_run_success_add_plugin_action(
     cmp_result2 = cmp(expected_module_file, effective_module_file, shallow=False)
     assert cmp_result1, cmp_result2
 
+
 def test_run_success_add_plugin_module(
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
@@ -749,6 +750,7 @@ def test_run_success_add_plugin_module(
         is not None
     ), result
     assert re.search("Note: Lookup plugin added to", result) is not None
+
 
 def test_run_error_plugin_no_overwrite(
     capsys: pytest.CaptureFixture[str],
