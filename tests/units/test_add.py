@@ -737,7 +737,7 @@ def test_run_success_add_plugin_module(
     ):
         add.run()
 
-    # expect a warning followed by lookup plugin addition msg
+    # expect a warning followed by module plugin addition msg
     # when response to overwrite is yes.
     monkeypatch.setattr("builtins.input", lambda _: "y")
     add.run()

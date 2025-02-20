@@ -1,6 +1,6 @@
 {# module_plugin_template.j2 #}
 {%- set module_name = plugin_name | default("hello_world") -%}
-{%- set author = author | default("Your Name") -%}
+{%- set author = author |  default("Your Name (@username)") -%}
 {%- set description = description | default("A custom module plugin for Ansible.") -%}
 {%- set license = license | default("GPL-3.0-or-later") -%}
 # {{ module_name }}.py - {{ description }}
