@@ -210,7 +210,9 @@ class Add:
             self._perform_lookup_plugin_scaffold(template_data, plugin_path)
         elif self._plugin_type == "module":
             template_data = self._get_plugin_template_data()
-            self._perform_module_plugin_scaffold(template_data, plugin_path)
+            module_path=self._add_path / "plugins" / "sample_module"
+            module_path.mkdir(parents=True, exist_ok=True)
+            self._perform_module_plugin_scaffold(template_data, module_path)
         else:
             msg = f"Unsupported plugin type: {self._plugin_type}"
             raise CreatorError(msg)
@@ -242,7 +244,7 @@ class Add:
         template_data: TemplateData,
         plugin_path: Path,
     ) -> None:
-        resources = (f"collection_project.plugins.{self._plugin_type}",)
+        resources = (f"collection_project.plugins.sample_module",)
         self._perform_plugin_scaffold(resources, template_data, plugin_path)
 
     def _perform_lookup_plugin_scaffold(
