@@ -351,7 +351,7 @@ $ ansible-creator add plugin <plugin-type> <plugin-name> <collection-path>
 #### Example
 
 ```console
-$ ansible-creator add plugin module module_name /home/user/..path/to/your/existing_project
+$ ansible-creator add plugin module plugin_name /home/user/..path/to/your/existing_project
 ```
 
-This command will scaffold the devfile.yaml file at `/home/user/..path/to/your/existing_project`
+This command will scaffold a generic module plugin at `/home/user/..path/to/your/existing_project`
