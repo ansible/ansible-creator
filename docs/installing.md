@@ -331,22 +331,22 @@ $ ansible-creator add resource devfile /home/user/..path/to/your/existing_projec
 
 This command will scaffold the devfile.yaml file at `/home/user/..path/to/your/existing_project`
 
-### Add support to scaffold a plugin in an existing project
+### Add support to scaffold plugins in an existing ansible collection
 
-The `add plugin` command enables you to add a plugin to an already existing project. Use the following command template:
+The `add plugin` command enables you to add a plugin to an to an existing collection project. Use the following command template:
 
 ```console
-$ ansible-creator add plugin <plugin-type> <path>
+$ ansible-creator add plugin <plugin-type> <plugin-name> <collection-path>
 ```
 
 #### Positional Arguments
 
-| Parameter | Description                                                 |
-| --------- | ----------------------------------------------------------- |
-| action    | Add an action plugin to an existing Ansible project.        |
-| filter    | Add a filter plugin to an existing Ansible project.         |
-| lookup    | Add a lookup plugin to an existing Ansible project.         |
-| module    | Add a generic module plugin to an existing Ansible project. |
+| Parameter | Description                                                    |
+| --------- | -------------------------------------------------------------- |
+| action    | Add an action plugin to an existing Ansible Collection.        |
+| filter    | Add a filter plugin to an existing Ansible Collection.         |
+| lookup    | Add a lookup plugin to an existing Ansible Collection.         |
+| module    | Add a generic module plugin to an existing Ansible Collection. |
 
 #### Example
 
