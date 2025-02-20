@@ -1,35 +1,60 @@
-# hello_world.py
-# GNU General Public License v3.0+
+# hello_world.py - A custom module plugin for Ansible.
+# Author: Your Name
+# License: GPL-3.0-or-later
+
+from __future__ import absolute_import, annotations, division, print_function
+
+
+__metaclass__ = type  # pylint: disable=C0103
+
+from typing import TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from typing import Callable
+
 
 DOCUMENTATION = """
-    module: hello_world
-    author: Your Name (@username)
+    name: hello_world
+    author: Your Name
     version_added: "1.0.0"
     short_description: A custom module plugin for Ansible.
     description:
-      - This is a custom module plugin to provide module functionality.
+      - This is a demo module plugin designed to return Hello message.
     options:
-      prefix:
-        description:
-          - A string that is added as a prefix to the message passed to the module.
+      name:
+        description: Value specified here is appended to the Hello message.
         type: str
-      msg:
-        description: The message to display in the output.
-        type: str
-      with_prefix:
-        description:
-          - A boolean flag indicating whether to include the prefix in the message.
-        type: bool
-    notes:
-      - This is a scaffold template. Customize the plugin to fit your needs.
 """
 
 EXAMPLES = """
-- name: Example Module Plugin
-  hosts: localhost
-  tasks:
-    - name: Example hello_world plugin
-      with_prefix:
-        prefix: "Hello, World"
-        msg: "Ansible!"
+# hello_world module example
+
+- name: Display a hello message
+  ansible.builtin.debug:
+    msg: "{{ 'ansible-creator' | hello_world }}"
 """
+
+
+def _hello_world(name: str) -> str:
+    """Returns Hello message.
+
+    Args:
+        name: The name to greet.
+
+    Returns:
+        str: The greeting message.
+    """
+    return "Hello, " + name
+
+
+class SampleModule:
+    """module plugin."""
+
+    def modules(self) -> dict[str, Callable[[str], str]]:
+        """Map module plugin names to their functions.
+
+        Returns:
+            dict: The module plugin functions.
+        """
+        return {"hello_world": _hello_world}
