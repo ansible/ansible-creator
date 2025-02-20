@@ -707,7 +707,7 @@ def test_run_success_add_plugin_module(
     )
     add.run()
     result = capsys.readouterr().out
-    assert re.search("Note: Lookup plugin added to", result) is not None
+    assert re.search("Note: Module plugin added to", result) is not None
 
     expected_file = tmp_path / "plugins" / "sample_module" / "hello_world.py"
     effective_file = (
