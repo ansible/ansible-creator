@@ -56,7 +56,7 @@ class Init:
     def run(self) -> None:
         """Start scaffolding skeleton."""
         self._construct_init_path()
-        self.output.debug(msg=f"final collection path set to {self._init_path}")
+        self.output.debug(msg=f"final destination path set to {self._init_path}")
 
         if self._init_path.exists():
             self.init_exists()
@@ -66,7 +66,7 @@ class Init:
 
     def _construct_init_path(self) -> None:
         """Construct the init path based on project type."""
-        if self._project == "playbook":
+        if self._project in ("playbook", "execution_env"):
             return
 
         if (
@@ -119,6 +119,7 @@ class Init:
             CreatorError: When the destination directory contains files that will be overwritten and
                 the user chooses not to proceed.
         """
+        resources: tuple[str, ...]
         self.output.debug(
             msg=f"started copying {self._project} skeleton to destination",
         )
@@ -129,8 +130,13 @@ class Init:
             dev_file_name=self.unique_name_in_devfile(),
         )
 
+        if self._project == "execution_env":
+            resources = (f"{self._project}_project",)
+        else:
+            resources = (f"{self._project}_project", *self.common_resources)
+
         walker = Walker(
-            resources=(f"{self._project}_project", *self.common_resources),
+            resources=resources,
             resource_id=f"{self._project}_project",
             dest=self._init_path,
             output=self.output,

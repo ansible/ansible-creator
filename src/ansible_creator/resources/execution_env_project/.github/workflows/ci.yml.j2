@@ -1,0 +1,21 @@
+# Combine workflow for pull-request, push-to-main and release events.
+
+name: Execution environment build
+
+on:
+  pull_request_target:
+    branches:
+      - main
+    types: [opened, reopened, synchronize]
+  push:
+    branches:
+      - main
+  release:
+    types: [published]
+
+jobs:
+  ee-build:
+    uses: ansible/ansible-content-actions/.github/workflows/ee-build.yml@main
+    with:
+      registry: ghcr.io
+    # TODO: add secrests back to this section
