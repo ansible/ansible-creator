@@ -400,7 +400,6 @@ class Parser:
         self._add_overwrite(parser)
         self._add_args_plugin_common(parser)
 
-
     def _add_plugin_module(self, subparser: SubParser[ArgumentParser]) -> None:
         """Add a module plugin to an existing Ansible collection project.
 
@@ -415,7 +414,7 @@ class Parser:
         self._add_args_common(parser)
         self._add_overwrite(parser)
         self._add_args_plugin_common(parser)
-        
+
     def _add_overwrite(self, parser: ArgumentParser) -> None:
         """Add overwrite and no-overwrite arguments to the parser.
 
