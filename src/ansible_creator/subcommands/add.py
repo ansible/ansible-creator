@@ -239,14 +239,6 @@ class Add:
         resources = (f"collection_project.plugins.{self._plugin_type}",)
         self._perform_plugin_scaffold(resources, template_data, plugin_path)
 
-    def _perform_module_plugin_scaffold(
-        self,
-        template_data: TemplateData,
-        plugin_path: Path,
-    ) -> None:
-        resources = ("collection_project.plugins.sample_module",)
-        self._perform_plugin_scaffold(resources, template_data, plugin_path)
-
     def _perform_lookup_plugin_scaffold(
         self,
         template_data: TemplateData,
@@ -255,6 +247,14 @@ class Add:
         resources = (f"collection_project.plugins.{self._plugin_type}",)
         self._perform_plugin_scaffold(resources, template_data, plugin_path)
 
+    def _perform_module_plugin_scaffold(
+        self,
+        template_data: TemplateData,
+        plugin_path: Path,
+    ) -> None:
+        resources = ("collection_project.plugins.sample_module",)
+        self._perform_plugin_scaffold(resources, template_data, plugin_path)
+        
     def _perform_plugin_scaffold(
         self,
         resources: tuple[str, ...],
