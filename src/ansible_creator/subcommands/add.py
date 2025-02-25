@@ -211,6 +211,8 @@ class Add:
 
         elif self._plugin_type == "module":
             template_data = self._get_plugin_template_data()
+            plugin_path = self._add_path / "plugins" / "sample_module"
+            plugin_path.mkdir(parents=True, exist_ok=True)
             self._perform_module_plugin_scaffold(template_data, plugin_path)
         else:
             msg = f"Unsupported plugin type: {self._plugin_type}"
@@ -251,8 +253,6 @@ class Add:
         template_data: TemplateData,
         plugin_path: Path,
     ) -> None:
-        plugin_path = self._add_path / "plugins" / "sample_module"
-        plugin_path.mkdir(parents=True, exist_ok=True)
         resources = ("collection_project.plugins.sample_module",)
         self._perform_plugin_scaffold(resources, template_data, plugin_path)
 
