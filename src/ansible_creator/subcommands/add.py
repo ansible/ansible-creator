@@ -254,7 +254,7 @@ class Add:
     ) -> None:
         resources = ("collection_project.plugins.sample_module",)
         self._perform_plugin_scaffold(resources, template_data, plugin_path)
-        
+
     def _perform_plugin_scaffold(
         self,
         resources: tuple[str, ...],
