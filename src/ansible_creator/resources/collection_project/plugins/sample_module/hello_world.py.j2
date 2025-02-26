@@ -1,0 +1,65 @@
+{# module_plugin_template.j2 #}
+{%- set module_name = plugin_name | default("hello_world") -%}
+{%- set author = author |  default("Your Name (@username)") -%}
+{%- set description = description | default("A custom module plugin for Ansible.") -%}
+{%- set license = license | default("GPL-3.0-or-later") -%}
+# {{ module_name }}.py - {{ description }}
+# Author: {{ author }}
+# License: {{ license }}
+
+from __future__ import absolute_import, annotations, division, print_function
+
+
+__metaclass__ = type  # pylint: disable=C0103
+
+from typing import TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from typing import Callable
+
+
+DOCUMENTATION = """
+    name: {{ module_name }}
+    author: {{ author }}
+    version_added: "1.0.0"
+    short_description: {{ description }}
+    description:
+      - This is a demo module plugin designed to return Hello message.
+    options:
+      name:
+        description: Value specified here is appended to the Hello message.
+        type: str
+"""
+
+EXAMPLES = """
+# {{ module_name }} module example
+{% raw %}
+- name: Display a hello message
+  ansible.builtin.debug:
+    msg: "{{ 'ansible-creator' {%- endraw %} | {{ module_name }} }}"
+"""
+
+
+def _hello_world(name: str) -> str:
+    """Returns Hello message.
+
+    Args:
+        name: The name to greet.
+
+    Returns:
+        str: The greeting message.
+    """
+    return "Hello, " + name
+
+
+class SampleModule:
+    """module plugin."""
+
+    def modules(self) -> dict[str, Callable[[str], str]]:
+        """Map module plugin names to their functions.
+
+        Returns:
+            dict: The module plugin functions.
+        """
+        return {"{{ module_name }}": _hello_world}
