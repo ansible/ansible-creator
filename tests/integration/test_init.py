@@ -141,3 +141,22 @@ def test_run_init_basic(cli: CliRunCallable, tmp_path: Path) -> None:
     result = cli(f"{CREATOR_BIN} init testorg.testcol --init-path {tmp_path} --no-overwrite")
     assert result.returncode != 0
     assert re.search(r"The flag `--no-overwrite` restricts overwriting.", result.stderr) is not None
+
+
+def test_run_init_ee(cli: CliRunCallable, tmp_path: Path) -> None:
+    """Test running ansible-creator init for ee_project.
+
+    Args:
+        cli: cli_run function.
+        tmp_path: Temporary path.
+    """
+    final_dest = f"{tmp_path}/ee_project"
+    cli(f"mkdir -p {final_dest}")
+
+    result = cli(
+        f"{CREATOR_BIN} init execution_env {final_dest}",
+    )
+    assert result.returncode == 0
+
+    # check stdout
+    assert re.search(r"Note: execution_env project created at", result.stdout) is not None
