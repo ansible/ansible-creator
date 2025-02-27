@@ -25,19 +25,6 @@
       "justMyCode": false
     },
     {
-      "name": "Debug subcommand: init (ee_project)",
-      "type": "debugpy",
-      "request": "launch",
-      "module": "ansible_creator",
-      "args": [
-        "init",
-        "execution_env",
-        "/Users/shamishr/Ansible/test_stuff/my_ee_proj"
-      ],
-      "cwd": "${workspaceFolder}/src",
-      "justMyCode": false
-    },
-    {
       "name": "Debug subcommand: add",
       "type": "debugpy",
       "request": "launch",
