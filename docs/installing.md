@@ -284,10 +284,9 @@ It also comes equipped with Github Action Workflows that use [ansible-content-ac
 
 Please ensure that you review any potential `TO-DO` items in the scaffolded content and make the necessary modifications according to your requirements.
 
-
 ### Initialize execution environment project
 
-The `init execution_env` command enables you to initialize an Ansible execution enviroment project. Use the following command template:
+The `init execution_env` command enables you to initialize an Ansible execution environment project. Use the following command template:
 
 ```console
 $ ansible-creator init execution_env <path>
