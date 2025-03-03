@@ -6,6 +6,7 @@ argcomplete==3.5.3        # via ansible-creator (pyproject.toml)
 astroid==3.3.8            # via pylint
 attrs==25.1.0             # via jsonschema, referencing
 babel==2.17.0             # via mkdocs-material
+backrefs==5.8             # via mkdocs-material
 beautifulsoup4==4.13.3    # via linkchecker, mkdocs-htmlproofer-plugin
 black==25.1.0             # via ansible-lint
 bracex==2.5.post1         # via wcmatch
@@ -86,7 +87,6 @@ python-slugify==8.0.4     # via mkdocs-monorepo-plugin
 pyyaml==6.0.2             # via ansible-compat, ansible-core, ansible-lint, mkdocs, mkdocs-get-deps, mkdocs-macros-plugin, pre-commit, pymdown-extensions, pyyaml-env-tag, yamllint, ansible-creator (pyproject.toml)
 pyyaml-env-tag==0.1       # via mkdocs
 referencing==0.36.2       # via ansible-lint, jsonschema, jsonschema-specifications
-regex==2024.11.6          # via mkdocs-material
 requests==2.32.3          # via linkchecker, mkdocs-htmlproofer-plugin, mkdocs-material
 rpds-py==0.23.1           # via jsonschema, referencing
 ruamel-yaml==0.18.10      # via ansible-lint
