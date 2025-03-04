@@ -67,7 +67,7 @@ nav:
       - home: index.md
   - Setup:
       - installing.md
-      - collection_creation.md
+      - content_creation.md
   - Contributing: contributing.md
 
 exclude_docs: |
