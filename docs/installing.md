@@ -14,9 +14,9 @@ $ pip install ansible-creator
 
 ## CLI Usage
 
-The Command-Line Interface (CLI) for ansible-creator provides a straightforward and efficient way to interact with the tool. Users can initiate actions, such as initializing Ansible Collections, through concise commands. The CLI is designed for simplicity, allowing users to execute operations with ease and without the need for an extensive understanding of the tool's intricacies. It serves as a flexible and powerful option for users who prefer command-line workflows, enabling them to integrate ansible-creator seamlessly into their development processes.
+The Command-Line Interface (CLI) for ansible-creator provides a straightforward and efficient way to interact with the tool. Users can initiate actions, such as initializing Ansible Collections and other Ansible Projects, through concise commands. The CLI is designed for simplicity, allowing users to execute operations with ease and without the need for an extensive understanding of the tool's intricacies. It serves as a flexible and powerful option for users who prefer command-line workflows, enabling them to integrate ansible-creator seamlessly into their development processes.
 
-If command line is not your preferred method, you can also leverage the GUI interface within VS Code's Ansible extension that offers a more visually intuitive experience of ansible-creator. See [here](collection_creation.md).
+If command line is not your preferred method, you can also leverage the GUI interface within VS Code's Ansible extension that offers a more visually intuitive experience of ansible-creator. See [here](content_creation.md).
 
 ## Command line completion
 
@@ -35,7 +35,9 @@ Get an overview of available commands and options by running:
 $ ansible-creator --help
 ```
 
-### Initialize an Ansible collection project
+## Initialize projects
+
+### Initialize Ansible collection project
 
 The `init collection` command enables you to initialize an Ansible collection project. Use the following command template:
 
@@ -282,7 +284,38 @@ It also comes equipped with Github Action Workflows that use [ansible-content-ac
 
 Please ensure that you review any potential `TO-DO` items in the scaffolded content and make the necessary modifications according to your requirements.
 
-### Add support to existing project
+### Initialize execution environment project
+
+The `init execution_env` command enables you to initialize an Ansible execution environment project. Use the following command template:
+
+```console
+$ ansible-creator init execution_env <path>
+```
+
+Example:
+
+```console
+$ ansible-creator init execution_env $HOME/ansible-projects/ee-project
+```
+
+This command will scaffold the new execution environment playbook project at `/home/user/ansible-projects/ee-project`.
+
+#### Generated Ansible execution environment project Structure
+
+Running the `init execution_env` command generates an Ansible execution environment project with a comprehensive directory structure. Explore it using:
+
+```console
+$ tree -la /home/user/ansible-projects/ee-project
+.
+├── .github
+│   └── workflows
+│       └── ci.yml
+├── .gitignore
+├── README.md
+└── execution-environment.yml
+```
+
+## Add resources
 
 The `add` subcommand allows users to scaffold content types like resources and plugins into an existing project. This feature is designed to streamline the development environment setup by automatically generating the necessary configuration files.
 
@@ -307,7 +340,7 @@ $ ansible-creator add --help
 | ---------- | --------- | ------------- | -------------------------------- |
 | -h         | --help    |               | Show this help message and exit. |
 
-### Add support to scaffold resource in an existing project
+### Add resource to an existing project
 
 The `add resource` command enables you to add a resource to an already existing project. Use the following command template:
 
@@ -317,21 +350,22 @@ $ ansible-creator add resource <resource-type> <path>
 
 #### Positional Arguments
 
-| Parameter    | Description                                            |
-| ------------ | ------------------------------------------------------ |
-| devcontainer | Add devcontainer files to an existing Ansible project. |
-| devfile      | Add a devfile file to an existing Ansible project.     |
-| role         | Add a role to an existing Ansible collection.          |
+| Parameter             | Description                                                      |
+| --------------------- | ---------------------------------------------------------------- |
+| devcontainer          | Add devcontainer files to an existing Ansible project.           |
+| devfile               | Add a devfile file to an existing Ansible project.               |
+| role                  | Add a role to an existing Ansible collection.                    |
+| execution-environment | Add a sample execution-environment.yml file to an existing path. |
 
-#### Example
+#### Example of adding a resource
 
 ```console
-$ ansible-creator add resource devfile /home/user/..path/to/your/existing_project
+$ ansible-creator add resource devcontainer /home/user/..path/to/your/existing_project
 ```
 
-This command will scaffold the devfile.yaml file at `/home/user/..path/to/your/existing_project`
+This command will scaffold the devcontainer directory at `/home/user/..path/to/your/existing_project`
 
-### Add support to scaffold plugins in an existing ansible collection
+### Add plugins to an existing ansible collection
 
 The `add plugin` command enables you to add a plugin to an existing collection project. Use the following command template:
 
@@ -341,17 +375,17 @@ $ ansible-creator add plugin <plugin-type> <plugin-name> <collection-path>
 
 #### Positional Arguments
 
-| Parameter | Description                                                    |
-| --------- | -------------------------------------------------------------- |
-| action    | Add an action plugin to an existing Ansible Collection.        |
-| filter    | Add a filter plugin to an existing Ansible Collection.         |
-| lookup    | Add a lookup plugin to an existing Ansible Collection.         |
-| module    | Add a generic module plugin to an existing Ansible Collection. |
+| Parameter | Description                                             |
+| --------- | ------------------------------------------------------- |
+| action    | Add an action plugin to an existing Ansible Collection. |
+| filter    | Add a filter plugin to an existing Ansible Collection.  |
+| lookup    | Add a lookup plugin to an existing Ansible Collection.  |
+| module    | Add a generic module to an existing Ansible Collection. |
 
-#### Example
+#### Example of adding a plugin
 
 ```console
-$ ansible-creator add plugin module test_plugin /home/user/..path/to/your/existing_project
+$ ansible-creator add plugin action test_plugin /home/user/..path/to/your/existing_collection
 ```
 
-This command will scaffold a generic module plugin at `/home/user/..path/to/your/existing_project`
+This command will scaffold an action plugin at `/home/user/..path/to/your/existing_collection`
