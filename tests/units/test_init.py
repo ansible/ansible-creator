@@ -185,6 +185,9 @@ def test_run_success_ee_project(
         capsys: Pytest fixture to capture stdout and stderr.
         tmp_path: Temporary directory path.
         cli_args: Dictionary, partial Init class object.
+
+    Raises:
+        AssertionError: If the assertion fails.
     """
     cli_args["project"] = "execution_env"
     cli_args["init_path"] = str(tmp_path / "new_project")

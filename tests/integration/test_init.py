@@ -167,6 +167,9 @@ def test_run_init_ee(cli: CliRunCallable, tmp_path: Path) -> None:
     Args:
         cli: cli_run function.
         tmp_path: Temporary path.
+
+    Raises:
+        AssertionError: If the assertion fails.
     """
     final_dest = f"{tmp_path}/ee_project"
     cli(f"mkdir -p {final_dest}")
