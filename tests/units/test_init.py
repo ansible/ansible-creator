@@ -172,6 +172,41 @@ def test_run_success_for_collection(
     assert re.search(r"Warning: re-initializing existing directory", result) is not None, result
 
 
+def test_run_success_ee_project(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test Init.run().
+
+    Successfully create new ee project
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "new_project")
+    init = Init(
+        Config(**cli_args),
+    )
+
+    init.run()
+    result = capsys.readouterr().out
+
+    # check stdout
+    assert re.search(r"Note: execution_env project created", result) is not None
+
+    # recursively assert files created
+    cmp = dircmp(
+        str(tmp_path / "new_project"),
+        str(FIXTURES_DIR / "project" / "ee_project"),
+    )
+    diff = has_differences(dcmp=cmp, errors=[])
+    assert diff == [], diff
+
+
 def test_run_success_ansible_project(
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,

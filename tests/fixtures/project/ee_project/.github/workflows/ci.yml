@@ -1,0 +1,26 @@
+# Combine workflow for pull-request, push-to-main and release events.
+
+name: Execution environment build
+
+on:
+  pull_request_target:
+    branches:
+      - main
+    types: [opened, reopened, synchronize]
+  push:
+    branches:
+      - main
+  release:
+    types: [published]
+
+jobs:
+  ee-build:
+    uses: ansible/ansible-content-actions/.github/workflows/ee-build.yml@main
+    with:
+      registry: ghcr.io
+    secrets:
+      registry_username: ${{ github.actor }}
+      registry_password: ${{ secrets.GITHUB_TOKEN }}
+      # Only needed if base image of execution-environment.yml file is from Red Hat (ee-minimal)
+      # registry_redhat_username: ${{ secrets.registry_redhat_username }}
+      # registry_redhat_password: ${{ secrets.registry_redhat_password }}

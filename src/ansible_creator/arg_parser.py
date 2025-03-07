@@ -457,6 +457,7 @@ class Parser:
 
         self._init_collection(subparser=subparser)
         self._init_playbook(subparser=subparser)
+        self._init_ee_project(subparser=subparser)
 
     def _init_collection(self, subparser: SubParser[ArgumentParser]) -> None:
         """Initialize an Ansible collection.
@@ -518,6 +519,27 @@ class Parser:
         self._add_args_common(parser)
         self._add_args_init_common(parser)
 
+    def _init_ee_project(self, subparser: SubParser[ArgumentParser]) -> None:
+        """Initialize an EE project.
+
+        Args:
+            subparser: The subparser to add EE project to
+        """
+        parser = subparser.add_parser(
+            "execution_env",
+            help="Create a new execution environment project.",
+            formatter_class=CustomHelpFormatter,
+        )
+        parser.add_argument(
+            "init_path",
+            metavar="path",
+            nargs="?",
+            help="The destination directory for the EE project.",
+        )
+
+        self._add_args_common(parser)
+        self._add_args_init_common(parser)
+
     def _valid_collection_name(self, collection: str) -> str:
         """Validate the collection name.
 
@@ -560,7 +582,7 @@ class Parser:
         parser.add_argument("--init-path", help="")
         args, extras = parser.parse_known_args()
 
-        if args.collection in ["playbook", "collection"]:
+        if args.collection in ["playbook", "collection", "execution_env"]:
             return True
         if args.project:
             msg = "The `project` flag is no longer needed and will be removed."
