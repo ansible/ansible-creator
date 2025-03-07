@@ -18,7 +18,11 @@ if TYPE_CHECKING:
 
 
 def test_expand_path() -> None:
-    """Test expand_path utils."""
+    """Test expand_path utils.
+
+    Raises:
+        AssertionError: If the assertion fails.
+    """
     home = Path.home().resolve()
     expected = home / "collections/ansible_collections/namespace/collection"
     assert expand_path("~/$DEV_WORKSPACE/namespace/collection") == expected
@@ -35,6 +39,9 @@ def test_skip_dirs(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, output: Outp
         tmp_path: Temporary directory path.
         monkeypatch: Pytest monkeypatch fixture.
         output: Output class object.
+
+    Raises:
+        AssertionError: If the assertion fails.
     """
     monkeypatch.setattr("ansible_creator.utils.SKIP_DIRS", ["docker"])
 
@@ -61,6 +68,9 @@ def test_overwrite(tmp_path: Path, output: Output) -> None:
     Args:
         tmp_path: Temporary directory path.
         output: Output class object.
+
+    Raises:
+        AssertionError: If the assertion fails.
     """
     walker = Walker(
         resources=("common.devcontainer",),
@@ -113,6 +123,9 @@ def test_skip_repeats(tmp_path: Path, output: Output) -> None:
     Args:
         tmp_path: Temporary directory path.
         output: Output class object.
+
+    Raises:
+        AssertionError: If the assertion fails.
     """
     walker = Walker(
         resources=("common.devcontainer",),
@@ -139,6 +152,9 @@ def test_ask_yes_no_yes(monkeypatch: pytest.MonkeyPatch) -> None:
 
     Args:
         monkeypatch: Pytest monkeypatch fixture.
+
+    Raises:
+        AssertionError: If the ask_yes_no function does not return True.
     """
     # Mock input to return 'y'
     monkeypatch.setattr("builtins.input", lambda _: "y")
@@ -150,6 +166,9 @@ def test_ask_yes_no_no(monkeypatch: pytest.MonkeyPatch) -> None:
 
     Args:
         monkeypatch: Pytest monkeypatch fixture.
+
+    Raises:
+        AssertionError: If the ask_yes_no function does not return False.
     """
     # Mock input to return 'n'
     monkeypatch.setattr("builtins.input", lambda _: "n")
@@ -161,6 +180,9 @@ def test_ask_yes_no_invalid_then_yes(monkeypatch: pytest.MonkeyPatch) -> None:
 
     Args:
         monkeypatch: Pytest monkeypatch fixture.
+
+    Raises:
+        AssertionError: If the ask_yes_no function does not return True.
     """
     # Mock input to return an invalid response first, then 'y'
     inputs = iter(["invalid", "y"])
@@ -173,6 +195,9 @@ def test_ask_yes_no_invalid_then_no(monkeypatch: pytest.MonkeyPatch) -> None:
 
     Args:
         monkeypatch: Pytest monkeypatch fixture.
+
+    Raises:
+        AssertionError: If the ask_yes_no function does not return False.
     """
     # Mock input to return an invalid response first, then 'n'
     inputs = iter(["invalid", "n"])
