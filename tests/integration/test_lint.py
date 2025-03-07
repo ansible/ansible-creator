@@ -42,6 +42,9 @@ def test_lint_collection(
     Args:
         cli: CLI callable.
         monkeypatch: Monkeypatch fixture.
+
+    Raises:
+        AssertionError: If the assertion fails.
     """
     project_path = FIXTURES_DIR / "collection"
     monkeypatch.chdir(project_path)
@@ -77,6 +80,9 @@ def test_lint_playbook_project(
         tmp_path: Temporary path.
         cli: CLI callable.
         monkeypatch: Monkeypatch fixture.
+
+    Raises:
+        AssertionError: If the assertion fails.
     """
     req_path = str(
         FIXTURES_DIR / "project" / "playbook_project" / "collections" / "requirements.yml",

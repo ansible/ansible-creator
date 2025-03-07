@@ -1,4 +1,5 @@
 # cspell: ignore dcmp, subdcmp
+# pylint: disable=C0302
 """Unit tests for ansible-creator add."""
 
 from __future__ import annotations
@@ -122,6 +123,9 @@ def test_run_success_add_devfile(
         tmp_path: Temporary directory path.
         cli_args: Dictionary, partial Add class object.
         monkeypatch: Pytest monkeypatch fixture.
+
+    Raises:
+        AssertionError: If the assertion fails.
     """
     cli_args["resource_type"] = "devfile"
     add = Add(
@@ -196,6 +200,9 @@ def test_run_error_no_overwrite(
         capsys: Pytest fixture to capture stdout and stderr.
         tmp_path: Temporary directory path.
         cli_args: Dictionary, partial Add class object.
+
+    Raises:
+        AssertionError: If the assertion fails.
     """
     cli_args["resource_type"] = "devfile"
     add = Add(
@@ -248,6 +255,9 @@ def test_error_invalid_path(
 
     Args:
         cli_args: Dictionary, partial Add class object.
+
+    Raises:
+        AssertionError: If the assertion fails.
     """
     cli_args["resource_type"] = "devfile"
     cli_args["path"] = "/invalid"
@@ -269,6 +279,9 @@ def test_error_invalid_collection_path(
 
     Args:
         cli_args: Dictionary, partial Add class object.
+
+    Raises:
+        AssertionError: If the assertion fails.
     """
     cli_args["plugin_type"] = "lookup"
     add = Add(
@@ -297,6 +310,9 @@ def test_run_error_unsupported_resource_type(
     Args:
         cli_args: Dictionary, partial Add class object.
         monkeypatch: Pytest monkeypatch fixture.
+
+    Raises:
+        AssertionError: If the assertion fails.
     """
     cli_args["resource_type"] = "devfile"
     add = Add(
@@ -326,6 +342,9 @@ def test_run_success_add_devcontainer(
         tmp_path: Temporary directory path.
         cli_args: Dictionary, partial Add class object.
         monkeypatch: Pytest monkeypatch fixture.
+
+    Raises:
+        AssertionError: If the assertion fails.
     """
     # Set the resource_type to devcontainer
     cli_args["resource_type"] = "devcontainer"
@@ -393,6 +412,7 @@ def test_devcontainer_usability(
         cli_args: Dictionary, partial Add class object.
 
     Raises:
+        AssertionError: If the assertion fails.
         FileNotFoundError: If the 'npm' or 'docker' executable is not found in the PATH.
     """
     # Set the resource_type to devcontainer
@@ -467,6 +487,9 @@ def test_run_success_add_plugin_filter(
         tmp_path: Temporary directory path.
         cli_args: Dictionary, partial Add class object.
         monkeypatch: Pytest monkeypatch fixture.
+
+    Raises:
+        AssertionError: If the assertion fails.
     """
     cli_args["plugin_type"] = "filter"
     add = Add(
@@ -544,6 +567,9 @@ def test_run_success_add_plugin_lookup(
         tmp_path: Temporary directory path.
         cli_args: Dictionary, partial Add class object.
         monkeypatch: Pytest monkeypatch fixture.
+
+    Raises:
+        AssertionError: If the assertion fails.
     """
     cli_args["plugin_type"] = "lookup"
     add = Add(
@@ -620,6 +646,9 @@ def test_run_success_add_plugin_action(
         tmp_path: Temporary directory path.
         cli_args: Dictionary, partial Add class object.
         monkeypatch: Pytest monkeypatch fixture.
+
+    Raises:
+        AssertionError: If the assertion fails.
     """
     cli_args["plugin_type"] = "action"
     add = Add(
@@ -690,6 +719,9 @@ def test_run_success_add_plugin_module(
         tmp_path: Temporary directory path.
         cli_args: Dictionary, partial Add class object.
         monkeypatch: Pytest monkeypatch fixture.
+
+    Raises:
+        AssertionError: If the assertion fails.
     """
     cli_args["plugin_type"] = "module"
     add = Add(
@@ -767,6 +799,9 @@ def test_run_error_plugin_no_overwrite(
         tmp_path: Temporary directory path.
         cli_args: Dictionary, partial Add class object.
         monkeypatch: Pytest monkeypatch fixture.
+
+    Raises:
+        AssertionError: If the assertion fails.
     """
     cli_args["plugin_type"] = "lookup"
     add = Add(
@@ -823,6 +858,9 @@ def test_run_error_unsupported_plugin_type(
     Args:
         cli_args: Dictionary, partial Add class object.
         monkeypatch: Pytest monkeypatch fixture.
+
+    Raises:
+        AssertionError: If the assertion fails.
     """
     add = Add(
         Config(**cli_args),
@@ -860,6 +898,9 @@ def test_run_success_add_execution_env(
         tmp_path: Temporary directory path.
         cli_args: Dictionary, partial Add class object.
         monkeypatch: Pytest monkeypatch fixture.
+
+    Raises:
+        AssertionError: If the assertion fails.
     """
     # Set the resource_type to execution-environment
     cli_args["resource_type"] = "execution-environment"
@@ -916,6 +957,9 @@ def test_update_galaxy_dependency(tmp_path: Path, cli_args: ConfigDict) -> None:
     Args:
         tmp_path: Temporary directory path.
         cli_args: Dictionary, partial Add class object.
+
+    Raises:
+        AssertionError: If the assertion fails.
     """
     galaxy_file = tmp_path / "galaxy.yml"
     initial_data: dict[str, Any]
