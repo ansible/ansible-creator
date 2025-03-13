@@ -1,4 +1,4 @@
-# hello_world.py - A custom module plugin for Ansible.
+# sample_module.py - A custom module plugin for Ansible.
 # Author: Your Name (@username)
 # License: GPL-3.0-or-later
 
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 
 DOCUMENTATION = """
-    name: hello_world
+    name: sample_module
     author: Your Name (@username)
     version_added: "1.0.0"
     short_description: A custom module plugin for Ansible.
