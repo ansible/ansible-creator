@@ -57,8 +57,7 @@ class Add:
         elif self._plugin_type:
             self._check_collection_path()
             plugin_path = self._add_path / "plugins" / self._plugin_type
-            if self._plugin_type != "module":
-                plugin_path.mkdir(parents=True, exist_ok=True)
+            plugin_path.mkdir(parents=True, exist_ok=True)
             self._plugin_scaffold(plugin_path)
 
     def _check_path_exists(self) -> None:
