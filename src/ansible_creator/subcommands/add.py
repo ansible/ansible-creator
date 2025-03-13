@@ -67,8 +67,7 @@ class Add:
         elif self._plugin_type:
             self._check_collection_path()
             plugin_path = self._add_path / "plugins" / self._plugin_type
-            if self._plugin_type != "module":
-                plugin_path.mkdir(parents=True, exist_ok=True)
+            plugin_path.mkdir(parents=True, exist_ok=True)
             self._plugin_scaffold(plugin_path)
 
     def _check_path_exists(self) -> None:
@@ -221,10 +220,8 @@ class Add:
             template_data = self._get_plugin_template_data()
             self._perform_lookup_plugin_scaffold(template_data, plugin_path)
 
-        elif self._plugin_type == "module":
+        elif self._plugin_type == "modules":
             template_data = self._get_plugin_template_data()
-            plugin_path = self._add_path / "plugins" / "sample_module"
-            plugin_path.mkdir(parents=True, exist_ok=True)
             self._perform_module_plugin_scaffold(template_data, plugin_path)
 
         elif self._plugin_type == "test":
@@ -270,7 +267,7 @@ class Add:
         template_data: TemplateData,
         plugin_path: Path,
     ) -> None:
-        resources = ("collection_project.plugins.sample_module",)
+        resources = (f"collection_project.plugins.{self._plugin_type}",)
         self._perform_plugin_scaffold(resources, template_data, plugin_path)
 
     def _perform_test_plugin_scaffold(
