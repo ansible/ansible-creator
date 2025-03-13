@@ -723,7 +723,7 @@ def test_run_success_add_plugin_module(
     Raises:
         AssertionError: If the assertion fails.
     """
-    cli_args["plugin_type"] = "module"
+    cli_args["plugin_type"] = "module" 
     add = Add(
         Config(**cli_args),
     )
@@ -741,20 +741,20 @@ def test_run_success_add_plugin_module(
     result = capsys.readouterr().out
     assert re.search("Note: Module plugin added to", result) is not None
 
-    expected_file = tmp_path / "plugins" / "sample_module" / "sample_module.py"
+    expected_file = tmp_path / "plugins" / "modules" / "sample_module.py"
     effective_file = (
         FIXTURES_DIR
         / "collection"
         / "testorg"
         / "testcol"
         / "plugins"
-        / "sample_module"
+        / "modules"
         / "sample_module.py"
     )
     cmp_result = cmp(expected_file, effective_file, shallow=False)
     assert cmp_result
 
-    conflict_file = tmp_path / "plugins" / "sample_module" / "sample_module.py"
+    conflict_file = tmp_path / "plugins" / "modules" / "sample_module.py"
     conflict_file.write_text("Author: Your Name")
 
     # expect a CreatorError when the response to overwrite is no.
