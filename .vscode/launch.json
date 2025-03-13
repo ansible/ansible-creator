@@ -15,7 +15,7 @@
       "type": "debugpy",
       "request": "launch",
       "module": "ansible_creator",
-      "args": ["init", "collection", "testns.testname", "/Users/shvenkat/col"],
+      "args": ["init", "playbook", "testns.testname", "/home/user/..path/to/your/new_playbook_project"],
       "cwd": "${workspaceFolder}/src",
       "justMyCode": false
     },
@@ -24,7 +24,12 @@
       "type": "debugpy",
       "request": "launch",
       "module": "ansible_creator",
-      "args": ["add", "plugin", "module", "newMods", "/Users/shvenkat/col"],
+      "args": [
+        "add",
+        "resource",
+        "devcontainer",
+        "/home/user/..path/to/your/existing_project"
+      ],
       "cwd": "${workspaceFolder}/src",
       "justMyCode": false
     }
