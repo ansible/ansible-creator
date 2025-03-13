@@ -20,6 +20,12 @@ if TYPE_CHECKING:
     from ansible_creator.config import Config
     from ansible_creator.output import Output
 
+MODULE_REPLACERS = {
+    "project_org": "namespace",
+    "project_repo": "collection_name",
+    "hello_world": "plugin_name",
+    "sample_module": "plugin_name",
+}
 
 class Add:
     """Class to handle the add subcommand."""
@@ -294,6 +300,7 @@ class Add:
             output=self.output,
             template_data=template_data,
             templar=self.templar,
+            path_replacers=MODULE_REPLACERS,
         )
         paths = walker.collect_paths()
         copier = Copier(output=self.output)

@@ -28,15 +28,15 @@ DOCUMENTATION = """
 """
 
 EXAMPLES = """
-# hello_world module example
+# sample_module module example
 
 - name: Display a hello message
   ansible.builtin.debug:
-    msg: "{{ 'ansible-creator' | hello_world }}"
+    msg: "{{ 'ansible-creator' | sample_module }}"
 """
 
 
-def _hello_world(name: str) -> str:
+def _sample_module(name: str) -> str:
     """Returns Hello message.
 
     Args:
@@ -57,4 +57,4 @@ class SampleModule:
         Returns:
             dict: The module plugin functions.
         """
-        return {"hello_world": _hello_world}
+        return {"sample_module": _sample_module}
