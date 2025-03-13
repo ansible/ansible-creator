@@ -218,7 +218,7 @@ class Add:
 
         elif self._plugin_type == "test":
             template_data = self._get_plugin_template_data()
-            plugin_path= self._add_path / "plugins" / "sample_test"
+            plugin_path = self._add_path / "plugins" / "sample_test"
             plugin_path.mkdir(parents=True, exist_ok=True)
             self._perform_test_plugin_scaffold(template_data, plugin_path)
 

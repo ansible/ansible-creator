@@ -418,6 +418,7 @@ class Parser:
 
     def _add_plugin_test(self, subparser: SubParser[ArgumentParser]) -> None:
         """Add a test plugin to an existing Ansible collection project.
+
         Args:
             subparser: The subparser to add test plugin to
         """

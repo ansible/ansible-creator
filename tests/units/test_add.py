@@ -783,6 +783,7 @@ def test_run_success_add_plugin_module(
     ), result
     assert re.search("Note: Module plugin added to", result) is not None
 
+
 def test_run_success_add_plugin_test(
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
@@ -796,6 +797,7 @@ def test_run_success_add_plugin_test(
         tmp_path: Temporary directory path.
         cli_args: Dictionary, partial Add class object.
         monkeypatch: Pytest monkeypatch fixture.
+
     Raises:
         AssertionError: If the assertion fails.
     """
@@ -819,7 +821,13 @@ def test_run_success_add_plugin_test(
 
     expected_file = tmp_path / "plugins" / "sample_test" / "hello_world.py"
     effective_file = (
-        FIXTURES_DIR / "collection" / "testorg" / "testcol" / "plugins" / "sample_test" / "hello_world.py"
+        FIXTURES_DIR
+        / "collection"
+        / "testorg"
+        / "testcol"
+        / "plugins"
+        / "sample_test"
+        / "hello_world.py"
     )
     cmp_result = cmp(expected_file, effective_file, shallow=False)
     assert cmp_result
