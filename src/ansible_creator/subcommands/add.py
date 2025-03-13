@@ -57,7 +57,7 @@ class Add:
         elif self._plugin_type:
             self._check_collection_path()
             plugin_path = self._add_path / "plugins" / self._plugin_type
-            if self._plugin_type != "module":
+            if self._plugin_type != "module" or self._plugin_type != "test":
                 plugin_path.mkdir(parents=True, exist_ok=True)
             self._plugin_scaffold(plugin_path)
 
@@ -215,6 +215,13 @@ class Add:
             plugin_path = self._add_path / "plugins" / "sample_module"
             plugin_path.mkdir(parents=True, exist_ok=True)
             self._perform_module_plugin_scaffold(template_data, plugin_path)
+
+        elif self._plugin_type == "test":
+            template_data = self._get_plugin_template_data()
+            plugin_path= self._add_path / "plugins" / "sample_test"
+            plugin_path.mkdir(parents=True, exist_ok=True)
+            self._perform_test_plugin_scaffold(template_data, plugin_path)
+
         else:
             msg = f"Unsupported plugin type: {self._plugin_type}"
             raise CreatorError(msg)
@@ -255,6 +262,14 @@ class Add:
         plugin_path: Path,
     ) -> None:
         resources = ("collection_project.plugins.sample_module",)
+        self._perform_plugin_scaffold(resources, template_data, plugin_path)
+
+    def _perform_test_plugin_scaffold(
+        self,
+        template_data: TemplateData,
+        plugin_path: Path,
+    ) -> None:
+        resources = ("collection_project.plugins.test",)
         self._perform_plugin_scaffold(resources, template_data, plugin_path)
 
     def _perform_plugin_scaffold(
