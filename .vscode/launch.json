@@ -15,7 +15,12 @@
       "type": "debugpy",
       "request": "launch",
       "module": "ansible_creator",
-      "args": ["init", "playbook", "testns.testname", "/home/user/..path/to/your/new_playbook_project"],
+      "args": [
+        "init",
+        "playbook",
+        "testns.testname",
+        "/home/user/..path/to/your/new_playbook_project"
+      ],
       "cwd": "${workspaceFolder}/src",
       "justMyCode": false
     },
