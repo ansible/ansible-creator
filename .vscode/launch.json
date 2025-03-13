@@ -15,12 +15,7 @@
       "type": "debugpy",
       "request": "launch",
       "module": "ansible_creator",
-      "args": [
-        "init",
-        "collection",
-        "testns.testname",
-        "/Users/shvenkat/col"
-      ],
+      "args": ["init", "collection", "testns.testname", "/Users/shvenkat/col"],
       "cwd": "${workspaceFolder}/src",
       "justMyCode": false
     },
@@ -29,13 +24,7 @@
       "type": "debugpy",
       "request": "launch",
       "module": "ansible_creator",
-      "args": [
-        "add",
-        "plugin",
-        "module",
-        "newMods",
-        "/Users/shvenkat/col"
-      ],
+      "args": ["add", "plugin", "module", "newMods", "/Users/shvenkat/col"],
       "cwd": "${workspaceFolder}/src",
       "justMyCode": false
     }
