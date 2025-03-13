@@ -509,7 +509,7 @@ def test_run_success_add_plugin_filter(
     result = capsys.readouterr().out
     assert re.search("Note: Filter plugin added to", result) is not None
 
-    expected_file = tmp_path / "plugins" / "filter" / "hello_world.py"
+    expected_file = tmp_path / "plugins" / "filter" / "sample_filter.py"
     effective_file = (
         FIXTURES_DIR
         / "collection"
@@ -517,12 +517,12 @@ def test_run_success_add_plugin_filter(
         / "testcol"
         / "plugins"
         / "filter"
-        / "hello_world.py"
+        / "sample_filter.py"
     )
     cmp_result = cmp(expected_file, effective_file, shallow=False)
     assert cmp_result
 
-    conflict_file = tmp_path / "plugins" / "filter" / "hello_world.py"
+    conflict_file = tmp_path / "plugins" / "filter" / "sample_filter.py"
     conflict_file.write_text("Author: Your Name")
 
     # expect a CreatorError when the response to overwrite is no.
@@ -589,7 +589,7 @@ def test_run_success_add_plugin_lookup(
     result = capsys.readouterr().out
     assert re.search("Note: Lookup plugin added to", result) is not None
 
-    expected_file = tmp_path / "plugins" / "lookup" / "hello_world.py"
+    expected_file = tmp_path / "plugins" / "lookup" / "sample_lookup.py"
     effective_file = (
         FIXTURES_DIR
         / "collection"
@@ -597,12 +597,12 @@ def test_run_success_add_plugin_lookup(
         / "testcol"
         / "plugins"
         / "lookup"
-        / "hello_world.py"
+        / "sample_lookup.py"
     )
     cmp_result = cmp(expected_file, effective_file, shallow=False)
     assert cmp_result
 
-    conflict_file = tmp_path / "plugins" / "lookup" / "hello_world.py"
+    conflict_file = tmp_path / "plugins" / "lookup" / "sample_lookup.py"
     conflict_file.write_text("Author: Your Name")
 
     # expect a CreatorError when the response to overwrite is no.
@@ -679,8 +679,8 @@ def test_run_success_add_plugin_action(
     result = capsys.readouterr().out
     assert re.search("Note: Action plugin added to", result) is not None
 
-    expected_plugin_file = tmp_path / "plugins" / "action" / "hello_world.py"
-    expected_module_file = tmp_path / "plugins" / "modules" / "hello_world.py"
+    expected_plugin_file = tmp_path / "plugins" / "action" / "sample_action.py"
+    expected_module_file = tmp_path / "plugins" / "modules" / "sample_action.py"
     effective_plugin_file = (
         FIXTURES_DIR
         / "collection"
@@ -688,7 +688,7 @@ def test_run_success_add_plugin_action(
         / "testcol"
         / "plugins"
         / "action"
-        / "hello_world.py"
+        / "sample_action.py"
     )
     effective_module_file = (
         FIXTURES_DIR
@@ -697,7 +697,7 @@ def test_run_success_add_plugin_action(
         / "testcol"
         / "plugins"
         / "modules"
-        / "hello_world.py"
+        / "sample_action.py"
     )
     cmp_result1 = cmp(expected_plugin_file, effective_plugin_file, shallow=False)
     cmp_result2 = cmp(expected_module_file, effective_module_file, shallow=False)
@@ -741,7 +741,7 @@ def test_run_success_add_plugin_module(
     result = capsys.readouterr().out
     assert re.search("Note: Module plugin added to", result) is not None
 
-    expected_file = tmp_path / "plugins" / "sample_module" / "hello_world.py"
+    expected_file = tmp_path / "plugins" / "sample_module" / "sample_module.py"
     effective_file = (
         FIXTURES_DIR
         / "collection"
@@ -749,12 +749,12 @@ def test_run_success_add_plugin_module(
         / "testcol"
         / "plugins"
         / "sample_module"
-        / "hello_world.py"
+        / "sample_module.py"
     )
     cmp_result = cmp(expected_file, effective_file, shallow=False)
     assert cmp_result
 
-    conflict_file = tmp_path / "plugins" / "sample_module" / "hello_world.py"
+    conflict_file = tmp_path / "plugins" / "sample_module" / "sample_module.py"
     conflict_file.write_text("Author: Your Name")
 
     # expect a CreatorError when the response to overwrite is no.
@@ -895,7 +895,7 @@ def test_run_error_plugin_no_overwrite(
     result = capsys.readouterr().out
     assert re.search("Note: Lookup plugin added to", result) is not None
 
-    expected_file = tmp_path / "plugins" / "lookup" / "hello_world.py"
+    expected_file = tmp_path / "plugins" / "lookup" / "sample_lookup.py"
     effective_file = (
         FIXTURES_DIR
         / "collection"
@@ -903,12 +903,12 @@ def test_run_error_plugin_no_overwrite(
         / "testcol"
         / "plugins"
         / "lookup"
-        / "hello_world.py"
+        / "sample_lookup.py"
     )
     cmp_result = cmp(expected_file, effective_file, shallow=False)
     assert cmp_result
 
-    conflict_file = tmp_path / "plugins" / "lookup" / "hello_world.py"
+    conflict_file = tmp_path / "plugins" / "lookup" / "sample_lookup.py"
     conflict_file.write_text("name: Your Name")
 
     cli_args["no_overwrite"] = True
