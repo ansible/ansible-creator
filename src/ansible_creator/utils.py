@@ -188,6 +188,7 @@ class Walker:
     template_data: TemplateData
     resource_root: str = "ansible_creator.resources"
     templar: Templar | None = None
+    path_replacers: dict[str, str] | None = None
 
     def _recursive_walk(
         self,
@@ -245,7 +246,8 @@ class Walker:
             maxsplit=1,
         )[-1]
         # replace placeholders in destination path with real values
-        for key, val in PATH_REPLACERS.items():
+        replacers = self.path_replacers or PATH_REPLACERS
+        for key, val in replacers.items():
             if key in dest_name:
                 repl_val = getattr(template_data, val)
                 dest_name = dest_name.replace(key, repl_val)

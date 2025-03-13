@@ -17,9 +17,9 @@
       "module": "ansible_creator",
       "args": [
         "init",
-        "playbook",
+        "collection",
         "testns.testname",
-        "/home/user/..path/to/your/new_playbook_project"
+        "/Users/shvenkat/col"
       ],
       "cwd": "${workspaceFolder}/src",
       "justMyCode": false
@@ -31,9 +31,10 @@
       "module": "ansible_creator",
       "args": [
         "add",
-        "resource",
-        "devcontainer",
-        "/home/user/..path/to/your/existing_project"
+        "plugin",
+        "module",
+        "newMods",
+        "/Users/shvenkat/col"
       ],
       "cwd": "${workspaceFolder}/src",
       "justMyCode": false
