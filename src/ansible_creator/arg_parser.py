@@ -429,7 +429,7 @@ class Parser:
         )
         self._add_args_common(parser)
         self._add_overwrite(parser)
-        self._add_args_plugin_common(parser)    
+        self._add_args_plugin_common(parser)
 
     def _add_overwrite(self, parser: ArgumentParser) -> None:
         """Add overwrite and no-overwrite arguments to the parser.
