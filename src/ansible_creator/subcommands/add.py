@@ -27,6 +27,7 @@ MODULE_REPLACERS = {
     "sample_module": "plugin_name",
 }
 
+
 class Add:
     """Class to handle the add subcommand."""
 
