@@ -68,6 +68,6 @@ class Config:
 
         if isinstance(self.init_path, str):
             object.__setattr__(self, "init_path", expand_path(self.init_path))
-        
+
         if self.plugin_type == "module":
             object.__setattr__(self, "plugin_type", "modules")
