@@ -1,6 +1,11 @@
 # hello_world.py - A custom test plugin for Ansible.
+
+# pylint: disable=E0401
 # Author: Your Name (@username)
 # License: GPL-3.0-or-later
+# Copyright 2020 Red Hat
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, annotations, division, print_function
 
@@ -51,6 +56,6 @@ class SampleTest:
     def tests(self) -> dict[str, Callable[[str], str]]:
         """Map test plugin names to their functions.
         Returns:
-            dict: The test plugin functions.
+            dict: The module plugin functions.
         """
         return {"hello_world": _hello_world}
