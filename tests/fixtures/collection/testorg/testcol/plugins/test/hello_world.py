@@ -56,6 +56,6 @@ class SampleTest:
     def tests(self) -> dict[str, Callable[[str], str]]:
         """Map test plugin names to their functions.
         Returns:
-            dict: The module plugin functions.
+            dict: The test plugin functions.
         """
         return {"hello_world": _hello_world}
