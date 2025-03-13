@@ -1,5 +1,5 @@
 {# module_plugin_template.j2 #}
-{%- set module_name = plugin_name | default("hello_world") -%}
+{%- set module_name = plugin_name | default("sample_module") -%}
 {%- set author = author |  default("Your Name (@username)") -%}
 {%- set description = description | default("A custom module plugin for Ansible.") -%}
 {%- set license = license | default("GPL-3.0-or-later") -%}
@@ -41,7 +41,7 @@ EXAMPLES = """
 """
 
 
-def _hello_world(name: str) -> str:
+def _sample_module(name: str) -> str:
     """Returns Hello message.
 
     Args:
@@ -62,4 +62,4 @@ class SampleModule:
         Returns:
             dict: The module plugin functions.
         """
-        return {"{{ module_name }}": _hello_world}
+        return {"{{ module_name }}": _sample_module}

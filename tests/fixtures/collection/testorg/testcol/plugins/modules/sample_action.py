@@ -1,8 +1,8 @@
-# hello_world.py
+# sample_action.py
 # GNU General Public License v3.0+
 
 DOCUMENTATION = """
-    module: hello_world
+    module: sample_action
     author: Your Name (@username)
     version_added: "1.0.0"
     short_description: A custom action plugin for Ansible.
@@ -28,7 +28,7 @@ EXAMPLES = """
 - name: Example Action Plugin
   hosts: localhost
   tasks:
-    - name: Example hello_world plugin
+    - name: Example sample_action plugin
       with_prefix:
         prefix: "Hello, World"
         msg: "Ansible!"
