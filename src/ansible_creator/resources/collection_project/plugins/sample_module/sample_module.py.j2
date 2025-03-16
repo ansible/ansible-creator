@@ -37,7 +37,8 @@ EXAMPLES = """
 {% raw %}
 - name: Display a hello message
   ansible.builtin.debug:
-    msg: "{{ 'ansible-creator' {%- endraw %} | {{ module_name }} }}"
+    msg: "{{ 'ansible-creator' | {% endraw %}{{ module_name }}{% raw %} }}"
+{% endraw %}
 """
 
 
