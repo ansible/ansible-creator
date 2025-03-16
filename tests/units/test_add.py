@@ -750,7 +750,7 @@ def test_run_success_add_plugin_module(
         / "testcol"
         / "plugins"
         / "sample_module"
-        / "sample_module.py"
+        / "sample_module_add.py"
     )
     cmp_result = cmp(expected_file, effective_file, shallow=False)
     if cmp_result is False:
