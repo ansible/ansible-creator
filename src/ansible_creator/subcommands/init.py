@@ -112,7 +112,7 @@ class Init:
         final_uuid = str(uuid.uuid4())[:8]
         return f"{final_name}-{final_uuid}"
 
-    def _scaffold(self) -> None:
+    def  _scaffold(self) -> None:
         """Scaffold an ansible project.
 
         Raises:
@@ -144,7 +144,7 @@ class Init:
             template_data=template_data,
         )
         paths = walker.collect_paths()
-
+       
         copier = Copier(
             output=self.output,
         )

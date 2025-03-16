@@ -34,7 +34,7 @@ class TemplateData:
 
     resource_type: str = ""
     plugin_type: str = ""
-    plugin_name: str = "hello_world"
+    plugin_name: str = "plugin_name"
     additions: dict[str, dict[str, dict[str, str | bool]]] = field(default_factory=dict)
     collection_name: str = ""
     creator_version: str = ""
