@@ -752,9 +752,16 @@ def test_run_success_add_plugin_module(
         / "sample_module"
         / "sample_module.py"
     )
-    cmp_result = dircmp(expected_file, effective_file)
-    diff = has_differences(dcmp=cmp_result, errors=[])
-    assert diff == [], diff
+    cmp_result = cmp(expected_file, effective_file, shallow=False)
+    if cmp_result is False:
+        try:
+            subprocess.run(["diff", "-u", expected_file, effective_file], check=True)
+        except subprocess.CalledProcessError:
+            # diff returns exit code 1 if differences exist, which is expected.
+            pass
+        except FileNotFoundError:
+            print("Error: `diff` command not found. Ensure you are on a Unix-like system.")
+    assert cmp_result
 
     conflict_file = tmp_path / "plugins" / "sample_module" / "sample_module.py"
     conflict_file.write_text("Author: Your Name")
