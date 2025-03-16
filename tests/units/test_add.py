@@ -724,6 +724,7 @@ def test_run_success_add_plugin_module(
         AssertionError: If the assertion fails.
     """
     cli_args["plugin_type"] = "module"
+    cli_args["plugin_name"] = "sample_module"
     add = Add(
         Config(**cli_args),
     )
