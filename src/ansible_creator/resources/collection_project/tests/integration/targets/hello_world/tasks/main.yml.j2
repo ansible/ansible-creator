@@ -1,7 +1,7 @@
 ---
 - name: Test the Hello World filter plugin
   ansible.builtin.set_fact:
-    msg: {% raw %}"{{ 'ansible-creator' | {% endraw %}{{ namespace }}.{{ collection_name }}.{% raw %}sample_filter }}"{% endraw %}
+    msg: {% raw %}"{{ 'ansible-creator' | {% endraw %}{{ namespace }}.{{ collection_name }}.{% raw %}hello_world }}"{% endraw %}
 
 - name: Assert that the filter worked
   ansible.builtin.assert:

@@ -79,7 +79,7 @@ def fixture_cli_args(tmp_path: Path, output: Output) -> ConfigDict:
         "type": "resource",
         "resource_type": "",
         "plugin_type": "",
-        "plugin_name": "",
+        "plugin_name": "hello_world",
         "path": str(tmp_path),
         "force": False,
         "overwrite": False,
