@@ -1,4 +1,4 @@
-# sample_action.py - A custom action plugin for Ansible.
+# hello_world.py - A custom action plugin for Ansible.
 # Author: Your Name
 # License: GPL-3.0-or-later
 # pylint: disable=E0401
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
 class ActionModule(ActionBase):  # type: ignore[misc]
     """
-    Custom Ansible action plugin: sample_action
+    Custom Ansible action plugin: hello_world
     A custom action plugin for Ansible.
     """
 

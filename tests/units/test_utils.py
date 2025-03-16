@@ -78,6 +78,7 @@ def test_overwrite(tmp_path: Path, output: Output) -> None:
         dest=tmp_path,
         output=output,
         template_data=TemplateData(),
+        path_replacers=None,
     )
     paths = walker.collect_paths()
 

@@ -1,14 +1,14 @@
-# sample_lookup.py - A custom lookup plugin for Ansible.
+# hello_world.py - A custom lookup plugin for Ansible.
 
 # pylint: disable=E0401
-# sample_lookup.py - A custom lookup plugin for Ansible.
+# hello_world.py - A custom lookup plugin for Ansible.
 # Author: Your Name (@username)
 # Copyright 2020 Red Hat
 # GNU General Public License v3.0+
 # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 DOCUMENTATION = """
-    name: sample_lookup
+    name: hello_world
     author: Your Name (@username)
     version_added: "1.0.0"
     short_description: A custom lookup plugin for Ansible.
@@ -23,9 +23,9 @@ DOCUMENTATION = """
 """
 
 EXAMPLES = """
-- name: Example usage of sample_lookup
+- name: Example usage of hello_world
   ansible.builtin.debug:
-    msg: "{{ lookup('sample_lookup', 'example_term') }}"
+    msg: "{{ lookup('hello_world', 'example_term') }}"
 """
 
 RETURN = """
@@ -45,7 +45,7 @@ display = Display()
 
 class LookupModule(LookupBase):  # type: ignore[misc]
     """
-    Custom Ansible lookup plugin: sample_lookup
+    Custom Ansible lookup plugin: hello_world
     A custom lookup plugin for Ansible.
     """
 
@@ -72,14 +72,14 @@ class LookupModule(LookupBase):  # type: ignore[misc]
         if not isinstance(terms, list):
             raise AnsibleError("The 'terms' parameter must be a list.")
 
-        display.vvv(f"Running sample_lookup lookup plugin with terms: {terms}")
+        display.vvv(f"Running hello_world lookup plugin with terms: {terms}")
 
         try:
             # Example processing logic - Replace this with actual lookup code
             result = [term.upper() for term in terms]
 
-            display.vvv(f"Result from sample_lookup lookup: {result}")
+            display.vvv(f"Result from hello_world lookup: {result}")
             return result
 
         except Exception as e:
-            raise AnsibleError(f"Error in sample_lookup plugin: {e}") from e
+            raise AnsibleError(f"Error in hello_world plugin: {e}") from e

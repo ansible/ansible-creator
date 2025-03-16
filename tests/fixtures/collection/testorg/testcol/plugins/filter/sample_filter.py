@@ -1,4 +1,4 @@
-# sample_filter.py - A custom filter plugin for Ansible.
+# hello_world.py - A custom filter plugin for Ansible.
 # Author: Your Name
 # License: GPL-3.0-or-later
 
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 
 DOCUMENTATION = """
-    name: sample_filter
+    name: hello_world
     author: Your Name
     version_added: "1.0.0"
     short_description: A custom filter plugin for Ansible.
@@ -28,11 +28,11 @@ DOCUMENTATION = """
 """
 
 EXAMPLES = """
-# sample_filter filter example
+# hello_world filter example
 
 - name: Display a hello message
   ansible.builtin.debug:
-    msg: "{{ 'ansible-creator' | sample_filter }}"
+    msg: "{{ 'ansible-creator' | hello_world }}"
 """
 
 
@@ -57,4 +57,4 @@ class FilterModule:
         Returns:
             dict: The filter plugin functions.
         """
-        return {"sample_filter": _sample_filter}
+        return {"hello_world": _sample_filter}

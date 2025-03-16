@@ -1,4 +1,4 @@
-# sample_module.py - A custom module plugin for Ansible.
+# hello_world.py - A custom module plugin for Ansible.
 # Author: Your Name (@username)
 # License: GPL-3.0-or-later
 
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 
 DOCUMENTATION = """
-    name: sample_module
+    name: hello_world
     author: Your Name (@username)
     version_added: "1.0.0"
     short_description: A custom module plugin for Ansible.
@@ -28,11 +28,11 @@ DOCUMENTATION = """
 """
 
 EXAMPLES = """
-# sample_module module example
+# hello_world module example
 
 - name: Display a hello message
   ansible.builtin.debug:
-    msg: "{{ 'ansible-creator' | sample_module }}"
+    msg: "{{ 'ansible-creator' | hello_world }}"
 """
 
 
@@ -57,4 +57,4 @@ class SampleModule:
         Returns:
             dict: The module plugin functions.
         """
-        return {"sample_module": _sample_module}
+        return {"hello_world": _sample_module}
