@@ -752,8 +752,9 @@ def test_run_success_add_plugin_module(
         / "sample_module"
         / "sample_module.py"
     )
-    cmp_result = cmp(expected_file, effective_file, shallow=False)
-    assert cmp_result
+    cmp_result = cmp(expected_file, effective_file)
+    diff = has_differences(dcmp=cmp_result, errors=[])
+    assert diff == [], diff
 
     conflict_file = tmp_path / "plugins" / "sample_module" / "sample_module.py"
     conflict_file.write_text("Author: Your Name")
