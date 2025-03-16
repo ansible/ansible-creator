@@ -752,7 +752,7 @@ def test_run_success_add_plugin_module(
         / "sample_module"
         / "sample_module.py"
     )
-    cmp_result = cmp(expected_file, effective_file)
+    cmp_result = dircmp(expected_file, effective_file)
     diff = has_differences(dcmp=cmp_result, errors=[])
     assert diff == [], diff
 
