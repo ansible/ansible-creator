@@ -1,5 +1,5 @@
 {# module_plugin_template.j2 #}
-{%- set module_name = plugin_name | default("sample_module") -%}
+{%- set module_name = plugin_name | default("hello_world") -%}
 {%- set author = author |  default("Your Name (@username)") -%}
 {%- set description = description | default("A custom module plugin for Ansible.") -%}
 {%- set license = license | default("GPL-3.0-or-later") -%}
@@ -34,13 +34,14 @@ DOCUMENTATION = """
 
 EXAMPLES = """
 # {{ module_name }} module example
+{% raw %}
 - name: Display a hello message
   ansible.builtin.debug:
-    msg: "{{ '{{ \\'ansible-creator\\' | ' }}{{ module_name }}{{ ' }}' }}"
+    msg: "{{ 'ansible-creator' {%- endraw %} | {{ module_name }} }}"
 """
 
 
-def _sample_module(name: str) -> str:
+def _hello_world(name: str) -> str:
     """Returns Hello message.
 
     Args:
@@ -61,4 +62,4 @@ class SampleModule:
         Returns:
             dict: The module plugin functions.
         """
-        return {"{{ module_name }}": _sample_module}
+        return {"{{ module_name }}": _hello_world}
