@@ -119,59 +119,47 @@ def test_run_success_for_collection(
         AssertionError: If the assertion fails.
     """
     cli_args["project"] = "collection"
-    init = Init(
-        Config(**cli_args),
-    )
+    init = Init(Config(**cli_args))
 
-    # Mock the "unique_name_in_devfile" method
     def mock_unique_name_in_devfile(init: Init) -> str:
         coll_namespace = init._namespace
         coll_name = init._collection_name
+        print(f"🔍 Debug: coll_namespace={coll_namespace}, coll_name={coll_name}")
         return f"{coll_namespace}.{coll_name}"
 
     with pytest.MonkeyPatch.context() as mp:
-        # Apply the mock
-        mp.setattr(
-            Init,
-            "unique_name_in_devfile",
-            mock_unique_name_in_devfile,
-        )
+        mp.setattr(Init, "unique_name_in_devfile", mock_unique_name_in_devfile)
         init.run()
-    result = capsys.readouterr().out
 
-    # check stdout
+    result = capsys.readouterr().out
+    print(f"🔍 Debug: Result Output:\n{result}")
+
     assert re.search(r"Note: collection project created", result) is not None
 
-    # recursively assert files created
     cmp = dircmp(str(tmp_path), str(FIXTURES_DIR / "collection"), ignore=[".DS_Store"])
     diff = has_differences(dcmp=cmp, errors=[])
     assert diff == [], diff
 
-    # expect a CreatorError when the response to overwrite is no.
+    # Handle overwrite logic
     monkeypatch.setattr("builtins.input", lambda _: "n")
     fail_msg = (
         "The destination directory contains files that will be overwritten."
         " Please re-run ansible-creator with --overwrite to continue."
     )
-    with pytest.raises(
-        CreatorError,
-        match=fail_msg,
-    ):
+    with pytest.raises(CreatorError, match=fail_msg):
         init.run()
 
-    # expect a warning followed by collection project creation msg
-    # when response to overwrite is yes.
     monkeypatch.setattr("builtins.input", lambda _: "y")
     init.run()
     result = capsys.readouterr().out
-    assert (
-        re.search(
-            r"already exists",
-            result,
-        )
-        is not None
-    ), result
+    assert re.search(r"already exists", result) is not None, result
     assert re.search(r"Note: collection project created at", result) is not None, result
+
+    cli_args["force"] = True
+    init = Init(Config(**cli_args))
+    init.run()
+    result = capsys.readouterr().out
+    assert re.search(r"Warning: re-initializing existing directory", result) is not None, result
 
     # override existing collection with force=true
     cli_args["force"] = True
