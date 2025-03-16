@@ -4,15 +4,12 @@
 
 from __future__ import absolute_import, annotations, division, print_function
 
-
 __metaclass__ = type  # pylint: disable=C0103
 
 from typing import TYPE_CHECKING
 
-
 if TYPE_CHECKING:
     from typing import Callable
-
 
 DOCUMENTATION = """
     name: sample_module
@@ -29,12 +26,10 @@ DOCUMENTATION = """
 
 EXAMPLES = """
 # sample_module module example
-
 - name: Display a hello message
   ansible.builtin.debug:
     msg: "{{ 'ansible-creator' | sample_module }}"
 """
-
 
 def _hello_world(name: str) -> str:
     """Returns Hello message.
