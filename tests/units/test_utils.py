@@ -51,7 +51,7 @@ def test_skip_dirs(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, output: Outp
         dest=tmp_path,
         output=output,
         template_data=TemplateData(),
-        path_replacers=None
+        path_replacers=None,
     )
     paths = walker.collect_paths()
 

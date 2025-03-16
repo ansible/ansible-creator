@@ -15,12 +15,7 @@
       "type": "debugpy",
       "request": "launch",
       "module": "ansible_creator",
-      "args": [
-        "init",
-        "collection",
-        "testns.testname",
-        "/Users/shvenkat/abcd"
-      ],
+      "args": ["init", "collection", "testns.testname", "/Users/shvenkat/abcd"],
       "cwd": "${workspaceFolder}/src",
       "justMyCode": false
     },
@@ -29,13 +24,7 @@
       "type": "debugpy",
       "request": "launch",
       "module": "ansible_creator",
-      "args": [
-        "add",
-        "plugin",
-        "module",
-        "nkjen",
-        "//Users/shvenkat/abcd"
-      ],
+      "args": ["add", "plugin", "module", "nkjen", "//Users/shvenkat/abcd"],
       "cwd": "${workspaceFolder}/src",
       "justMyCode": false
     }
