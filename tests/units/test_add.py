@@ -492,6 +492,7 @@ def test_run_success_add_plugin_filter(
         AssertionError: If the assertion fails.
     """
     cli_args["plugin_type"] = "filter"
+    cli_args["plugin_name"] = "sample_filter"
     add = Add(
         Config(**cli_args),
     )
@@ -572,6 +573,7 @@ def test_run_success_add_plugin_lookup(
         AssertionError: If the assertion fails.
     """
     cli_args["plugin_type"] = "lookup"
+    cli_args["plugin_name"] = "sample_lookup"
     add = Add(
         Config(**cli_args),
     )
@@ -651,6 +653,7 @@ def test_run_success_add_plugin_action(
         AssertionError: If the assertion fails.
     """
     cli_args["plugin_type"] = "action"
+    cli_args["plugin_name"] = "sample_action"
     add = Add(
         Config(**cli_args),
     )
@@ -724,6 +727,7 @@ def test_run_success_add_plugin_module(
         AssertionError: If the assertion fails.
     """
     cli_args["plugin_type"] = "module"
+    cli_args["plugin_name"] = "sample_module"
     add = Add(
         Config(**cli_args),
     )
