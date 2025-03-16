@@ -28,7 +28,7 @@ EXAMPLES = """
 - name: Example Module Plugin
   hosts: localhost
   tasks:
-    - name: Example hello_world plugin
+    - name: Example sample_module plugin
       with_prefix:
         prefix: "Hello, World"
         msg: "Ansible!"
