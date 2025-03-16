@@ -1,64 +1,37 @@
-{# module_plugin_template.j2 #}
 {%- set module_name = plugin_name | default("sample_module") -%}
-{%- set author = author |  default("Your Name (@username)") -%}
-{%- set description = description | default("A custom module plugin for Ansible.") -%}
-{%- set license = license | default("GPL-3.0-or-later") -%}
-# {{ module_name }}.py - {{ description }}
-# Author: {{ author }}
-# License: {{ license }}
-
-from __future__ import absolute_import, annotations, division, print_function
-
-__metaclass__ = type  # pylint: disable=C0103
-
-from typing import TYPE_CHECKING
-
-
-if TYPE_CHECKING:
-    from typing import Callable
-
+{%- set author = author | default("Your Name (@username)") -%}
+# {{ module_name }}.py
+# GNU General Public License v3.0+
 
 DOCUMENTATION = """
-    name: {{ module_name }}
+    module: {{ module_name }}
     author: {{ author }}
     version_added: "1.0.0"
-    short_description: {{ description }}
+    short_description: A custom module plugin for Ansible.
     description:
-      - This is a demo module plugin designed to return Hello message.
+      - This is a custom module plugin
     options:
-      name:
-        description: Value specified here is appended to the Hello message.
+      prefix:
+        description:
+          - A string that is added as a prefix to the message passed to the module.
         type: str
+      msg:
+        description: The message to display in the output.
+        type: str
+      with_prefix:
+        description:
+          - A boolean flag indicating whether to include the prefix in the message.
+        type: bool
+    notes:
+      - This is a scaffold template. Customize the plugin to fit your needs.
 """
 
 EXAMPLES = """
-# {{ module_name }} module example
-{% raw %}
-- name: Display a hello message
-  ansible.builtin.debug:
-    msg: "{{ 'ansible-creator' {%- endraw %} | {{ module_name }} }}"
+- name: Example Module Plugin
+  hosts: localhost
+  tasks:
+    - name: Example {{ module_name }} plugin
+      with_prefix:
+        prefix: "Hello, World"
+        msg: "Ansible!"
 """
-
-
-def _hello_world(name: str) -> str:
-    """Returns Hello message.
-
-    Args:
-        name: The name to greet.
-
-    Returns:
-        str: The greeting message.
-    """
-    return "Hello, " + name
-
-
-class SampleModule:
-    """module plugin."""
-
-    def modules(self) -> dict[str, Callable[[str], str]]:
-        """Map module plugin names to their functions.
-
-        Returns:
-            dict: The module plugin functions.
-        """
-        return {"{{ module_name }}": _hello_world}
