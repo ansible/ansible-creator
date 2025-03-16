@@ -246,7 +246,10 @@ class Walker:
             maxsplit=1,
         )[-1]
         # replace placeholders in destination path with real values
-        replacers = self.path_replacers or PATH_REPLACERS
+        if self.path_replacers is None:
+            replacers = PATH_REPLACERS
+        else:
+            replacers = self.path_replacers
         for key, val in replacers.items():
             if key in dest_name:
                 repl_val = getattr(template_data, val)

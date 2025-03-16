@@ -51,6 +51,7 @@ def test_skip_dirs(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, output: Outp
         dest=tmp_path,
         output=output,
         template_data=TemplateData(),
+        path_replacers=None
     )
     paths = walker.collect_paths()
 
@@ -78,6 +79,7 @@ def test_overwrite(tmp_path: Path, output: Output) -> None:
         dest=tmp_path,
         output=output,
         template_data=TemplateData(),
+        path_replacers=None,
     )
     paths = walker.collect_paths()
 
@@ -133,6 +135,7 @@ def test_skip_repeats(tmp_path: Path, output: Output) -> None:
         dest=tmp_path,
         output=output,
         template_data=TemplateData(),
+        path_replacers=None,
     )
     paths = walker.collect_paths()
     assert paths
