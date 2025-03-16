@@ -34,11 +34,9 @@ DOCUMENTATION = """
 
 EXAMPLES = """
 # {{ module_name }} module example
-{% raw %}
 - name: Display a hello message
   ansible.builtin.debug:
-    msg: "{{ 'ansible-creator' | {% endraw %}{{ module_name }}{% raw %} }}"
-{% endraw %}
+    msg: "{{ '{{ \\'ansible-creator\\' | ' }}{{ module_name }}{{ ' }}' }}"
 """
 
 
