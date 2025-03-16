@@ -1,8 +1,8 @@
-# hello_world.py
+# sample_module.py
 # GNU General Public License v3.0+
 
 DOCUMENTATION = """
-    module: hello_world
+    module: sample_module
     author: Your Name (@username)
     version_added: "1.0.0"
     short_description: A custom module plugin for Ansible.
@@ -28,7 +28,7 @@ EXAMPLES = """
 - name: Example Module Plugin
   hosts: localhost
   tasks:
-    - name: Example hello_world plugin
+    - name: Example sample_module plugin
       with_prefix:
         prefix: "Hello, World"
         msg: "Ansible!"
