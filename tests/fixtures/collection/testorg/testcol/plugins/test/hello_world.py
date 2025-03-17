@@ -32,7 +32,7 @@ EXAMPLES = """
 
 - name: Display a hello message
   ansible.builtin.debug:
-    msg: "{{ ansible-creator | hello_world }}"
+    msg: "{{ 50 | hello_world }}"
 """
 
 
