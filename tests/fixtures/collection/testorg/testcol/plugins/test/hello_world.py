@@ -51,7 +51,7 @@ def _hello_world(val: int) -> bool:
 class TestModule:
     """test plugin."""
 
-    def tests(self) -> dict[str, Callable[[str], str]]:
+    def tests(self) -> dict[str, Callable[[int], bool]]:
         """Map test plugin names to their functions.
 
         Returns:
