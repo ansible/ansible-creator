@@ -32,20 +32,20 @@ EXAMPLES = """
 
 - name: Display a hello message
   ansible.builtin.debug:
-    msg: "{{ 'ansible-creator' | hello_world }}"
+    msg: "{{ 50 | hello_world }}"
 """
 
 
-def _hello_world(name: str) -> str:
+def _hello_world(val: int) -> bool:
     """Returns Hello message.
 
     Args:
-        name: The name to greet.
+        val: The interger to test.
 
     Returns:
-        str: The greeting message.
+        int: The result.
     """
-    return "Hello, " + name
+    return val > 42
 
 
 class TestModule:

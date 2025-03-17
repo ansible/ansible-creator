@@ -37,20 +37,20 @@ EXAMPLES = """
 {% raw %}
 - name: Display a hello message
   ansible.builtin.debug:
-    msg: "{{ 'ansible-creator' {%- endraw %} | {{ test_name }} }}"
+    msg: "{{ 50 {%- endraw %} | {{ test_name }} }}"
 """
 
 
-def _hello_world(name: str) -> str:
+def _hello_world(val: int) -> bool:
     """Returns Hello message.
 
     Args:
-        name: The name to greet.
+        val: The interger to test.
 
     Returns:
-        str: The greeting message.
+        int: The result.
     """
-    return "Hello, " + name
+    return val > 42 
 
 
 class TestModule:
