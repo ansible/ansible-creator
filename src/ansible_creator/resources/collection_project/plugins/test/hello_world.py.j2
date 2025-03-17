@@ -41,22 +41,22 @@ EXAMPLES = """
 """
 
 
-def _hello_world(name: str) -> bool:
+def _hello_world(val: int) -> bool:
     """Returns Hello message.
 
     Args:
-        name: The str to test.
+        val: The value to test.
 
     Returns:
         bool: The result.
     """
-    return len(name) > 42
+    return val > 42
 
 
 class TestModule:
     """test plugin."""
 
-    def tests(self) -> dict[str, Callable[[str], bool]]:
+    def tests(self) -> dict[str, Callable[[int], bool]]:
         """Map test plugin names to their functions.
 
         Returns:
