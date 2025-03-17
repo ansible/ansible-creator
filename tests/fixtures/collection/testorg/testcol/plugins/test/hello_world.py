@@ -32,26 +32,26 @@ EXAMPLES = """
 
 - name: Display a hello message
   ansible.builtin.debug:
-    msg: "{{ 50 | hello_world }}"
+    msg: "{{ ansible-creator | hello_world }}"
 """
 
 
-def _hello_world(val: int) -> bool:
+def _hello_world(name: str) -> bool:
     """Returns Hello message.
 
     Args:
-        val: The interger to test.
+        name: The str to test.
 
     Returns:
-        int: The result.
+        bool: The result.
     """
-    return val > 42
+    return len(name) > 42
 
 
 class TestModule:
     """test plugin."""
 
-    def tests(self) -> dict[str, Callable[[int], bool]]:
+    def tests(self) -> dict[str, Callable[[str], bool]]:
         """Map test plugin names to their functions.
 
         Returns:
