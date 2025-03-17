@@ -266,7 +266,7 @@ class Add:
         template_data: TemplateData,
         plugin_path: Path,
     ) -> None:
-        resources = ("collection_project.plugins.test",)
+        resources = (f"collection_project.plugins.test.{self._plugin_type}",)
         self._perform_plugin_scaffold(resources, template_data, plugin_path)
 
     def _perform_plugin_scaffold(
