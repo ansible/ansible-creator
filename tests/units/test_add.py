@@ -825,14 +825,14 @@ def test_run_success_add_plugin_test(
     result = capsys.readouterr().out
     assert re.search("Note: Test plugin added to", result) is not None
 
-    expected_file = tmp_path / "plugins" / "test" / "hello_world.py"
+    expected_file = tmp_path / "plugins" / "test" / "sample_test.py"
     effective_file = (
-        FIXTURES_DIR / "collection" / "testorg" / "testcol" / "plugins" / "test" / "hello_world.py"
+        FIXTURES_DIR / "collection" / "testorg" / "testcol" / "plugins" / "test" / "sample_test.py"
     )
     cmp_result = cmp(expected_file, effective_file, shallow=False)
     assert cmp_result
 
-    conflict_file = tmp_path / "plugins" / "test" / "hello_world.py"
+    conflict_file = tmp_path / "plugins" / "test" / "sample_test.py"
     conflict_file.write_text("Author: Your Name")
 
     # expect a CreatorError when the response to overwrite is no.
