@@ -179,6 +179,7 @@ class Walker:
         template_data: A dictionary containing the original data to render templates with.
         resource_root: Root path for the resources.
         templar: An instance of the Templar class.
+        path_replacers: Dictionary of path name replacements to apply during copying.
     """
 
     resources: tuple[str, ...]
