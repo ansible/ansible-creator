@@ -212,6 +212,7 @@ class Walker:
         self.output.debug(msg=f"current root set to {root}")
 
         file_list = FileList()
+        print(file_list)
         for obj in root.iterdir():
             file_list.extend(
                 self.each_obj(
