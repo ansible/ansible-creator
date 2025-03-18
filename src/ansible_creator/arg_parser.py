@@ -354,6 +354,7 @@ class Parser:
         self._add_plugin_filter(subparser=subparser)
         self._add_plugin_lookup(subparser=subparser)
         self._add_plugin_module(subparser=subparser)
+        self._add_plugin_test(subparser=subparser)
 
     def _add_plugin_action(self, subparser: SubParser[ArgumentParser]) -> None:
         """Add an action plugin to an existing Ansible collection project.
@@ -409,6 +410,21 @@ class Parser:
         parser = subparser.add_parser(
             "module",
             help="Add a module plugin to an existing Ansible collection.",
+            formatter_class=CustomHelpFormatter,
+        )
+        self._add_args_common(parser)
+        self._add_overwrite(parser)
+        self._add_args_plugin_common(parser)
+
+    def _add_plugin_test(self, subparser: SubParser[ArgumentParser]) -> None:
+        """Add a test plugin to an existing Ansible collection project.
+
+        Args:
+            subparser: The subparser to add test plugin to
+        """
+        parser = subparser.add_parser(
+            "test",
+            help="Add a test plugin to an existing Ansible collection.",
             formatter_class=CustomHelpFormatter,
         )
         self._add_args_common(parser)
