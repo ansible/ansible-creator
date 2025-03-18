@@ -28,6 +28,7 @@ MODULE_REPLACERS = {
     "sample_action": "plugin_name",
     "sample_filter": "plugin_name",
     "sample_lookup": "plugin_name",
+    "sample_test": "plugin_name",
 }
 
 
