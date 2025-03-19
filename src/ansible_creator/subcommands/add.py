@@ -325,7 +325,9 @@ class Add:
         if not paths.has_conflicts() or self._force or self._overwrite:
             copier.copy_containers(paths)
             # Use singular form for "modules" in the output message
-            display_type = "Module" if self._plugin_type == "modules" else self._plugin_type.capitalize()
+            display_type = (
+                "Module" if self._plugin_type == "modules" else self._plugin_type.capitalize()
+            )
             self.output.note(f"{display_type} plugin added to {plugin_path}")
             return
 
@@ -343,7 +345,9 @@ class Add:
                 raise CreatorError(msg)
 
         # Remove the 's' if the plugin type is 'modules'
-        display_type = "Module" if self._plugin_type == "modules" else self._plugin_type.capitalize()
+        display_type = (
+            "Module" if self._plugin_type == "modules" else self._plugin_type.capitalize()
+        )
         self.output.note(f"{display_type} plugin added to {plugin_path}")
 
     def _get_devfile_template_data(self) -> TemplateData:
