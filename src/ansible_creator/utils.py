@@ -304,7 +304,19 @@ class Walker:
         self.output.debug(f"Looking at {dest_path}")
 
         if obj.is_file():
-            dest_path.set_content(template_data, self.templar)
+            # Read the content
+            content = obj.read_text(encoding="utf-8")
+            
+            # Template the content if it's a .j2 file or if it contains Jinja2 templates
+            needs_templating = (obj.name.endswith("j2") or 
+                            (obj.name == ".gitignore" and "{{" in content))
+            
+            if self.templar and template_data and needs_templating:
+                content = self.templar.render_from_content(
+                    template=content,
+                    data=template_data,
+                )
+            dest_path.content = content
 
         if dest_path.needs_write:
             # Warn on conflict
