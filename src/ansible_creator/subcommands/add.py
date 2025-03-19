@@ -341,7 +341,9 @@ class Add:
                 raise CreatorError(msg)
 
         # Remove the 's' if the plugin type is 'modules'
-        plugin_type_display = self._plugin_type[:-1] if self._plugin_type == "modules" else self._plugin_type
+        plugin_type_display = (
+            self._plugin_type[:-1] if self._plugin_type == "modules" else self._plugin_type
+        )
         self.output.note(f"{plugin_type_display.capitalize()} plugin added to {plugin_path}")
 
     def _get_devfile_template_data(self) -> TemplateData:
