@@ -220,7 +220,7 @@ class Walker:
 
         # Process all objects in the directory
         for obj in root.iterdir():
-            # Special handling for Python template files in plugin directories, but only for init command
+            # Special handling for Python template files in plugin directories
             if (
                 self.subcommand == "init"
                 and "plugins" in str(root)
