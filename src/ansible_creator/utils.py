@@ -212,49 +212,35 @@ class Walker:
             A list of paths to be written to.
         """
         self.output.debug(msg=f"current root set to {root}")
-
         file_list = FileList()
-
-        # Process all objects in the directory
         for obj in root.iterdir():
-            # Special handling for Python template files in plugin directories, but only for init command
-            if (
-                self.subcommand == "init"
-                and "plugins" in str(root)
-                and template_data.plugin_type in str(root)
-                and obj.is_file()
-                and obj.name.endswith(".py.j2")
-            ):
-                # Extract plugin name from the file name (remove .py.j2)
-                plugin_name = obj.name.removesuffix(".py.j2")
-                self.output.debug(msg=f"Found plugin file: {plugin_name} in init command")
-
-                # Create a copy of template_data with updated plugin_name
-                temp_template_data = copy.deepcopy(template_data)
-                temp_template_data.plugin_name = plugin_name
-
-                self.output.debug(msg=f"Setting plugin_name to: {plugin_name}")
-
-                # Process this file with the updated plugin_name
-                file_list.extend(
-                    self.each_obj(
-                        current_index,
-                        obj,
-                        resource=resource,
-                        template_data=temp_template_data,
-                    ),
-                )
-            else:
-                # Normal processing for all other files and directories
-                file_list.extend(
-                    self.each_obj(
-                        current_index,
-                        obj,
-                        resource=resource,
-                        template_data=template_data,
-                    ),
-                )
-
+            if obj.is_file():
+                if obj.name.endswith(".j2"):
+                    dest_path = DestinationFile(
+                        dest=self.dest[current_index] / obj.name.removesuffix(".j2"),
+                        source=obj,
+                    )
+                    # Handle templating for .j2 files
+                    content = self.templar.render_from_content(
+                        template=obj.read_text(encoding="utf-8"),
+                        data=template_data,
+                    )
+                    dest_path.content = content
+                    file_list.append(dest_path)
+                else:
+                    # Handle non-template files
+                    dest_path = DestinationFile(
+                        dest=self.dest[current_index] / obj.name,
+                        source=obj,
+                    )
+                    file_list.append(dest_path)
+            elif obj.is_dir():
+                file_list.extend(self._recursive_walk(
+                    root=obj,
+                    resource=resource,
+                    current_index=current_index,
+                    template_data=template_data,
+                ))
         return file_list
 
     def each_obj(
@@ -263,91 +249,45 @@ class Walker:
         obj: Traversable,
         resource: str,
         template_data: TemplateData,
-    ) -> FileList:
-        """Recursively traverses a resource container and copies content to destination.
-
-        Args:
-            current_index: Current index in the list of objects.
-            obj: A traversable object representing the root of the container to copy.
-            resource: The resource to consult for path names.
-            template_data: A dictionary containing current data to render templates with.
-
-        Returns:
-            A list of paths.
-        """
+) -> FileList:
         # resource names may have a . but directories use / in the path
         dest_name = str(obj).split(
             resource.replace(".", "/") + "/",
             maxsplit=1,
         )[-1]
+        
         # replace placeholders in destination path with real values
         replacers = self.path_replacers or PATH_REPLACERS
         for key, val in replacers.items():
             if key in dest_name:
                 repl_val = getattr(template_data, val)
                 dest_name = dest_name.replace(key, repl_val)
-        dest_name = dest_name.removesuffix(".j2")
-
-        if isinstance(self.dest, list):
-            # If self.dest is a list of Path
+        
+        # Handle .j2 files
+        if obj.name.endswith(".j2"):
+            dest_path = DestinationFile(
+                dest=self.dest[current_index] / dest_name.removesuffix(".j2"),
+                source=obj,
+            )
+            content = obj.read_text(encoding="utf-8")
+            if self.templar and template_data:
+                content = self.templar.render_from_content(
+                    template=content,
+                    data=template_data,
+                )
+            dest_path.content = content
+            return FileList([dest_path])
+        
+        # Handle regular files
+        if obj.is_file():
             dest_path = DestinationFile(
                 dest=self.dest[current_index] / dest_name,
                 source=obj,
             )
-        else:
-            # If self.dest is a single Path
-            dest_path = DestinationFile(
-                dest=self.dest / dest_name,
-                source=obj,
-            )
-
-        self.output.debug(f"Looking at {dest_path}")
-
-        if obj.is_file():
-            # Read the content
-            content = obj.read_text(encoding="utf-8")
-
-            # SPECIAL HANDLING FOR .gitignore: Always template if it contains {{
-            if obj.name == ".gitignore" and "{{" in content and self.templar and template_data:
-                self.output.debug(
-                    f"Templating .gitignore file with namespace={template_data.namespace}, collection_name={template_data.collection_name}"
-                )
-                content = self.templar.render_from_content(
-                    template=content,
-                    data=template_data,
-                )
-                dest_path.content = content
-            # Regular templating for j2 files
-            elif obj.name.endswith("j2") and self.templar and template_data:
-                content = self.templar.render_from_content(
-                    template=content,
-                    data=template_data,
-                )
-                dest_path.content = content
-            else:
-                dest_path.content = content
-
-        if dest_path.needs_write:
-            # Warn on conflict
-            conflict_msg = dest_path.conflict
-            if conflict_msg:
-                self.output.warning(conflict_msg)
-
-            if obj.is_dir() and obj.name not in SKIP_DIRS:
-                return FileList(
-                    [
-                        dest_path,
-                        *self._recursive_walk(
-                            root=obj,
-                            resource=resource,
-                            current_index=current_index,
-                            template_data=template_data,
-                        ),
-                    ],
-                )
-            if obj.is_file():
-                return FileList([dest_path])
-
+            dest_path.content = obj.read_text(encoding="utf-8")
+            return FileList([dest_path])
+        
+        # Handle directories
         if obj.is_dir() and obj.name not in SKIP_DIRS:
             return self._recursive_walk(
                 root=obj,
@@ -355,7 +295,7 @@ class Walker:
                 current_index=current_index,
                 template_data=template_data,
             )
-
+        
         return FileList()
 
     def _per_container(self, resource: str, current_index: int) -> FileList:
