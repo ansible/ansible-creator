@@ -309,7 +309,9 @@ class Walker:
 
             # SPECIAL HANDLING FOR .gitignore: Always template if it contains {{
             if obj.name == ".gitignore" and "{{" in content and self.templar and template_data:
-                self.output.debug(f"Templating .gitignore file with namespace={template_data.namespace}, collection_name={template_data.collection_name}")
+                self.output.debug(
+                    f"Templating .gitignore file with namespace={template_data.namespace}, collection_name={template_data.collection_name}"
+                )
                 content = self.templar.render_from_content(
                     template=content,
                     data=template_data,
