@@ -58,4 +58,3 @@ class SampleModule:
             dict: The module plugin functions.
         """
         return {"sample_module": _sample_module}
-
