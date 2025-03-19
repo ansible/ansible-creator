@@ -808,6 +808,7 @@ def test_run_success_add_plugin_test(
         AssertionError: If the assertion fails.
     """
     cli_args["plugin_type"] = "test"
+    cli_args["plugin_name"] = "sample_test"
     add = Add(
         Config(**cli_args),
     )
@@ -882,6 +883,7 @@ def test_run_error_plugin_no_overwrite(
         AssertionError: If the assertion fails.
     """
     cli_args["plugin_type"] = "lookup"
+    cli_args["plugin_name"] = "sample_lookup"
     add = Add(
         Config(**cli_args),
     )
