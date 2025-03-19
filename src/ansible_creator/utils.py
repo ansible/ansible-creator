@@ -139,7 +139,11 @@ class DestinationFile:
         """
         content = self.source.read_text(encoding="utf-8")
         # Process as template if it's a .j2 file OR if it's a .gitignore file
-        if templar and template_data and (self.source.name.endswith("j2") or self.source.name == ".gitignore"):
+        if (
+            templar
+            and template_data
+            and (self.source.name.endswith("j2") or self.source.name == ".gitignore")
+        ):
             content = templar.render_from_content(
                 template=content,
                 data=template_data,
