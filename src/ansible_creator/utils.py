@@ -235,12 +235,14 @@ class Walker:
                     )
                     file_list.append(dest_path)
             elif obj.is_dir():
-                file_list.extend(self._recursive_walk(
-                    root=obj,
-                    resource=resource,
-                    current_index=current_index,
-                    template_data=template_data,
-                ))
+                file_list.extend(
+                    self._recursive_walk(
+                        root=obj,
+                        resource=resource,
+                        current_index=current_index,
+                        template_data=template_data,
+                    )
+                )
         return file_list
 
     def each_obj(
@@ -249,20 +251,20 @@ class Walker:
         obj: Traversable,
         resource: str,
         template_data: TemplateData,
-) -> FileList:
+    ) -> FileList:
         # resource names may have a . but directories use / in the path
         dest_name = str(obj).split(
             resource.replace(".", "/") + "/",
             maxsplit=1,
         )[-1]
-        
+
         # replace placeholders in destination path with real values
         replacers = self.path_replacers or PATH_REPLACERS
         for key, val in replacers.items():
             if key in dest_name:
                 repl_val = getattr(template_data, val)
                 dest_name = dest_name.replace(key, repl_val)
-        
+
         # Handle .j2 files
         if obj.name.endswith(".j2"):
             dest_path = DestinationFile(
@@ -277,7 +279,7 @@ class Walker:
                 )
             dest_path.content = content
             return FileList([dest_path])
-        
+
         # Handle regular files
         if obj.is_file():
             dest_path = DestinationFile(
@@ -286,7 +288,7 @@ class Walker:
             )
             dest_path.content = obj.read_text(encoding="utf-8")
             return FileList([dest_path])
-        
+
         # Handle directories
         if obj.is_dir() and obj.name not in SKIP_DIRS:
             return self._recursive_walk(
@@ -295,7 +297,7 @@ class Walker:
                 current_index=current_index,
                 template_data=template_data,
             )
-        
+
         return FileList()
 
     def _per_container(self, resource: str, current_index: int) -> FileList:
