@@ -143,7 +143,7 @@ class Init:
             templar=self._templar,
             template_data=template_data,
             path_replacers=None,
-            subcommand='init',
+            subcommand="init",
         )
         paths = walker.collect_paths()
 

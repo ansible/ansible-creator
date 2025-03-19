@@ -164,7 +164,7 @@ class Add:
             template_data=template_data,
             templar=self.templar,
             path_replacers=None,
-            subcommand='add',
+            subcommand="add",
         )
         paths = walker.collect_paths()
         copier = Copier(output=self.output)
@@ -305,7 +305,7 @@ class Add:
             template_data=template_data,
             templar=self.templar,
             path_replacers=MODULE_REPLACERS,
-            subcommand='add',
+            subcommand="add",
         )
         paths = walker.collect_paths()
         copier = Copier(output=self.output)
