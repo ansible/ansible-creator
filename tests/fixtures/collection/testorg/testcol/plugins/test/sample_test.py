@@ -1,4 +1,4 @@
-# hello_world.py - A custom test plugin for Ansible.
+# sample_test.py - A custom test plugin for Ansible.
 # Author: Your Name
 # License: GPL-3.0-or-later
 
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 
 DOCUMENTATION = """
-    name: hello_world
+    name: sample_test
     author: Your Name
     version_added: "1.0.0"
     short_description: A custom test plugin for Ansible.
@@ -28,11 +28,11 @@ DOCUMENTATION = """
 """
 
 EXAMPLES = """
-# hello_world test example
+# sample_test test example
 
 - name: Display a hello message
   ansible.builtin.debug:
-    msg: "{{ 50 | hello_world }}"
+    msg: "{{ 50 | sample_test }}"
 """
 
 
@@ -57,4 +57,4 @@ class TestModule:
         Returns:
             dict: The test plugin functions.
         """
-        return {"hello_world": _hello_world}
+        return {"sample_test": _hello_world}
