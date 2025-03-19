@@ -8,6 +8,7 @@ import shutil
 
 from filecmp import dircmp
 from pathlib import Path
+import subprocess
 from typing import TypedDict
 
 import pytest
@@ -87,6 +88,16 @@ def has_differences(dcmp: dircmp[str], errors: list[str]) -> list[str]:
     )
     for subdcmp in dcmp.subdirs.values():
         errors = has_differences(subdcmp, errors)
+    for f in dcmp.diff_files:
+        errors.append(f"Differing files: {dcmp.left}/{f} {dcmp.right}/{f}")
+        print(f"❌ File {dcmp.left}/{f} differs from {dcmp.right}/{f}. Running diff...\n")
+        try:
+            subprocess.run(["diff", "-u", Path(dcmp.left) / f, Path(dcmp.right) / f], check=True)
+        except subprocess.CalledProcessError:
+            # Expected behavior when differences exist
+            pass
+        except FileNotFoundError:
+            print("Error: `diff` command not found. Ensure you are on a Unix-like system.")
     return errors
 
 
