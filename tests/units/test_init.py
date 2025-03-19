@@ -5,10 +5,10 @@ from __future__ import annotations
 
 import re
 import shutil
+import subprocess
 
 from filecmp import dircmp
 from pathlib import Path
-import subprocess
 from typing import TypedDict
 
 import pytest
