@@ -304,8 +304,26 @@ class Walker:
         self.output.debug(f"Looking at {dest_path}")
 
         if obj.is_file():
-            # Set the content to be properly templated
-            dest_path.set_content(template_data, self.templar)
+            # Read the content
+            content = obj.read_text(encoding="utf-8")
+
+            # SPECIAL HANDLING FOR .gitignore: Always template if it contains {{
+            if obj.name == ".gitignore" and "{{" in content and self.templar and template_data:
+                self.output.debug(f"Templating .gitignore file with namespace={template_data.namespace}, collection_name={template_data.collection_name}")
+                content = self.templar.render_from_content(
+                    template=content,
+                    data=template_data,
+                )
+                dest_path.content = content
+            # Regular templating for j2 files
+            elif obj.name.endswith("j2") and self.templar and template_data:
+                content = self.templar.render_from_content(
+                    template=content,
+                    data=template_data,
+                )
+                dest_path.content = content
+            else:
+                dest_path.content = content
 
         if dest_path.needs_write:
             # Warn on conflict
