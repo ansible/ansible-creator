@@ -237,8 +237,6 @@ class Walker:
                 temp_template_data.plugin_name = plugin_name
 
                 self.output.debug(msg=f"Setting plugin_name to: {plugin_name}")
-
-                # Process this file with the updated plugin_name
                 file_list.extend(
                     self.each_obj(
                         current_index,
@@ -248,7 +246,6 @@ class Walker:
                     ),
                 )
             else:
-                # Normal processing for all other files and directories
                 file_list.extend(
                     self.each_obj(
                         current_index,
