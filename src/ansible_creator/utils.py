@@ -180,6 +180,7 @@ class Walker:
         resource_root: Root path for the resources.
         templar: An instance of the Templar class.
         path_replacers: Dictionary of path name replacements to apply during copying.
+        subcommand: The subcommand being run.
     """
 
     resources: tuple[str, ...]
@@ -190,6 +191,7 @@ class Walker:
     resource_root: str = "ansible_creator.resources"
     templar: Templar | None = None
     path_replacers: dict[str, str] | None = None
+    subcommand: str = ""
 
     def _recursive_walk(
         self,
@@ -212,15 +214,46 @@ class Walker:
         self.output.debug(msg=f"current root set to {root}")
 
         file_list = FileList()
+        
+        # Process all objects in the directory
         for obj in root.iterdir():
-            file_list.extend(
-                self.each_obj(
-                    current_index,
-                    obj,
-                    resource=resource,
-                    template_data=template_data,
-                ),
-            )
+            # Special handling for Python template files in plugin directories, but only for init command
+            if (self.subcommand == 'init' and 
+                "plugins" in str(root) and 
+                template_data.plugin_type in str(root) and
+                obj.is_file() and 
+                obj.name.endswith(".py.j2")):
+                
+                # Extract plugin name from the file name (remove .py.j2)
+                plugin_name = obj.name.removesuffix(".py.j2")
+                self.output.debug(msg=f"Found plugin file: {plugin_name} in init command")
+                
+                # Create a copy of template_data with updated plugin_name
+                temp_template_data = copy.deepcopy(template_data)
+                temp_template_data.plugin_name = plugin_name
+                
+                self.output.debug(msg=f"Setting plugin_name to: {plugin_name}")
+                
+                # Process this file with the updated plugin_name
+                file_list.extend(
+                    self.each_obj(
+                        current_index,
+                        obj,
+                        resource=resource,
+                        template_data=temp_template_data,
+                    ),
+                )
+            else:
+                # Normal processing for all other files and directories
+                file_list.extend(
+                    self.each_obj(
+                        current_index,
+                        obj,
+                        resource=resource,
+                        template_data=template_data,
+                    ),
+                )
+                
         return file_list
 
     def each_obj(
@@ -340,7 +373,7 @@ class Walker:
                     data=template_data,
                 )
                 deserialized = yaml.safe_load(templated)
-                setattr(template_data, key, deserialized)
+                setattr(template_data, key, value["value"])
             else:
                 setattr(template_data, key, value["value"])
 
