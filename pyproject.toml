@@ -26,7 +26,7 @@ classifiers = [
 description = "A CLI tool for scaffolding Ansible Content."
 dynamic = ["dependencies", "optional-dependencies", "version"]
 keywords = ["ansible"]
-license = {text = "Apache"}
+license = "Apache-2.0"
 maintainers = [{"email" = "info@ansible.com", "name" = "Ansible by Red Hat"}]
 name = "ansible-creator"
 readme = "README.md"
