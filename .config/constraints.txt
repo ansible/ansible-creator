@@ -112,9 +112,6 @@ zipp==3.21.0              # via importlib-metadata
 
 # The following packages were excluded from the output:
 # ansible-core
-# exceptiongroup
 # resolvelib
-# ruamel-yaml-clib
-# tomli
 # typing-extensions
 # uv
