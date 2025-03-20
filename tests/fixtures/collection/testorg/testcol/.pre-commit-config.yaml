@@ -48,9 +48,9 @@ repos:
     rev: 7.0.0
     hooks:
       - id: flake8
-
-  - repo: https://github.com/pycqa/pylint
-    rev: v2.14.5  # Update to the desired version
+      
+  - repo: https://github.com/pre-commit/mirrors-pylint
+    rev: v2.12.2
     hooks:
       - id: pylint
 
