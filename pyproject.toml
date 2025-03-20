@@ -10,7 +10,6 @@ authors = [{"email" = "nchakrab@redhat.com", "name" = "Nilashish Chakarborty"}]
 classifiers = [
   'Development Status :: 5 - Production/Stable',
   'Intended Audience :: Developers',
-  'License :: OSI Approved :: Apache Software License',
   'Operating System :: OS Independent',
   'Programming Language :: Python :: 3 :: Only',
   'Programming Language :: Python :: 3',
@@ -26,7 +25,7 @@ classifiers = [
 description = "A CLI tool for scaffolding Ansible Content."
 dynamic = ["dependencies", "optional-dependencies", "version"]
 keywords = ["ansible"]
-license = "Apache-2.0"
+license = {text="Apache-2.0"}
 maintainers = [{"email" = "info@ansible.com", "name" = "Ansible by Red Hat"}]
 name = "ansible-creator"
 readme = "README.md"
@@ -361,9 +360,6 @@ required-imports = ["from __future__ import annotations"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
-
-[tool.setuptools]
-license-files = ["LICENSE"]
 
 [tool.setuptools.dynamic]
 dependencies = {file = [".config/requirements.in"]}
