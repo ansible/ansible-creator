@@ -36,7 +36,7 @@ EXAMPLES = """
 """
 
 
-def _hello_world(val: int) -> bool:
+def _sample_test(val: int) -> bool:
     """Returns Hello message.
 
     Args:
@@ -57,4 +57,4 @@ class TestModule:
         Returns:
             dict: The test plugin functions.
         """
-        return {"sample_test": _hello_world}
+        return {"sample_test": _sample_test}
