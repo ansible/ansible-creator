@@ -58,6 +58,17 @@ class Add:
         self.output: Output = config.output
         self.templar = Templar()
 
+    @property
+    def _plugin_type_output(self) -> str:
+        """Format the plugin type for output.
+        
+        Returns:
+            Formatted plugin type string for display in output messages.
+        """
+        if self._plugin_type == "modules":
+            return "Module"
+        return self._plugin_type.capitalize()
+
     def run(self) -> None:
         """Start scaffolding the resource file."""
         self._check_path_exists()
@@ -321,13 +332,9 @@ class Add:
         if isinstance(plugin_path, list):
             plugin_path = plugin_path[0]
 
-        if not paths.has_conflicts() or self._force or self._overwrite:  # remove force
+        if not paths.has_conflicts() or self._force or self._overwrite:
             copier.copy_containers(paths)
-            # Use singular form for "modules" in the output message
-            display_type = (
-                "Module" if self._plugin_type == "modules" else self._plugin_type.capitalize()
-            )
-            self.output.note(f"{display_type} plugin added to {plugin_path}")
+            self.output.note(f"{self._plugin_type_output} plugin added to {plugin_path}")
             return
 
         if not self._overwrite:
@@ -343,11 +350,7 @@ class Add:
                 )
                 raise CreatorError(msg)
 
-        # Remove the 's' if the plugin type is 'modules'
-        display_type = (
-            "Module" if self._plugin_type == "modules" else self._plugin_type.capitalize()
-        )
-        self.output.note(f"{display_type} plugin added to {plugin_path}")
+        self.output.note(f"{self._plugin_type_output} plugin added to {plugin_path}")
 
     def _get_devfile_template_data(self) -> TemplateData:
         """Get the template data for devfile resources.
