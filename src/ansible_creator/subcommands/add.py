@@ -321,7 +321,7 @@ class Add:
         if isinstance(plugin_path, list):
             plugin_path = plugin_path[0]
 
-        if not paths.has_conflicts() or self._force or self._overwrite: #remove force
+        if not paths.has_conflicts() or self._force or self._overwrite:  # remove force
             copier.copy_containers(paths)
             # Use singular form for "modules" in the output message
             display_type = (
