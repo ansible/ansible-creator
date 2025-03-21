@@ -23,7 +23,6 @@ if TYPE_CHECKING:
 MODULE_REPLACERS = {
     "project_org": "namespace",
     "project_repo": "collection_name",
-    "hello_world": "plugin_name",
     "sample_module": "plugin_name",
     "sample_action": "plugin_name",
     "sample_filter": "plugin_name",

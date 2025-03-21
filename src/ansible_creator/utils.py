@@ -132,18 +132,14 @@ class DestinationFile:
 
     def set_content(self, template_data: TemplateData, templar: Templar | None) -> None:
         """Set expected content from source file, templated by templar if necessary.
-
         Args:
             template_data: A dictionary containing current data to render templates with.
             templar: An instance of the Templar class.
         """
         content = self.source.read_text(encoding="utf-8")
-        # Process as template if it's a .j2 file OR if it's a .gitignore file
-        if (
-            templar
-            and template_data
-            and (self.source.name.endswith("j2") or self.source.name == ".gitignore")
-        ):
+        # only render as templates if both of these are provided,
+        # and original file suffix was j2
+        if templar and template_data and self.source.name.endswith("j2"):
             content = templar.render_from_content(
                 template=content,
                 data=template_data,
