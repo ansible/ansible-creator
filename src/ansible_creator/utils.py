@@ -170,9 +170,11 @@ class FileList(list[DestinationFile]):
         """
         return any(path.conflict for path in self)
 
+
 @dataclass
 class WalkerConfig:
     """Configuration data for Walker operations."""
+
     resources: tuple[str, ...]
     resource_id: str
     dest: Path | list[Path]
@@ -180,15 +182,17 @@ class WalkerConfig:
     templar: Templar | None = None
     subcommand: str = ""
 
+
 @dataclass
 class Walker(WalkerConfig):
     """Configuration for the Walker class.
+
     Attributes:
         config: Configuration settings for the walker operation.
         output: Output handler instance.
         resource_root: Root path for resources.
     """
-    
+
     output: Output
     resource_root: str = "ansible_creator.resources"
 
@@ -201,7 +205,7 @@ class Walker(WalkerConfig):
         """Recursively traverses a resource container looking for content to copy."""
         self.output.debug(msg=f"current root set to {root}")
         file_list = FileList()
-        
+
         for obj in root.iterdir():
             file_list.extend(
                 self.each_obj(
