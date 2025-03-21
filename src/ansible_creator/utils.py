@@ -236,131 +236,70 @@ class Walker:
         template_data: TemplateData,
     ) -> FileList:
         """Recursively traverses a resource container and copies content to destination.
-
         Args:
             current_index: Current index in the list of objects.
             obj: A traversable object representing the root of the container to copy.
             resource: The resource to consult for path names.
             template_data: A dictionary containing current data to render templates with.
-
         Returns:
             A list of paths.
         """
-        dest_name = self._get_destination_name(obj, resource, template_data)
-        dest_path = self._create_destination_file(dest_name, obj, current_index)
 
-        self.output.debug(f"Looking at {dest_path}")
-
-        if obj.is_file():
-            dest_path.set_content(template_data, self.templar)
-
-        return self._handle_path_writing(dest_path, obj, resource, current_index, template_data)
-
-    def _get_destination_name(
-        self, obj: Traversable, resource: str, template_data: TemplateData
-    ) -> str:
-        """Extract and process the destination name from the object path.
-
-        Args:
-            obj: A traversable object representing the resource being processed.
-            resource: The resource string to consult for path names.
-            template_data: A dictionary containing data to render templates with.
-
-        Returns:
-            str: The processed destination name with placeholders replaced and suffix removed.
-        """
-        # resource names may have a . but directories use / in the path
         dest_name = str(obj).split(
             resource.replace(".", "/") + "/",
             maxsplit=1,
         )[-1]
 
-        # replace placeholders in destination path with real values
         for key, val in PATH_REPLACERS.items():
             if key in dest_name:
                 if not (repl_val := getattr(template_data, val)):
                     continue
                 dest_name = dest_name.replace(key, repl_val)
+        dest_name = dest_name.removesuffix(".j2")
 
-        return dest_name.removesuffix(".j2")
-
-    def _create_destination_file(
-        self, dest_name: str, obj: Traversable, current_index: int
-    ) -> DestinationFile:
-        """Create a DestinationFile object based on the destination configuration.
-
-        Args:
-            dest_name: The processed destination name for the file or directory.
-            obj: A traversable object representing the source.
-            current_index: Current index in the list of objects.
-
-        Returns:
-            DestinationFile: A newly created destination file object.
-        """
         if isinstance(self.dest, list):
-            # If self.dest is a list of Path
-            return DestinationFile(
+
+            dest_path = DestinationFile(
                 dest=self.dest[current_index] / dest_name,
                 source=obj,
             )
-        # If self.dest is a single Path
-        return DestinationFile(
-            dest=self.dest / dest_name,
-            source=obj,
-        )
+        else:
 
-    def _handle_path_writing(
-        self,
-        dest_path: DestinationFile,
-        obj: Traversable,
-        resource: str,
-        current_index: int,
-        template_data: TemplateData,
-    ) -> FileList:
-        """Handle the writing of files and directories based on conditions.
-
-        Args:
-            dest_path: The destination file object to potentially write.
-            obj: A traversable object representing the source being processed.
-            resource: The resource string to consult for path names.
-            current_index: Current index in the list of objects.
-            template_data: A dictionary containing data to render templates with.
-
-        Returns:
-            FileList: A list of paths that were processed.
-        """
-        if not dest_path.needs_write:
-            if obj.is_dir() and obj.name not in SKIP_DIRS:
-                # Just pass the 4 expected parameters
-                return self._recursive_walk(
-                    obj,  # root
-                    resource,
-                    current_index,
-                    template_data,
-                )
-            return FileList()
-
-        # Warn on conflict
-        conflict_msg = dest_path.conflict
-        if conflict_msg:
-            self.output.warning(conflict_msg)
-
-        if obj.is_dir() and obj.name not in SKIP_DIRS:
-            return FileList(
-                [
-                    dest_path,
-                    # Just pass the 4 expected parameters
-                    *self._recursive_walk(
-                        obj,  # root
-                        resource,
-                        current_index,
-                        template_data,
-                    ),
-                ],
-            )
+            dest_path = DestinationFile(
+                dest=self.dest / dest_name,
+                source=obj,)
+            
+        self.output.debug(f"Looking at {dest_path}")
         if obj.is_file():
-            return FileList([dest_path])
+            dest_path.set_content(template_data, self.templar)
 
+        if dest_path.needs_write:
+
+            conflict_msg = dest_path.conflict
+            if conflict_msg:
+                self.output.warning(conflict_msg)
+  
+            if obj.is_dir() and obj.name not in SKIP_DIRS:
+                return FileList(
+                    [
+                        dest_path,
+                        *self._recursive_walk(
+                            root=obj,
+                            resource=resource,
+                            current_index=current_index,
+                            template_data=template_data,
+                        ),
+                    ],
+                )
+            if obj.is_file():
+                return FileList([dest_path])
+        if obj.is_dir() and obj.name not in SKIP_DIRS:
+            return self._recursive_walk(
+                root=obj,
+                resource=resource,
+                current_index=current_index,
+                template_data=template_data,
+            )
         return FileList()
 
     def _per_container(self, resource: str, current_index: int) -> FileList:
