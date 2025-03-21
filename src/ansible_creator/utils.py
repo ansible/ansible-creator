@@ -236,15 +236,16 @@ class Walker:
         template_data: TemplateData,
     ) -> FileList:
         """Recursively traverses a resource container and copies content to destination.
+
         Args:
             current_index: Current index in the list of objects.
             obj: A traversable object representing the root of the container to copy.
             resource: The resource to consult for path names.
             template_data: A dictionary containing current data to render templates with.
+
         Returns:
             A list of paths.
         """
-
         dest_name = str(obj).split(
             resource.replace(".", "/") + "/",
             maxsplit=1,
@@ -258,27 +259,22 @@ class Walker:
         dest_name = dest_name.removesuffix(".j2")
 
         if isinstance(self.dest, list):
-
             dest_path = DestinationFile(
                 dest=self.dest[current_index] / dest_name,
                 source=obj,
             )
         else:
+            dest_path = DestinationFile(dest=self.dest / dest_name, source=obj)
 
-            dest_path = DestinationFile(
-                dest=self.dest / dest_name,
-                source=obj,)
-            
         self.output.debug(f"Looking at {dest_path}")
         if obj.is_file():
             dest_path.set_content(template_data, self.templar)
 
         if dest_path.needs_write:
-
             conflict_msg = dest_path.conflict
             if conflict_msg:
                 self.output.warning(conflict_msg)
-  
+
             if obj.is_dir() and obj.name not in SKIP_DIRS:
                 return FileList(
                     [
