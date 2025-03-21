@@ -172,48 +172,60 @@ class FileList(list[DestinationFile]):
 
 
 @dataclass
-class WalkerConfig:
-    """Configuration data for Walker operations."""
+class Walker:
+    """Configuration for the Walker class.
+
+    Attributes:
+        resources: List of resource containers to copy.
+        resource_id: The id of the resource to copy.
+        dest: The destination path to copy resources to.
+        output: An instance of the Output class.
+        template_data: A dictionary containing the original data to render templates with.
+        resource_root: Root path for the resources.
+        templar: An instance of the Templar class.
+    """
 
     resources: tuple[str, ...]
     resource_id: str
     dest: Path | list[Path]
-    template_data: TemplateData
-    templar: Templar | None = None
-    subcommand: str = ""
-
-
-@dataclass
-class Walker(WalkerConfig):
-    """Configuration for the Walker class.
-
-    Attributes:
-        config: Configuration settings for the walker operation.
-        output: Output handler instance.
-        resource_root: Root path for resources.
-    """
-
     output: Output
+    template_data: TemplateData
     resource_root: str = "ansible_creator.resources"
+    templar: Templar | None = None
 
     def _recursive_walk(
         self,
         root: Traversable,
+        resource: str,
         current_index: int,
         template_data: TemplateData,
     ) -> FileList:
-        """Recursively traverses a resource container looking for content to copy."""
+        """Recursively traverses a resource container looking for content to copy.
+
+        Args:
+            root: A traversable object representing root of the container to copy.
+            resource: The resource being scanned.
+            current_index: Current index in the list of objects.
+            template_data: A dictionary containing current data to render templates with.
+
+        Returns:
+            A list of paths to be written to.
+        """
         self.output.debug(msg=f"current root set to {root}")
+
         file_list = FileList()
 
+        # Process all objects in the directory
         for obj in root.iterdir():
             file_list.extend(
                 self.each_obj(
                     current_index,
                     obj,
+                    resource=resource,
                     template_data=template_data,
                 ),
             )
+
         return file_list
 
     def each_obj(

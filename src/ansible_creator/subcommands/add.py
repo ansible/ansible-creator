@@ -163,7 +163,6 @@ class Add:
             output=self.output,
             template_data=template_data,
             templar=self.templar,
-            subcommand="add",
         )
         paths = walker.collect_paths()
         copier = Copier(output=self.output)
@@ -303,7 +302,6 @@ class Add:
             output=self.output,
             template_data=template_data,
             templar=self.templar,
-            subcommand="add",
         )
         paths = walker.collect_paths()
         copier = Copier(output=self.output)
