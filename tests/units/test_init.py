@@ -132,6 +132,7 @@ def test_run_success_for_collection(
 
     # Mock the Walker._per_container method to inject plugin_name
     from ansible_creator.utils import Walker
+
     original_per_container = Walker._per_container
 
     def mock_per_container(self, resource, current_index):
@@ -146,10 +147,10 @@ def test_run_success_for_collection(
             mock_unique_name_in_devfile,
         )
         mp.setattr(Walker, "_per_container", mock_per_container)
-        
+
         # Run the init command
         init.run()
-    
+
     result = capsys.readouterr().out
 
     # check stdout
