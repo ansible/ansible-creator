@@ -8,6 +8,7 @@ import shutil
 
 from filecmp import dircmp
 from pathlib import Path
+import subprocess
 from typing import TypedDict
 
 import pytest
