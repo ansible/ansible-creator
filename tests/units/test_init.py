@@ -151,13 +151,6 @@ def test_run_success_for_collection(
             generated_molecule_dir / "integration_hello_world"
         )
 
-    # Rename 'tasks' to 'hello_world' or create hello_world if it doesn't exist
-    generated_targets_dir = tmp_path / "testorg" / "testcol" / "tests" / "integration" / "targets"
-    if (generated_targets_dir / "tasks").exists():
-        (generated_targets_dir / "tasks").rename(generated_targets_dir / "hello_world")
-    elif not (generated_targets_dir / "hello_world").exists():
-        (generated_targets_dir / "hello_world").mkdir(exist_ok=True)
-
     # recursively assert files created
     cmp = dircmp(str(tmp_path), str(FIXTURES_DIR / "collection"), ignore=[".DS_Store"])
     diff = has_differences(dcmp=cmp, errors=[])
