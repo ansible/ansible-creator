@@ -228,6 +228,48 @@ class Walker:
 
         return file_list
 
+    def _process_path(self, dest_name: str, template_data: TemplateData) -> str:
+        """
+        Process path replacements and handle suffixes.
+
+        Args:
+            dest_name (str): The original destination path name
+            template_data (TemplateData): Data containing replacement values
+
+        Returns:
+            str: Processed destination path name
+        """
+        for key, val in PATH_REPLACERS.items():
+            if key in dest_name:
+                repl_val = getattr(template_data, val)
+                if repl_val:
+                    dest_name = dest_name.replace(key, repl_val)
+        return dest_name.removesuffix(".j2")
+
+    def _create_destination_path(
+        self,
+        obj: Traversable,
+        dest_name: str,
+        current_index: int,
+    ) -> DestinationFile:
+        """
+        Create destination path based on configuration.
+
+        Args:
+            obj (Traversable): Source object being processed
+            dest_name (str): Processed destination path name
+            current_index (int): Current index in the list of objects
+
+        Returns:
+            DestinationFile: Object containing destination path information
+
+        Raises:
+            ValueError: If current_index is out of range for list destinations
+        """
+        if isinstance(self.dest, list):
+            return DestinationFile(dest=self.dest[current_index] / dest_name, source=obj)
+        return DestinationFile(dest=self.dest / dest_name, source=obj)
+
     def each_obj(
         self,
         current_index: int,
@@ -235,67 +277,43 @@ class Walker:
         resource: str,
         template_data: TemplateData,
     ) -> FileList:
-        """Recursively traverses a resource container and copies content to destination.
+        """
+        Process individual object in the resource container.
 
         Args:
-            current_index: Current index in the list of objects.
-            obj: A traversable object representing the root of the container to copy.
-            resource: The resource to consult for path names.
-            template_data: A dictionary containing current data to render templates with.
+            current_index (int): Current index in the list of objects
+            obj (Traversable): Object being processed (file or directory)
+            resource (str): Resource being consulted for path names
+            template_data (TemplateData): Data used for template processing
 
         Returns:
-            A list of paths.
+            FileList: List of processed paths
         """
-        dest_name = str(obj).split(
-            resource.replace(".", "/") + "/",
-            maxsplit=1,
-        )[-1]
-
-        for key, val in PATH_REPLACERS.items():
-            if key in dest_name:
-                if not (repl_val := getattr(template_data, val)):
-                    continue
-                dest_name = dest_name.replace(key, repl_val)
-        dest_name = dest_name.removesuffix(".j2")
-
-        if isinstance(self.dest, list):
-            dest_path = DestinationFile(
-                dest=self.dest[current_index] / dest_name,
-                source=obj,
-            )
-        else:
-            dest_path = DestinationFile(dest=self.dest / dest_name, source=obj)
-
+        dest_name = str(obj).split(resource.replace(".", "/") + "/", maxsplit=1)[-1]
+        
+        dest_name = self._process_path(dest_name, template_data)
+        dest_path = self._create_destination_path(obj, dest_name, current_index)
+        
         self.output.debug(f"Looking at {dest_path}")
+        
         if obj.is_file():
             dest_path.set_content(template_data, self.templar)
-
-        if dest_path.needs_write:
-            conflict_msg = dest_path.conflict
-            if conflict_msg:
-                self.output.warning(conflict_msg)
-
-            if obj.is_dir() and obj.name not in SKIP_DIRS:
-                return FileList(
-                    [
-                        dest_path,
-                        *self._recursive_walk(
-                            root=obj,
-                            resource=resource,
-                            current_index=current_index,
-                            template_data=template_data,
-                        ),
-                    ],
-                )
-            if obj.is_file():
-                return FileList([dest_path])
+            if dest_path.needs_write:
+                conflict_msg = dest_path.conflict
+                if conflict_msg:
+                    self.output.warning(conflict_msg)
+            return FileList([dest_path])
+        
         if obj.is_dir() and obj.name not in SKIP_DIRS:
-            return self._recursive_walk(
+            result = FileList([dest_path])
+            result.extend(self._recursive_walk(
                 root=obj,
                 resource=resource,
                 current_index=current_index,
                 template_data=template_data,
-            )
+            ))
+            return result
+        
         return FileList()
 
     def _per_container(self, resource: str, current_index: int) -> FileList:
