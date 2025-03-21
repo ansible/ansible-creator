@@ -132,6 +132,7 @@ class DestinationFile:
 
     def set_content(self, template_data: TemplateData, templar: Templar | None) -> None:
         """Set expected content from source file, templated by templar if necessary.
+
         Args:
             template_data: A dictionary containing current data to render templates with.
             templar: An instance of the Templar class.
