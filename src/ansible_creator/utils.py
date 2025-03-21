@@ -248,7 +248,6 @@ class Walker:
         Returns:
             A list of paths.
         """
-
         dest_name = str(obj).split(
             resource.replace(".", "/") + "/",
             maxsplit=1,
@@ -262,13 +261,11 @@ class Walker:
         dest_name = dest_name.removesuffix(".j2")
 
         if isinstance(self.dest, list):
-
             dest_path = DestinationFile(
                 dest=self.dest[current_index] / dest_name,
                 source=obj,
             )
         else:
-
             dest_path = DestinationFile(
                 dest=self.dest / dest_name,
                 source=obj,
@@ -280,7 +277,6 @@ class Walker:
             dest_path.set_content(template_data, self.templar)
 
         if dest_path.needs_write:
-
             conflict_msg = dest_path.conflict
             if conflict_msg:
                 self.output.warning(conflict_msg)
