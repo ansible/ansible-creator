@@ -338,7 +338,7 @@ class Walker:
                 )
                 deserialized = yaml.safe_load(templated)
                 # Use the deserialized templated value
-                setattr(template_data, key, deserialized) 
+                setattr(template_data, key, deserialized)
             else:
                 setattr(template_data, key, value["value"])
 
