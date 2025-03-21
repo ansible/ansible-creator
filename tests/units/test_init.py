@@ -147,8 +147,10 @@ def test_run_success_for_collection(
     # Rename 'integration_' to 'integration_hello_world'
     generated_molecule_dir = tmp_path / "testorg" / "testcol" / "extensions" / "molecule"
     if (generated_molecule_dir / "integration_").exists():
-        (generated_molecule_dir / "integration_").rename(generated_molecule_dir / "integration_hello_world")
-    
+        (generated_molecule_dir / "integration_").rename(
+            generated_molecule_dir / "integration_hello_world"
+        )
+
     # Rename 'tasks' to 'hello_world' or create hello_world if it doesn't exist
     generated_targets_dir = tmp_path / "testorg" / "testcol" / "tests" / "integration" / "targets"
     if (generated_targets_dir / "tasks").exists():
