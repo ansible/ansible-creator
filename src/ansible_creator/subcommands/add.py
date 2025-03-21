@@ -20,16 +20,6 @@ if TYPE_CHECKING:
     from ansible_creator.config import Config
     from ansible_creator.output import Output
 
-MODULE_REPLACERS = {
-    "project_org": "namespace",
-    "project_repo": "collection_name",
-    "sample_module": "plugin_name",
-    "sample_action": "plugin_name",
-    "sample_filter": "plugin_name",
-    "sample_lookup": "plugin_name",
-    "sample_test": "plugin_name",
-}
-
 
 class Add:
     """Class to handle the add subcommand."""
@@ -173,7 +163,6 @@ class Add:
             output=self.output,
             template_data=template_data,
             templar=self.templar,
-            path_replacers=None,
             subcommand="add",
         )
         paths = walker.collect_paths()
@@ -314,7 +303,6 @@ class Add:
             output=self.output,
             template_data=template_data,
             templar=self.templar,
-            path_replacers=MODULE_REPLACERS,
             subcommand="add",
         )
         paths = walker.collect_paths()

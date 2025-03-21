@@ -28,6 +28,11 @@ if TYPE_CHECKING:
 PATH_REPLACERS = {
     "project_org": "namespace",
     "project_repo": "collection_name",
+    "sample_module": "plugin_name",
+    "sample_action": "plugin_name",
+    "sample_filter": "plugin_name",
+    "sample_lookup": "plugin_name",
+    "sample_test": "plugin_name",
 }
 
 
@@ -178,7 +183,6 @@ class Walker:
         template_data: A dictionary containing the original data to render templates with.
         resource_root: Root path for the resources.
         templar: An instance of the Templar class.
-        path_replacers: Dictionary of path name replacements to apply during copying.
         subcommand: The subcommand being run.
     """
 
@@ -189,7 +193,6 @@ class Walker:
     template_data: TemplateData
     resource_root: str = "ansible_creator.resources"
     templar: Templar | None = None
-    path_replacers: dict[str, str] | None = None
     subcommand: str = ""
 
     def _recursive_walk(
@@ -251,10 +254,10 @@ class Walker:
             maxsplit=1,
         )[-1]
         # replace placeholders in destination path with real values
-        replacers = self.path_replacers or PATH_REPLACERS
-        for key, val in replacers.items():
+        for key, val in PATH_REPLACERS.items():
             if key in dest_name:
-                repl_val = getattr(template_data, val)
+                if not (repl_val := getattr(template_data, val)):
+                    continue
                 dest_name = dest_name.replace(key, repl_val)
         dest_name = dest_name.removesuffix(".j2")
 
