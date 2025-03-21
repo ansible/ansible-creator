@@ -1,5 +1,5 @@
 {# lookup_plugin_template.j2 #}
-{%- set lookup_name = plugin_name | default("sample_lookup") -%}
+{%- set lookup_name = plugin_name | default("sample_lookup",true) -%}
 {%- set author = author | default("Your Name (@username)") -%}
 {%- set description = description | default("A custom lookup plugin for Ansible.") -%}
 {%- set license = license | default("GPL-3.0-or-later") -%}

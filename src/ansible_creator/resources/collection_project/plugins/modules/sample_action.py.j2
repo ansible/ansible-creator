@@ -1,4 +1,4 @@
-{%- set module_name = plugin_name | default("sample_action") -%}
+{%- set module_name = plugin_name | default("sample_action",true) -%}
 {%- set author = author | default("Your Name (@username)") -%}
 # {{ module_name }}.py
 # GNU General Public License v3.0+

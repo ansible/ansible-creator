@@ -1,5 +1,5 @@
 {# filter_plugin_template.j2 #}
-{%- set filter_name = plugin_name | default("sample_filter") -%}
+{%- set filter_name = plugin_name | default("sample_filter",true) -%}
 {%- set author = author | default("Your Name") -%}
 {%- set description = description | default("A custom filter plugin for Ansible.") -%}
 {%- set license = license | default("GPL-3.0-or-later") -%}

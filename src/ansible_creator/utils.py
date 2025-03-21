@@ -220,40 +220,15 @@ class Walker:
 
         # Process all objects in the directory
         for obj in root.iterdir():
-            # Special handling for Python template files in plugin directories
-            if (
-                self.subcommand == "init"
-                and "plugins" in str(root)
-                and template_data.plugin_type in str(root)
-                and obj.is_file()
-                and obj.name.endswith(".py.j2")
-            ):
-                # Extract plugin name from the file name (remove .py.j2)
-                plugin_name = obj.name.removesuffix(".py.j2")
-                self.output.debug(msg=f"Found plugin file: {plugin_name} in init command")
-
-                # Create a copy of template_data with updated plugin_name
-                temp_template_data = copy.deepcopy(template_data)
-                temp_template_data.plugin_name = plugin_name
-
-                self.output.debug(msg=f"Setting plugin_name to: {plugin_name}")
-                file_list.extend(
-                    self.each_obj(
-                        current_index,
-                        obj,
-                        resource=resource,
-                        template_data=temp_template_data,
-                    ),
-                )
-            else:
-                file_list.extend(
-                    self.each_obj(
-                        current_index,
-                        obj,
-                        resource=resource,
-                        template_data=template_data,
-                    ),
-                )
+        
+            file_list.extend(
+                self.each_obj(
+                    current_index,
+                    obj,
+                    resource=resource,
+                    template_data=template_data,
+                ),
+            )
 
         return file_list
 

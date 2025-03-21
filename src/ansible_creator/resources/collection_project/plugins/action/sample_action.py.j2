@@ -1,5 +1,5 @@
 {# action_plugin_template.j2 #}
-{%- set action_name = plugin_name | default("sample_action") -%}
+{%- set action_name = plugin_name | default("sample_action",true) -%}
 {%- set author = author | default("Your Name") -%}
 {%- set description = description | default("A custom action plugin for Ansible.") -%}
 {%- set license = license | default("GPL-3.0-or-later") -%}
