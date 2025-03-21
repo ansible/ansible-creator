@@ -250,7 +250,7 @@ class Walker:
         """
         dest_name = self._get_destination_name(obj, resource, template_data)
         dest_path = self._create_destination_file(dest_name, obj, current_index)
-        
+
         self.output.debug(f"Looking at {dest_path}")
 
         if obj.is_file():
@@ -258,14 +258,16 @@ class Walker:
 
         # Use keyword arguments to avoid positional argument issues
         return self._handle_path_writing(
-            dest_path=dest_path, 
-            obj=obj, 
-            resource=resource, 
-            current_index=current_index, 
-            template_data=template_data
+            dest_path=dest_path,
+            obj=obj,
+            resource=resource,
+            current_index=current_index,
+            template_data=template_data,
         )
 
-    def _get_destination_name(self, obj: Traversable, resource: str, template_data: TemplateData) -> str:
+    def _get_destination_name(
+        self, obj: Traversable, resource: str, template_data: TemplateData
+    ) -> str:
         """Extract and process the destination name from the object path.
 
         Args:
@@ -281,17 +283,19 @@ class Walker:
             resource.replace(".", "/") + "/",
             maxsplit=1,
         )[-1]
-        
+
         # replace placeholders in destination path with real values
         for key, val in PATH_REPLACERS.items():
             if key in dest_name:
                 if not (repl_val := getattr(template_data, val)):
                     continue
                 dest_name = dest_name.replace(key, repl_val)
-                
+
         return dest_name.removesuffix(".j2")
-    
-    def _create_destination_file(self, dest_name: str, obj: Traversable, current_index: int) -> DestinationFile:
+
+    def _create_destination_file(
+        self, dest_name: str, obj: Traversable, current_index: int
+    ) -> DestinationFile:
         """Create a DestinationFile object based on the destination configuration.
 
         Args:
@@ -313,14 +317,14 @@ class Walker:
             dest=self.dest / dest_name,
             source=obj,
         )
-    
+
     def _handle_path_writing(
-        self, 
-        dest_path: DestinationFile, 
-        obj: Traversable, 
-        resource: str, 
-        current_index: int, 
-        template_data: TemplateData
+        self,
+        dest_path: DestinationFile,
+        obj: Traversable,
+        resource: str,
+        current_index: int,
+        template_data: TemplateData,
     ) -> FileList:
         """Handle the writing of files and directories based on conditions.
 
@@ -344,7 +348,7 @@ class Walker:
                     template_data=template_data,
                 )
             return FileList()
-            
+
         # Warn on conflict
         conflict_msg = dest_path.conflict
         if conflict_msg:
@@ -365,7 +369,7 @@ class Walker:
             )
         if obj.is_file():
             return FileList([dest_path])
-            
+
         return FileList()
 
     def _per_container(self, resource: str, current_index: int) -> FileList:
