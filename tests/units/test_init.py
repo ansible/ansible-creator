@@ -130,14 +130,26 @@ def test_run_success_for_collection(
         coll_name = init._collection_name
         return f"{coll_namespace}.{coll_name}"
 
+    # Mock the Walker._per_container method to inject plugin_name
+    from ansible_creator.utils import Walker
+    original_per_container = Walker._per_container
+
+    def mock_per_container(self, resource, current_index):
+        self.template_data.plugin_name = "hello_world"
+        return original_per_container(self, resource, current_index)
+
     with pytest.MonkeyPatch.context() as mp:
-        # Apply the mock
+        # Apply the mocks
         mp.setattr(
             Init,
             "unique_name_in_devfile",
             mock_unique_name_in_devfile,
         )
+        mp.setattr(Walker, "_per_container", mock_per_container)
+        
+        # Run the init command
         init.run()
+    
     result = capsys.readouterr().out
 
     # check stdout
@@ -147,7 +159,6 @@ def test_run_success_for_collection(
     cmp = dircmp(str(tmp_path), str(FIXTURES_DIR / "collection"), ignore=[".DS_Store"])
     diff = has_differences(dcmp=cmp, errors=[])
     assert diff == [], diff
-
     # expect a CreatorError when the response to overwrite is no.
     monkeypatch.setattr("builtins.input", lambda _: "n")
     fail_msg = (
