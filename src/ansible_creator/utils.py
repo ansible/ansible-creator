@@ -229,8 +229,7 @@ class Walker:
         return file_list
 
     def _process_path(self, dest_name: str, template_data: TemplateData) -> str:
-        """
-        Process path replacements and handle suffixes.
+        """Process path replacements and handle suffixes.
 
         Args:
             dest_name (str): The original destination path name
@@ -252,8 +251,7 @@ class Walker:
         dest_name: str,
         current_index: int,
     ) -> DestinationFile:
-        """
-        Create destination path based on configuration.
+        """Create destination path based on configuration.
 
         Args:
             obj (Traversable): Source object being processed
@@ -277,8 +275,7 @@ class Walker:
         resource: str,
         template_data: TemplateData,
     ) -> FileList:
-        """
-        Process individual object in the resource container.
+        """Process individual object in the resource container.
 
         Args:
             current_index (int): Current index in the list of objects
@@ -290,12 +287,12 @@ class Walker:
             FileList: List of processed paths
         """
         dest_name = str(obj).split(resource.replace(".", "/") + "/", maxsplit=1)[-1]
-        
+
         dest_name = self._process_path(dest_name, template_data)
         dest_path = self._create_destination_path(obj, dest_name, current_index)
-        
+
         self.output.debug(f"Looking at {dest_path}")
-        
+
         if obj.is_file():
             dest_path.set_content(template_data, self.templar)
             if dest_path.needs_write:
@@ -303,17 +300,19 @@ class Walker:
                 if conflict_msg:
                     self.output.warning(conflict_msg)
             return FileList([dest_path])
-        
+
         if obj.is_dir() and obj.name not in SKIP_DIRS:
             result = FileList([dest_path])
-            result.extend(self._recursive_walk(
-                root=obj,
-                resource=resource,
-                current_index=current_index,
-                template_data=template_data,
-            ))
+            result.extend(
+                self._recursive_walk(
+                    root=obj,
+                    resource=resource,
+                    current_index=current_index,
+                    template_data=template_data,
+                )
+            )
             return result
-        
+
         return FileList()
 
     def _per_container(self, resource: str, current_index: int) -> FileList:
