@@ -248,12 +248,12 @@ class Walker:
         Returns:
             A list of paths.
         """
-        # resource names may have a . but directories use / in the path
+
         dest_name = str(obj).split(
             resource.replace(".", "/") + "/",
             maxsplit=1,
         )[-1]
-        # replace placeholders in destination path with real values
+
         for key, val in PATH_REPLACERS.items():
             if key in dest_name:
                 if not (repl_val := getattr(template_data, val)):
@@ -262,13 +262,13 @@ class Walker:
         dest_name = dest_name.removesuffix(".j2")
 
         if isinstance(self.dest, list):
-            # If self.dest is a list of Path
+
             dest_path = DestinationFile(
                 dest=self.dest[current_index] / dest_name,
                 source=obj,
             )
         else:
-            # If self.dest is a single Path
+
             dest_path = DestinationFile(
                 dest=self.dest / dest_name,
                 source=obj,
@@ -280,7 +280,7 @@ class Walker:
             dest_path.set_content(template_data, self.templar)
 
         if dest_path.needs_write:
-            # Warn on conflict
+
             conflict_msg = dest_path.conflict
             if conflict_msg:
                 self.output.warning(conflict_msg)
