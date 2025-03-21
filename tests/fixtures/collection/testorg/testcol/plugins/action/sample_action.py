@@ -1,11 +1,6 @@
-{# action_plugin_template.j2 #}
-{%- set action_name = plugin_name | default("hello_world") -%}
-{%- set author = author | default("Your Name") -%}
-{%- set description = description | default("A custom action plugin for Ansible.") -%}
-{%- set license = license | default("GPL-3.0-or-later") -%}
-# {{ action_name }}.py - {{ description }}
-# Author: {{ author }}
-# License: {{ license }}
+# sample_action.py - A custom action plugin for Ansible.
+# Author: Your Name
+# License: GPL-3.0-or-later
 # pylint: disable=E0401
 
 from __future__ import absolute_import, annotations, division, print_function
@@ -26,7 +21,7 @@ if TYPE_CHECKING:
 
 class ActionModule(ActionBase):  # type: ignore[misc]
     """
-    Custom Ansible action plugin: {{ action_name }}
+    Custom Ansible action plugin: sample_action
     A custom action plugin for Ansible.
     """
 

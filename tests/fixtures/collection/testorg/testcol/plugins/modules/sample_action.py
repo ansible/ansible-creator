@@ -1,11 +1,9 @@
-{%- set module_name = plugin_name | default("hello_world") -%}
-{%- set author = author | default("Your Name (@username)") -%}
-# {{ module_name }}.py
+# sample_action.py
 # GNU General Public License v3.0+
 
 DOCUMENTATION = """
-    module: {{ module_name }}
-    author: {{ author }}
+    module: sample_action
+    author: Your Name (@username)
     version_added: "1.0.0"
     short_description: A custom action plugin for Ansible.
     description:
@@ -30,7 +28,7 @@ EXAMPLES = """
 - name: Example Action Plugin
   hosts: localhost
   tasks:
-    - name: Example {{ module_name }} plugin
+    - name: Example sample_action plugin
       with_prefix:
         prefix: "Hello, World"
         msg: "Ansible!"

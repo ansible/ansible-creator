@@ -48,6 +48,17 @@ class Add:
         self.output: Output = config.output
         self.templar = Templar()
 
+    @property
+    def _plugin_type_output(self) -> str:
+        """Format the plugin type for output.
+
+        Returns:
+            Formatted plugin type string for display in output messages.
+        """
+        if self._plugin_type == "modules":
+            return "Module"
+        return self._plugin_type.capitalize()
+
     def run(self) -> None:
         """Start scaffolding the resource file."""
         self._check_path_exists()
@@ -209,10 +220,8 @@ class Add:
             template_data = self._get_plugin_template_data()
             self._perform_lookup_plugin_scaffold(template_data, plugin_path)
 
-        elif self._plugin_type == "module":
+        elif self._plugin_type == "modules":
             template_data = self._get_plugin_template_data()
-            plugin_path = self._add_path / "plugins" / "sample_module"
-            plugin_path.mkdir(parents=True, exist_ok=True)
             self._perform_module_plugin_scaffold(template_data, plugin_path)
 
         elif self._plugin_type == "test":
@@ -258,7 +267,7 @@ class Add:
         template_data: TemplateData,
         plugin_path: Path,
     ) -> None:
-        resources = ("collection_project.plugins.sample_module",)
+        resources = (f"collection_project.plugins.{self._plugin_type}",)
         self._perform_plugin_scaffold(resources, template_data, plugin_path)
 
     def _perform_test_plugin_scaffold(
@@ -311,7 +320,7 @@ class Add:
 
         if not paths.has_conflicts() or self._force or self._overwrite:
             copier.copy_containers(paths)
-            self.output.note(f"{self._plugin_type.capitalize()} plugin added to {plugin_path}")
+            self.output.note(f"{self._plugin_type_output} plugin added to {plugin_path}")
             return
 
         if not self._overwrite:
@@ -327,7 +336,7 @@ class Add:
                 )
                 raise CreatorError(msg)
 
-        self.output.note(f"{self._plugin_type.capitalize()} plugin added to {plugin_path}")
+        self.output.note(f"{self._plugin_type_output} plugin added to {plugin_path}")
 
     def _get_devfile_template_data(self) -> TemplateData:
         """Get the template data for devfile resources.

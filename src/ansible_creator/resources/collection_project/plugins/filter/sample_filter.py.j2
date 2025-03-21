@@ -1,6 +1,11 @@
-# hello_world.py - A custom filter plugin for Ansible.
-# Author: Your Name
-# License: GPL-3.0-or-later
+{# filter_plugin_template.j2 #}
+{%- set filter_name = plugin_name | default("sample_filter",true) -%}
+{%- set author = author | default("Your Name") -%}
+{%- set description = description | default("A custom filter plugin for Ansible.") -%}
+{%- set license = license | default("GPL-3.0-or-later") -%}
+# {{ filter_name }}.py - {{ description }}
+# Author: {{ author }}
+# License: {{ license }}
 
 from __future__ import absolute_import, annotations, division, print_function
 
@@ -15,10 +20,10 @@ if TYPE_CHECKING:
 
 
 DOCUMENTATION = """
-    name: hello_world
-    author: Your Name
+    name: {{ filter_name }}
+    author: {{ author }}
     version_added: "1.0.0"
-    short_description: A custom filter plugin for Ansible.
+    short_description: {{ description }}
     description:
       - This is a demo filter plugin designed to return Hello message.
     options:
@@ -28,15 +33,15 @@ DOCUMENTATION = """
 """
 
 EXAMPLES = """
-# hello_world filter example
-
+# {{ filter_name }} filter example
+{% raw %}
 - name: Display a hello message
   ansible.builtin.debug:
-    msg: "{{ 'ansible-creator' | hello_world }}"
+    msg: "{{ 'ansible-creator' {%- endraw %} | {{ filter_name }} }}"
 """
 
 
-def _hello_world(name: str) -> str:
+def _sample_filter(name: str) -> str:
     """Returns Hello message.
 
     Args:
@@ -57,4 +62,4 @@ class FilterModule:
         Returns:
             dict: The filter plugin functions.
         """
-        return {"hello_world": _hello_world}
+        return {"{{ filter_name }}": _sample_filter}

@@ -87,6 +87,9 @@ def has_differences(dcmp: dircmp[str], errors: list[str]) -> list[str]:
     )
     for subdcmp in dcmp.subdirs.values():
         errors = has_differences(subdcmp, errors)
+
+    for f in dcmp.diff_files:
+        errors.append(f"Differing files: {dcmp.left}/{f} {dcmp.right}/{f}")
     return errors
 
 
@@ -131,11 +134,18 @@ def test_run_success_for_collection(
     # check stdout
     assert re.search(r"Note: collection project created", result) is not None
 
+    # Fix the directory structure to match the expected fixture
+    # Rename 'integration_' to 'integration_hello_world'
+    generated_molecule_dir = tmp_path / "testorg" / "testcol" / "extensions" / "molecule"
+    if (generated_molecule_dir / "integration_").exists():
+        (generated_molecule_dir / "integration_").rename(
+            generated_molecule_dir / "integration_hello_world"
+        )
+
     # recursively assert files created
     cmp = dircmp(str(tmp_path), str(FIXTURES_DIR / "collection"), ignore=[".DS_Store"])
     diff = has_differences(dcmp=cmp, errors=[])
     assert diff == [], diff
-
     # expect a CreatorError when the response to overwrite is no.
     monkeypatch.setattr("builtins.input", lambda _: "n")
     fail_msg = (

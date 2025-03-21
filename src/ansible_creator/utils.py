@@ -28,7 +28,11 @@ if TYPE_CHECKING:
 PATH_REPLACERS = {
     "project_org": "namespace",
     "project_repo": "collection_name",
-    "hello_world": "plugin_name",
+    "sample_module": "plugin_name",
+    "sample_action": "plugin_name",
+    "sample_filter": "plugin_name",
+    "sample_lookup": "plugin_name",
+    "sample_test": "plugin_name",
 }
 
 
@@ -210,6 +214,8 @@ class Walker:
         self.output.debug(msg=f"current root set to {root}")
 
         file_list = FileList()
+
+        # Process all objects in the directory
         for obj in root.iterdir():
             file_list.extend(
                 self.each_obj(
@@ -244,10 +250,11 @@ class Walker:
             resource.replace(".", "/") + "/",
             maxsplit=1,
         )[-1]
+
         # replace placeholders in destination path with real values
         for key, val in PATH_REPLACERS.items():
-            if key in dest_name:
-                repl_val = getattr(template_data, val)
+            repl_val = getattr(template_data, val)
+            if key in dest_name and repl_val:
                 dest_name = dest_name.replace(key, repl_val)
         dest_name = dest_name.removesuffix(".j2")
 
@@ -259,18 +266,13 @@ class Walker:
             )
         else:
             # If self.dest is a single Path
-            dest_path = DestinationFile(
-                dest=self.dest / dest_name,
-                source=obj,
-            )
+            dest_path = DestinationFile(dest=self.dest / dest_name, source=obj)
 
         self.output.debug(f"Looking at {dest_path}")
-
         if obj.is_file():
             dest_path.set_content(template_data, self.templar)
 
         if dest_path.needs_write:
-            # Warn on conflict
             conflict_msg = dest_path.conflict
             if conflict_msg:
                 self.output.warning(conflict_msg)
@@ -289,7 +291,6 @@ class Walker:
                 )
             if obj.is_file():
                 return FileList([dest_path])
-
         if obj.is_dir() and obj.name not in SKIP_DIRS:
             return self._recursive_walk(
                 root=obj,
@@ -297,7 +298,6 @@ class Walker:
                 current_index=current_index,
                 template_data=template_data,
             )
-
         return FileList()
 
     def _per_container(self, resource: str, current_index: int) -> FileList:
@@ -337,6 +337,7 @@ class Walker:
                     data=template_data,
                 )
                 deserialized = yaml.safe_load(templated)
+                # Use the deserialized templated value
                 setattr(template_data, key, deserialized)
             else:
                 setattr(template_data, key, value["value"])

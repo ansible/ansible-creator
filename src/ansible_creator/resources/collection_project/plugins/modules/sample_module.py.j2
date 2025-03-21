@@ -1,9 +1,9 @@
-{# filter_plugin_template.j2 #}
-{%- set filter_name = plugin_name | default("hello_world") -%}
-{%- set author = author | default("Your Name") -%}
-{%- set description = description | default("A custom filter plugin for Ansible.") -%}
+{# module_plugin_template.j2 #}
+{%- set module_name = plugin_name | default("sample_module",true) -%}
+{%- set author = author |  default("Your Name (@username)") -%}
+{%- set description = description | default("A custom module plugin for Ansible.") -%}
 {%- set license = license | default("GPL-3.0-or-later") -%}
-# {{ filter_name }}.py - {{ description }}
+# {{ module_name }}.py - {{ description }}
 # Author: {{ author }}
 # License: {{ license }}
 
@@ -20,12 +20,12 @@ if TYPE_CHECKING:
 
 
 DOCUMENTATION = """
-    name: {{ filter_name }}
+    name: {{ module_name }}
     author: {{ author }}
     version_added: "1.0.0"
     short_description: {{ description }}
     description:
-      - This is a demo filter plugin designed to return Hello message.
+      - This is a demo module plugin designed to return Hello message.
     options:
       name:
         description: Value specified here is appended to the Hello message.
@@ -33,15 +33,15 @@ DOCUMENTATION = """
 """
 
 EXAMPLES = """
-# {{ filter_name }} filter example
+# {{ module_name }} module example
 {% raw %}
 - name: Display a hello message
   ansible.builtin.debug:
-    msg: "{{ 'ansible-creator' {%- endraw %} | {{ filter_name }} }}"
+    msg: "{{ 'ansible-creator' {%- endraw %} | {{ module_name }} }}"
 """
 
 
-def _hello_world(name: str) -> str:
+def _sample_module(name: str) -> str:
     """Returns Hello message.
 
     Args:
@@ -53,13 +53,13 @@ def _hello_world(name: str) -> str:
     return "Hello, " + name
 
 
-class FilterModule:
-    """filter plugin."""
+class SampleModule:
+    """module plugin."""
 
-    def filters(self) -> dict[str, Callable[[str], str]]:
-        """Map filter plugin names to their functions.
+    def modules(self) -> dict[str, Callable[[str], str]]:
+        """Map module plugin names to their functions.
 
         Returns:
-            dict: The filter plugin functions.
+            dict: The module plugin functions.
         """
-        return {"{{ filter_name }}": _hello_world}
+        return {"{{ module_name }}": _sample_module}
