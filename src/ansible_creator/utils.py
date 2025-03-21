@@ -225,7 +225,6 @@ class Walker:
                     template_data=template_data,
                 ),
             )
-
         return file_list
 
     def each_obj(
@@ -246,11 +245,13 @@ class Walker:
         Returns:
             A list of paths.
         """
+        # resource names may have a . but directories use / in the path
         dest_name = str(obj).split(
             resource.replace(".", "/") + "/",
             maxsplit=1,
         )[-1]
 
+        # replace placeholders in destination path with real values
         for key, val in PATH_REPLACERS.items():
             repl_val = getattr(template_data, val)
             if key in dest_name and repl_val:
@@ -258,11 +259,13 @@ class Walker:
         dest_name = dest_name.removesuffix(".j2")
 
         if isinstance(self.dest, list):
+            # If self.dest is a list of Path
             dest_path = DestinationFile(
                 dest=self.dest[current_index] / dest_name,
                 source=obj,
             )
         else:
+            # If self.dest is a single Path
             dest_path = DestinationFile(dest=self.dest / dest_name, source=obj)
 
         self.output.debug(f"Looking at {dest_path}")
@@ -334,7 +337,8 @@ class Walker:
                     data=template_data,
                 )
                 deserialized = yaml.safe_load(templated)
-                setattr(template_data, key, deserialized)  # Use the deserialized templated value
+                # Use the deserialized templated value
+                setattr(template_data, key, deserialized) 
             else:
                 setattr(template_data, key, value["value"])
 
