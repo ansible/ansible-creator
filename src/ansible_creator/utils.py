@@ -252,9 +252,8 @@ class Walker:
         )[-1]
 
         for key, val in PATH_REPLACERS.items():
-            if key in dest_name:
-                if not (repl_val := getattr(template_data, val)):
-                    continue
+            repl_val = getattr(template_data, val)
+            if key in dest_name and repl_val:
                 dest_name = dest_name.replace(key, repl_val)
         dest_name = dest_name.removesuffix(".j2")
 
