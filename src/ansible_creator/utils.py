@@ -220,7 +220,6 @@ class Walker:
 
         # Process all objects in the directory
         for obj in root.iterdir():
-        
             file_list.extend(
                 self.each_obj(
                     current_index,
