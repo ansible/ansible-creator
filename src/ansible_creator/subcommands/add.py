@@ -61,7 +61,7 @@ class Add:
     @property
     def _plugin_type_output(self) -> str:
         """Format the plugin type for output.
-        
+
         Returns:
             Formatted plugin type string for display in output messages.
         """
