@@ -1,0 +1,6 @@
+- name: Sample deployment playbook
+  hosts: '{{ target | default("all") }}'
+  tasks:
+    - name: Print a message
+      ansible.builtin.debug:
+        msg: "Hello, World!"
