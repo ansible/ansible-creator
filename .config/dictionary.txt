@@ -11,6 +11,7 @@ delenv
 devcontainer
 devcontainers
 devfile
+devspaces
 docsite
 endraw
 fileh
