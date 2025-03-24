@@ -12,7 +12,7 @@ GLOBAL_TEMPLATE_VARS = {
     "DEV_CONTAINER_DOWNSTREAM_IMAGE": (
         "registry.redhat.io/ansible-automation-platform-25/ansible-dev-tools-rhel8:latest"
     ),
-    "DEV_FILE_IMAGE": "ghcr.io/ansible/ansible-workspace-env-reference:latest",
+    "DEV_FILE_IMAGE": "ghcr.io/ansible/ansible-devspaces:latest",
     "RECOMMENDED_EXTENSIONS": ["redhat.ansible", "redhat.vscode-redhat-account"],
     "EXECUTION_ENVIRONMENT_DEFAULT_IMAGE": "quay.io/fedora/fedora:41",
 }
