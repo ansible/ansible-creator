@@ -142,7 +142,7 @@ $ tree -lla /home/ansible-dev/collections/ansible_collections/testns/testname
 │   │   └── __init__.py
 │   ├── sub_plugins
 │   │   └── __init__.py
-│   └── test
+│   ├── test
 │   │   ├── sample_test.py
 │   │   └── __init__.py
 ├── .pre-commit-config.yaml
