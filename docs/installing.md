@@ -123,15 +123,18 @@ $ tree -lla /home/ansible-dev/collections/ansible_collections/testns/testname
 │   └── runtime.yml
 ├── plugins
 │   ├── action
+│   │   ├── sample_action.py
 │   │   └── __init__.py
 │   ├── cache
 │   │   └── __init__.py
 │   ├── filter
-│   │   ├── hello_world.py
+│   │   ├── sample_filter.py
 │   │   └── __init__.py
 │   ├── inventory
 │   │   └── __init__.py
 │   ├── modules
+│   │   ├── sample_module.py
+│   │   ├── sample_action.py
 │   │   └── __init__.py
 │   ├── module_utils
 │   │   └── __init__.py
@@ -140,7 +143,8 @@ $ tree -lla /home/ansible-dev/collections/ansible_collections/testns/testname
 │   ├── sub_plugins
 │   │   └── __init__.py
 │   └── test
-│       └── __init__.py
+│   │   ├── sample_test.py
+│   │   └── __init__.py
 ├── .pre-commit-config.yaml
 ├── .prettierignore
 ├── pyproject.toml
