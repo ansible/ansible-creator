@@ -127,6 +127,9 @@ $ tree -lla /home/ansible-dev/collections/ansible_collections/testns/testname
 │   │   └── __init__.py
 │   ├── cache
 │   │   └── __init__.py
+│   ├── lookup
+│   │   ├── sample_lookup.py
+│   │   └── __init__.py
 │   ├── filter
 │   │   ├── sample_filter.py
 │   │   └── __init__.py
@@ -385,7 +388,7 @@ $ ansible-creator add plugin <plugin-type> <plugin-name> <collection-path>
 | filter    | Add a filter plugin to an existing Ansible Collection.  |
 | lookup    | Add a lookup plugin to an existing Ansible Collection.  |
 | module    | Add a generic module to an existing Ansible Collection. |
-| test      | Add a test plugin to an existing Ansible Collection     |
+| test      | Add a test plugin to an existing Ansible Collection.    |
 
 #### Example of adding a plugin
 
