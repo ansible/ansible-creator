@@ -134,14 +134,6 @@ def test_run_success_for_collection(
     # check stdout
     assert re.search(r"Note: collection project created", result) is not None
 
-    # Fix the directory structure to match the expected fixture
-    # Rename 'integration_' to 'integration_hello_world'
-    generated_molecule_dir = tmp_path / "testorg" / "testcol" / "extensions" / "molecule"
-    if (generated_molecule_dir / "integration_").exists():
-        (generated_molecule_dir / "integration_").rename(
-            generated_molecule_dir / "integration_hello_world"
-        )
-
     # recursively assert files created
     cmp = dircmp(str(tmp_path), str(FIXTURES_DIR / "collection"), ignore=[".DS_Store"])
     diff = has_differences(dcmp=cmp, errors=[])

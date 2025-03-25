@@ -20,24 +20,23 @@ DOCUMENTATION = """
     version_added: "1.0.0"
     short_description: A custom test plugin for Ansible.
     description:
-      - This is a demo test plugin designed to return Hello message.
+      - This is a demo test plugin designed to return a bool.
     options:
       name:
-        description: Value specified here is appended to the Hello message.
-        type: str
+        type: bool
 """
 
 EXAMPLES = """
 # sample_test test example
 
-- name: Display a hello message
+- name: Display a bool
   ansible.builtin.debug:
     msg: "{{ 50 | sample_test }}"
 """
 
 
-def _hello_world(val: int) -> bool:
-    """Returns Hello message.
+def _sample_test(val: int) -> bool:
+    """Returns a bool.
 
     Args:
         val: The value to test.
@@ -57,4 +56,4 @@ class TestModule:
         Returns:
             dict: The test plugin functions.
         """
-        return {"sample_test": _hello_world}
+        return {"sample_test": _sample_test}
