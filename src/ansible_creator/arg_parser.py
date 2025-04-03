@@ -34,7 +34,7 @@ except ImportError:  # pragma: no cover
 
 MIN_COLLECTION_NAME_LEN = 2
 
-COMING_SOON = ("add resource role",)
+COMING_SOON = ()
 
 
 class Parser:
@@ -296,10 +296,6 @@ class Parser:
             "role",
             help="Add a role to an existing Ansible collection.",
             formatter_class=CustomHelpFormatter,
-        )
-        parser.add_argument(
-            "role_name",
-            help="The name of the role to add.",
         )
         parser.add_argument(
             "path",
