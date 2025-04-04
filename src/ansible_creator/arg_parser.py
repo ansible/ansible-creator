@@ -34,8 +34,6 @@ except ImportError:  # pragma: no cover
 
 MIN_COLLECTION_NAME_LEN = 2
 
-COMING_SOON = ()
-
 
 class Parser:
     """A parser for the command line arguments."""
