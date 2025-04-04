@@ -1067,8 +1067,10 @@ def test_run_success_add_role(
     expected_content = expected_role_file.read_text().strip()
     effective_content = effective_role_file.read_text().strip()
 
-    assert expected_content == effective_content, f"Files differ:\n{expected_content}\n!=\n{effective_content}"
-    #assert cmp_result
+    assert expected_content == effective_content, (
+        f"Files differ:\n{expected_content}\n!=\n{effective_content}"
+    )
+    # assert cmp_result
 
     # Test for overwrite prompt and failure with no overwrite option
     conflict_file = tmp_path / "role" / "run" / "meta" / "main.yml"
