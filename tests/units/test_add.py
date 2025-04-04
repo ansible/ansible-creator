@@ -1060,7 +1060,7 @@ def test_run_success_add_role(
     assert re.search("Note: Resource added to", result) is not None
 
     # Verify the generated role file match the expected structure
-    expected_role_file = tmp_path / "role" / "run" / "meta" / "main.yml"
+    expected_role_file = tmp_path / "run" / "meta" / "main.yml"
     effective_role_file = FIXTURES_DIR / "common" / "role" / "run" / "meta" / "main.yml"
 
     cmp_result = cmp(expected_role_file, effective_role_file, shallow=False)
