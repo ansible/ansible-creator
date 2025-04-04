@@ -482,7 +482,7 @@ def test_coming_soon(
         AssertionError: If the assertion fails.
     """
     arg_parts = args.split()
-    if len(arg_parts)==0:
+    if len(arg_parts) == 0:
         assert True
     else:
         resource = arg_parts[2]
@@ -498,6 +498,7 @@ def test_coming_soon(
         stdout, stderr = capsys.readouterr()
         assert f"`{args}` command is coming soon" in stdout
         assert "Goodbye" in stderr
+
 
 def test_config_post_init(
     tmp_path: Path,
