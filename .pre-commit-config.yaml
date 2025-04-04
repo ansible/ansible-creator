@@ -119,7 +119,7 @@ repos:
         name: Check constraints files and requirements
         files: ^(pyproject\.toml|\.config/.*)$
         language: python
-        language_version: "3.10" # minimal we support officially https://github.com/astral-sh/uv/issues/3883
+        language_version: "3.11" # minimal we support officially https://github.com/astral-sh/uv/issues/3883
         entry: python3 -m uv pip compile -q --all-extras --universal --output-file=.config/constraints.txt pyproject.toml
         pass_filenames: false
         additional_dependencies:
