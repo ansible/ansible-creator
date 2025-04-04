@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import re
 import shutil
+import subprocess
 
 from filecmp import dircmp
 from pathlib import Path
@@ -89,7 +90,14 @@ def has_differences(dcmp: dircmp[str], errors: list[str]) -> list[str]:
         errors = has_differences(subdcmp, errors)
 
     for f in dcmp.diff_files:
-        errors.append(f"Differing files: {dcmp.left}/{f} {dcmp.right}/{f}")
+        result = subprocess.run(
+            f"git diff --no-index {dcmp.left}/{f} {dcmp.right}/{f}",
+            shell=True,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        errors.append(f"Differing files: {dcmp.left}/{f} {dcmp.right}/{f}:\n{result.stdout}")
     return errors
 
 
@@ -132,10 +140,10 @@ def test_run_success_for_collection(
     result = capsys.readouterr().out
 
     # check stdout
-    assert re.search(r"Note: collection project created", result) is not None
+    assert r"Note: collection project created" in result
 
     # recursively assert files created
-    cmp = dircmp(str(tmp_path), str(FIXTURES_DIR / "collection"), ignore=[".DS_Store"])
+    cmp = dircmp(str(tmp_path), str(FIXTURES_DIR / "collection"), ignore=[".DS_Store", ".ansible"])
     diff = has_differences(dcmp=cmp, errors=[])
     assert diff == [], diff
     # expect a CreatorError when the response to overwrite is no.
@@ -155,14 +163,8 @@ def test_run_success_for_collection(
     monkeypatch.setattr("builtins.input", lambda _: "y")
     init.run()
     result = capsys.readouterr().out
-    assert (
-        re.search(
-            r"already exists",
-            result,
-        )
-        is not None
-    ), result
-    assert re.search(r"Note: collection project created at", result) is not None, result
+    assert r"already exists" in result, result
+    assert r"Note: collection project created at" in result, result
 
     # override existing collection with force=true
     cli_args["force"] = True
@@ -171,7 +173,7 @@ def test_run_success_for_collection(
     )
     init.run()
     result = capsys.readouterr().out
-    assert re.search(r"Warning: re-initializing existing directory", result) is not None, result
+    assert r"Warning: re-initializing existing directory" in result, result
 
 
 def test_run_success_ee_project(
@@ -201,7 +203,7 @@ def test_run_success_ee_project(
     result = capsys.readouterr().out
 
     # check stdout
-    assert re.search(r"Note: execution_env project created", result) is not None
+    assert r"Note: execution_env project created" in result
 
     # recursively assert files created
     cmp = dircmp(
@@ -255,12 +257,13 @@ def test_run_success_ansible_project(
     result = capsys.readouterr().out
 
     # check stdout
-    assert re.search(r"Note: playbook project created", result) is not None
+    assert r"Note: playbook project created" in result
 
     # recursively assert files created
     cmp = dircmp(
         str(tmp_path / "new_project"),
         str(FIXTURES_DIR / "project" / "playbook_project"),
+        ignore=[".DS_Store", ".ansible"],
     )
     diff = has_differences(dcmp=cmp, errors=[])
     assert diff == [], diff
@@ -282,14 +285,8 @@ def test_run_success_ansible_project(
     monkeypatch.setattr("builtins.input", lambda _: "y")
     init.run()
     result = capsys.readouterr().out
-    assert (
-        re.search(
-            r"already exists",
-            result,
-        )
-        is not None
-    ), result
-    assert re.search(r"Note: playbook project created at", result) is not None, result
+    assert r"already exists" in result, result
+    assert r"Note: playbook project created at" in result, result
 
     # override existing playbook directory with force=true
     cli_args["force"] = True
@@ -298,7 +295,7 @@ def test_run_success_ansible_project(
     )
     init.run()
     result = capsys.readouterr().out
-    assert re.search(r"Warning: re-initializing existing directory", result) is not None, result
+    assert r"Warning: re-initializing existing directory" in result, result
 
 
 def test_run_success_collections_alt_dir(

@@ -7,6 +7,9 @@ pydoclint
 pylint
 pytest
 pytest-xdist
+pytest-sugar
+pytest-instafail
+pytest-plus
 ruff
 toml-sort
 tox

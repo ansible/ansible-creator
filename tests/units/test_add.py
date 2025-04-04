@@ -5,7 +5,6 @@
 from __future__ import annotations
 
 import json
-import re
 import shutil
 import subprocess
 import sys
@@ -150,7 +149,7 @@ def test_run_success_add_devfile(
         )
         add.run()
     result = capsys.readouterr().out
-    assert re.search("Note: Resource added to", result) is not None
+    assert "Note: Resource added to" in result
 
     expected_devfile = tmp_path / "devfile.yaml"
     effective_devfile = FIXTURES_DIR / "common" / "devfile" / "devfile.yaml"
@@ -177,14 +176,8 @@ def test_run_success_add_devfile(
     monkeypatch.setattr("builtins.input", lambda _: "y")
     add.run()
     result = capsys.readouterr().out
-    assert (
-        re.search(
-            "already exists",
-            result,
-        )
-        is not None
-    ), result
-    assert re.search("Note: Resource added to", result) is not None
+    assert "already exists" in result, result
+    assert "Note: Resource added to" in result
 
 
 def test_run_error_no_overwrite(
@@ -227,7 +220,7 @@ def test_run_error_no_overwrite(
         )
         add.run()
     result = capsys.readouterr().out
-    assert re.search("Note: Resource added to", result) is not None
+    assert "Note: Resource added to" in result
 
     expected_devfile = tmp_path / "devfile.yaml"
     effective_devfile = FIXTURES_DIR / "common" / "devfile" / "devfile.yaml"
@@ -354,7 +347,7 @@ def test_run_success_add_devcontainer(
     )
     add.run()
     result = capsys.readouterr().out
-    assert re.search("Note: Resource added to", result) is not None
+    assert "Note: Resource added to" in result
 
     # Verify the generated devcontainer files match the expected structure
     expected_devcontainer = tmp_path / ".devcontainer"
@@ -385,14 +378,8 @@ def test_run_success_add_devcontainer(
     monkeypatch.setattr("builtins.input", lambda _: "y")
     add.run()
     result = capsys.readouterr().out
-    assert (
-        re.search(
-            "already exists",
-            result,
-        )
-        is not None
-    ), result
-    assert re.search("Note: Resource added to", result) is not None
+    assert "already exists" in result, result
+    assert "Note: Resource added to" in result
 
 
 # Skip this test on macOS due to unavailability of docker on macOS GHA runners
@@ -412,7 +399,6 @@ def test_devcontainer_usability(
         cli_args: Dictionary, partial Add class object.
 
     Raises:
-        AssertionError: If the assertion fails.
         FileNotFoundError: If the 'npm' or 'docker' executable is not found in the PATH.
     """
     # Set the resource_type to devcontainer
@@ -423,7 +409,7 @@ def test_devcontainer_usability(
     )
     add.run()
     result = capsys.readouterr().out
-    assert re.search("Note: Resource added to", result) is not None
+    assert "Note: Resource added to" in result
 
     npm_executable = shutil.which("npm")
     if not npm_executable:
@@ -508,7 +494,7 @@ def test_run_success_add_plugin_filter(
     )
     add.run()
     result = capsys.readouterr().out
-    assert re.search("Note: Filter plugin added to", result) is not None
+    assert "Note: Filter plugin added to" in result
 
     expected_file = tmp_path / "plugins" / "filter" / "sample_filter.py"
     effective_file = (
@@ -543,14 +529,8 @@ def test_run_success_add_plugin_filter(
     monkeypatch.setattr("builtins.input", lambda _: "y")
     add.run()
     result = capsys.readouterr().out
-    assert (
-        re.search(
-            "already exists",
-            result,
-        )
-        is not None
-    ), result
-    assert re.search("Note: Filter plugin added to", result) is not None
+    assert "already exists" in result, result
+    assert "Note: Filter plugin added to" in result
 
 
 def test_run_success_add_plugin_lookup(
@@ -589,7 +569,7 @@ def test_run_success_add_plugin_lookup(
     )
     add.run()
     result = capsys.readouterr().out
-    assert re.search("Note: Lookup plugin added to", result) is not None
+    assert "Note: Lookup plugin added to" in result
 
     expected_file = tmp_path / "plugins" / "lookup" / "sample_lookup.py"
     effective_file = (
@@ -624,14 +604,8 @@ def test_run_success_add_plugin_lookup(
     monkeypatch.setattr("builtins.input", lambda _: "y")
     add.run()
     result = capsys.readouterr().out
-    assert (
-        re.search(
-            "already exists",
-            result,
-        )
-        is not None
-    ), result
-    assert re.search("Note: Lookup plugin added to", result) is not None
+    assert "already exists" in result, result
+    assert "Note: Lookup plugin added to" in result
 
 
 def test_run_success_add_plugin_action(
@@ -680,7 +654,7 @@ def test_run_success_add_plugin_action(
 
     add.run()
     result = capsys.readouterr().out
-    assert re.search("Note: Action plugin added to", result) is not None
+    assert "Note: Action plugin added to" in result
 
     expected_plugin_file = tmp_path / "plugins" / "action" / "sample_action.py"
     expected_module_file = tmp_path / "plugins" / "modules" / "sample_action.py"
@@ -743,7 +717,7 @@ def test_run_success_add_plugin_module(
     )
     add.run()
     result = capsys.readouterr().out
-    assert re.search("Note: Module plugin added to", result) is not None
+    assert "Note: Module plugin added to" in result
 
     expected_file = tmp_path / "plugins" / "modules" / "sample_module.py"
     effective_file = (
@@ -778,14 +752,8 @@ def test_run_success_add_plugin_module(
     monkeypatch.setattr("builtins.input", lambda _: "y")
     add.run()
     result = capsys.readouterr().out
-    assert (
-        re.search(
-            "already exists",
-            result,
-        )
-        is not None
-    ), result
-    assert re.search("Note: Module plugin added to", result) is not None
+    assert "already exists" in result, result
+    assert "Note: Module plugin added to" in result
 
 
 def test_run_success_add_plugin_test(
@@ -824,7 +792,7 @@ def test_run_success_add_plugin_test(
     )
     add.run()
     result = capsys.readouterr().out
-    assert re.search("Note: Test plugin added to", result) is not None
+    assert "Note: Test plugin added to" in result
 
     expected_file = tmp_path / "plugins" / "test" / "sample_test.py"
     effective_file = (
@@ -853,14 +821,8 @@ def test_run_success_add_plugin_test(
     monkeypatch.setattr("builtins.input", lambda _: "y")
     add.run()
     result = capsys.readouterr().out
-    assert (
-        re.search(
-            "already exists",
-            result,
-        )
-        is not None
-    ), result
-    assert re.search("Note: Test plugin added to", result) is not None
+    assert "already exists" in result, result
+    assert "Note: Test plugin added to" in result
 
 
 def test_run_error_plugin_no_overwrite(
@@ -899,7 +861,7 @@ def test_run_error_plugin_no_overwrite(
     )
     add.run()
     result = capsys.readouterr().out
-    assert re.search("Note: Lookup plugin added to", result) is not None
+    assert "Note: Lookup plugin added to" in result
 
     expected_file = tmp_path / "plugins" / "lookup" / "sample_lookup.py"
     effective_file = (
@@ -989,7 +951,7 @@ def test_run_success_add_execution_env(
     )
     add.run()
     result = capsys.readouterr().out
-    assert re.search("Note: Resource added to", result) is not None
+    assert "Note: Resource added to" in result
 
     # Verify the generated execution-environment file match the expected structure
     expected_ee_file = tmp_path / "execution-environment.yml"
@@ -1021,14 +983,8 @@ def test_run_success_add_execution_env(
     monkeypatch.setattr("builtins.input", lambda _: "y")
     add.run()
     result = capsys.readouterr().out
-    assert (
-        re.search(
-            "already exists",
-            result,
-        )
-        is not None
-    ), result
-    assert re.search("Note: Resource added to", result) is not None
+    assert "already exists" in result, result
+    assert "Note: Resource added to" in result
 
 
 def test_update_galaxy_dependency(tmp_path: Path, cli_args: ConfigDict) -> None:

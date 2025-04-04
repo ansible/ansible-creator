@@ -11,6 +11,9 @@ ci:
     # No docker on pre-commit.ci
 
 repos:
+  - repo: meta
+    hooks:
+      - id: check-useless-excludes
   - repo: https://github.com/rbubley/mirrors-prettier
     # keep it before yamllint
     rev: v3.5.3
@@ -20,6 +23,11 @@ repos:
         additional_dependencies:
           - prettier
           - prettier-plugin-sort-json@3.1.0
+  - repo: https://github.com/streetsidesoftware/cspell-cli
+    rev: v8.17.3
+    hooks:
+      - id: cspell
+        name: Spell check with cspell
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
@@ -54,6 +62,7 @@ repos:
     rev: v0.24.2
     hooks:
       - id: toml-sort-fix
+        alias: toml
 
   - repo: https://github.com/tox-dev/tox-ini-fmt
     rev: 1.5.0
@@ -61,24 +70,24 @@ repos:
       - id: tox-ini-fmt
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.9.9
+    rev: v0.11.3
     hooks:
       - id: ruff
-        args:
-          - --fix
-          - --exit-non-zero-on-fix
-        types_or: [python, pyi]
-      - id: ruff-format # must be after ruff
-        types_or: [python, pyi]
-
-  - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v8.17.3
+        entry: sh -c 'ruff check --fix --force-exclude && ruff format --force-exclude'
+  - repo: https://github.com/pre-commit/mirrors-mypy.git
+    rev: v1.15.0
     hooks:
-      - id: cspell
-        name: Spell check with cspell
-
+      - id: mypy
+        additional_dependencies: &deps
+          - argcomplete
+          - jinja2
+          - pytest
+          - pyyaml
+          - types-pyyaml
+        # Override default pre-commit '--ignore-missing-imports'
+        args: []
   - repo: https://github.com/jsh9/pydoclint
-    rev: "0.6.2"
+    rev: "0.6.5"
     hooks:
       - id: pydoclint
         # This allows automatic reduction of the baseline file when needed.
@@ -86,27 +95,12 @@ repos:
         pass_filenames: false
 
   - repo: https://github.com/pycqa/pylint.git
-    rev: v3.3.4
+    rev: v3.3.6
     hooks:
       - id: pylint
         args:
           - --output-format=colorized
-        additional_dependencies:
-          - jinja2
-          - pytest
-          - pyyaml
-
-  - repo: https://github.com/pre-commit/mirrors-mypy.git
-    rev: v1.15.0
-    hooks:
-      - id: mypy
-        additional_dependencies:
-          - argcomplete
-          - jinja2
-          - pytest
-          - types-pyyaml
-        # Override default pre-commit '--ignore-missing-imports'
-        args: [--strict]
+        additional_dependencies: *deps
 
   # Keep last due to being considerably slower than the others:
   - repo: local
@@ -117,22 +111,20 @@ repos:
         files: ^(pyproject\.toml|\.config/.*)$
         always_run: true
         language: python
-        language_version: "3.10" # minimal we support officially https://github.com/astral-sh/uv/issues/3883
-        entry: python3 -m uv pip compile -q --all-extras --universal --output-file=.config/constraints.txt pyproject.toml --upgrade
+        entry: python3 -m uv pip compile -q --all-extras --python-version=3.10 --output-file=.config/constraints.txt pyproject.toml --upgrade
         pass_filenames: false
         stages:
           - manual
         additional_dependencies:
-          - uv>=0.5.25
+          - uv>=0.6.6
       - id: lock
         name: Check constraints files and requirements
         files: ^(pyproject\.toml|\.config/.*)$
         language: python
-        language_version: "3.10" # minimal we support officially https://github.com/astral-sh/uv/issues/3883
-        entry: python3 -m uv pip compile -q --all-extras --universal --output-file=.config/constraints.txt pyproject.toml
+        entry: uv pip compile -q --all-extras --python-version=3.10 --output-file=.config/constraints.txt pyproject.toml
         pass_filenames: false
         additional_dependencies:
-          - uv>=0.5.25
+          - uv>=0.6.6
   - repo: https://github.com/mashi/codecov-validator
     rev: "1.0.1"
     hooks:
