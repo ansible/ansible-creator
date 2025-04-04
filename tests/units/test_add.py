@@ -87,6 +87,7 @@ def fixture_cli_args(tmp_path: Path, output: Output) -> ConfigDict:
         "overwrite": False,
         "no_overwrite": False,
         "image": "",
+        "role_name": "",
     }
 
 
