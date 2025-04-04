@@ -990,6 +990,37 @@ def test_run_success_add_execution_env(
     assert "Note: Resource added to" in result
 
 
+def normalize_content(content: str) -> str:
+    """Normalize content by removing trailing spaces after colons.
+
+    Args:
+        content: The content to be normalized.
+
+    Returns:
+        str: The normalized content.
+
+    Raises:
+        ValueError: If the content has no lines.
+    """
+    lines = content.splitlines()
+    normalized_lines = []
+
+    if len(lines) == 0:
+        error_message = "Content is empty, no lines to normalize."
+        raise ValueError(error_message)
+
+    for line in lines:
+        # Split the line at the first colon
+        if ":" in line:
+            key, value = line.split(":", 1)
+            # Strip spaces after colon
+            normalized_lines.append(f"{key}:{value.strip()}")
+        else:
+            normalized_lines.append(line)
+
+    return "\n".join(normalized_lines)
+
+
 def test_run_success_add_role(
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
@@ -1007,7 +1038,7 @@ def test_run_success_add_role(
         monkeypatch: Pytest monkeypatch fixture.
 
     Raises:
-        AssertionError: If the assertion fails.
+        ValueError: If the content to be normalized has no lines.
     """
     # Set the resource_type to role
     cli_args["resource_type"] = "role"
@@ -1017,7 +1048,7 @@ def test_run_success_add_role(
     )
     add.run()
     result = capsys.readouterr().out
-    assert re.search("Note: Resource added to", result) is not None
+    assert "Note: Resource added to" in result
 
     # Verify the generated role file match the expected structure
     expected_role_file = tmp_path / "roles" / "run" / "meta" / "main.yml"
@@ -1026,9 +1057,13 @@ def test_run_success_add_role(
     expected_content = expected_role_file.read_text().strip()
     effective_content = effective_role_file.read_text().strip()
 
-    # Remove trailing spaces after colon
-    expected_content = re.sub(r":\s*", ":", expected_content)
-    effective_content = re.sub(r":\s*", ":", effective_content)
+    try:
+        expected_content = normalize_content(expected_content)
+        effective_content = normalize_content(effective_content)
+    except ValueError as e:
+        # Assign the error message to a variable before raising the exception
+        error_message = f"Normalization failed: {e}"
+        raise ValueError(error_message) from e
 
     assert expected_content == effective_content, (
         f"Files differ:\n{expected_content}\n!=\n{effective_content}"
@@ -1050,19 +1085,13 @@ def test_run_success_add_role(
     ):
         add.run()
 
-    # expect a warning followed by role resource creation msg
+    # expect a warning followed by execution-environment resource creation msg
     # when response to overwrite is yes.
     monkeypatch.setattr("builtins.input", lambda _: "y")
     add.run()
     result = capsys.readouterr().out
-    assert (
-        re.search(
-            "already exists",
-            result,
-        )
-        is not None
-    ), result
-    assert re.search("Note: Resource added to", result) is not None
+    assert "already exists" in result, result
+    assert "Note: Resource added to" in result
 
 
 def test_update_galaxy_dependency(tmp_path: Path, cli_args: ConfigDict) -> None:
