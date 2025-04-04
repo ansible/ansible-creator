@@ -1030,6 +1030,73 @@ def test_run_success_add_execution_env(
     ), result
     assert re.search("Note: Resource added to", result) is not None
 
+def test_run_success_add_role(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test Add.run() for adding a execution-environment sample file.
+
+    Successfully adds role sample file to path.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Add class object.
+        monkeypatch: Pytest monkeypatch fixture.
+
+    Raises:
+        AssertionError: If the assertion fails.
+    """
+    # Set the resource_type to execution-environment
+    cli_args["resource_type"] = "role"
+    add = Add(
+        Config(**cli_args),
+    )
+    add.run()
+    result = capsys.readouterr().out
+    assert re.search("Note: Resource added to", result) is not None
+
+    # Verify the generated role file match the expected structure
+    expected_role_file = tmp_path / "role" / "run" / "main.yml"
+    effective_role_file = (
+        FIXTURES_DIR / "common" / "role" / "run" / "main.yml"
+    )
+
+    cmp_result = cmp(expected_role_file, effective_role_file, shallow=False)
+    assert cmp_result
+
+    # Test for overwrite prompt and failure with no overwrite option
+    conflict_file = tmp_path / "role" / "run" / "main.yml"
+    conflict_file.write_text('{ "version": "1" }')
+
+    # expect a CreatorError when the response to overwrite is no.
+    monkeypatch.setattr("builtins.input", lambda _: "n")
+    fail_msg = (
+        "The destination directory contains files that will be overwritten."
+        " Please re-run ansible-creator with --overwrite to continue."
+    )
+    with pytest.raises(
+        CreatorError,
+        match=fail_msg,
+    ):
+        add.run()
+
+    # expect a warning followed by role resource creation msg
+    # when response to overwrite is yes.
+    monkeypatch.setattr("builtins.input", lambda _: "y")
+    add.run()
+    result = capsys.readouterr().out
+    assert (
+        re.search(
+            "already exists",
+            result,
+        )
+        is not None
+    ), result
+    assert re.search("Note: Resource added to", result) is not None
+
 
 def test_update_galaxy_dependency(tmp_path: Path, cli_args: ConfigDict) -> None:
     """Test update_galaxy_dependency method.

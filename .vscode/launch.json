@@ -32,8 +32,8 @@
       "args": [
         "add",
         "resource",
-        "role",
-        "/Users/kausingh/Desktop/test-scaffold"
+        "devcontainer",
+        "/home/user/..path/to/your/existing_project"
       ],
       "cwd": "${workspaceFolder}/src",
       "justMyCode": false
