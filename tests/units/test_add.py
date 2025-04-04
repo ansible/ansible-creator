@@ -1037,7 +1037,7 @@ def test_run_success_add_role(
     cli_args: ConfigDict,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Test Add.run() for adding a execution-environment sample file.
+    """Test Add.run() for adding a role sample file.
 
     Successfully adds role sample file to path.
 
@@ -1050,7 +1050,7 @@ def test_run_success_add_role(
     Raises:
         AssertionError: If the assertion fails.
     """
-    # Set the resource_type to execution-environment
+    # Set the resource_type to role
     cli_args["resource_type"] = "role"
     add = Add(
         Config(**cli_args),
