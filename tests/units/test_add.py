@@ -1074,7 +1074,7 @@ def test_run_success_add_role(
     #assert cmp_result
 
     # Test for overwrite prompt and failure with no overwrite option
-    conflict_file = tmp_path / "role" / "run" / "meta" / "main.yml"
+    conflict_file = tmp_path / "run" / "meta" / "main.yml"
     conflict_file.write_text('{ "version": "1" }')
 
     # expect a CreatorError when the response to overwrite is no.
