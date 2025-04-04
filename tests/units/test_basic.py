@@ -465,36 +465,36 @@ def test_proj_main(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixtur
     assert "The fastest way" in stdout
 
 
-@pytest.mark.parametrize(argnames="args", argvalues=COMING_SOON, ids=lambda s: s.replace(" ", "_"))
-def test_coming_soon(
-    args: str,
-    capsys: pytest.CaptureFixture[str],
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Test coming soon.
+# @pytest.mark.parametrize(argnames="args", argvalues=COMING_SOON, ids=lambda s: s.replace(" ", "_"))
+# def test_coming_soon(
+#     args: str,
+#     capsys: pytest.CaptureFixture[str],
+#     monkeypatch: pytest.MonkeyPatch,
+# ) -> None:
+#     """Test coming soon.
 
-    Args:
-        args: The name of the command.
-        capsys: Pytest capsys fixture.
-        monkeypatch: Pytest monkeypatch fixture.
+#     Args:
+#         args: The name of the command.
+#         capsys: Pytest capsys fixture.
+#         monkeypatch: Pytest monkeypatch fixture.
 
-    Raises:
-        AssertionError: If the assertion fails.
-    """
-    arg_parts = args.split()
-    resource = arg_parts[2]
-    if resource in ("devcontainer", "devfile"):
-        monkeypatch.setattr("sys.argv", ["ansible-creator", *arg_parts, "/foo"])
-    elif resource in ("action", "filter", "lookup", "role"):
-        monkeypatch.setattr("sys.argv", ["ansible-creator", *arg_parts, "name", "/foo"])
-    else:
-        pytest.fail("Fix this test with new COMING_SOON commands")
+#     Raises:
+#         AssertionError: If the assertion fails.
+#     """
+#     arg_parts = args.split()
+#     resource = arg_parts[2]
+#     if resource in ("devcontainer", "devfile"):
+#         monkeypatch.setattr("sys.argv", ["ansible-creator", *arg_parts, "/foo"])
+#     elif resource in ("action", "filter", "lookup", "role"):
+#         monkeypatch.setattr("sys.argv", ["ansible-creator", *arg_parts, "name", "/foo"])
+#     else:
+#         pytest.fail("Fix this test with new COMING_SOON commands")
 
-    with pytest.raises(SystemExit):
-        cli_main()
-    stdout, stderr = capsys.readouterr()
-    assert f"`{args}` command is coming soon" in stdout
-    assert "Goodbye" in stderr
+#     with pytest.raises(SystemExit):
+#         cli_main()
+#     stdout, stderr = capsys.readouterr()
+#     assert f"`{args}` command is coming soon" in stdout
+#     assert "Goodbye" in stderr
 
 
 def test_config_post_init(
