@@ -1064,6 +1064,8 @@ def test_run_success_add_role(
     effective_role_file = FIXTURES_DIR / "common" / "role" / "run" / "meta" / "main.yml"
 
     cmp_result = cmp(expected_role_file, effective_role_file, shallow=False)
+    print(f"Expected file content: {expected_role_file.read_text()}")
+    print(f"Effective file content: {effective_role_file.read_text()}")
     assert cmp_result
 
     # Test for overwrite prompt and failure with no overwrite option
