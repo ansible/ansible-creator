@@ -10,9 +10,7 @@ from pathlib import Path, PosixPath
 
 import pytest
 
-from ansible_creator.arg_parser import COMING_SOON
 from ansible_creator.cli import Cli
-from ansible_creator.cli import main as cli_main
 from ansible_creator.config import Config
 from ansible_creator.output import Output
 from ansible_creator.utils import TermFeatures, expand_path
