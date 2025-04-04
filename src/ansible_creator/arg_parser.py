@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import contextlib
 import re
 import sys
 
@@ -78,15 +77,6 @@ class Parser:
         if HAS_ARGCOMPLETE:
             argcomplete.autocomplete(parser)
         self.args = parser.parse_args()
-
-        combinations = (
-            ("subcommand", "type", "resource_type"),
-            ("subcommand", "type", "plugin_type"),
-            ("subcommand", "project"),
-        )
-        for combination in combinations:
-            with contextlib.suppress(AttributeError):
-                name = " ".join(getattr(self.args, part) for part in combination)
 
         return self.args, self.pending_logs
 
