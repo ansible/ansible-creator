@@ -499,6 +499,7 @@ def test_coming_soon(
         assert f"`{args}` command is coming soon" in stdout
         assert "Goodbye" in stderr
 
+
 def test_config_post_init(
     tmp_path: Path,
     output: Output,
