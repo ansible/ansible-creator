@@ -307,6 +307,8 @@ class Parser:
             metavar="path",
             help="The path to the role directory. The default is the current working directory.",
         )
+
+        self._add_overwrite(parser)
         self._add_args_common(parser)
 
     def _add_resource_execution_env(self, subparser: SubParser[ArgumentParser]) -> None:

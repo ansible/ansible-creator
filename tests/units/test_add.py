@@ -45,6 +45,7 @@ class ConfigDict(TypedDict):
         overwrite: To overwrite files in an existing directory.
         no_overwrite: To not overwrite files in an existing directory.
         image: The image to be used while scaffolding devcontainer.
+        role_name: The name of role to be used while scaffolding.
     """
 
     creator_version: str
@@ -59,6 +60,7 @@ class ConfigDict(TypedDict):
     overwrite: bool
     no_overwrite: bool
     image: str
+    role_name: str
 
 
 @pytest.fixture(name="cli_args")
