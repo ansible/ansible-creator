@@ -33,6 +33,7 @@ PATH_REPLACERS = {
     "sample_filter": "plugin_name",
     "sample_lookup": "plugin_name",
     "sample_test": "plugin_name",
+    "run": "role_name",
 }
 
 

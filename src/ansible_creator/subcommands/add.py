@@ -34,6 +34,7 @@ class Add:
             config: App configuration object.
         """
         self._resource_type: str = config.resource_type
+        self._role_name: str = config.role_name
         self._plugin_type: str = config.plugin_type
         self._resource_id: str = f"common.{self._resource_type}"
         self._plugin_id: str = f"collection_project.plugins.{self._plugin_type}"
@@ -407,5 +408,6 @@ class Add:
         """
         return TemplateData(
             resource_type=self._resource_type,
+            role_name=self._role_name,
             creator_version=self._creator_version,
         )

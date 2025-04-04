@@ -298,6 +298,10 @@ class Parser:
             formatter_class=CustomHelpFormatter,
         )
         parser.add_argument(
+            "role_name",
+            help="The name of the role to add.",
+        )
+        parser.add_argument(
             "path",
             default="./",
             metavar="path",
