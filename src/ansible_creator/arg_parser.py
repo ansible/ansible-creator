@@ -88,12 +88,6 @@ class Parser:
             with contextlib.suppress(AttributeError):
                 name = " ".join(getattr(self.args, part) for part in combination)
 
-        if name in COMING_SOON:
-            msg = f"The `{name}` command is coming soon. Please try in the next release."
-            self.pending_logs.append(Msg(prefix=Level.HINT, message=msg))
-            self.pending_logs.append(Msg(prefix=Level.CRITICAL, message="Goodbye."))
-            return self.args, self.pending_logs
-
         return self.args, self.pending_logs
 
     def _add(self, subparser: SubParser[ArgumentParser]) -> None:
