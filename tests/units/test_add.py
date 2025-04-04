@@ -1059,16 +1059,16 @@ def test_run_success_add_role(
     assert re.search("Note: Resource added to", result) is not None
 
     # Verify the generated role file match the expected structure
-    expected_role_file = tmp_path / "role" / "run" / "main.yml"
+    expected_role_file = tmp_path / "role" / "run" / "meta" / "main.yml"
     effective_role_file = (
-        FIXTURES_DIR / "common" / "role" / "run" / "main.yml"
+        FIXTURES_DIR / "common" / "role" / "run" / "meta" / "main.yml"
     )
 
     cmp_result = cmp(expected_role_file, effective_role_file, shallow=False)
     assert cmp_result
 
     # Test for overwrite prompt and failure with no overwrite option
-    conflict_file = tmp_path / "role" / "run" / "main.yml"
+    conflict_file = tmp_path / "role" / "run" / "meta" / "main.yml"
     conflict_file.write_text('{ "version": "1" }')
 
     # expect a CreatorError when the response to overwrite is no.
