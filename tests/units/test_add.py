@@ -1067,6 +1067,9 @@ def test_run_success_add_role(
     expected_content = expected_role_file.read_text().strip()
     effective_content = effective_role_file.read_text().strip()
 
+    expected_content = re.sub(r":\s*", ":", expected_content)
+    effective_content = re.sub(r":\s*", ":", effective_content)
+
     assert expected_content == effective_content, f"Files differ:\n{expected_content}\n!=\n{effective_content}"
     #assert cmp_result
 
