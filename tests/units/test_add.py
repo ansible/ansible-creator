@@ -1030,6 +1030,7 @@ def test_run_success_add_execution_env(
     ), result
     assert re.search("Note: Resource added to", result) is not None
 
+
 def test_run_success_add_role(
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
@@ -1060,9 +1061,7 @@ def test_run_success_add_role(
 
     # Verify the generated role file match the expected structure
     expected_role_file = tmp_path / "role" / "run" / "main.yml"
-    effective_role_file = (
-        FIXTURES_DIR / "common" / "role" / "run" / "main.yml"
-    )
+    effective_role_file = FIXTURES_DIR / "common" / "role" / "run" / "main.yml"
 
     cmp_result = cmp(expected_role_file, effective_role_file, shallow=False)
     assert cmp_result
