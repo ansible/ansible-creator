@@ -482,10 +482,10 @@ def test_coming_soon(
         AssertionError: If the assertion fails.
     """
     arg_parts = args.split()
-    if len(arg_parts)==0:
+    resource = arg_parts[2]
+    if resource in ("dummy"):
         assert True
     else:
-        resource = arg_parts[2]
         if resource in ("devcontainer", "devfile"):
             monkeypatch.setattr("sys.argv", ["ansible-creator", *arg_parts, "/foo"])
         elif resource in ("action", "filter", "lookup", "role"):
