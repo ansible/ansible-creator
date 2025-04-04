@@ -34,7 +34,7 @@ except ImportError:  # pragma: no cover
 
 MIN_COLLECTION_NAME_LEN = 2
 
-COMING_SOON = ("add resource dummy")
+COMING_SOON = ("add resource dummy",)
 
 
 class Parser:
