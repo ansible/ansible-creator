@@ -1052,7 +1052,7 @@ def test_run_success_add_role(
     """
     # Set the resource_type to role
     cli_args["resource_type"] = "role"
-    cli_args["role_name"] = "Run"
+    cli_args["role_name"] = "run"
     add = Add(
         Config(**cli_args),
     )
