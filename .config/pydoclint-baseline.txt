@@ -1,0 +1,83 @@
+tests/fixtures/collection/testorg/testcol/tests/integration/test_integration.py
+    DOC502: Function `test_integration` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+--------------------
+tests/fixtures/collection/testorg/testcol/tests/unit/test_basic.py
+    DOC502: Function `test_basic` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+--------------------
+tests/integration/test_init.py
+    DOC502: Function `test_run_help` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_run_no_subcommand` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_run_init_no_input` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_run_deprecated_failure` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_run_init_invalid_name` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_run_init_basic` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_run_init_ee` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+--------------------
+tests/integration/test_lint.py
+    DOC502: Function `test_lint_collection` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_lint_playbook_project` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+--------------------
+tests/units/test_add.py
+    DOC502: Function `test_run_success_add_devfile` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_run_error_no_overwrite` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_error_invalid_path` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_error_invalid_collection_path` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_run_error_unsupported_resource_type` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_run_success_add_devcontainer` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_run_success_add_plugin_filter` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_run_success_add_plugin_lookup` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_run_success_add_plugin_action` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_run_success_add_plugin_module` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_run_success_add_plugin_test` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_run_error_plugin_no_overwrite` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_run_error_unsupported_plugin_type` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_run_success_add_execution_env` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_update_galaxy_dependency` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+--------------------
+tests/units/test_argparse_help.py
+    DOC502: Function `test_custom_help_single` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_custom_help_double` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+--------------------
+tests/units/test_basic.py
+    DOC502: Function `test_configuration_class` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_cli_parser` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_missing_j2` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_cli_init_output` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_cli_main` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_collection_name_short` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_collection_name_invalid` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_is_a_tty` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_not_a_tty` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_main` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_proj_main` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_coming_soon` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_config_post_init` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+--------------------
+tests/units/test_compat.py
+    DOC502: Function `test_import` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+--------------------
+tests/units/test_init.py
+    DOC502: Function `test_run_success_for_collection` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_run_success_ee_project` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_run_success_ansible_project` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_run_success_collections_alt_dir` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_delete_error` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_is_file_error` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_name_in_devfile_collection` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_name_in_devfile_playbook` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+--------------------
+tests/units/test_templar.py
+    DOC502: Function `test_templar` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_templar_json_simple` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_templar_json_complex` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+--------------------
+tests/units/test_utils.py
+    DOC502: Function `test_expand_path` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_skip_dirs` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_overwrite` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_skip_repeats` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_ask_yes_no_yes` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_ask_yes_no_no` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_ask_yes_no_invalid_then_yes` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+    DOC502: Function `test_ask_yes_no_invalid_then_no` has a "Raises" section in the docstring, but there are not "raise" statements in the body
+--------------------

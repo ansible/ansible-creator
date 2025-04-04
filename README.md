@@ -34,12 +34,14 @@ Options:
 
 ## Usage
 
-Full documentation on how to use `ansible-creator`, including integration with the VS Code Ansible Extension, is available in
+Full documentation on how to use `ansible-creator`, including integration with
+the VS Code Ansible Extension, is available in
 [ansible-creator documentation](https://ansible.readthedocs.io/projects/creator/).
 
 ## Command line completion
 
-`ansible-creator` has experimental command line completion for common shells. Please ensure you have the `argcomplete` package installed and configured.
+`ansible-creator` has experimental command line completion for common shells.
+Please ensure you have the `argcomplete` package installed and configured.
 
 ```shell
 pip install argcomplete --user
@@ -48,12 +50,14 @@ activate-global-python-argcomplete --user
 
 ## Upcoming features
 
-- Scaffold Ansible plugins of your choice with the `create` action.
-  Switch to the [create](https://github.com/ansible-community/ansible-creator/tree/create) branch and try it out!
+- Scaffold Ansible plugins of your choice with the `create` action. Switch to
+  the [create](https://github.com/ansible-community/ansible-creator/tree/create)
+  branch and try it out!
 
 ## Communication
 
-Refer to the [Get in Touch](https://ansible.readthedocs.io/projects/creator/contributing/#get-in-touch)
+Refer to the
+[Get in Touch](https://ansible.readthedocs.io/projects/creator/contributing/#get-in-touch)
 section of the Contributor Guide to find out how to communicate with us.
 
 You can also find more information in the
@@ -61,7 +65,8 @@ You can also find more information in the
 
 ## Contributing
 
-See [Contributing to ansible-creator](https://ansible.readthedocs.io/projects/creator/contributing/).
+See
+[Contributing to ansible-creator](https://ansible.readthedocs.io/projects/creator/contributing/).
 
 ## Code of Conduct
 
@@ -72,4 +77,5 @@ Please see the
 
 ansible-creator is released under the Apache License version 2.
 
-See the [LICENSE](https://github.com/ansible/ansible-creator/blob/main/LICENSE) file for more details.
+See the [LICENSE](https://github.com/ansible/ansible-creator/blob/main/LICENSE)
+file for more details.
