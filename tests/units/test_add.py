@@ -44,6 +44,7 @@ class ConfigDict(TypedDict):
         overwrite: To overwrite files in an existing directory.
         no_overwrite: To not overwrite files in an existing directory.
         image: The image to be used while scaffolding devcontainer.
+        role_name: The name of role to be used while scaffolding.
     """
 
     creator_version: str
@@ -58,6 +59,7 @@ class ConfigDict(TypedDict):
     overwrite: bool
     no_overwrite: bool
     image: str
+    role_name: str
 
 
 @pytest.fixture(name="cli_args")
@@ -84,6 +86,7 @@ def fixture_cli_args(tmp_path: Path, output: Output) -> ConfigDict:
         "overwrite": False,
         "no_overwrite": False,
         "image": "",
+        "role_name": "",
     }
 
 
@@ -964,6 +967,110 @@ def test_run_success_add_execution_env(
 
     # Test for overwrite prompt and failure with no overwrite option
     conflict_file = tmp_path / "execution-environment.yml"
+    conflict_file.write_text('{ "version": "1" }')
+
+    # expect a CreatorError when the response to overwrite is no.
+    monkeypatch.setattr("builtins.input", lambda _: "n")
+    fail_msg = (
+        "The destination directory contains files that will be overwritten."
+        " Please re-run ansible-creator with --overwrite to continue."
+    )
+    with pytest.raises(
+        CreatorError,
+        match=fail_msg,
+    ):
+        add.run()
+
+    # expect a warning followed by execution-environment resource creation msg
+    # when response to overwrite is yes.
+    monkeypatch.setattr("builtins.input", lambda _: "y")
+    add.run()
+    result = capsys.readouterr().out
+    assert "already exists" in result, result
+    assert "Note: Resource added to" in result
+
+
+def normalize_content(content: str) -> str:
+    """Normalize content by removing trailing spaces after colons.
+
+    Args:
+        content: The content to be normalized.
+
+    Returns:
+        str: The normalized content.
+
+    Raises:
+        ValueError: If the content has no lines.
+    """
+    lines = content.splitlines()
+    normalized_lines = []
+
+    if len(lines) == 0:
+        error_message = "Content is empty, no lines to normalize."
+        raise ValueError(error_message)
+
+    for line in lines:
+        # Split the line at the first colon
+        if ":" in line:
+            key, value = line.split(":", 1)
+            # Strip spaces after colon
+            normalized_lines.append(f"{key}:{value.strip()}")
+        else:
+            normalized_lines.append(line)
+
+    return "\n".join(normalized_lines)
+
+
+def test_run_success_add_role(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test Add.run() for adding a role sample file.
+
+    Successfully adds role sample file to path.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Add class object.
+        monkeypatch: Pytest monkeypatch fixture.
+
+    Raises:
+        ValueError: If the content to be normalized has no lines.
+    """
+    # Set the resource_type to role
+    cli_args["resource_type"] = "role"
+    cli_args["role_name"] = "run"
+    add = Add(
+        Config(**cli_args),
+    )
+    add.run()
+    result = capsys.readouterr().out
+    assert "Note: Resource added to" in result
+
+    # Verify the generated role file match the expected structure
+    expected_role_file = tmp_path / "roles" / "run" / "meta" / "main.yml"
+    effective_role_file = FIXTURES_DIR / "common" / "role" / "roles" / "run" / "meta" / "main.yml"
+
+    expected_content = expected_role_file.read_text().strip()
+    effective_content = effective_role_file.read_text().strip()
+
+    try:
+        expected_content = normalize_content(expected_content)
+        effective_content = normalize_content(effective_content)
+    except ValueError as e:
+        # Assign the error message to a variable before raising the exception
+        error_message = f"Normalization failed: {e}"
+        raise ValueError(error_message) from e
+
+    assert expected_content == effective_content, (
+        f"Files differ:\n{expected_content}\n!=\n{effective_content}"
+    )
+
+    # Test for overwrite prompt and failure with no overwrite option
+    conflict_file = tmp_path / "roles" / "run" / "meta" / "main.yml"
     conflict_file.write_text('{ "version": "1" }')
 
     # expect a CreatorError when the response to overwrite is no.
