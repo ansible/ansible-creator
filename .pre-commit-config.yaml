@@ -11,6 +11,15 @@ ci:
     # No docker on pre-commit.ci
 
 repos:
+  - repo: https://github.com/rbubley/mirrors-prettier
+    # keep it before yamllint
+    rev: v3.5.3
+    hooks:
+      - id: prettier
+        always_run: true
+        additional_dependencies:
+          - prettier
+          - prettier-plugin-sort-json@3.1.0
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
