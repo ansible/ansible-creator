@@ -1063,17 +1063,16 @@ def test_run_success_add_role(
     expected_role_file = tmp_path / "run" / "meta" / "main.yml"
     effective_role_file = FIXTURES_DIR / "common" / "role" / "run" / "meta" / "main.yml"
 
-    cmp_result = cmp(expected_role_file, effective_role_file, shallow=False)
     expected_content = expected_role_file.read_text().strip()
     effective_content = effective_role_file.read_text().strip()
 
+    # Remove trailing spaces after colon
     expected_content = re.sub(r":\s*", ":", expected_content)
     effective_content = re.sub(r":\s*", ":", effective_content)
 
     assert expected_content == effective_content, (
         f"Files differ:\n{expected_content}\n!=\n{effective_content}"
     )
-    # assert cmp_result
 
     # Test for overwrite prompt and failure with no overwrite option
     conflict_file = tmp_path / "run" / "meta" / "main.yml"
