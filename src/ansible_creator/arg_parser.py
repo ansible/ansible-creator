@@ -287,7 +287,7 @@ class Parser:
             "path",
             default="./",
             metavar="path",
-            help="The path to the role directory. The default is the current working directory.",
+            help="Add a role to an Ansible collection",
         )
 
         self._add_overwrite(parser)
