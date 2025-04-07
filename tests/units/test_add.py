@@ -1144,3 +1144,42 @@ def test_update_galaxy_dependency(tmp_path: Path, cli_args: ConfigDict) -> None:
     with galaxy_file.open("r") as file:
         updated_data = yaml.safe_load(file)
     assert updated_data["dependencies"] == {"ansible.utils": "1.0.0"}
+
+
+def test_role_galaxy(tmp_path: Path, cli_args: ConfigDict) -> None:
+    """Test update_galaxy_dependency method.
+
+    Args:
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Add class object.
+
+    Raises:
+        AssertionError: If the assertion fails.
+    """
+    galaxy_file = tmp_path / "galaxy.yml"
+    initial_data: dict[str, Any]
+
+    # Test case 1: No dependencies key
+    initial_data = {}
+    galaxy_file.write_text(yaml.dump(initial_data))
+    add = Add(Config(**cli_args))
+    namespace, collection_name = add.role_galaxy()
+
+    with galaxy_file.open("r") as file:
+        updated_data = yaml.safe_load(file)
+    if namespace != "your-collection-namespace" or collection_name != "your-collection-name":
+        error = "Namespace or collection name mismatch"
+        raise AssertionError(error)
+    assert namespace == "your-collection-namespace"
+    assert collection_name == "your-collection-name"
+
+    # Test case 3: Existing dependencies without ansible.utils
+    initial_data = {"namespace": "test_collection", "name": "collection_test"}
+    galaxy_file.write_text(yaml.dump(initial_data))
+    namespace, collection_name = add.role_galaxy()
+
+    with galaxy_file.open("r") as file:
+        updated_data = yaml.safe_load(file)
+
+    assert namespace == updated_data["namespace"]
+    assert collection_name == updated_data["name"]

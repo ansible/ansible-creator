@@ -1,7 +1,7 @@
 galaxy_info:
   author: foo
-  description: . run Role
-  company:
+  description: Your-collection-namespace.Your-collection-name run Role
+  company: Your-collection-namespace
 
   # If the issue tracker for your role is not on github, uncomment the
   # next line and provide a value

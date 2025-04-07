@@ -26,7 +26,7 @@ class Init:
         common_resources: List of common resources to copy.
     """
 
-    common_resources = (
+    common_resources: tuple[str, ...] = (
         "common.devcontainer",
         "common.devfile",
         "common.gitignore",
@@ -135,9 +135,7 @@ class Init:
         if self._project == "execution_env":
             resources = (f"{self._project}_project",)
         elif self._project == "collection":
-            self.common_resources=list(self.common_resources)
-            self.common_resources.append("common.role")
-            self.common_resources=tuple(self.common_resources)
+            self.common_resources = (*self.common_resources, "common.role")
             resources = (f"{self._project}_project", *self.common_resources)
         else:
             resources = (f"{self._project}_project", *self.common_resources)
