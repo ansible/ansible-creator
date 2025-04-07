@@ -56,7 +56,7 @@ class Config:
     type: str = ""
     path: str | Path = "./"
     image: str = ""
-    role_name: str = ""
+    role_name: str | None="run"
 
     def __post_init__(self) -> None:
         """Post process config values."""
