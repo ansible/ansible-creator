@@ -3,5 +3,5 @@
 
 # task example for debugging a value
 - name: Debug the value of my_variable
-  debug:
+  ansible.builtin.debug:
     msg: "The value of my_variable is {{ my_variable }}"
