@@ -1046,6 +1046,16 @@ def test_run_success_add_role(
     add = Add(
         Config(**cli_args),
     )
+
+    # Mock the "_check_collection_path" method
+    def mock_check_collection_path() -> None:
+        """Mock function to skip checking collection path."""
+
+    monkeypatch.setattr(
+        Add,
+        "_check_collection_path",
+        staticmethod(mock_check_collection_path),
+    )
     add.run()
     result = capsys.readouterr().out
     assert "Note: Resource added to" in result

@@ -144,6 +144,7 @@ class Add:
         elif self._resource_type == "execution-environment":
             template_data = self._get_ee_template_data()
         elif self._resource_type == "role":
+            self._check_collection_path()
             self._namespace, self._collection_name = self.role_galaxy()
             template_data = self._get_role_template_data()
         else:
