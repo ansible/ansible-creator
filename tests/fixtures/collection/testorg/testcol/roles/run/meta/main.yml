@@ -16,6 +16,14 @@ galaxy_info:
   # - CC-BY-4.0
   license: GPL-2.0-or-later
 
+  # argument_spec: The variables your role accepts
+  argument_spec:
+    my_variable:
+      type: str
+      description: A simple string argument for demonstration.
+      required: false
+      default: "default_value"
+
   min_ansible_version: "2.14"
 
   # If this a Container Enabled role, provide the minimum Ansible Container version.
