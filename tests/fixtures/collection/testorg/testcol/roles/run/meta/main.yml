@@ -1,7 +1,7 @@
 galaxy_info:
   author: foo
-  description: Testorg.Testcol run Role
-  company: Testorg
+  description: testorg.testcol run Role
+  company: testorg
 
   # If the issue tracker for your role is not on github, uncomment the
   # next line and provide a value

@@ -287,7 +287,8 @@ class Parser:
             "path",
             default="./",
             metavar="path",
-            help="The path to the Ansible collection.",
+            help="The path to the Ansible collection. The default is the "
+            "current working directory.",
         )
 
         self._add_overwrite(parser)
