@@ -990,37 +990,6 @@ def test_run_success_add_execution_env(
     assert "Note: Resource added to" in result
 
 
-def normalize_content(content: str) -> str:
-    """Normalize content by removing trailing spaces after colons.
-
-    Args:
-        content: The content to be normalized.
-
-    Returns:
-        str: The normalized content.
-
-    Raises:
-        ValueError: If the content has no lines.
-    """
-    lines = content.splitlines()
-    normalized_lines = []
-
-    if len(lines) == 0:
-        error_message = "Content is empty, no lines to normalize."
-        raise ValueError(error_message)
-
-    for line in lines:
-        # Split the line at the first colon
-        if ":" in line:
-            key, value = line.split(":", 1)
-            # Strip spaces after colon
-            normalized_lines.append(f"{key}:{value.strip()}")
-        else:
-            normalized_lines.append(line)
-
-    return "\n".join(normalized_lines)
-
-
 def test_run_success_add_role(
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
@@ -1038,7 +1007,7 @@ def test_run_success_add_role(
         monkeypatch: Pytest monkeypatch fixture.
 
     Raises:
-        ValueError: If the content to be normalized has no lines.
+        ValueError: If the file is not found.
     """
     # Set the resource_type to role
     cli_args["resource_type"] = "role"
@@ -1061,23 +1030,18 @@ def test_run_success_add_role(
     assert "Note: Resource added to" in result
 
     # Verify the generated role file match the expected structure
-    expected_role_file = tmp_path / "roles" / "run" / "meta" / "main.yml"
-    effective_role_file = FIXTURES_DIR / "common" / "role" / "roles" / "run" / "meta" / "main.yml"
-
-    expected_content = expected_role_file.read_text().strip()
-    effective_content = effective_role_file.read_text().strip()
-
     try:
-        expected_content = normalize_content(expected_content)
-        effective_content = normalize_content(effective_content)
+        expected_role_file = tmp_path / "roles" / "run" / "meta" / "main.yml"
+        effective_role_file = (
+            FIXTURES_DIR / "common" / "role" / "roles" / "run" / "meta" / "main.yml"
+        )
     except ValueError as e:
         # Assign the error message to a variable before raising the exception
-        error_message = f"Normalization failed: {e}"
+        error_message = "file not found"
         raise ValueError(error_message) from e
 
-    assert expected_content == effective_content, (
-        f"Files differ:\n{expected_content}\n!=\n{effective_content}"
-    )
+    cmp_result = cmp(expected_role_file, effective_role_file, shallow=False)
+    assert cmp_result
 
     # Test for overwrite prompt and failure with no overwrite option
     conflict_file = tmp_path / "roles" / "run" / "meta" / "main.yml"
