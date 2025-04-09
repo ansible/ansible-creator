@@ -1029,7 +1029,7 @@ def test_run_success_add_role(
     result = capsys.readouterr().out
     assert "Note: Resource added to" in result
 
-    # Verify the generated role file match the expected structure
+    # Verify the role file match the expected structure
     try:
         expected_role_file = tmp_path / "roles" / "run" / "meta" / "main.yml"
         effective_role_file = (
