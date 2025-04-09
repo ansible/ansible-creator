@@ -1,4 +1,4 @@
-{{ namespace|capitalize }}.{{ collection_name|capitalize }} {{ role_name }} Role
+{{ namespace }}.{{ collection_name }} {{ role_name }} Role
 ========================
 
 A brief description of the role goes here.
@@ -44,6 +44,35 @@ Another way to consume this role would be:
       vars:
         run_x: 42
 ```
+
+Role Idempotency
+----------------
+Designation of the role as idempotent (True/False)
+
+Role Atomicity
+----------------
+Designation of the role as atomic if applicable (True/False)
+
+Roll-back capabilities
+----------------------
+Define the roll-back capabilities of the role
+
+Argument Specification
+----------------------
+Including an example of how to add an argument Specification file that validates the arguments provided to the role.
+
+```
+argument_specs:
+  main:
+    short_description: Role description.
+    options:
+      string_arg1:
+        description: string argument description.
+        type: "str"
+        default: "x"
+        choices: ["x", "y"]
+```
+
 
 License
 -------
