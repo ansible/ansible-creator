@@ -44,6 +44,7 @@ class ConfigDict(TypedDict):
         overwrite: To overwrite files in an existing directory.
         no_overwrite: To not overwrite files in an existing directory.
         image: The image to be used while scaffolding devcontainer.
+        role_name: The name of role to be used while scaffolding.
     """
 
     creator_version: str
@@ -58,6 +59,7 @@ class ConfigDict(TypedDict):
     overwrite: bool
     no_overwrite: bool
     image: str
+    role_name: str
 
 
 @pytest.fixture(name="cli_args")
@@ -84,6 +86,7 @@ def fixture_cli_args(tmp_path: Path, output: Output) -> ConfigDict:
         "overwrite": False,
         "no_overwrite": False,
         "image": "",
+        "role_name": "",
     }
 
 
@@ -987,6 +990,84 @@ def test_run_success_add_execution_env(
     assert "Note: Resource added to" in result
 
 
+def test_run_success_add_role(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test Add.run() for adding a role sample file.
+
+    Successfully adds role sample file to path.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Add class object.
+        monkeypatch: Pytest monkeypatch fixture.
+
+    Raises:
+        ValueError: If the file is not found.
+    """
+    # Set the resource_type to role
+    cli_args["resource_type"] = "role"
+    cli_args["role_name"] = "run"
+    add = Add(
+        Config(**cli_args),
+    )
+
+    # Mock the "_check_collection_path" method
+    def mock_check_collection_path() -> None:
+        """Mock function to skip checking collection path."""
+
+    monkeypatch.setattr(
+        Add,
+        "_check_collection_path",
+        staticmethod(mock_check_collection_path),
+    )
+    add.run()
+    result = capsys.readouterr().out
+    assert "Note: Resource added to" in result
+
+    # Verify the role file match the expected structure
+    try:
+        expected_role_file = tmp_path / "roles" / "run" / "meta" / "main.yml"
+        effective_role_file = (
+            FIXTURES_DIR / "common" / "role" / "roles" / "run" / "meta" / "main.yml"
+        )
+    except ValueError as e:
+        # Assign the error message to a variable before raising the exception
+        error_message = "file not found"
+        raise ValueError(error_message) from e
+
+    cmp_result = cmp(expected_role_file, effective_role_file, shallow=False)
+    assert cmp_result
+
+    # Test for overwrite prompt and failure with no overwrite option
+    conflict_file = tmp_path / "roles" / "run" / "meta" / "main.yml"
+    conflict_file.write_text('{ "version": "1" }')
+
+    # expect a CreatorError when the response to overwrite is no.
+    monkeypatch.setattr("builtins.input", lambda _: "n")
+    fail_msg = (
+        "The destination directory contains files that will be overwritten."
+        " Please re-run ansible-creator with --overwrite to continue."
+    )
+    with pytest.raises(
+        CreatorError,
+        match=fail_msg,
+    ):
+        add.run()
+
+    # expect a warning followed by execution-environment resource creation msg
+    # when response to overwrite is yes.
+    monkeypatch.setattr("builtins.input", lambda _: "y")
+    add.run()
+    result = capsys.readouterr().out
+    assert "already exists" in result, result
+    assert "Note: Resource added to" in result
+
+
 def test_update_galaxy_dependency(tmp_path: Path, cli_args: ConfigDict) -> None:
     """Test update_galaxy_dependency method.
 
@@ -1037,3 +1118,42 @@ def test_update_galaxy_dependency(tmp_path: Path, cli_args: ConfigDict) -> None:
     with galaxy_file.open("r") as file:
         updated_data = yaml.safe_load(file)
     assert updated_data["dependencies"] == {"ansible.utils": "1.0.0"}
+
+
+def test_role_galaxy(tmp_path: Path, cli_args: ConfigDict) -> None:
+    """Test update_galaxy_dependency method.
+
+    Args:
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Add class object.
+
+    Raises:
+        AssertionError: If the assertion fails.
+    """
+    galaxy_file = tmp_path / "galaxy.yml"
+    initial_data: dict[str, Any]
+
+    # Test case 1: No dependencies key
+    initial_data = {}
+    galaxy_file.write_text(yaml.dump(initial_data))
+    add = Add(Config(**cli_args))
+    namespace, collection_name = add.role_galaxy()
+
+    with galaxy_file.open("r") as file:
+        updated_data = yaml.safe_load(file)
+    if namespace != "your-collection-namespace" or collection_name != "your-collection-name":
+        error = "Namespace or collection name mismatch"
+        raise AssertionError(error)
+    assert namespace == "your-collection-namespace"
+    assert collection_name == "your-collection-name"
+
+    # Test case 3: Existing dependencies without ansible.utils
+    initial_data = {"namespace": "test_collection", "name": "collection_test"}
+    galaxy_file.write_text(yaml.dump(initial_data))
+    namespace, collection_name = add.role_galaxy()
+
+    with galaxy_file.open("r") as file:
+        updated_data = yaml.safe_load(file)
+
+    assert namespace == updated_data["namespace"]
+    assert collection_name == updated_data["name"]

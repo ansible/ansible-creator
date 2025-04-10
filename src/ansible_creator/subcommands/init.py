@@ -26,7 +26,7 @@ class Init:
         common_resources: List of common resources to copy.
     """
 
-    common_resources = (
+    common_resources: tuple[str, ...] = (
         "common.devcontainer",
         "common.devfile",
         "common.gitignore",
@@ -52,6 +52,7 @@ class Init:
         self._project = config.project
         self._templar = Templar()
         self.output: Output = config.output
+        self._role_name: str = config.role_name
 
     def run(self) -> None:
         """Start scaffolding skeleton."""
@@ -128,10 +129,14 @@ class Init:
             collection_name=self._collection_name,
             creator_version=self._creator_version,
             dev_file_name=self.unique_name_in_devfile(),
+            role_name=self._role_name,
         )
 
         if self._project == "execution_env":
             resources = (f"{self._project}_project",)
+        elif self._project == "collection":
+            self.common_resources = (*self.common_resources, "common.role")
+            resources = (f"{self._project}_project", *self.common_resources)
         else:
             resources = (f"{self._project}_project", *self.common_resources)
 

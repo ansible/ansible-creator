@@ -1,0 +1,7 @@
+---
+# tasks file for {{ namespace }}.{{ collection_name }}.{{ role_name }}
+
+# task example for debugging a value
+- name: Debug the value of my_variable
+  ansible.builtin.debug:
+    msg: "The value of my_variable is {% raw %}{{ my_variable }}{% endraw %}"
