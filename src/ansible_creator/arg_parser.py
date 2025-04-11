@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import contextlib
 import re
 import sys
 
@@ -33,8 +32,6 @@ except ImportError:  # pragma: no cover
     __version__ = "source"
 
 MIN_COLLECTION_NAME_LEN = 2
-
-COMING_SOON = ("add resource role",)
 
 
 class Parser:
@@ -80,21 +77,6 @@ class Parser:
         if HAS_ARGCOMPLETE:
             argcomplete.autocomplete(parser)
         self.args = parser.parse_args()
-
-        combinations = (
-            ("subcommand", "type", "resource_type"),
-            ("subcommand", "type", "plugin_type"),
-            ("subcommand", "project"),
-        )
-        for combination in combinations:
-            with contextlib.suppress(AttributeError):
-                name = " ".join(getattr(self.args, part) for part in combination)
-
-        if name in COMING_SOON:
-            msg = f"The `{name}` command is coming soon. Please try in the next release."
-            self.pending_logs.append(Msg(prefix=Level.HINT, message=msg))
-            self.pending_logs.append(Msg(prefix=Level.CRITICAL, message="Goodbye."))
-            return self.args, self.pending_logs
 
         return self.args, self.pending_logs
 
@@ -308,6 +290,8 @@ class Parser:
             help="The path to the Ansible collection. The default is the "
             "current working directory.",
         )
+
+        self._add_overwrite(parser)
         self._add_args_common(parser)
 
     def _add_resource_execution_env(self, subparser: SubParser[ArgumentParser]) -> None:

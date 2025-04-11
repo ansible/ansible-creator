@@ -34,6 +34,7 @@ class Add:
             config: App configuration object.
         """
         self._resource_type: str = config.resource_type
+        self._role_name: str = config.role_name
         self._plugin_type: str = config.plugin_type
         self._resource_id: str = f"common.{self._resource_type}"
         self._plugin_id: str = f"collection_project.plugins.{self._plugin_type}"
@@ -47,6 +48,8 @@ class Add:
         self._dev_container_image = config.image
         self.output: Output = config.output
         self.templar = Templar()
+        self._namespace: str = config.namespace or ""
+        self._collection_name: str = config.collection_name or ""
 
     @property
     def _plugin_type_output(self) -> str:
@@ -140,6 +143,10 @@ class Add:
             template_data = self._get_devcontainer_template_data()
         elif self._resource_type == "execution-environment":
             template_data = self._get_ee_template_data()
+        elif self._resource_type == "role":
+            self._check_collection_path()
+            self._namespace, self._collection_name = self.role_galaxy()
+            template_data = self._get_role_template_data()
         else:
             msg = f"Unsupported resource type: {self._resource_type}"
             raise CreatorError(msg)
@@ -394,5 +401,45 @@ class Add:
         """
         return TemplateData(
             resource_type=self._resource_type,
+            creator_version=self._creator_version,
+        )
+
+    def role_galaxy(self) -> tuple[str, str]:
+        """Fetch values from galaxy.yml file.
+
+        Returns:
+        tuple[str, str]: A tuple containing the namespace and collection name.
+                          Defaults are ('your-collection-namespace', 'your-collection-name')
+                          if the file is missing or keys are absent.
+        """
+        fallback_cn = "your-collection-namespace"
+        fallback_ns = "your-collection-name"
+        galaxy_file = self._add_path / "galaxy.yml"
+
+        # Check if galaxy.yml exists
+        if not galaxy_file.exists():
+            return fallback_cn, fallback_ns
+
+        # Load the galaxy.yml file
+        with galaxy_file.open("r", encoding="utf-8") as file:
+            data = yaml.safe_load(file)
+
+        # Ensure the namespace and name key exists
+        namespace = data.get("namespace", "your-collection-namespace")
+        collection_name = data.get("name", "your-collection-name")
+
+        return namespace, collection_name
+
+    def _get_role_template_data(self) -> TemplateData:
+        """Get the template data for role resources.
+
+        Returns:
+            TemplateData: Data required for templating the role resource.
+        """
+        return TemplateData(
+            resource_type=self._resource_type,
+            role_name=self._role_name,
+            namespace=self._namespace,
+            collection_name=self._collection_name,
             creator_version=self._creator_version,
         )

@@ -1,7 +1,7 @@
 galaxy_info:
   author: foo
-  description: testorg.testcol run Role
-  company: testorg
+  description: your-collection-namespace.your-collection-name run Role
+  company: your-collection-namespace
 
   # If the issue tracker for your role is not on github, uncomment the
   # next line and provide a value

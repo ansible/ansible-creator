@@ -50,7 +50,6 @@ tests/units/test_basic.py
     DOC502: Function `test_not_a_tty` has a "Raises" section in the docstring, but there are not "raise" statements in the body
     DOC502: Function `test_main` has a "Raises" section in the docstring, but there are not "raise" statements in the body
     DOC502: Function `test_proj_main` has a "Raises" section in the docstring, but there are not "raise" statements in the body
-    DOC502: Function `test_coming_soon` has a "Raises" section in the docstring, but there are not "raise" statements in the body
     DOC502: Function `test_config_post_init` has a "Raises" section in the docstring, but there are not "raise" statements in the body
 --------------------
 tests/units/test_compat.py

@@ -36,6 +36,7 @@ class Config:
         type: The type of the project for which the resource is being scaffolded.
         path: The file path where the resource should be added.
         image: The image to be used while scaffolding devcontainer.
+        role_name: The role to be scaffolded.
     """
 
     creator_version: str
@@ -55,6 +56,7 @@ class Config:
     type: str = ""
     path: str | Path = "./"
     image: str = ""
+    role_name: str = "run"
 
     def __post_init__(self) -> None:
         """Post process config values."""
