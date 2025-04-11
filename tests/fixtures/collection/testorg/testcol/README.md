@@ -61,7 +61,7 @@ See the
 
 ## More information
 
-<!-- List out where the user can find additional information, such as working group meeting times, slack/Matrix channels, or documentation for the product this collection automates. At a minimum, link to: -->
+<!-- List out where the user can find additional information, such as working group meeting times, slack/matrix channels, or documentation for the product this collection automates. At a minimum, link to: -->
 
 - [Ansible collection development forum](https://forum.ansible.com/c/project/collection-development/27)
 - [Ansible User guide](https://docs.ansible.com/ansible/devel/user_guide/index.html)
