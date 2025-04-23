@@ -141,7 +141,7 @@ def test_run_success_add_devfile(
         Returns:
             str: A placeholder name, "testorg".
         """
-        return "testorg"
+        return "testorg.testcol"
 
     with pytest.MonkeyPatch.context() as mp:
         # Apply the mock
@@ -155,7 +155,7 @@ def test_run_success_add_devfile(
     assert "Note: Resource added to" in result
 
     expected_devfile = tmp_path / "devfile.yaml"
-    effective_devfile = FIXTURES_DIR / "common" / "devfile" / "devfile.yaml"
+    effective_devfile = FIXTURES_DIR / "collection" / "testorg" / "testcol" / "devfile.yaml"
     cmp_result = cmp(expected_devfile, effective_devfile, shallow=False)
     assert cmp_result
 
@@ -212,7 +212,7 @@ def test_run_error_no_overwrite(
         Returns:
             str: A placeholder name, "testorg".
         """
-        return "testorg"
+        return "testorg.testcol"
 
     with pytest.MonkeyPatch.context() as mp:
         # Apply the mock
@@ -226,7 +226,7 @@ def test_run_error_no_overwrite(
     assert "Note: Resource added to" in result
 
     expected_devfile = tmp_path / "devfile.yaml"
-    effective_devfile = FIXTURES_DIR / "common" / "devfile" / "devfile.yaml"
+    effective_devfile = FIXTURES_DIR / "collection" / "testorg" / "testcol" / "devfile.yaml"
     cmp_result = cmp(expected_devfile, effective_devfile, shallow=False)
     assert cmp_result
 
