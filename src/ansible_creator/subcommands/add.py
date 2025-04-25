@@ -412,13 +412,7 @@ class Add:
                           Defaults are ('your-collection-namespace', 'your-collection-name')
                           if the file is missing or keys are absent.
         """
-        fallback_cn = "your-collection-namespace"
-        fallback_ns = "your-collection-name"
         galaxy_file = self._add_path / "galaxy.yml"
-
-        # Check if galaxy.yml exists
-        if not galaxy_file.exists():
-            return fallback_cn, fallback_ns
 
         # Load the galaxy.yml file
         with galaxy_file.open("r", encoding="utf-8") as file:
