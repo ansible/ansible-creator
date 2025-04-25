@@ -128,6 +128,26 @@ class Add:
         with galaxy_file.open("w", encoding="utf-8") as file:
             yaml.dump(data, file, sort_keys=False)
 
+    def role_galaxy(self) -> tuple[str, str]:
+        """Fetch values from galaxy.yml file.
+
+        Returns:
+        tuple[str, str]: A tuple containing the namespace and collection name.
+                          Defaults are ('your-collection-namespace', 'your-collection-name')
+                          if the file is missing or keys are absent.
+        """
+        galaxy_file = self._add_path / "galaxy.yml"
+
+        # Load the galaxy.yml file
+        with galaxy_file.open("r", encoding="utf-8") as file:
+            data = yaml.safe_load(file)
+
+        # Ensure the namespace and name key exists
+        namespace = data.get("namespace", "your-collection-namespace")
+        collection_name = data.get("name", "your-collection-name")
+
+        return namespace, collection_name
+
     def _resource_scaffold(self) -> None:
         """Scaffold the specified resource file based on the resource type.
 
@@ -403,26 +423,6 @@ class Add:
             resource_type=self._resource_type,
             creator_version=self._creator_version,
         )
-
-    def role_galaxy(self) -> tuple[str, str]:
-        """Fetch values from galaxy.yml file.
-
-        Returns:
-        tuple[str, str]: A tuple containing the namespace and collection name.
-                          Defaults are ('your-collection-namespace', 'your-collection-name')
-                          if the file is missing or keys are absent.
-        """
-        galaxy_file = self._add_path / "galaxy.yml"
-
-        # Load the galaxy.yml file
-        with galaxy_file.open("r", encoding="utf-8") as file:
-            data = yaml.safe_load(file)
-
-        # Ensure the namespace and name key exists
-        namespace = data.get("namespace", "your-collection-namespace")
-        collection_name = data.get("name", "your-collection-name")
-
-        return namespace, collection_name
 
     def _get_role_template_data(self) -> TemplateData:
         """Get the template data for role resources.
