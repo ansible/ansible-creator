@@ -1028,7 +1028,11 @@ def test_run_success_add_role(
 
     # Mock the "role_galaxy" method
     def mock_role_galaxy() -> tuple[str, str]:
-        """Mock this function to return specific values."""
+        """Mock this function to return specific values.
+
+        Returns:
+            tuple[str, str]: Values for namespace and collection name.
+        """
         return "testorg", "testcol"
 
     monkeypatch.setattr(
@@ -1045,7 +1049,14 @@ def test_run_success_add_role(
     try:
         expected_role_file = tmp_path / "roles" / "run" / "meta" / "main.yml"
         effective_role_file = (
-            FIXTURES_DIR / "collection" / "testorg" / "testcol" / "roles" / "run" / "meta" / "main.yml"
+            FIXTURES_DIR
+            / "collection"
+            / "testorg"
+            / "testcol"
+            / "roles"
+            / "run"
+            / "meta"
+            / "main.yml"
         )
     except ValueError as e:
         # Assign the error message to a variable before raising the exception
