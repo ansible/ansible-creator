@@ -141,7 +141,7 @@ def test_run_success_add_devfile(
         Returns:
             str: A placeholder name, "testorg".
         """
-        return "testorg"
+        return "testorg.testcol"
 
     with pytest.MonkeyPatch.context() as mp:
         # Apply the mock
@@ -155,7 +155,7 @@ def test_run_success_add_devfile(
     assert "Note: Resource added to" in result
 
     expected_devfile = tmp_path / "devfile.yaml"
-    effective_devfile = FIXTURES_DIR / "common" / "devfile" / "devfile.yaml"
+    effective_devfile = FIXTURES_DIR / "collection" / "testorg" / "testcol" / "devfile.yaml"
     cmp_result = cmp(expected_devfile, effective_devfile, shallow=False)
     assert cmp_result
 
@@ -212,7 +212,7 @@ def test_run_error_no_overwrite(
         Returns:
             str: A placeholder name, "testorg".
         """
-        return "testorg"
+        return "testorg.testcol"
 
     with pytest.MonkeyPatch.context() as mp:
         # Apply the mock
@@ -226,7 +226,7 @@ def test_run_error_no_overwrite(
     assert "Note: Resource added to" in result
 
     expected_devfile = tmp_path / "devfile.yaml"
-    effective_devfile = FIXTURES_DIR / "common" / "devfile" / "devfile.yaml"
+    effective_devfile = FIXTURES_DIR / "collection" / "testorg" / "testcol" / "devfile.yaml"
     cmp_result = cmp(expected_devfile, effective_devfile, shallow=False)
     assert cmp_result
 
@@ -1025,6 +1025,22 @@ def test_run_success_add_role(
         "_check_collection_path",
         staticmethod(mock_check_collection_path),
     )
+
+    # Mock the "role_galaxy" method
+    def mock_role_galaxy() -> tuple[str, str]:
+        """Mock this function to return specific values.
+
+        Returns:
+            tuple[str, str]: Values for namespace and collection name.
+        """
+        return "testorg", "testcol"
+
+    monkeypatch.setattr(
+        Add,
+        "role_galaxy",
+        staticmethod(mock_role_galaxy),
+    )
+
     add.run()
     result = capsys.readouterr().out
     assert "Note: Resource added to" in result
@@ -1033,7 +1049,14 @@ def test_run_success_add_role(
     try:
         expected_role_file = tmp_path / "roles" / "run" / "meta" / "main.yml"
         effective_role_file = (
-            FIXTURES_DIR / "common" / "role" / "roles" / "run" / "meta" / "main.yml"
+            FIXTURES_DIR
+            / "collection"
+            / "testorg"
+            / "testcol"
+            / "roles"
+            / "run"
+            / "meta"
+            / "main.yml"
         )
     except ValueError as e:
         # Assign the error message to a variable before raising the exception
