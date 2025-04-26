@@ -24,7 +24,6 @@ tests/units/test_add.py
     DOC502: Function `test_error_invalid_collection_path` has a "Raises" section in the docstring, but there are not "raise" statements in the body
     DOC502: Function `test_run_error_unsupported_resource_type` has a "Raises" section in the docstring, but there are not "raise" statements in the body
     DOC502: Function `test_run_success_add_devcontainer` has a "Raises" section in the docstring, but there are not "raise" statements in the body
-    DOC502: Function `test_run_success_add_plugin_action` has a "Raises" section in the docstring, but there are not "raise" statements in the body
     DOC502: Function `test_run_error_plugin_no_overwrite` has a "Raises" section in the docstring, but there are not "raise" statements in the body
     DOC502: Function `test_run_error_unsupported_plugin_type` has a "Raises" section in the docstring, but there are not "raise" statements in the body
     DOC502: Function `test_run_success_add_execution_env` has a "Raises" section in the docstring, but there are not "raise" statements in the body

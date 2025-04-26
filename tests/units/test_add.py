@@ -465,6 +465,12 @@ def test_devcontainer_usability(
     ("plugin_type", "plugin_name", "expected_message", "expected_file_path"),
     (
         (
+            "action",
+            "sample_action",
+            "Note: Action plugin added to",
+            "plugins/action/sample_action.py",
+        ),
+        (
             "filter",
             "sample_filter",
             "Note: Filter plugin added to",
@@ -526,6 +532,17 @@ def test_run_success_add_plugin(  # noqa: PLR0913, # pylint: disable=too-many-po
         "_check_collection_path",
         staticmethod(mock_check_collection_path),
     )
+
+    # Mock the "update_galaxy_dependency" method (for action plugin)
+    def mock_update_galaxy_dependency() -> None:
+        """Mock function to skip updating galaxy file."""
+
+    monkeypatch.setattr(
+        Add,
+        "update_galaxy_dependency",
+        staticmethod(mock_update_galaxy_dependency),
+    )
+
     add.run()
     result = capsys.readouterr().out
     assert expected_message in result
@@ -558,79 +575,6 @@ def test_run_success_add_plugin(  # noqa: PLR0913, # pylint: disable=too-many-po
     result = capsys.readouterr().out
     assert "already exists" in result, result
     assert expected_message in result
-
-
-def test_run_success_add_plugin_action(
-    capsys: pytest.CaptureFixture[str],
-    tmp_path: Path,
-    cli_args: ConfigDict,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Test Add.run().
-
-    Successfully add plugin to path
-    Args:
-        capsys: Pytest fixture to capture stdout and stderr.
-        tmp_path: Temporary directory path.
-        cli_args: Dictionary, partial Add class object.
-        monkeypatch: Pytest monkeypatch fixture.
-
-    Raises:
-        AssertionError: If the assertion fails.
-    """
-    cli_args["plugin_type"] = "action"
-    cli_args["plugin_name"] = "sample_action"
-    add = Add(
-        Config(**cli_args),
-    )
-
-    # Mock the "_check_collection_path" method
-    def mock_check_collection_path() -> None:
-        """Mock function to skip checking collection path."""
-
-    monkeypatch.setattr(
-        Add,
-        "_check_collection_path",
-        staticmethod(mock_check_collection_path),
-    )
-
-    # Mock the "update_galaxy_dependency" method
-    def mock_update_galaxy_dependency() -> None:
-        """Mock function to skip updating galaxy file."""
-
-    monkeypatch.setattr(
-        Add,
-        "update_galaxy_dependency",
-        staticmethod(mock_update_galaxy_dependency),
-    )
-
-    add.run()
-    result = capsys.readouterr().out
-    assert "Note: Action plugin added to" in result
-
-    expected_plugin_file = tmp_path / "plugins" / "action" / "sample_action.py"
-    expected_module_file = tmp_path / "plugins" / "modules" / "sample_action.py"
-    effective_plugin_file = (
-        FIXTURES_DIR
-        / "collection"
-        / "testorg"
-        / "testcol"
-        / "plugins"
-        / "action"
-        / "sample_action.py"
-    )
-    effective_module_file = (
-        FIXTURES_DIR
-        / "collection"
-        / "testorg"
-        / "testcol"
-        / "plugins"
-        / "modules"
-        / "sample_action.py"
-    )
-    cmp_result1 = cmp(expected_plugin_file, effective_plugin_file, shallow=False)
-    cmp_result2 = cmp(expected_module_file, effective_module_file, shallow=False)
-    assert cmp_result1, cmp_result2
 
 
 def test_run_error_plugin_no_overwrite(
