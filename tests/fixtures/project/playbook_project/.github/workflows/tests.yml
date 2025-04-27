@@ -9,7 +9,7 @@ on:  # yamllint disable-line rule:truthy
   pull_request:
     branches: [main]
   workflow_dispatch:
-  # TO-DO: Following cron job is currently commented out. Enable it as per requirement.
+  # TO-DO: Below is an example cron scheduler. Uncomment and tweak it as per your requirement
   # schedule:
     # - cron: '0 0 * * *'
 
