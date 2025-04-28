@@ -1,5 +1,4 @@
 # cspell: ignore dcmp, subdcmp
-# pylint: disable=C0302
 """Unit tests for ansible-creator add."""
 
 from __future__ import annotations
@@ -462,11 +461,50 @@ def test_devcontainer_usability(
     assert stop_container.returncode == 0
 
 
-def test_run_success_add_plugin_filter(
+@pytest.mark.parametrize(
+    ("plugin_type", "plugin_name", "expected_message", "expected_file_path"),
+    (
+        (
+            "action",
+            "sample_action",
+            "Note: Action plugin added to",
+            "plugins/action/sample_action.py",
+        ),
+        (
+            "filter",
+            "sample_filter",
+            "Note: Filter plugin added to",
+            "plugins/filter/sample_filter.py",
+        ),
+        (
+            "lookup",
+            "sample_lookup",
+            "Note: Lookup plugin added to",
+            "plugins/lookup/sample_lookup.py",
+        ),
+        (
+            "module",
+            "sample_module",
+            "Note: Module plugin added to",
+            "plugins/modules/sample_module.py",
+        ),
+        (
+            "test",
+            "sample_test",
+            "Note: Test plugin added to",
+            "plugins/test/sample_test.py",
+        ),
+    ),
+)
+def test_run_success_add_plugin(  # noqa: PLR0913, # pylint: disable=too-many-positional-arguments
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
     cli_args: ConfigDict,
     monkeypatch: pytest.MonkeyPatch,
+    plugin_type: str,
+    plugin_name: str,
+    expected_message: str,
+    expected_file_path: str,
 ) -> None:
     """Test Add.run().
 
@@ -476,164 +514,14 @@ def test_run_success_add_plugin_filter(
         tmp_path: Temporary directory path.
         cli_args: Dictionary, partial Add class object.
         monkeypatch: Pytest monkeypatch fixture.
-
-    Raises:
-        AssertionError: If the assertion fails.
+        plugin_type: Type of the plugin to add.
+        plugin_name: Name of the plugin to add.
+        expected_message: Expected success message.
+        expected_file_path: Expected file path for the plugin.
     """
-    cli_args["plugin_type"] = "filter"
-    cli_args["plugin_name"] = "sample_filter"
-    add = Add(
-        Config(**cli_args),
-    )
-
-    # Mock the "_check_collection_path" method
-    def mock_check_collection_path() -> None:
-        """Mock function to skip checking collection path."""
-
-    monkeypatch.setattr(
-        Add,
-        "_check_collection_path",
-        staticmethod(mock_check_collection_path),
-    )
-    add.run()
-    result = capsys.readouterr().out
-    assert "Note: Filter plugin added to" in result
-
-    expected_file = tmp_path / "plugins" / "filter" / "sample_filter.py"
-    effective_file = (
-        FIXTURES_DIR
-        / "collection"
-        / "testorg"
-        / "testcol"
-        / "plugins"
-        / "filter"
-        / "sample_filter.py"
-    )
-    cmp_result = cmp(expected_file, effective_file, shallow=False)
-    assert cmp_result
-
-    conflict_file = tmp_path / "plugins" / "filter" / "sample_filter.py"
-    conflict_file.write_text("Author: Your Name")
-
-    # expect a CreatorError when the response to overwrite is no.
-    monkeypatch.setattr("builtins.input", lambda _: "n")
-    fail_msg = (
-        "The destination directory contains files that will be overwritten."
-        " Please re-run ansible-creator with --overwrite to continue."
-    )
-    with pytest.raises(
-        CreatorError,
-        match=fail_msg,
-    ):
-        add.run()
-
-    # expect a warning followed by filter plugin addition msg
-    # when response to overwrite is yes.
-    monkeypatch.setattr("builtins.input", lambda _: "y")
-    add.run()
-    result = capsys.readouterr().out
-    assert "already exists" in result, result
-    assert "Note: Filter plugin added to" in result
-
-
-def test_run_success_add_plugin_lookup(
-    capsys: pytest.CaptureFixture[str],
-    tmp_path: Path,
-    cli_args: ConfigDict,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Test Add.run().
-
-    Successfully add plugin to path
-
-    Args:
-        capsys: Pytest fixture to capture stdout and stderr.
-        tmp_path: Temporary directory path.
-        cli_args: Dictionary, partial Add class object.
-        monkeypatch: Pytest monkeypatch fixture.
-
-    Raises:
-        AssertionError: If the assertion fails.
-    """
-    cli_args["plugin_type"] = "lookup"
-    cli_args["plugin_name"] = "sample_lookup"
-    add = Add(
-        Config(**cli_args),
-    )
-
-    # Mock the "_check_collection_path" method
-    def mock_check_collection_path() -> None:
-        """Mock function to skip checking collection path."""
-
-    monkeypatch.setattr(
-        Add,
-        "_check_collection_path",
-        staticmethod(mock_check_collection_path),
-    )
-    add.run()
-    result = capsys.readouterr().out
-    assert "Note: Lookup plugin added to" in result
-
-    expected_file = tmp_path / "plugins" / "lookup" / "sample_lookup.py"
-    effective_file = (
-        FIXTURES_DIR
-        / "collection"
-        / "testorg"
-        / "testcol"
-        / "plugins"
-        / "lookup"
-        / "sample_lookup.py"
-    )
-    cmp_result = cmp(expected_file, effective_file, shallow=False)
-    assert cmp_result
-
-    conflict_file = tmp_path / "plugins" / "lookup" / "sample_lookup.py"
-    conflict_file.write_text("Author: Your Name")
-
-    # expect a CreatorError when the response to overwrite is no.
-    monkeypatch.setattr("builtins.input", lambda _: "n")
-    fail_msg = (
-        "The destination directory contains files that will be overwritten."
-        " Please re-run ansible-creator with --overwrite to continue."
-    )
-    with pytest.raises(
-        CreatorError,
-        match=fail_msg,
-    ):
-        add.run()
-
-    # expect a warning followed by lookup plugin addition msg
-    # when response to overwrite is yes.
-    monkeypatch.setattr("builtins.input", lambda _: "y")
-    add.run()
-    result = capsys.readouterr().out
-    assert "already exists" in result, result
-    assert "Note: Lookup plugin added to" in result
-
-
-def test_run_success_add_plugin_action(
-    capsys: pytest.CaptureFixture[str],
-    tmp_path: Path,
-    cli_args: ConfigDict,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Test Add.run().
-
-    Successfully add plugin to path
-    Args:
-        capsys: Pytest fixture to capture stdout and stderr.
-        tmp_path: Temporary directory path.
-        cli_args: Dictionary, partial Add class object.
-        monkeypatch: Pytest monkeypatch fixture.
-
-    Raises:
-        AssertionError: If the assertion fails.
-    """
-    cli_args["plugin_type"] = "action"
-    cli_args["plugin_name"] = "sample_action"
-    add = Add(
-        Config(**cli_args),
-    )
+    cli_args["plugin_type"] = plugin_type
+    cli_args["plugin_name"] = plugin_name
+    add = Add(Config(**cli_args))
 
     # Mock the "_check_collection_path" method
     def mock_check_collection_path() -> None:
@@ -645,7 +533,7 @@ def test_run_success_add_plugin_action(
         staticmethod(mock_check_collection_path),
     )
 
-    # Mock the "update_galaxy_dependency" method
+    # Mock the "update_galaxy_dependency" method (for action plugin)
     def mock_update_galaxy_dependency() -> None:
         """Mock function to skip updating galaxy file."""
 
@@ -657,85 +545,15 @@ def test_run_success_add_plugin_action(
 
     add.run()
     result = capsys.readouterr().out
-    assert "Note: Action plugin added to" in result
+    assert expected_message in result
 
-    expected_plugin_file = tmp_path / "plugins" / "action" / "sample_action.py"
-    expected_module_file = tmp_path / "plugins" / "modules" / "sample_action.py"
-    effective_plugin_file = (
-        FIXTURES_DIR
-        / "collection"
-        / "testorg"
-        / "testcol"
-        / "plugins"
-        / "action"
-        / "sample_action.py"
-    )
-    effective_module_file = (
-        FIXTURES_DIR
-        / "collection"
-        / "testorg"
-        / "testcol"
-        / "plugins"
-        / "modules"
-        / "sample_action.py"
-    )
-    cmp_result1 = cmp(expected_plugin_file, effective_plugin_file, shallow=False)
-    cmp_result2 = cmp(expected_module_file, effective_module_file, shallow=False)
-    assert cmp_result1, cmp_result2
-
-
-def test_run_success_add_plugin_module(
-    capsys: pytest.CaptureFixture[str],
-    tmp_path: Path,
-    cli_args: ConfigDict,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Test Add.run().
-
-    Successfully add plugin to path
-
-    Args:
-        capsys: Pytest fixture to capture stdout and stderr.
-        tmp_path: Temporary directory path.
-        cli_args: Dictionary, partial Add class object.
-        monkeypatch: Pytest monkeypatch fixture.
-
-    Raises:
-        AssertionError: If the assertion fails.
-    """
-    cli_args["plugin_type"] = "module"
-    cli_args["plugin_name"] = "sample_module"
-    add = Add(
-        Config(**cli_args),
-    )
-
-    # Mock the "_check_collection_path" method
-    def mock_check_collection_path() -> None:
-        """Mock function to skip checking collection path."""
-
-    monkeypatch.setattr(
-        Add,
-        "_check_collection_path",
-        staticmethod(mock_check_collection_path),
-    )
-    add.run()
-    result = capsys.readouterr().out
-    assert "Note: Module plugin added to" in result
-
-    expected_file = tmp_path / "plugins" / "modules" / "sample_module.py"
-    effective_file = (
-        FIXTURES_DIR
-        / "collection"
-        / "testorg"
-        / "testcol"
-        / "plugins"
-        / "modules"
-        / "sample_module.py"
-    )
+    expected_file = tmp_path / expected_file_path
+    effective_file = FIXTURES_DIR / "collection" / "testorg" / "testcol" / expected_file_path
     cmp_result = cmp(expected_file, effective_file, shallow=False)
     assert cmp_result
 
-    conflict_file = tmp_path / "plugins" / "modules" / "sample_module.py"
+    # Test conflict handling
+    conflict_file = tmp_path / expected_file_path
     conflict_file.write_text("Author: Your Name")
 
     # expect a CreatorError when the response to overwrite is no.
@@ -750,82 +568,13 @@ def test_run_success_add_plugin_module(
     ):
         add.run()
 
-    # expect a warning followed by module plugin addition msg
+    # expect a warning followed by plugin addition msg
     # when response to overwrite is yes.
     monkeypatch.setattr("builtins.input", lambda _: "y")
     add.run()
     result = capsys.readouterr().out
     assert "already exists" in result, result
-    assert "Note: Module plugin added to" in result
-
-
-def test_run_success_add_plugin_test(
-    capsys: pytest.CaptureFixture[str],
-    tmp_path: Path,
-    cli_args: ConfigDict,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Test Add.run().
-
-    Successfully add plugin to path
-
-    Args:
-        capsys: Pytest fixture to capture stdout and stderr.
-        tmp_path: Temporary directory path.
-        cli_args: Dictionary, partial Add class object.
-        monkeypatch: Pytest monkeypatch fixture.
-
-    Raises:
-        AssertionError: If the assertion fails.
-    """
-    cli_args["plugin_type"] = "test"
-    cli_args["plugin_name"] = "sample_test"
-    add = Add(
-        Config(**cli_args),
-    )
-
-    # Mock the "_check_collection_path" method
-    def mock_check_collection_path() -> None:
-        """Mock function to skip checking collection path."""
-
-    monkeypatch.setattr(
-        Add,
-        "_check_collection_path",
-        staticmethod(mock_check_collection_path),
-    )
-    add.run()
-    result = capsys.readouterr().out
-    assert "Note: Test plugin added to" in result
-
-    expected_file = tmp_path / "plugins" / "test" / "sample_test.py"
-    effective_file = (
-        FIXTURES_DIR / "collection" / "testorg" / "testcol" / "plugins" / "test" / "sample_test.py"
-    )
-    cmp_result = cmp(expected_file, effective_file, shallow=False)
-    assert cmp_result
-
-    conflict_file = tmp_path / "plugins" / "test" / "sample_test.py"
-    conflict_file.write_text("Author: Your Name")
-
-    # expect a CreatorError when the response to overwrite is no.
-    monkeypatch.setattr("builtins.input", lambda _: "n")
-    fail_msg = (
-        "The destination directory contains files that will be overwritten."
-        " Please re-run ansible-creator with --overwrite to continue."
-    )
-    with pytest.raises(
-        CreatorError,
-        match=fail_msg,
-    ):
-        add.run()
-
-    # expect a warning followed by module plugin addition msg
-    # when response to overwrite is yes.
-    monkeypatch.setattr("builtins.input", lambda _: "y")
-    add.run()
-    result = capsys.readouterr().out
-    assert "already exists" in result, result
-    assert "Note: Test plugin added to" in result
+    assert expected_message in result
 
 
 def test_run_error_plugin_no_overwrite(
