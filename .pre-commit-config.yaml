@@ -24,7 +24,7 @@ repos:
           - prettier
           - prettier-plugin-sort-json@3.1.0
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v8.17.3
+    rev: v8.19.1
     hooks:
       - id: cspell
         name: Spell check with cspell
@@ -70,7 +70,7 @@ repos:
       - id: tox-ini-fmt
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.4
+    rev: v0.11.8
     hooks:
       - id: ruff
         entry: sh -c 'ruff check --fix --force-exclude && ruff format --force-exclude'
@@ -87,7 +87,7 @@ repos:
         # Override default pre-commit '--ignore-missing-imports'
         args: []
   - repo: https://github.com/jsh9/pydoclint
-    rev: "0.6.5"
+    rev: "0.6.6"
     hooks:
       - id: pydoclint
         # This allows automatic reduction of the baseline file when needed.
@@ -95,7 +95,7 @@ repos:
         pass_filenames: false
 
   - repo: https://github.com/pycqa/pylint.git
-    rev: v3.3.6
+    rev: v3.3.7
     hooks:
       - id: pylint
         args:
