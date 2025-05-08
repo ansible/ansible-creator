@@ -324,6 +324,7 @@ fail-on = [
 [tool.pytest.ini_options]
 addopts = "-ra --showlocals --durations=10"
 cache_dir = "./.cache/.pytest"
+junit_family = "legacy" # see https://docs.codecov.com/docs/test-analytics
 norecursedirs = "tests/fixtures"
 testpaths = "tests"
 tmp_path_retention_policy = "failed"
