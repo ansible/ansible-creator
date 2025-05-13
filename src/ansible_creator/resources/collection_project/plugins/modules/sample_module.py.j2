@@ -3,6 +3,7 @@
 {%- set author = author |  default("Your Name (@username)") -%}
 {%- set description = description | default("A custom module plugin for Ansible.") -%}
 {%- set license = license | default("GPL-3.0-or-later") -%}
+#!/usr/bin/python
 # {{ module_name }}.py - {{ description }}
 # Author: {{ author }}
 # License: {{ license }}
@@ -10,17 +11,8 @@
 from __future__ import absolute_import, annotations, division, print_function
 
 
-__metaclass__ = type  # pylint: disable=C0103
-
-from typing import TYPE_CHECKING
-
-
-if TYPE_CHECKING:
-    from typing import Callable
-
-
 DOCUMENTATION = """
-    name: {{ module_name }}
+    module: {{ module_name }}
     author: {{ author }}
     version_added: "1.0.0"
     short_description: {{ description }}
@@ -41,6 +33,17 @@ EXAMPLES = """
 """
 
 
+__metaclass__ = type  # pylint: disable=C0103
+
+from typing import TYPE_CHECKING
+
+from ansible.module_utils.basic import AnsibleModule
+
+
+if TYPE_CHECKING:
+    from typing import Callable
+
+
 def _sample_module(name: str) -> str:
     """Returns Hello message.
 
@@ -53,13 +56,20 @@ def _sample_module(name: str) -> str:
     return "Hello, " + name
 
 
-class SampleModule:
-    """module plugin."""
+def main():
+    """entry point for module execution"""
+    argument_spec = dict(
+        name=dict(type="str"),
+    )
+    module = AnsibleModule(
+        argument_spec=argument_spec,
+    )
 
-    def modules(self) -> dict[str, Callable[[str], str]]:
-        """Map module plugin names to their functions.
+    _sample_module(module.params["name"])
 
-        Returns:
-            dict: The module plugin functions.
-        """
-        return {"{{ module_name }}": _sample_module}
+    result = {"changed": False}
+    module.exit_json(**result)
+
+
+if __name__ == "__main__":
+    main()
