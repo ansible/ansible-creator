@@ -24,6 +24,7 @@ DOCUMENTATION = """
     options:
       name:
         type: bool
+        description: This is a sample option.
 """
 
 EXAMPLES = """
