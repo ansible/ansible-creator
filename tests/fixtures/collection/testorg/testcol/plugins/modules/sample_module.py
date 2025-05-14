@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# pylint: disable=E0401
 # sample_module.py - A custom module plugin for Ansible.
 # Author: Your Name (@username)
 # License: GPL-3.0-or-later
@@ -32,7 +33,7 @@ __metaclass__ = type  # pylint: disable=C0103
 
 from typing import TYPE_CHECKING
 
-from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils.basic import AnsibleModule  # type: ignore
 
 
 if TYPE_CHECKING:
@@ -51,7 +52,7 @@ def _sample_module(name: str) -> str:
     return "Hello, " + name
 
 
-def main():
+def main() -> None:
     """entry point for module execution"""
     argument_spec = dict(
         name=dict(type="str"),
