@@ -1,21 +1,15 @@
+#!/usr/bin/python
+# pylint: disable=E0401
 # sample_module.py - A custom module plugin for Ansible.
 # Author: Your Name (@username)
 # License: GPL-3.0-or-later
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, annotations, division, print_function
 
 
-__metaclass__ = type  # pylint: disable=C0103
-
-from typing import TYPE_CHECKING
-
-
-if TYPE_CHECKING:
-    from typing import Callable
-
-
 DOCUMENTATION = """
-    name: sample_module
+    module: sample_module
     author: Your Name (@username)
     version_added: "1.0.0"
     short_description: A custom module plugin for Ansible.
@@ -36,6 +30,17 @@ EXAMPLES = """
 """
 
 
+__metaclass__ = type  # pylint: disable=C0103
+
+from typing import TYPE_CHECKING
+
+from ansible.module_utils.basic import AnsibleModule  # type: ignore
+
+
+if TYPE_CHECKING:
+    from typing import Callable
+
+
 def _sample_module(name: str) -> str:
     """Returns Hello message.
 
@@ -48,13 +53,20 @@ def _sample_module(name: str) -> str:
     return "Hello, " + name
 
 
-class SampleModule:
-    """module plugin."""
+def main() -> None:
+    """entry point for module execution"""
+    argument_spec = dict(
+        name=dict(type="str"),
+    )
+    module = AnsibleModule(
+        argument_spec=argument_spec,
+    )
 
-    def modules(self) -> dict[str, Callable[[str], str]]:
-        """Map module plugin names to their functions.
+    _sample_module(module.params["name"])
 
-        Returns:
-            dict: The module plugin functions.
-        """
-        return {"sample_module": _sample_module}
+    result = {"changed": False}
+    module.exit_json(**result)
+
+
+if __name__ == "__main__":
+    main()
