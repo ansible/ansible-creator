@@ -1,0 +1,33 @@
+{
+   "$schema": "https://json-schema.org/draft/2020-12/schema",
+   "$id": "https:///www.redhat.com/ansible-collaborative/ecosystem/pattern.schema",
+   "title": "Ansible Pattern Schema",
+   "description": "A schema for defining Ansible patterns",
+   "type": "object",
+   "properties": {
+       "name": {
+           "description": "Machine readable name for the pattern, provide guidance on this",
+           "type": "string"
+       },
+       "title": {
+           "description": "Human readable title for the pattern, may be used for pattern catalog and display purposes",
+           "type": "string"
+       },
+       "description": {
+           "description": "A detailed description for the pattern, provide guidance on this",
+           "type": "string"
+       },
+       "short_description": {
+           "description": "A brief description of the pattern that may be used for display purposes",
+           "type": "string"
+       },
+       "tags": {
+           "description": "List of tags for the resource, provide guidance on these",
+           "type": "array",
+           "items": {
+               "type": "string"
+           },
+           "minItems": 1,
+           "uniqueItems": true
+       },
+       "audience": {
