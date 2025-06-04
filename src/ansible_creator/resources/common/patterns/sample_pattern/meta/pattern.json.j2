@@ -1,0 +1,204 @@
+{
+    "schema_version": "1.0",
+    "name": "configure_ec2",
+    "title": "Configure EC2 instance",
+    "description": "This pattern is designed to help get an EC2 instance up and running. It creates a project, EE, and job templates in automation controller to create or delete an EC2 instance.",
+    "short_description": "This pattern is designed to help get an EC2 instance up and running.",
+    "tags": [
+        "aws",
+        "cloud"
+    ],
+    "aap_resources": {
+        "controller_project": {
+            "name": "Configure EC2 instance",
+            "description": "Project for the Configure EC2 instance pattern"
+        },
+        "controller_execution_environment": {
+            "name": "Configure EC2 instance",
+            "description": "EE for the Configure EC2 instance pattern",
+            "image_name": "cloud/aws_ops-ee",
+            "pull": "missing"
+        },
+        "controller_labels": [
+            "aws",
+            "cloud"
+        ],
+        "controller_job_templates": [
+            {
+                "name": "Create EC2 instance",
+                "description": "This job template creates an EC2 instance and associated networking resources.",
+                "execution_environment": "Configure EC2 instance",
+                "playbook": "create_ec2_instance.yml",
+                "primary": true,
+                "ask_credential_on_launch": true,
+                "ask_inventory_on_launch": true,
+                "ask_verbosity_on_launch": true,
+                "labels": [
+                    "aws",
+                    "cloud"
+                ],
+                "survey": {
+                    "name": "Create EC2 Instance",
+                    "description": "Survey to configure the EC2 instance creation pattern",
+                    "spec": [
+                        {
+                            "type": "text",
+                            "question_name": "AWS Region",
+                            "question_description": "AWS region where resources should be created",
+                            "variable": "aws_region",
+                            "required": true
+                        },
+                        {
+                            "type": "text",
+                            "question_name": "Instance Name",
+                            "question_description": "Name of EC2 instance to create",
+                            "variable": "instance_name",
+                            "required": true
+                        },
+                        {
+                            "type": "text",
+                            "question_name": "Instance Type",
+                            "question_description": "Type of EC2 instance to create (e.g., t2.micro, m5.large)",
+                            "variable": "instance_type",
+                            "required": true
+                        },
+                        {
+                            "type": "text",
+                            "question_name": "AMI ID",
+                            "question_description": "Amazon Machine Image (AMI) ID to use for the instance, if not provided will default to the RHEL 9 AMI for the provided region and instance type",
+                            "variable": "ami_id",
+                            "required": false
+                        },
+                        {
+                            "type": "text",
+                            "question_name": "Key Pair Name",
+                            "question_description": "Name of key pair to use for SSH access to the EC2 instance. If the key does not exist or not provided, the instance will not be accessible via SSH.",
+                            "variable": "key_name",
+                            "required": false
+                        },
+                        {
+                            "type": "multiplechoice",
+                            "question_name": "Wait for State",
+                            "question_description": "Whether to wait for the EC2 instance to be in the running state before continuing. Defaults to true",
+                            "variable": "wait_for_state",
+                            "choices": [
+                                "true",
+                                "false"
+                            ],
+                            "required": false,
+                            "default": "true"
+                        },
+                        {
+                            "type": "text",
+                            "question_name": "Instance Tags",
+                            "question_description": "A dict of tags for the instance, e.g. {\"environment\": \"test\", \"owner\": \"team foobar\"}",
+                            "variable": "instance_tags",
+                            "required": false
+                        },
+                        {
+                            "type": "text",
+                            "question_name": "VPC Name",
+                            "question_description": "Name of the VPC to create. Defaults to '{{instance_name}}-vpc'",
+                            "variable": "vpc_name",
+                            "required": false
+                        },
+                        {
+                            "type": "text",
+                            "question_name": "VPC CIDR Block",
+                            "question_description": "CIDR block to use for the VPC being created. Defaults to 10.0.0.0/24",
+                            "variable": "vpc_cidr",
+                            "required": false
+                        },
+                        {
+                            "type": "text",
+                            "question_name": "Subnet CIDR block",
+                            "question_description": "CIDR block to use for the subnet being created. 10.0.0.0/25",
+                            "variable": "subnet_cidr",
+                            "required": false
+                        },
+                        {
+                            "type": "text",
+                            "question_name": "Security Group Name",
+                            "question_description": "Name of the security group to create for securing traffic to the instance. Defaults to '{{ instance_name }}-sg'",
+                            "variable": "sg_name",
+                            "required": false
+                        },
+                        {
+                            "type": "text",
+                            "question_name": "Security Group Description",
+                            "question_description": "Description for the security group. Defaults to 'Security group for EC2 instance {{ instance_name }}'",
+                            "variable": "sg_description",
+                            "required": false
+                        },
+                        {
+                            "type": "textarea",
+                            "question_name": "Security Group Rules",
+                            "question_description": "A list of security group rules in yaml format, e.g.:\n- proto: tcp\n  ports: 80\n  cidr_ip: 0.0.0.0/0\nDefaults to allowing SSH access from within the VPC",
+                            "variable": "sg_rules",
+                            "required": false
+                        },
+                        {
+                            "type": "multiplechoice",
+                            "question_name": "Create External Access Resources",
+                            "question_description": "Whether to create resources for external access to the EC2 instance. Defaults to true. When true, adds security groups rules allowing inbound HTTP and HTTPS traffic, creates an internet gateway, creates a custom route table routing all internet traffic to the gateway, and allocates an elastic IP address for the instance.",
+                            "variable": "external_access",
+                            "choices": [
+                                "true",
+                                "false"
+                            ],
+                            "required": false,
+                            "default": "false"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "Terminate EC2 instance",
+                "description": "This job template terminates an EC2 instance and its associated networking resources.",
+                "execution_environment": "Configure EC2 instance",
+                "playbook": "terminate_ec2_instance.yml",
+                "ask_credential_on_launch": true,
+                "ask_inventory_on_launch": true,
+                "ask_verbosity_on_launch": true,
+                "labels": [
+                    "aws",
+                    "cloud"
+                ],
+                "survey": {
+                    "name": "Terminate EC2 Instance Survey",
+                    "description": "Survey to configure the EC2 instance termination pattern",
+                    "spec": [
+                        {
+                            "type": "text",
+                            "question_name": "AWS Region",
+                            "question_description": "Name of AWS region to create instance in",
+                            "variable": "aws_region",
+                            "required": true
+                        },
+                        {
+                            "type": "text",
+                            "question_name": "Instance Name",
+                            "question_description": "Name of EC2 instance",
+                            "variable": "instance_name",
+                            "required": true
+                        },
+                        {
+                            "type": "text",
+                            "question_name": "Key Pair Name",
+                            "question_description": "Name of key pair for instance, include to delete key pair created with other instance resources.",
+                            "variable": "key_name",
+                            "required": false
+                        },
+                        {
+                            "type": "text",
+                            "question_name": "VPC Name",
+                            "question_description": "Name of the VPC to delete, include to delete VPC and associated networking resources created for instance. Defaults to '{{instance_name}}-vpc'",
+                            "variable": "vpc_name",
+                            "required": false
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}
