@@ -6,6 +6,8 @@ argspec
 argvalues
 capsys
 chakarborty
+cidr
+CIDR
 conftest
 delenv
 devcontainer
@@ -23,6 +25,7 @@ kubedock
 levelname
 libera
 maxsplit
+multiplechoice
 myorg
 myproject
 myuser

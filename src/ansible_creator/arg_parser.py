@@ -299,7 +299,7 @@ class Parser:
             subparser: The subparser to add pattern structure to
         """
         parser = subparser.add_parser(
-            "patterns",
+            "pattern",
             help="Add a pattern structure to an existing Ansible collection.",
             formatter_class=CustomHelpFormatter,
         )

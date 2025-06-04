@@ -75,3 +75,6 @@ class Config:
 
         if self.plugin_type == "module":
             object.__setattr__(self, "plugin_type", "modules")
+
+        if self.resource_type == "pattern":
+            object.__setattr__(self, "resource_type", "patterns")
