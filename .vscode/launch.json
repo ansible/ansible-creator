@@ -32,7 +32,7 @@
       "args": [
         "add",
         "resource",
-        "patterns",
+        "pattern",
         "my_pattern",
         "/Users/shamishr/Ansible/test-stuff/coll_proj"
       ],
