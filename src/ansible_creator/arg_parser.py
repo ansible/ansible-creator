@@ -211,6 +211,7 @@ class Parser:
         )
         self._add_resource_devcontainer(subparser=subparser)
         self._add_resource_devfile(subparser=subparser)
+        self._add_resource_play_argspec(subparser=subparser)
         self._add_resource_role(subparser=subparser)
         self._add_resource_execution_env(subparser=subparser)
 
@@ -262,6 +263,29 @@ class Parser:
             default="./",
             metavar="path",
             help="The destination directory for the devfile file. The default is the "
+            "current working directory.",
+        )
+
+        self._add_overwrite(parser)
+        self._add_args_common(parser)
+
+    def _add_resource_play_argspec(self, subparser: SubParser[ArgumentParser]) -> None:
+        """Add example playbook argspec files to an existing Ansible project.
+
+        Args:
+            subparser: The subparser to add playbook argspec files to
+        """
+        parser = subparser.add_parser(
+            "play-argspec",
+            help="Add example playbook argspec files to an existing Ansible project.",
+            formatter_class=CustomHelpFormatter,
+        )
+
+        parser.add_argument(
+            "path",
+            default="./",
+            metavar="path",
+            help="The destination directory for the playbook argspec files. The default is the "
             "current working directory.",
         )
 

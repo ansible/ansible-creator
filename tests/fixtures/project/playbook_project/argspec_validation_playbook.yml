@@ -1,0 +1,26 @@
+# run this playbook with:
+# ansible-playbook argspec_validation_playbook.yml -e var_one=hi -i argspec_validation_inventory.yaml
+---
+- name: Argspec_Validation
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Verify with argspec defined in task
+      ansible.builtin.validate_argument_spec:
+        argument_spec: "{{ required_data }}"
+      vars:
+        required_data:
+          var_one:
+            description: "This is a description for var_one"
+            type: str
+            required: true
+          var_two:
+            description: "This is a description for var_two"
+            type: int
+            required: true
+
+    - name: Verify with argspec definition file
+      ansible.builtin.validate_argument_spec:
+        argument_spec: "{{ (lookup('ansible.builtin.file', filename) | from_yaml)['argument_specs'] }}"
+      vars:
+        filename: "{{ ansible_play_name | lower }}_definition.yml"

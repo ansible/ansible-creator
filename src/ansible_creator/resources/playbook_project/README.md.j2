@@ -30,9 +30,10 @@ project requirements.
  |                         └── README.md
  |                         └── tasks/main.yml
  |── inventory/
+ |   |── hosts.yml
+ |   |── argspec_validation_inventory.yml
  |   └── groups_vars/
  |   └── host_vars/
- |   └── hosts.yml
  |── ansible-navigator.yml
  |── ansible.cfg
  |── devfile.yaml
