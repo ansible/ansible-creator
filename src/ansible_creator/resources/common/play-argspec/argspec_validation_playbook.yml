@@ -21,6 +21,7 @@
 
     - name: Verify with argspec definition file
       ansible.builtin.validate_argument_spec:
-        argument_spec: "{{ (lookup('ansible.builtin.file', filename) | from_yaml)['argument_specs'] }}"
+        argument_spec: "{{ (lookup('ansible.builtin.file', filename) | from_yaml)['argument_specs'][lowercase_play_name]['options'] }}"
       vars:
-        filename: "{{ ansible_play_name | lower }}_definition.yml"
+        lowercase_play_name: "{{ ansible_play_name | lower }}"
+        filename: "{{ lowercase_play_name }}_definition.yml"
