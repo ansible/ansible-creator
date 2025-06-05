@@ -1,6 +1,6 @@
 # run this playbook with:
 # ansible-playbook argspec_validation_playbook.yml -e var_one=hi -i argspec_validation_inventory.yml
-{% raw %}---
+---
 - name: Argspec_Validation
   hosts: localhost
   gather_facts: false
@@ -24,4 +24,3 @@
         argument_spec: "{{ (lookup('ansible.builtin.file', filename) | from_yaml)['argument_specs'] }}"
       vars:
         filename: "{{ ansible_play_name | lower }}_definition.yml"
-{%- endraw %}
