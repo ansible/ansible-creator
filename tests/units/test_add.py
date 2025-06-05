@@ -739,6 +739,66 @@ def test_run_success_add_execution_env(
     assert "Note: Resource added to" in result
 
 
+def test_run_success_add_play_argspec(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test Add.run() for adding play-argspec sample files.
+
+    Successfully adds playbook argspec sample files to path.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Add class object.
+        monkeypatch: Pytest monkeypatch fixture.
+    """
+    # Set the resource_type to play-argspec
+    cli_args["resource_type"] = "play-argspec"
+    add = Add(
+        Config(**cli_args),
+    )
+    add.run()
+    result = capsys.readouterr().out
+    assert "Note: Resource added to" in result
+
+    # Verify the generated play-argspec files match the expected structure and content
+    argspec_file_paths = [
+        "argspec_validation_playbook.yml",
+        "argspec_validation_definition.yml",
+        "inventory/argspec_validation_inventory.yml",
+    ]
+
+    for file_path in argspec_file_paths:
+        expected_file = tmp_path / file_path
+        effective_file = FIXTURES_DIR / "project" / "playbook_project" / file_path
+        cmp_file_result = cmp(expected_file, effective_file, shallow=False)
+        assert cmp_file_result
+
+    # Test for overwrite prompt and failure with no overwrite option, then confirm overwrite
+    conflict_file = tmp_path / "argspec_validation_playbook.yml"
+    conflict_file.write_text('{ "version": "1" }')
+
+    monkeypatch.setattr("builtins.input", lambda _: "n")
+    fail_msg = (
+        "The destination directory contains files that will be overwritten."
+        " Please re-run ansible-creator with --overwrite to continue."
+    )
+    with pytest.raises(
+        CreatorError,
+        match=fail_msg,
+    ):
+        add.run()
+
+    monkeypatch.setattr("builtins.input", lambda _: "y")
+    add.run()
+    result = capsys.readouterr().out
+    assert "already exists" in result, result
+    assert "Note: Resource added to" in result
+
+
 def test_run_success_add_role(
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
