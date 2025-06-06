@@ -1,7 +1,9 @@
 ---
 all:
   vars:
-    var_two: 42
-    var_three:
-      item_1: "dict item 1"
-      item_2: "dict item 2"
+    ping_data: Pong
+    stat:
+      description: Custom stat data
+      returned: always
+      type: raw
+      sample: Hello, World!
