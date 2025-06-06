@@ -766,8 +766,8 @@ def test_run_success_add_play_argspec(
 
     # Verify the generated play-argspec files match the expected structure and content
     argspec_file_paths = [
-        "argspec_validation_playbook.yml",
-        "argspec_validation_definition.yml",
+        "argspec_validation_plays.yml",
+        "argspec_validation_plays.meta.yml",
         "inventory/argspec_validation_inventory.yml",
     ]
 
@@ -778,7 +778,7 @@ def test_run_success_add_play_argspec(
         assert cmp_file_result
 
     # Test for overwrite prompt and failure with no overwrite option, then confirm overwrite
-    conflict_file = tmp_path / "argspec_validation_playbook.yml"
+    conflict_file = tmp_path / "argspec_validation_plays.yml"
     conflict_file.write_text('{ "version": "1" }')
 
     monkeypatch.setattr("builtins.input", lambda _: "n")

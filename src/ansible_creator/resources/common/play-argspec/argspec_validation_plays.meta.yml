@@ -15,7 +15,7 @@ argument_specs:
         type: str
         required: true
     examples: |
-      - import_playbook: argspec_validation_playbook.yml
+      - import_playbook: argspec_validation_plays.yml
         vars:
           message: 'Custom debug message'
     return: ~
@@ -31,7 +31,7 @@ argument_specs:
         type: str
         required: true
     examples: |
-      - import_playbook: argspec_validation_playbook.yml
+      - import_playbook: argspec_validation_plays.yml
         vars:
           data: Pong
     return: ~
@@ -50,7 +50,7 @@ argument_specs:
       - This play has some notes
       - They specify additional information
     examples: |
-      - import_playbook: argspec_validation_playbook.yml
+      - import_playbook: argspec_validation_plays.yml
         vars:
           stat: This is some custom stat
     return:
