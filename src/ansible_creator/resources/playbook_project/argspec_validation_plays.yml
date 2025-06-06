@@ -1,4 +1,5 @@
-# run this playbook with:
+# Example playbook using play argspec validation
+# Run with:
 # ansible-playbook argspec_validation_plays.yml -e message=hello -i inventory/argspec_validation_inventory.yml
 ---
 - name: Debug_localhost
