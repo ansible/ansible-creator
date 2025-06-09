@@ -93,3 +93,5 @@ GNU General Public License v3.0 or later.
 
 See LICENSE to see the full text. This project is licensed under the MIT
 License. See the LICENSE file for details.
+
+tada!
