@@ -76,7 +76,7 @@ pluggy==1.6.0             # via pytest, tox
 pre-commit==4.2.0         # via ansible-creator (pyproject.toml)
 pycparser==2.22           # via cffi
 pydoclint==0.6.6          # via ansible-creator (pyproject.toml)
-pygments==2.19.1          # via mkdocs-material
+pygments==2.19.1          # via mkdocs-material, pytest
 pylint==3.3.7             # via ansible-creator (pyproject.toml)
 pymdown-extensions==10.15  # via markdown-exec, mkdocs-ansible, mkdocs-material, mkdocstrings
 pyproject-api==1.9.1      # via tox
