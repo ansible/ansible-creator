@@ -1,0 +1,61 @@
+# Example play argspec file
+---
+short_description: A shorter summary of `description` below
+description: This is a description of a playbook, that may contain multiple plays with multiple play argument specs
+argument_specs:
+  debug_localhost:
+    short_description: Play for printing a debug message
+    description:
+      - Example play within a collection containing an argspec for printing a debug message
+    author:
+      - developer (@developer)
+    options:
+      message:
+        description: Debug message to print
+        type: str
+        required: true
+    examples: |
+      - import_playbook: argspec_validation_plays.yml
+        vars:
+          message: 'Custom debug message'
+    return: ~
+  ping_localhost:
+    short_description: Play for pinging localhost with custom data
+    description:
+      - Example play within a collection containing an argspec for pinging localhost with custom data
+    author:
+      - developer (@developer)
+    options:
+      ping_data:
+        description: Ping data
+        type: str
+        required: true
+    examples: |
+      - import_playbook: argspec_validation_plays.yml
+        vars:
+          data: Pong
+    return: ~
+  set_stats:
+    short_description: Play for setting a custom stat
+    description:
+      - Example play within a collection containing an argspec for setting a custom stat
+    author:
+      - developer (@developer)
+    options:
+      stat:
+        description: Stat data
+        type: raw
+        required: true
+    notes:
+      - This play has some notes
+      - They specify additional information
+    examples: |
+      - import_playbook: argspec_validation_plays.yml
+        vars:
+          stat: This is some custom stat
+    return:
+      stat:
+        description: Custom stat data
+        returned: always
+        type: raw
+        sample: Hello, World!

@@ -1,0 +1,45 @@
+# Example playbook using play argspec validation
+# Run with:
+# ansible-playbook argspec_validation_plays.yml -e message=hello -i inventory/argspec_validation_inventory.yml
+---
+- name: Debug_localhost
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Verify with argspec
+      ansible.builtin.validate_argument_spec:
+        argument_spec: "{{ (lookup('ansible.builtin.file', filename) | from_yaml)['argument_specs'][lowercase_play_name]['options'] }}"
+      vars:
+        lowercase_play_name: "{{ ansible_play_name | lower }}"
+        filename: "argspec_validation_plays.meta.yml"
+    - name: Print debug message
+      ansible.builtin.debug:
+        msg: "{{ message }}"
+
+- name: Ping_localhost
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Verify with argspec
+      ansible.builtin.validate_argument_spec:
+        argument_spec: "{{ (lookup('ansible.builtin.file', filename) | from_yaml)['argument_specs'][lowercase_play_name]['options'] }}"
+      vars:
+        lowercase_play_name: "{{ ansible_play_name | lower }}"
+        filename: "argspec_validation_plays.meta.yml"
+    - name: Print debug message
+      ansible.builtin.ping:
+        data: "{{ ping_data }}"
+
+- name: Set_stats
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Verify with argspec
+      ansible.builtin.validate_argument_spec:
+        argument_spec: "{{ (lookup('ansible.builtin.file', filename) | from_yaml)['argument_specs'][lowercase_play_name]['options'] }}"
+      vars:
+        lowercase_play_name: "{{ ansible_play_name | lower }}"
+        filename: "argspec_validation_plays.meta.yml"
+    - name: Set custom stats
+      ansible.builtin.set_stats:
+        data: "{{ stat }}"
