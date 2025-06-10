@@ -3,6 +3,12 @@
   hosts: localhost
   gather_facts: false
   tasks:
+    - name: Collections requirements
+      ansible.builtin.debug:
+        msg: |
+          Warning: This sample pattern relies on the ansible.scm, ansible.utils and community.general collections.
+          Please manually add these to the collection's requirements file to use the sample pattern as-is.
+
     - name: Ensure the airport code has been defined
       ansible.builtin.assert:
         that: "{{ airport_code is defined }}"
@@ -22,6 +28,12 @@
     - name: Extract the matching airport from the list of all airports
       ansible.builtin.set_fact:
         airport_details: "{{ contents.list | selectattr('iata', 'equalto', airport_code) | first }}"
+      ignore_errors: true
+
+    - name: Handle airport code not found
+      ansible.builtin.fail:
+        msg: "Airport code '{{ airport_code }}' could not be found."
+      when: airport_details is not defined
 
     - name: Retrieve weather information using the latitude and longitude
       ansible.builtin.uri:
