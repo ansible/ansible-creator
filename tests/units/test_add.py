@@ -1,4 +1,5 @@
 # cspell: ignore dcmp, subdcmp
+# pylint: disable=C0302
 """Unit tests for ansible-creator add."""
 
 from __future__ import annotations
