@@ -38,21 +38,6 @@
               "question_description": "Enter the location for which you want to get the weather forecast",
               "variable": "location",
               "required": true
-            },
-            {
-              "type": "text",
-              "question_name": "Forecast Type",
-              "question_description": "Select the type of forecast you want (e.g., current, daily, weekly)",
-              "variable": "forecast_type",
-              "required": false
-            },
-            {
-              "type": "multiplechoice",
-              "question_name": "Units",
-              "question_description": "Select the units for the forecast (e.g., Celsius, Fahrenheit)",
-              "variable": "units",
-              "choices": ["Celsius", "Fahrenheit"],
-              "required": false
             }
           ]
         }
