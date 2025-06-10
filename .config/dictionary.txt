@@ -6,8 +6,6 @@ argspec
 argvalues
 capsys
 chakarborty
-cidr
-CIDR
 conftest
 delenv
 devcontainer
@@ -27,7 +25,6 @@ levelname
 libera
 longtude
 maxsplit
-multiplechoice
 myorg
 myproject
 myuser
@@ -36,10 +33,8 @@ nilashish
 notesdir
 PYCMD
 pydoclint
-rhaap
 rulebook
 rulebooks
-scaffolder
 selectattr
 sshpass
 sysargs
