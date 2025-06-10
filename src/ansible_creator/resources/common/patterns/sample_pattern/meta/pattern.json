@@ -2,8 +2,8 @@
   "schema_version": "1.0",
   "name": "weather_forecasting",
   "title": "Weather Forecasting",
-  "description": "This pattern is designed to help get the weather forecast for a given location. It creates a project, EE, and job templates in automation controller to get the weather forecast.",
-  "short_description": "This pattern is designed to help get the weather forecast for a given location.",
+  "description": "This pattern is designed to help get the weather forecast for a given airport code. It creates a project, EE, and job templates in automation controller to get the weather forecast.",
+  "short_description": "This pattern is designed to help get the weather forecast for a given airport code.",
   "tags": ["weather", "forecasting"],
   "aap_resources": {
     "controller_project": {
@@ -20,7 +20,7 @@
     "controller_job_templates": [
       {
         "name": "Get Weather Forecast",
-        "description": "This job template gets the weather forecast for a given location.",
+        "description": "This job template gets the weather at the location of a provided airport code.",
         "execution_environment": "Weather Forecasting",
         "playbook": "site.yml",
         "primary": true,
@@ -32,7 +32,7 @@
             {
               "type": "text",
               "question_name": "Location",
-              "question_description": "Enter the location for which you want to get the weather forecast",
+              "question_description": "Enter the airport code for which you want to get the weather forecast",
               "variable": "location",
               "required": true
             }
