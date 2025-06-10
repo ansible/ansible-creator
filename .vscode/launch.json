@@ -32,9 +32,8 @@
       "args": [
         "add",
         "resource",
-        "pattern",
-        "my_pattern",
-        "/Users/shamishr/Ansible/test-stuff/coll_proj"
+        "devcontainer",
+        "/home/user/..path/to/your/existing_project"
       ],
       "cwd": "${workspaceFolder}/src",
       "justMyCode": false

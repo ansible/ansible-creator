@@ -25,6 +25,5 @@
   "sonarlint.connectedMode.project": {
     "connectionId": "ansible",
     "projectKey": "ansible_ansible-creator"
-  },
-  "ansible.python.interpreterPath": "/Users/shamishr/.pyenv/versions/3.13.0/envs/nav/bin/python"
+  }
 }

@@ -24,9 +24,6 @@
         "execution_environment": "Weather Forecasting",
         "playbook": "site.yml",
         "primary": true,
-        "ask_credential_on_launch": true,
-        "ask_inventory_on_launch": true,
-        "ask_verbosity_on_launch": true,
         "labels": ["weather", "forecasting"],
         "survey": {
           "name": "Weather Forecasting",
