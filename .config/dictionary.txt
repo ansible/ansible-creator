@@ -16,6 +16,7 @@ devfile
 devspaces
 docsite
 endraw
+equalto
 fileh
 flatmap
 fqcn
@@ -24,6 +25,7 @@ httpapi
 kubedock
 levelname
 libera
+longtude
 maxsplit
 multiplechoice
 myorg
@@ -34,8 +36,11 @@ nilashish
 notesdir
 PYCMD
 pydoclint
+rhaap
 rulebook
 rulebooks
+scaffolder
+selectattr
 sshpass
 sysargs
 templated
