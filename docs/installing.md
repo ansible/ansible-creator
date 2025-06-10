@@ -390,13 +390,14 @@ $ ansible-creator add resource <resource-type> <path>
 
 #### Positional Arguments
 
-| Parameter             | Description                                                      |
-| --------------------- | ---------------------------------------------------------------- |
-| devcontainer          | Add devcontainer files to an existing Ansible project.           |
-| devfile               | Add a devfile file to an existing Ansible project.               |
-| execution-environment | Add a sample execution-environment.yml file to an existing path. |
-| pattern               | Add a pattern structure to an existing Ansible collection.       |
-| role                  | Add a role to an existing Ansible collection.                    |
+| Parameter             | Description                                                        |
+| --------------------- | ------------------------------------------------------------------ |
+| devcontainer          | Add devcontainer files to an existing Ansible project.             |
+| devfile               | Add a devfile file to an existing Ansible project.                 |
+| execution-environment | Add a sample execution-environment.yml file to an existing path.   |
+| pattern               | Add a pattern structure to an existing Ansible collection.         |
+| play-argspec          | Add playbook argspec examples file to an existing Ansible project. |
+| role                  | Add a role to an existing Ansible collection.                      |
 
 #### Example of adding a resource
 
