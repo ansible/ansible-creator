@@ -551,6 +551,15 @@ def test_run_success_add_plugin(  # noqa: PLR0913, # pylint: disable=too-many-po
     expected_file = tmp_path / expected_file_path
     effective_file = FIXTURES_DIR / "collection" / "testorg" / "testcol" / expected_file_path
     cmp_result = cmp(expected_file, effective_file, shallow=False)
+    if not cmp_result:
+        diff = subprocess.run(
+            f"diff -u {expected_file} {effective_file}",
+            shell=True,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        assert False, f"Files are different:\n{diff.stdout}"
     assert cmp_result
 
     # Test conflict handling
