@@ -32,6 +32,7 @@ except ImportError:  # pragma: no cover
     __version__ = "source"
 
 MIN_COLLECTION_NAME_LEN = 2
+MAX_COLLECTION_NAME_LEN = 64
 
 
 class Parser:
@@ -308,6 +309,7 @@ class Parser:
         parser.add_argument(
             "pattern_name",
             help="The name of the pattern.",
+            type=self._valid_pattern_name,
         )
         parser.add_argument(
             "path",
@@ -617,6 +619,31 @@ class Parser:
             msg = "Both the collection namespace and name must be longer than 2 characters."
             self.pending_logs.append(Msg(prefix=Level.CRITICAL, message=msg))
         return collection
+
+    def _valid_pattern_name(self, pattern_name: str) -> str:
+        """Validate the pattern name.
+
+        Args:
+            pattern_name: The pattern name to validate
+
+        Returns:
+            The validated pattern name
+        """
+        name_filter = re.compile(r"^(?!_)[a-z0-9_]+$")
+
+        if not name_filter.match(pattern_name):
+            msg = (
+                "Pattern name can only contain lower case letters, underscores, and numbers"
+                " and cannot begin with an underscore."
+            )
+            self.pending_logs.append(Msg(prefix=Level.CRITICAL, message=msg))
+        elif (
+            len(pattern_name) >= MAX_COLLECTION_NAME_LEN
+            or len(pattern_name) <= MIN_COLLECTION_NAME_LEN
+        ):
+            msg = "The pattern name must be longer than 2 characters and less than 64 characters."
+            self.pending_logs.append(Msg(prefix=Level.CRITICAL, message=msg))
+        return pattern_name
 
     def handle_deprecations(self) -> bool:  # noqa: C901
         """Start parsing args passed from Cli.
