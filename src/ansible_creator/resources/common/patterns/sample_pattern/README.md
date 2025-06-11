@@ -19,25 +19,29 @@ location.
   facilitating easier maintenance and execution of automation tasks.
 - This project is used to organize and manage the weather forecasting task.
 
-2. Job Templates
+2. Execution Environment
+
+- A custom EE configuration to provide the necessary dependencies and
+  environment for the task execution.
+
+3. Job Templates
 
 - Outline the necessary parameters and configurations to perform weather
   forecasting task using the provided playbook.
 
 ### How to Use
 
-1. Use Seed Red Hat Pattern Job
+1. Load the pattern
 
 - Ensure the custom EE is correctly built and available in your Ansible
-  Automation Platform. Execute the "Seed Red Hat Pattern" job within the Ansible
-  Automation Platform, and select the "Weather Forecasting" category to load
-  this pattern.
+  Automation Platform. Use the pattern service to load the pattern within the
+  Ansible Automation Platform.
 
 2. Use the Job Templates
 
 - In the Weather Forecasting Patterns execute the required job template to
-  retrieve the weather forecast for a given location. Monitor the job execution
-  and verify that the forecast has been successfully retrieved.
+  retrieve the weather forecast for a given airport code. Monitor the job
+  execution and verify that the forecast has been successfully retrieved.
 
 ### Contribution
 

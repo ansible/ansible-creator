@@ -13,6 +13,11 @@
       ansible.builtin.assert:
         that: "{{ airport_code is defined }}"
         fail_msg: Define the airport code ('-e airport_code=RDU')
+      vars:
+        airport_code_argspec:
+          airport_code:
+            type: str
+            required: true
 
     - name: Clone the latitude longtude repo locally
       ansible.scm.git_retrieve:
