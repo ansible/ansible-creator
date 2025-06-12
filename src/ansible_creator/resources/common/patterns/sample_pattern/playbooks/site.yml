@@ -10,9 +10,8 @@
           Please manually add these to the collection's requirements file to use the sample pattern as-is.
 
     - name: Ensure the airport code has been defined
-      ansible.builtin.assert:
-        that: "{{ airport_code is defined }}"
-        fail_msg: Define the airport code ('-e airport_code=RDU')
+      ansible.builtin.validate_argument_spec:
+        argument_spec: "{{ airport_code_argspec }}"
       vars:
         airport_code_argspec:
           airport_code:

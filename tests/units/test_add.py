@@ -559,7 +559,7 @@ def test_run_success_add_plugin(  # noqa: PLR0913, # pylint: disable=too-many-po
             text=True,
             check=False,
         )
-        assert False, f"Files are different:\n{diff.stdout}"
+        assert False, f"Files are different:\n{diff.stdout}"  # noqa: B011, PT015
     assert cmp_result
 
     # Test conflict handling
