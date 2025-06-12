@@ -36,6 +36,7 @@ class Config:
         type: The type of the project for which the resource is being scaffolded.
         path: The file path where the resource should be added.
         image: The image to be used while scaffolding devcontainer.
+        pattern_name: The pattern to be scaffolded.
         role_name: The role to be scaffolded.
     """
 
@@ -56,6 +57,7 @@ class Config:
     type: str = ""
     path: str | Path = "./"
     image: str = ""
+    pattern_name: str = "sample_pattern"
     role_name: str = "run"
 
     def __post_init__(self) -> None:
@@ -73,3 +75,6 @@ class Config:
 
         if self.plugin_type == "module":
             object.__setattr__(self, "plugin_type", "modules")
+
+        if self.resource_type == "pattern":
+            object.__setattr__(self, "resource_type", "patterns")
