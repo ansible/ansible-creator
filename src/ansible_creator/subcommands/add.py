@@ -35,6 +35,7 @@ class Add:
         """
         self._resource_type: str = config.resource_type
         self._role_name: str = config.role_name
+        self._pattern_name: str = config.pattern_name
         self._plugin_type: str = config.plugin_type
         self._resource_id: str = f"common.{self._resource_type}"
         self._plugin_id: str = f"collection_project.plugins.{self._plugin_type}"
@@ -155,6 +156,7 @@ class Add:
             CreatorError: If unsupported resource type is given.
         """
         self.output.debug(f"Started adding {self._resource_type} to destination")
+        dest_path = self._add_path
 
         # Call the appropriate scaffolding function based on the resource type
         if self._resource_type == "devfile":
@@ -163,6 +165,12 @@ class Add:
             template_data = self._get_devcontainer_template_data()
         elif self._resource_type == "execution-environment":
             template_data = self._get_ee_template_data()
+        elif self._resource_type == "patterns":
+            self._check_collection_path()
+            pattern_path = self._add_path / "extensions" / "patterns"
+            pattern_path.mkdir(parents=True, exist_ok=True)
+            dest_path = pattern_path
+            template_data = self._get_patterns_template_data()
         elif self._resource_type == "play-argspec":
             template_data = self._get_play_argspec_template_data()
         elif self._resource_type == "role":
@@ -173,13 +181,14 @@ class Add:
             msg = f"Unsupported resource type: {self._resource_type}"
             raise CreatorError(msg)
 
-        self._perform_resource_scaffold(template_data)
+        self._perform_resource_scaffold(template_data, dest_path)
 
-    def _perform_resource_scaffold(self, template_data: TemplateData) -> None:
+    def _perform_resource_scaffold(self, template_data: TemplateData, dest_path: Path) -> None:
         """Perform the actual scaffolding process using the provided template data.
 
         Args:
             template_data: TemplateData
+            dest_path: Path where the resource will be scaffolded.
 
         Raises:
             CreatorError: If there are conflicts and overwriting is not allowed, or if the
@@ -188,7 +197,7 @@ class Add:
         walker = Walker(
             resources=(f"common.{self._resource_type}",),
             resource_id=self._resource_id,
-            dest=self._add_path,
+            dest=dest_path,
             output=self.output,
             template_data=template_data,
             templar=self.templar,
@@ -434,6 +443,20 @@ class Add:
         """
         return TemplateData(
             resource_type=self._resource_type,
+            creator_version=self._creator_version,
+        )
+
+    def _get_patterns_template_data(self) -> TemplateData:
+        """Get the template data for pattern structure.
+
+        Returns:
+            TemplateData: Data required for templating the plugin.
+        """
+        return TemplateData(
+            resource_type=self._resource_type,
+            pattern_name=self._pattern_name,
+            namespace=self._namespace,
+            collection_name=self._collection_name,
             creator_version=self._creator_version,
         )
 

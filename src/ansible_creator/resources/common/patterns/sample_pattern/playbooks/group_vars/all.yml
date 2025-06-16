@@ -1,0 +1,4 @@
+---
+api_url: https://api.weather.gov/points/
+repo_url: https://github.com/ip2location/ip2location-iata-icao
+airport_code: RDU

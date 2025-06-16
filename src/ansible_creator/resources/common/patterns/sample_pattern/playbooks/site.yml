@@ -1,0 +1,68 @@
+---
+- name: Weather forecast
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Collections requirements
+      ansible.builtin.debug:
+        msg: |
+          Warning: This sample pattern relies on the ansible.scm, ansible.utils and community.general collections.
+          Please manually add these to the collection's requirements file to use the sample pattern as-is.
+
+    - name: Ensure the airport code has been defined
+      ansible.builtin.validate_argument_spec:
+        argument_spec: "{{ airport_code_argspec }}"
+      vars:
+        airport_code_argspec:
+          airport_code:
+            type: str
+            required: true
+
+    - name: Clone the latitude longtude repo locally
+      ansible.scm.git_retrieve:
+        origin:
+          url: "{{ repo_url }}"
+      register: cloned
+
+    - name: Convert the CSV to structured data
+      community.general.read_csv:
+        path: "{{ cloned.path }}/iata-icao.csv"
+      register: contents
+
+    - name: Extract the matching airport from the list of all airports
+      ansible.builtin.set_fact:
+        airport_details: "{{ contents.list | selectattr('iata', 'equalto', airport_code) | first }}"
+      ignore_errors: true
+
+    - name: Handle airport code not found
+      ansible.builtin.fail:
+        msg: "Airport code '{{ airport_code }}' could not be found."
+      when: airport_details is not defined
+
+    - name: Retrieve weather information using the latitude and longitude
+      ansible.builtin.uri:
+        url: "{{ api_url }}{{ lat_long }}"
+      register: root_call
+      vars:
+        lat_long: "{{ airport_details.latitude }},{{ airport_details.longitude }}"
+
+    - name: Get the URL for the forecast
+      ansible.builtin.set_fact:
+        forecast_url: "{{ lookup('ansible.utils.get_path', root_call.json, forecast_url_path) }}"
+      vars:
+        forecast_url_path: properties.forecast
+
+    - name: Retrieve the current forecast
+      ansible.builtin.uri:
+        url: "{{ forecast_url }}"
+      register: forecast
+
+    - name: Extract the daily forecast
+      ansible.builtin.set_fact:
+        daily_forecast: "{{ lookup('ansible.utils.get_path', forecast.json, first_forecast) }}"
+      vars:
+        first_forecast: properties.periods.0.detailedForecast
+
+    - name: Show the forecast
+      ansible.builtin.debug:
+        msg: "The forecast for {{ airport_code }} is: {{ daily_forecast }}"
