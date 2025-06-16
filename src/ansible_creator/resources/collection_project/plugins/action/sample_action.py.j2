@@ -12,7 +12,7 @@ from __future__ import absolute_import, annotations, division, print_function
 
 __metaclass__ = type  # pylint: disable=C0103
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from ansible_collections.ansible.utils.plugins.module_utils.common.argspec_validate import (  # type: ignore
     AnsibleArgSpecValidator,
 )
@@ -60,7 +60,7 @@ class ActionModule(ActionBase):  # type: ignore[misc]
         # Get the task arguments
         if task_vars is None:
             task_vars = {}
-        result = {}
+        result: Dict[str, Any] = {}
         warnings: list[str] = []
 
         # Example processing logic - Replace this with actual action code
