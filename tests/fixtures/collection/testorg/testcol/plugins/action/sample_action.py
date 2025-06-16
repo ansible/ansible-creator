@@ -55,7 +55,7 @@ class ActionModule(ActionBase):  # type: ignore[misc]
         # Get the task arguments
         if task_vars is None:
             task_vars = {}
-        result = {}
+        result: Dict[str, Any] = {}
         warnings: list[str] = []
 
         # Example processing logic - Replace this with actual action code
