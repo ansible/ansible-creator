@@ -114,9 +114,6 @@ def test_run_success_for_collection(
         tmp_path: Temporary directory path.
         cli_args: Dictionary, partial Init class object.
         monkeypatch: Pytest monkeypatch fixture.
-
-    Raises:
-        AssertionError: If the assertion fails.
     """
     cli_args["project"] = "collection"
     init = Init(
@@ -189,9 +186,6 @@ def test_run_success_ee_project(
         capsys: Pytest fixture to capture stdout and stderr.
         tmp_path: Temporary directory path.
         cli_args: Dictionary, partial Init class object.
-
-    Raises:
-        AssertionError: If the assertion fails.
     """
     cli_args["project"] = "execution_env"
     cli_args["init_path"] = str(tmp_path / "new_project")
@@ -229,9 +223,6 @@ def test_run_success_ansible_project(
         tmp_path: Temporary directory path.
         cli_args: Dictionary, partial Init class object.
         monkeypatch: Pytest monkeypatch fixture.
-
-    Raises:
-        AssertionError: If the assertion fails.
     """
     cli_args["collection"] = "weather.demo"
     cli_args["project"] = "playbook"
@@ -311,9 +302,6 @@ def test_run_success_collections_alt_dir(
         tmp_path: Temporary directory path.
         capsys: Pytest fixture to capture stdout and stderr.
         cli_args: Dictionary, partial Init class object.
-
-    Raises:
-        AssertionError: If the assertion fails.
     """
     cli_args["project"] = "collection"
     cli_args["init_path"] = str(tmp_path / "collections" / "ansible_collections")
@@ -342,9 +330,6 @@ def test_delete_error(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     Args:
         monkeypatch: Pytest monkeypatch fixture.
         tmp_path: Temporary directory path.
-
-    Raises:
-        AssertionError: If the assertion fails.
     """
     (tmp_path / "file.txt").touch()
 
@@ -382,9 +367,6 @@ def test_is_file_error(tmp_path: Path) -> None:
 
     Args:
         tmp_path: Temporary directory path.
-
-    Raises:
-        AssertionError: If the assertion fails.
     """
     file = tmp_path / "file.txt"
     file.touch()
@@ -461,9 +443,6 @@ def test_name_in_devfile_collection(cli_args_collection: Config) -> None:
 
     Args:
         cli_args_collection: Configuration object for collection project.
-
-    Raises:
-        AssertionError: If the assertion fails.
     """
     init = Init(cli_args_collection)
     unique_name = init.unique_name_in_devfile()
@@ -479,9 +458,6 @@ def test_name_in_devfile_playbook(
 
     Args:
         cli_args_playbook: Configuration object for playbook project.
-
-    Raises:
-        AssertionError: If the assertion fails.
     """
     init = Init(cli_args_playbook)
     unique_name = init.unique_name_in_devfile()

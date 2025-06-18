@@ -10,8 +10,5 @@ def test_import() -> None:
 
     This is a simple test to ensure that the import of Traversable is working.
     Since it is only imported for type checking.
-
-    Raises:
-        AssertionError: If the assertion fails.
     """
     assert Traversable is not None
