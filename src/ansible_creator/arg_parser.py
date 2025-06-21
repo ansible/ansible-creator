@@ -190,6 +190,7 @@ class Parser:
         parser.add_argument(
             "path",
             default="./",
+            nargs="?",
             help="The path to the Ansible collection. The default is the "
             "current working directory.",
         )
@@ -233,6 +234,7 @@ class Parser:
             "path",
             default="./",
             metavar="path",
+            nargs="?",
             help="The destination directory for the devcontainer files. The default is the "
             "current working directory.",
         )
@@ -264,6 +266,7 @@ class Parser:
             "path",
             default="./",
             metavar="path",
+            nargs="?",
             help="The destination directory for the devfile file. The default is the "
             "current working directory.",
         )
@@ -287,6 +290,7 @@ class Parser:
             "path",
             default="./",
             metavar="path",
+            nargs="?",
             help="The destination directory for the execution environment file. "
             "The default is the current working directory.",
         )
@@ -315,6 +319,7 @@ class Parser:
             "path",
             default="./",
             metavar="path",
+            nargs="?",
             help="The path to the Ansible collection. The default is the "
             "current working directory.",
         )
@@ -337,6 +342,7 @@ class Parser:
             "path",
             default="./",
             metavar="path",
+            nargs="?",
             help="The destination directory for the playbook argspec files. The default is the "
             "current working directory.",
         )
@@ -363,6 +369,7 @@ class Parser:
             "path",
             default="./",
             metavar="path",
+            nargs="?",
             help="The path to the Ansible collection. The default is the "
             "current working directory.",
         )
