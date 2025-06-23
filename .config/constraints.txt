@@ -45,7 +45,7 @@ jsmin==3.0.1              # via mkdocs-minify-plugin
 jsonschema==4.24.0        # via ansible-compat, ansible-lint
 jsonschema-specifications==2025.4.1  # via jsonschema
 linkchecker==10.5.0       # via mkdocs-ansible
-markdown==3.8.2             # via markdown-include, mkdocs, mkdocs-autorefs, mkdocs-htmlproofer-plugin, mkdocs-material, mkdocstrings, pymdown-extensions
+markdown==3.8.2           # via markdown-include, mkdocs, mkdocs-autorefs, mkdocs-htmlproofer-plugin, mkdocs-material, mkdocstrings, pymdown-extensions
 markdown-exec==1.10.3     # via mkdocs-ansible
 markdown-include==0.8.1   # via mkdocs-ansible
 markupsafe==3.0.2         # via jinja2, mkdocs, mkdocs-autorefs, mkdocstrings
@@ -93,7 +93,7 @@ referencing==0.36.2       # via ansible-lint, jsonschema, jsonschema-specificati
 requests==2.32.4          # via linkchecker, mkdocs-htmlproofer-plugin, mkdocs-material
 rpds-py==0.25.1           # via jsonschema, referencing
 ruamel-yaml==0.18.14      # via ansible-lint
-ruff==0.12.0             # via ansible-creator (pyproject.toml)
+ruff==0.12.0              # via ansible-creator (pyproject.toml)
 six==1.17.0               # via python-dateutil
 soupsieve==2.7            # via beautifulsoup4
 subprocess-tee==0.4.2     # via ansible-compat, ansible-lint
