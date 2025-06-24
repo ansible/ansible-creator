@@ -403,6 +403,7 @@ def test_devcontainer_usability(
         cli_args: Dictionary, partial Add class object.
 
     Raises:
+        AssertionError: If the assertion fails.
         FileNotFoundError: If the 'npm' or 'docker' executable is not found in the PATH.
     """
     # Set the resource_type to devcontainer
@@ -520,6 +521,9 @@ def test_run_success_add_plugin(  # noqa: PLR0913, # pylint: disable=too-many-po
         plugin_name: Name of the plugin to add.
         expected_message: Expected success message.
         expected_file_path: Expected file path for the plugin.
+
+    Raises:
+        AssertionError: If the assertion fails.
     """
     cli_args["plugin_type"] = plugin_type
     cli_args["plugin_name"] = plugin_name
@@ -765,6 +769,9 @@ def test_run_success_add_play_argspec(
         tmp_path: Temporary directory path.
         cli_args: Dictionary, partial Add class object.
         monkeypatch: Pytest monkeypatch fixture.
+
+    Raises:
+        AssertionError: If the assertion fails.
     """
     # Set the resource_type to play-argspec
     cli_args["resource_type"] = "play-argspec"
@@ -827,6 +834,7 @@ def test_run_success_add_role(
         monkeypatch: Pytest monkeypatch fixture.
 
     Raises:
+        AssertionError: If the assertion fails.
         ValueError: If the file is not found.
     """
     # Set the resource_type to role
@@ -972,6 +980,7 @@ def test_role_galaxy(tmp_path: Path, cli_args: ConfigDict) -> None:
 
     Raises:
         AssertionError: If the assertion fails.
+        AssertionError: If the namespace or collection name mismatch.
     """
     galaxy_file = tmp_path / "galaxy.yml"
     initial_data: dict[str, Any]
@@ -1015,6 +1024,9 @@ def test_run_success_add_pattern(
         capsys: Pytest fixture to capture stdout and stderr.
         cli_args: Dictionary, partial Add class object.
         monkeypatch: Pytest monkeypatch fixture.
+
+    Raises:
+        AssertionError: If the assertion fails.
     """
     # Set the resource_type to pattern
     cli_args["resource_type"] = "pattern"
