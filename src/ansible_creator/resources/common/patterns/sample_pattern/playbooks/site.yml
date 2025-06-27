@@ -11,12 +11,9 @@
 
     - name: Ensure the airport code has been defined
       ansible.builtin.validate_argument_spec:
-        argument_spec: "{{ airport_code_argspec }}"
+        argument_spec: "{{ (lookup('ansible.builtin.file', filename) | from_yaml)['argument_specs']['weather_forecast']['options'] }}"
       vars:
-        airport_code_argspec:
-          airport_code:
-            type: str
-            required: true
+        filename: "site.meta.yml"
 
     - name: Clone the latitude longtude repo locally
       ansible.scm.git_retrieve:
