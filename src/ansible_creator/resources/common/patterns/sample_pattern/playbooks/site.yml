@@ -13,7 +13,7 @@
       ansible.builtin.validate_argument_spec:
         argument_spec: "{{ (lookup('ansible.builtin.file', filename) | from_yaml)['argument_specs']['weather_forecast']['options'] }}"
       vars:
-        filename: "meta/site.yml"
+        filename: "site.meta.yml"
 
     - name: Clone the latitude longtude repo locally
       ansible.scm.git_retrieve:
