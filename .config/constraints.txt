@@ -6,10 +6,10 @@ argcomplete==3.6.2        # via ansible-creator (pyproject.toml)
 astroid==3.3.10           # via pylint
 attrs==25.3.0             # via jsonschema, referencing
 babel==2.17.0             # via mkdocs-material
-backrefs==5.8             # via mkdocs-material
+backrefs==5.9             # via mkdocs-material
 beautifulsoup4==4.13.4    # via linkchecker, mkdocs-htmlproofer-plugin
 black==25.1.0             # via ansible-lint
-bracex==2.5.post1         # via wcmatch
+bracex==2.6               # via wcmatch
 cachetools==6.1.0         # via tox
 cairocffi==1.7.1          # via cairosvg
 cairosvg==2.8.2           # via mkdocs-ansible
@@ -46,7 +46,7 @@ jsonschema==4.24.0        # via ansible-compat, ansible-lint
 jsonschema-specifications==2025.4.1  # via jsonschema
 linkchecker==10.5.0       # via mkdocs-ansible
 markdown==3.8.2           # via markdown-include, mkdocs, mkdocs-autorefs, mkdocs-htmlproofer-plugin, mkdocs-material, mkdocstrings, pymdown-extensions
-markdown-exec==1.10.3     # via mkdocs-ansible
+markdown-exec==1.11.0     # via mkdocs-ansible
 markdown-include==0.8.1   # via mkdocs-ansible
 markupsafe==3.0.2         # via jinja2, mkdocs, mkdocs-autorefs, mkdocstrings
 mccabe==0.7.0             # via pylint
@@ -93,7 +93,7 @@ referencing==0.36.2       # via ansible-lint, jsonschema, jsonschema-specificati
 requests==2.32.4          # via linkchecker, mkdocs-htmlproofer-plugin, mkdocs-material
 rpds-py==0.25.1           # via jsonschema, referencing
 ruamel-yaml==0.18.14      # via ansible-lint
-ruff==0.12.0              # via ansible-creator (pyproject.toml)
+ruff==0.12.1              # via ansible-creator (pyproject.toml)
 six==1.17.0               # via python-dateutil
 soupsieve==2.7            # via beautifulsoup4
 subprocess-tee==0.4.2     # via ansible-compat, ansible-lint
@@ -108,7 +108,7 @@ types-pyyaml==6.0.12.20250516  # via ansible-creator (pyproject.toml)
 urllib3==2.5.0            # via requests
 virtualenv==20.31.2       # via pre-commit, tox
 watchdog==6.0.0           # via mkdocs
-wcmatch==10.0             # via ansible-lint
+wcmatch==10.1             # via ansible-lint
 webencodings==0.5.1       # via cssselect2, tinycss2
 yamllint==1.37.1          # via ansible-lint
 zipp==3.23.0              # via importlib-metadata
