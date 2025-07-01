@@ -455,8 +455,6 @@ class Add:
         return TemplateData(
             resource_type=self._resource_type,
             pattern_name=self._pattern_name,
-            namespace=self._namespace,
-            collection_name=self._collection_name,
             creator_version=self._creator_version,
         )
 
