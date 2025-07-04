@@ -505,7 +505,7 @@ def test_valid_pattern_name() -> None:
         "test123",
         "pattern_name_123",
         "a" * 63,  # Maximum length
-        "abc",     # Minimum length
+        "abc",  # Minimum length
     ]
 
     for name in valid_names:
