@@ -236,7 +236,7 @@ def test_missing_j2(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delitem(sys.modules, "jinja2", raising=False)
     monkeypatch.delitem(sys.modules, "ansible_creator.templar", raising=False)
 
-    import ansible_creator.templar
+    import ansible_creator.templar  # noqa: PLC0415
 
     assert ansible_creator.templar.HAS_JINJA2 is False
     with pytest.raises(ImportError, match=fail_msg):
