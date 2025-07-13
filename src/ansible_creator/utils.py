@@ -417,5 +417,5 @@ def ask_yes_no(question: str) -> bool:
     """
     answer = ""
     while answer not in ["y", "n"]:
-        answer = input(f"{Color.BRIGHT_WHITE}{question} (y/n){Color.END}: ").lower()
+        answer = input(f"{Color.MAGENTA}{question} (y/n){Color.END}: ").lower()
     return answer == "y"
