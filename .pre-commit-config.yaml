@@ -94,6 +94,17 @@ repos:
         entry: sh -ec "pydoclint . && pydoclint --generate-baseline=1 ."
         pass_filenames: false
 
+  - repo: https://github.com/cidrblock/pylint-ruff-sync
+    rev: 25.07.14
+    hooks:
+      - id: pylint-ruff-sync
+  
+  - repo: https://github.com/pappasam/toml-sort
+    rev: v0.24.2
+    hooks:
+      - id: toml-sort-fix
+        alias: toml
+
   - repo: https://github.com/pycqa/pylint.git
     rev: v3.3.7
     hooks:
