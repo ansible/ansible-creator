@@ -92,7 +92,7 @@ repos:
     rev: 25.07.14
     hooks:
       - id: pylint-ruff-sync
-  
+
   - repo: https://github.com/pappasam/toml-sort
     rev: v0.24.2
     hooks:
