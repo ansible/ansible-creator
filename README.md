@@ -10,7 +10,7 @@
 
 A CLI tool for scaffolding all your Ansible Content.
 
-## Installation DNM
+## Installation
 
 ```shell
 pip install ansible-creator
