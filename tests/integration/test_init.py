@@ -29,7 +29,7 @@ def test_run_help(cli: CliRunCallable) -> None:
     """
     # Get the path to the current python interpreter
     result = cli(f"{CREATOR_BIN} --help")
-    assert result.returncode == 0, (result.stdout, result.stderr)
+    assert not result.returncode, (result.stdout, result.stderr)
 
     assert "The fastest way to generate all your ansible content." in result.stdout
     assert "Positional arguments:" in result.stdout
@@ -49,7 +49,7 @@ def test_run_no_subcommand(cli: CliRunCallable) -> None:
         AssertionError: If the assertion fails.
     """
     result = cli(str(CREATOR_BIN))
-    assert result.returncode != 0
+    assert result.returncode
     assert "the following arguments are required: command" in result.stderr
 
 
@@ -63,7 +63,7 @@ def test_run_init_no_input(cli: CliRunCallable) -> None:
         AssertionError: If the assertion fails.
     """
     result = cli(f"{CREATOR_BIN} init")
-    assert result.returncode != 0
+    assert result.returncode
     err = "the following arguments are required: project-type"
     assert err in result.stderr
 
@@ -84,7 +84,7 @@ def test_run_deprecated_failure(command: str, cli: CliRunCallable) -> None:
         AssertionError: If the assertion fails.
     """
     result = cli(f"{CREATOR_BIN} {command}")
-    assert result.returncode != 0
+    assert result.returncode
     assert "is no longer needed and will be removed." in result.stdout
     assert "The CLI has changed." in result.stderr
 
@@ -112,7 +112,7 @@ def test_run_init_invalid_name(command: str, args: str, expected: str, cli: CliR
         AssertionError: If the assertion fails.
     """
     result = cli(f"{CREATOR_BIN} init {command} {args}")
-    assert result.returncode != 0
+    assert result.returncode
     assert result.stderr.startswith("Critical:")
     assert expected in result.stderr
 
@@ -133,7 +133,7 @@ def test_run_init_basic(cli: CliRunCallable, tmp_path: Path) -> None:
     result = cli(
         f"{CREATOR_BIN} init testorg.testcol --init-path {final_dest}",
     )
-    assert result.returncode == 0
+    assert not result.returncode
 
     # check stdout
     assert re.search(r"Note: collection project created at", result.stdout) is not None
@@ -143,21 +143,21 @@ def test_run_init_basic(cli: CliRunCallable, tmp_path: Path) -> None:
         f"{CREATOR_BIN} init testorg.testcol --init-path {final_dest}",
     )
 
-    assert result.returncode != 0
+    assert result.returncode
 
     # override existing collection with force=true
     result = cli(f"{CREATOR_BIN} init testorg.testcol --init-path {tmp_path} --force")
-    assert result.returncode == 0
+    assert not result.returncode
     assert re.search(r"Warning: re-initializing existing directory", result.stdout) is not None
 
     # override existing collection with override=true
     result = cli(f"{CREATOR_BIN} init testorg.testcol --init-path {tmp_path} --overwrite")
-    assert result.returncode == 0
+    assert not result.returncode
     assert re.search(f"Note: collection project created at {tmp_path}", result.stdout) is not None
 
     # use no-override=true
     result = cli(f"{CREATOR_BIN} init testorg.testcol --init-path {tmp_path} --no-overwrite")
-    assert result.returncode != 0
+    assert result.returncode
     assert re.search(r"The flag `--no-overwrite` restricts overwriting.", result.stderr) is not None
 
 
@@ -177,7 +177,7 @@ def test_run_init_ee(cli: CliRunCallable, tmp_path: Path) -> None:
     result = cli(
         f"{CREATOR_BIN} init execution_env {final_dest}",
     )
-    assert result.returncode == 0
+    assert not result.returncode
 
     # check stdout
     assert re.search(r"Note: execution_env project created at", result.stdout) is not None

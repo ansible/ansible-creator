@@ -436,7 +436,7 @@ def test_devcontainer_usability(
         text=True,
         check=True,
     )
-    assert devcontainer_up_output.returncode == 0
+    assert not devcontainer_up_output.returncode
 
     devcontainer_id = json.loads(devcontainer_up_output.stdout.strip("\n")).get("containerId")
 
@@ -448,7 +448,7 @@ def test_devcontainer_usability(
         text=True,
         check=True,
     )
-    assert devcontainer_exec_output.returncode == 0
+    assert not devcontainer_exec_output.returncode
 
     docker_executable = shutil.which("docker")
     if not docker_executable:
@@ -461,7 +461,7 @@ def test_devcontainer_usability(
         text=True,
         check=True,
     )
-    assert stop_container.returncode == 0
+    assert not stop_container.returncode
 
 
 @pytest.mark.parametrize(
@@ -499,7 +499,7 @@ def test_devcontainer_usability(
         ),
     ),
 )
-def test_run_success_add_plugin(  # noqa: PLR0913, # pylint: disable=too-many-positional-arguments
+def test_run_success_add_plugin(  # noqa: PLR0913
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
     cli_args: ConfigDict,
