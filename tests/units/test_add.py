@@ -499,7 +499,7 @@ def test_devcontainer_usability(
         ),
     ),
 )
-def test_run_success_add_plugin(  # noqa: PLR0913 #pylint: disable=too-many-positional-arguments
+def test_run_success_add_plugin(  # noqa: PLR0913
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
     cli_args: ConfigDict,
