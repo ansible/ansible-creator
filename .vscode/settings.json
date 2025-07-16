@@ -29,6 +29,4 @@
     "connectionId": "ansible",
     "projectKey": "ansible_ansible-creator"
   },
-  "ansible.lightspeed.enabled": false,
-  "ansible.python.interpreterPath": "/home/bthornto/github/ansible-creator/.venv/bin/python"
 }
