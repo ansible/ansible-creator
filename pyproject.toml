@@ -195,7 +195,6 @@ enable = [
   "R0022", # https://pylint.readthedocs.io/en/stable/user_guide/messages/refactor/useless-option-value.html
   "R0401", # https://pylint.readthedocs.io/en/stable/user_guide/messages/refactor/cyclic-import.html
   "R0901", # https://pylint.readthedocs.io/en/stable/user_guide/messages/refactor/too-many-ancestors.html
-  "R0917", # https://pylint.readthedocs.io/en/stable/user_guide/messages/refactor/too-many-positional-arguments.html
   "R1706", # https://pylint.readthedocs.io/en/stable/user_guide/messages/refactor/consider-using-ternary.html
   "R1708", # https://pylint.readthedocs.io/en/stable/user_guide/messages/refactor/stop-iteration-return.html
   "R1709", # https://pylint.readthedocs.io/en/stable/user_guide/messages/refactor/simplify-boolean-expression.html
