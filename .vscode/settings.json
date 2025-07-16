@@ -28,5 +28,5 @@
   "sonarlint.connectedMode.project": {
     "connectionId": "ansible",
     "projectKey": "ansible_ansible-creator"
-  },
+  }
 }
