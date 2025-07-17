@@ -29,6 +29,7 @@ class Config:
         init_path: The path to initialize the project.
         project: The type of project to scaffold.
         collection_name: The name of the collection.
+        collection_check: Whether to check for a valid collection at the destination.
         namespace: The namespace for the collection.
         resource_type: The type of resource to be scaffolded.
         plugin_name: The name of plugin to be scaffolded.
@@ -50,6 +51,7 @@ class Config:
     init_path: str | Path = "./"
     project: str = ""
     collection_name: str | None = None
+    collection_check: bool = False
     namespace: str = ""
     resource_type: str = ""
     plugin_name: str = ""

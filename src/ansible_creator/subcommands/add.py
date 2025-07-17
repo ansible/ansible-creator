@@ -48,6 +48,7 @@ class Add:
         self._project = config.project
         self._dev_container_image = config.image
         self.output: Output = config.output
+        self._collection_check = config.collection_check
         self.templar = Templar()
         self._namespace: str = config.namespace or ""
         self._collection_name: str = config.collection_name or ""
@@ -166,7 +167,8 @@ class Add:
         elif self._resource_type == "execution-environment":
             template_data = self._get_ee_template_data()
         elif self._resource_type == "patterns":
-            self._check_collection_path()
+            if self._collection_check:
+                self._check_collection_path()
             pattern_path = self._add_path / "extensions" / "patterns"
             pattern_path.mkdir(parents=True, exist_ok=True)
             dest_path = pattern_path
