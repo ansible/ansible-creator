@@ -267,15 +267,18 @@ def test_error_invalid_path(
     assert "does not exist. Please provide an existing directory" in str(exc_info.value)
 
 
+@pytest.mark.parametrize("skip_collection_check", (False, True))
 def test_error_invalid_collection_path(
-    cli_args: ConfigDict,
+    capsys: pytest.CaptureFixture[str], cli_args: ConfigDict, *, skip_collection_check: bool
 ) -> None:
     """Test Add.run().
 
     Check if collection exists.
 
     Args:
+        capsys: Pytest fixture to capture stdout and stderr.
         cli_args: Dictionary, partial Add class object.
+        skip_collection_check: Whether to check for a valid collection.
 
     Raises:
         AssertionError: If the assertion fails.
@@ -283,16 +286,22 @@ def test_error_invalid_collection_path(
     cli_args["plugin_type"] = "lookup"
     add = Add(
         Config(**cli_args),
+        skip_collection_check=skip_collection_check,
     )
 
-    with pytest.raises(CreatorError) as exc_info:
+    if skip_collection_check:
         add.run()
-    assert (
-        "is not a valid Ansible collection path. "
-        "Please provide the root path of a valid ansible collection."
-    ) in str(
-        exc_info.value,
-    )
+        result = capsys.readouterr().out
+        assert "Note: Lookup plugin added to" in result
+    else:
+        with pytest.raises(CreatorError) as exc_info:
+            add.run()
+        assert (
+            "is not a valid Ansible collection path. "
+            "Please provide the root path of a valid ansible collection."
+        ) in str(
+            exc_info.value,
+        )
 
 
 def test_run_error_unsupported_resource_type(
