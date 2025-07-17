@@ -27,11 +27,14 @@ class Add:
     def __init__(
         self,
         config: Config,
+        *,
+        skip_collection_check: bool = False,
     ) -> None:
         """Initialize the add action.
 
         Args:
             config: App configuration object.
+            skip_collection_check: Whether to skip the check for a valid collection before adding.
         """
         self._resource_type: str = config.resource_type
         self._role_name: str = config.role_name
@@ -48,7 +51,7 @@ class Add:
         self._project = config.project
         self._dev_container_image = config.image
         self.output: Output = config.output
-        self._collection_check = config.collection_check
+        self._collection_check = not skip_collection_check
         self.templar = Templar()
         self._namespace: str = config.namespace or ""
         self._collection_name: str = config.collection_name or ""

@@ -323,12 +323,6 @@ class Parser:
             help="The path to the Ansible collection. The default is the "
             "current working directory.",
         )
-        parser.add_argument(
-            "--no-collection-check",
-            dest="collection_check",
-            action="store_false",
-            help="Skip the check for a valid collection at the destination.",
-        )
         self._add_overwrite(parser)
         self._add_args_common(parser)
 
