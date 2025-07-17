@@ -558,7 +558,7 @@ def test_run_success_add_plugin(  # noqa: PLR0913
         staticmethod(mock_update_galaxy_dependency),
     )
 
-    add.run()  # pylint: continue-in-finally
+    add.run()  # pylint: disable=continue-in-finally
     result = capsys.readouterr().out
     assert expected_message in result
 

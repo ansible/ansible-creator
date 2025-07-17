@@ -94,7 +94,7 @@ jobs = 0
 no-docstring-rgx = "__.*__"
 
 [tool.pylint.messages_control]
-disable = ["all", "duplicate-code", "locally-disabled", "suppressed-message", "too-few-public-methods", "too-many-instance-attributes", "unknown-option-value"]
+disable = ["I0011", "I0020", "R0801", "R0902", "R0903", "W0012", "all"]
 enable = [
   "C0104", # https://pylint.readthedocs.io/en/stable/user_guide/messages/convention/disallowed-name.html
   "C0117", # https://pylint.readthedocs.io/en/stable/user_guide/messages/convention/unnecessary-negation.html
