@@ -89,7 +89,7 @@ repos:
         pass_filenames: false
 
   - repo: https://github.com/cidrblock/pylint-ruff-sync
-    rev: v25.07.18.000002
+    rev: v25.07.18.000003
     hooks:
       - id: pylint-ruff-sync
 
