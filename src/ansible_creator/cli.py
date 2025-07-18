@@ -38,7 +38,7 @@ class Cli:
 
         In case the arg parsing exited early, set some sane default values.
         """
-        no_ansi = self.args.pop("no_ansi", False)
+        no_ansi = self.args.pop("no_ansi", False)  # pylint:disable=invalid-name
         if not sys.stdout.isatty():
             self.term_features = TermFeatures(color=False, links=False)
         else:
