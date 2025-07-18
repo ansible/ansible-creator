@@ -1,7 +1,6 @@
 # sample_action.py - A custom action plugin for Ansible.
 # Author: Your Name
 # License: GPL-3.0-or-later
-# pylint: disable=E0401
 
 from __future__ import absolute_import, annotations, division, print_function
 

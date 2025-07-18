@@ -1,5 +1,4 @@
 #!/usr/bin/python
-# pylint: disable=E0401
 # sample_module.py - A custom module plugin for Ansible.
 # Author: Your Name (@username)
 # License: GPL-3.0-or-later
