@@ -19,14 +19,27 @@ DOCUMENTATION = """
       name:
         description: Value specified here is appended to the Hello message.
         type: str
+        required: true
 """
 
 EXAMPLES = """
-# sample_module module example
+- name: Run the module
+  register: result
+  sample_module:
+    name: "ansible-creator"
 
-- name: Display a hello message
+- name: Display the message
   ansible.builtin.debug:
-    msg: "{{ 'ansible-creator' | sample_module }}"
+    msg: result.message
+"""
+
+RETURN = """
+message:
+  description:
+  - A demo message.
+  type: str
+  returned: always
+  sample: "Hello, ansible-creator"
 """
 
 
@@ -54,17 +67,20 @@ def _sample_module(name: str) -> str:
 
 
 def main() -> None:
-    """entry point for module execution"""
+    """Entry point for module execution"""
     argument_spec = dict(
-        name=dict(type="str"),
+        name=dict(type="str", required=True),
     )
     module = AnsibleModule(
         argument_spec=argument_spec,
     )
 
-    _sample_module(module.params["name"])
+    message = _sample_module(module.params["name"])
 
-    result = {"changed": False}
+    result = {
+        "changed": False,
+        "message": message,
+    }
     module.exit_json(**result)
 
 
