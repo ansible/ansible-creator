@@ -1,6 +1,5 @@
 # sample_lookup.py - A custom lookup plugin for Ansible.
 
-# pylint: disable=E0401
 # sample_lookup.py - A custom lookup plugin for Ansible.
 # Author: Your Name (@username)
 # Copyright 2020 Red Hat

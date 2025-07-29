@@ -53,12 +53,12 @@ def test_lint_collection(
     env = {"NO_COLOR": "1"}
     result = cli(args=args, env=env)
 
-    assert result.returncode == 0
+    assert not result.returncode
 
     match = LINT_RE.search(result.stderr)
     assert match is not None
-    assert int(match.group("failures")) == 0
-    assert int(match.group("warnings")) == 0
+    assert not int(match.group("failures"))
+    assert not int(match.group("warnings"))
     assert int(match.group("files")) > 0
 
     match = LINT_PROFILE_RE.search(result.stderr)
@@ -90,7 +90,7 @@ def test_lint_playbook_project(
     dest_path = tmp_path / "collections"
     galaxy_cmd = f"{GALAXY_BIN} collection install -r {req_path} -p {dest_path}"
     result = cli(args=galaxy_cmd)
-    assert result.returncode == 0
+    assert not result.returncode
 
     project_path = FIXTURES_DIR / "project" / "playbook_project"
     monkeypatch.chdir(project_path)
@@ -98,12 +98,12 @@ def test_lint_playbook_project(
     env = {"NO_COLOR": "1", "ANSIBLE_COLLECTIONS_PATH": str(dest_path)}
     result = cli(args=args, env=env)
 
-    assert result.returncode == 0
+    assert not result.returncode
 
     match = LINT_RE.search(result.stderr)
     assert match is not None
-    assert int(match.group("failures")) == 0
-    assert int(match.group("warnings")) == 0
+    assert not int(match.group("failures"))
+    assert not int(match.group("warnings"))
     assert int(match.group("files")) > 0
 
     match = LINT_PROFILE_RE.search(result.stderr)
