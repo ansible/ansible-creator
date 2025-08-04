@@ -94,232 +94,116 @@ jobs = 0
 no-docstring-rgx = "__.*__"
 
 [tool.pylint.messages_control]
-disable = [
-  "unknown-option-value",
-  # https://gist.github.com/cidrblock/ec3412bacfeb34dbc2d334c1d53bef83
-  "C0103", # invalid-name / ruff N815
-  "C0105", # typevar-name-incorrect-variance / ruff PLC0105
-  "C0112", # empty-docstring / ruff D419
-  "C0113", # unneeded-not / ruff SIM208
-  "C0114", # missing-module-docstring / ruff D100
-  "C0115", # missing-class-docstring / ruff D101
-  "C0116", # missing-function-docstring / ruff D103
-  "C0121", # singleton-comparison / ruff PLC0121
-  "C0123", # unidiomatic-typecheck / ruff E721
-  "C0131", # typevar-double-variance / ruff PLC0131
-  "C0132", # typevar-name-mismatch / ruff PLC0132
-  "C0198", # bad-docstring-quotes / ruff Q002
-  "C0199", # docstring-first-line-empty / ruff D210
-  "C0201", # consider-iterating-dictionary / ruff SIM118
-  "C0202", # bad-classmethod-argument / ruff PLC0202
-  "C0205", # single-string-used-for-slots / ruff PLC0205
-  "C0208", # use-sequence-for-iteration / ruff PLC0208
-  "C0301", # line-too-long / ruff E501
-  "C0303", # trailing-whitespace / ruff W291
-  "C0304", # missing-final-newline / ruff W292
-  "C0321", # multiple-statements / ruff PLC0321
-  "C0410", # multiple-imports / ruff E401
-  "C0411", # wrong-import-order / ruff I001
-  "C0412", # ungrouped-imports / ruff I001
-  "C0413", # wrong-import-position / ruff E402
-  "C0414", # useless-import-alias / ruff PLC0414
-  "C0415", # import-outside-toplevel / ruff PLC0415
-  "C0501", # consider-using-any-or-all / ruff PLC0501
-  "C1901", # compare-to-empty-string / ruff PLC1901
-  "C2201", # misplaced-comparison-constant / ruff SIM300
-  "C2401", # non-ascii-name / ruff PLC2401
-  "C2403", # non-ascii-module-import / ruff PLC2403
-  "C2701", # import-private-name / ruff PLC2701
-  "C2801", # unnecessary-dunder-call / ruff PLC2801
-  "C3001", # unnecessary-lambda-assignment / ruff E731
-  "C3002", # unnecessary-direct-lambda-call / ruff PLC3002
-  "E0001", # syntax-error / ruff E999
-  "E0100", # init-is-generator / ruff PLE0100
-  "E0101", # return-in-init / ruff PLE0101
-  "E0102", # function-redefined / ruff F811
-  "E0103", # not-in-loop / ruff PLE0103
-  "E0104", # return-outside-function / ruff F706
-  "E0105", # yield-outside-function / ruff F704
-  "E0107", # nonexistent-operator / ruff B002
-  "E0112", # too-many-star-expressions / ruff F622
-  "E0115", # nonlocal-and-global / ruff PLE0115
-  "E0116", # continue-in-finally / ruff PLE0116
-  "E0117", # nonlocal-without-binding / ruff PLE0117
-  "E0118", # used-prior-global-declaration / ruff PLE0118
-  "E0211", # no-method-argument / ruff N805
-  "E0213", # no-self-argument / ruff N805
-  "E0237", # assigning-non-slot / ruff PLE0237
-  "E0241", # duplicate-bases / ruff PLE0241
-  "E0302", # unexpected-special-method-signature / ruff PLE0302
-  "E0303", # invalid-length-returned / ruff PLE0303
-  "E0304", # invalid-bool-returned / ruff PLE0304
-  "E0305", # invalid-index-returned / ruff PLE0305
-  "E0308", # invalid-bytes-returned / ruff PLE0308
-  "E0309", # invalid-hash-returned / ruff PLE0309
-  "E0402", # relative-beyond-top-level / ruff TID252
-  "E0602", # undefined-variable / ruff F821
-  "E0603", # undefined-all-variable / ruff F822
-  "E0604", # invalid-all-object / ruff PLE0604
-  "E0605", # invalid-all-format / ruff PLE0605
-  "E0643", # potential-index-error / ruff PLE0643
-  "E0704", # misplaced-bare-raise / ruff PLE0704
-  "E0711", # notimplemented-raised / ruff F901
-  "E1132", # repeated-keyword / ruff PLE1132
-  "E1142", # await-outside-async / ruff PLE1142
-  "E1205", # logging-too-many-args / ruff PLE1205
-  "E1206", # logging-too-few-args / ruff PLE1206
-  "E1300", # bad-format-character / ruff PLE1300
-  "E1301", # truncated-format-string / ruff F501
-  "E1302", # mixed-format-string / ruff F506
-  "E1303", # format-needs-mapping / ruff F502
-  "E1304", # missing-format-string-key / ruff F524
-  "E1305", # too-many-format-args / ruff F522
-  "E1306", # too-few-format-args / ruff F524
-  "E1307", # bad-string-format-type / ruff PLE1307
-  "E1310", # bad-str-strip-call / ruff PLE1310
-  "E1519", # singledispatch-method / ruff PLE1519
-  "E1520", # singledispatchmethod-function / ruff PLE5120
-  "E1700", # yield-inside-async-function / ruff PLE1700
-  "E2502", # bidirectional-unicode / ruff PLE2502
-  "E2510", # invalid-character-backspace / ruff PLE2510
-  "E2512", # invalid-character-sub / ruff PLE2512
-  "E2513", # invalid-character-esc / ruff PLE2513
-  "E2514", # invalid-character-nul / ruff PLE2514
-  "E2515", # invalid-character-zero-width-space / ruff PLE2515
-  "E4703", # modified-iterating-set / ruff PLE4703
-  "R0123", # literal-comparison / ruff F632
-  "R0124", # comparison-with-itself / ruff PLR0124
-  "R0133", # comparison-of-constants / ruff PLR0133
-  "R0202", # no-classmethod-decorator / ruff PLR0202
-  "R0203", # no-staticmethod-decorator / ruff PLR0203
-  "R0205", # useless-object-inheritance / ruff UP004
-  "R0206", # property-with-parameters / ruff PLR0206
-  "R0904", # too-many-public-methods / ruff PLR0904
-  "R0911", # too-many-return-statements / ruff PLR0911
-  "R0912", # too-many-branches / ruff PLR0912
-  "R0913", # too-many-arguments / ruff PLR0913
-  "R0914", # too-many-locals / ruff PLR0914
-  "R0915", # too-many-statements / ruff PLR0915
-  "R0916", # too-many-boolean-expressions / ruff PLR0916
-  "R1260", # too-complex / ruff C901
-  "R1701", # consider-merging-isinstance / ruff PLR1701
-  "R1702", # too-many-nested-blocks / ruff PLR1702
-  "R1703", # simplifiable-if-statement / ruff SIM108
-  "R1704", # redefined-argument-from-local / ruff PLR1704
-  "R1705", # no-else-return / ruff RET505
-  "R1706", # consider-using-ternary / ruff PLR1706
-  "R1707", # trailing-comma-tuple / ruff COM818
-  "R1710", # inconsistent-return-statements / ruff PLR1710
-  "R1711", # useless-return / ruff PLR1711
-  "R1714", # consider-using-in / ruff PLR1714
-  "R1715", # consider-using-get / ruff SIM401
-  "R1717", # consider-using-dict-comprehension / ruff C402
-  "R1718", # consider-using-set-comprehension / ruff C401
-  "R1719", # simplifiable-if-expression / ruff PLR1719
-  "R1720", # no-else-raise / ruff RET506
-  "R1721", # unnecessary-comprehension / ruff C416
-  "R1722", # consider-using-sys-exit / ruff PLR1722
-  "R1723", # no-else-break / ruff RET508
-  "R1724", # no-else-continue / ruff RET507
-  "R1725", # super-with-arguments / ruff UP008
-  "R1728", # consider-using-generator / ruff C417
-  "R1729", # use-a-generator / ruff C419
-  "R1730", # consider-using-min-builtin / ruff PLR1730
-  "R1731", # consider-using-max-builtin / ruff PLR1730
-  "R1732", # consider-using-with / ruff SIM115
-  "R1733", # unnecessary-dict-index-lookup / ruff PLR1733
-  "R1734", # use-list-literal / ruff C405
-  "R1735", # use-dict-literal / ruff C406
-  "R1736", # unnecessary-list-index-lookup / ruff PLR1736
-  "R2004", # magic-value-comparison / ruff PLR2004
-  "R2044", # empty-comment / ruff PLR2044
-  "R5501", # else-if-used / ruff PLR5501
-  "R6002", # consider-using-alias / ruff UP006
-  "R6003", # consider-alternative-union-syntax / ruff UP007
-  "R6104", # consider-using-augmented-assign / ruff PLR6104
-  "R6201", # use-set-for-membership / ruff PLR6201
-  "R6301", # no-self-use / ruff PLR6301
-  "W0102", # dangerous-default-value / ruff B006
-  "W0104", # pointless-statement / ruff B018
-  "W0106", # expression-not-assigned / ruff B018
-  "W0107", # unnecessary-pass / ruff PIE790
-  "W0108", # unnecessary-lambda / ruff PLW0108
-  "W0109", # duplicate-key / ruff F601
-  "W0120", # useless-else-on-loop / ruff PLW0120
-  "W0122", # exec-used / ruff S102
-  "W0123", # eval-used / ruff PGH001
-  "W0127", # self-assigning-variable / ruff PLW0127
-  "W0129", # assert-on-string-literal / ruff PLW0129
-  "W0130", # duplicate-value / ruff B033
-  "W0131", # named-expr-without-context / ruff PLW0131
-  "W0133", # pointless-exception-statement / ruff PLW0133
-  "W0150", # lost-exception / ruff B012
-  "W0160", # consider-ternary-expression / ruff SIM108
-  "W0177", # nan-comparison / ruff PLW0117
-  "W0199", # assert-on-tuple / ruff F631
-  "W0211", # bad-staticmethod-argument / ruff PLW0211
-  "W0212", # protected-access / ruff SLF001
-  "W0245", # super-without-brackets / ruff PLW0245
-  "W0301", # unnecessary-semicolon / ruff E703
-  "W0401", # wildcard-import / ruff F403
-  "W0404", # reimported / ruff F811
-  "W0406", # import-self / ruff PLW0406
-  "W0410", # misplaced-future / ruff F404
-  "W0511", # fixme / ruff PLW0511
-  "W0602", # global-variable-not-assigned / ruff PLW0602
-  "W0603", # global-statement / ruff PLW0603
-  "W0604", # global-at-module-level / ruff PLW0604
-  "W0611", # unused-import / ruff F401
-  "W0612", # unused-variable / ruff F841
-  "W0613", # unused-argument / ruff ARG001
-  "W0622", # redefined-builtin / ruff A001
-  "W0640", # cell-var-from-loop / ruff B023
-  "W0702", # bare-except / ruff E722
-  "W0705", # duplicate-except / ruff B014
-  "W0706", # try-except-raise / ruff TRY302
-  "W0707", # raise-missing-from / ruff TRY200
-  "W0711", # binary-op-exception / ruff PLW0711
-  "W0718", # broad-exception-caught / ruff PLW0718
-  "W0719", # broad-exception-raised / ruff TRY002
-  "W1113", # keyword-arg-before-vararg / ruff B026
-  "W1201", # logging-not-lazy / ruff G
-  "W1202", # logging-format-interpolation / ruff G
-  "W1203", # logging-fstring-interpolation / ruff G
-  "W1300", # bad-format-string-key / ruff PLW1300
-  "W1301", # unused-format-string-key / ruff F504
-  "W1302", # bad-format-string / ruff PLW1302
-  "W1303", # missing-format-argument-key / ruff F524
-  "W1304", # unused-format-string-argument / ruff F507
-  "W1305", # format-combined-specification / ruff F525
-  "W1308", # duplicate-string-formatting-argument / ruff PLW1308
-  "W1309", # f-string-without-interpolation / ruff F541
-  "W1310", # format-string-without-interpolation / ruff F541
-  "W1401", # anomalous-backslash-in-string / ruff W605
-  "W1404", # implicit-str-concat / ruff ISC001
-  "W1405", # inconsistent-quotes / ruff Q000
-  "W1406", # redundant-u-string-prefix / ruff UP025
-  "W1501", # bad-open-mode / ruff PLW1501
-  "W1508", # invalid-envvar-default / ruff PLW1508
-  "W1509", # subprocess-popen-preexec-fn / ruff PLW1509
-  "W1510", # subprocess-run-check / ruff PLW1510
-  "W1514", # unspecified-encoding / ruff PLW1514
-  "W1515", # forgotten-debug-statement / ruff T100
-  "W1518", # method-cache-max-size-none / ruff B019
-  "W1641", # eq-without-hash / ruff PLW1641
-  "W2101", # useless-with-lock / ruff PLW2101
-  "W2402", # non-ascii-file-name / ruff N999
-  "W2901", # redefined-loop-name / ruff PLW2901
-  "W3201", # bad-dunder-name / ruff PLW3201
-  "W3301", # nested-min-max / ruff PLW3301
-  "duplicate-code",
-  "too-few-public-methods",
-  "too-many-instance-attributes"
-]
+disable = ["I0011", "I0020", "R0801", "R0902", "R0903", "W0012", "all"]
 enable = [
-  "useless-suppression"
-]
-fail-on = [
-  "useless-suppression"
+  "C0104", # https://pylint.readthedocs.io/en/stable/user_guide/messages/convention/disallowed-name.html
+  "C0117", # https://pylint.readthedocs.io/en/stable/user_guide/messages/convention/unnecessary-negation.html
+  "C0200", # https://pylint.readthedocs.io/en/stable/user_guide/messages/convention/consider-using-enumerate.html
+  "C0203", # https://pylint.readthedocs.io/en/stable/user_guide/messages/convention/bad-mcs-method-argument.html
+  "C0204", # https://pylint.readthedocs.io/en/stable/user_guide/messages/convention/bad-mcs-classmethod-argument.html
+  "C0209", # https://pylint.readthedocs.io/en/stable/user_guide/messages/convention/consider-using-f-string.html
+  "C0302", # https://pylint.readthedocs.io/en/stable/user_guide/messages/convention/too-many-lines.html
+  "C0325", # https://pylint.readthedocs.io/en/stable/user_guide/messages/convention/superfluous-parens.html
+  "C0327", # https://pylint.readthedocs.io/en/stable/user_guide/messages/convention/mixed-line-endings.html
+  "C0328", # https://pylint.readthedocs.io/en/stable/user_guide/messages/convention/unexpected-line-ending-format.html
+  "C0401", # https://pylint.readthedocs.io/en/stable/user_guide/messages/convention/wrong-spelling-in-comment.html
+  "C0402", # https://pylint.readthedocs.io/en/stable/user_guide/messages/convention/wrong-spelling-in-docstring.html
+  "C0403", # https://pylint.readthedocs.io/en/stable/user_guide/messages/convention/invalid-characters-in-docstring.html
+  "C1803", # https://pylint.readthedocs.io/en/stable/user_guide/messages/convention/use-implicit-booleaness-not-comparison.html
+  "C1804", # https://pylint.readthedocs.io/en/stable/user_guide/messages/convention/use-implicit-booleaness-not-comparison-to-string.html
+  "C1805", # https://pylint.readthedocs.io/en/stable/user_guide/messages/convention/use-implicit-booleaness-not-comparison-to-zero.html
+  "C2503", # https://pylint.readthedocs.io/en/stable/user_guide/messages/convention/bad-file-encoding.html
+  "E0011", # https://pylint.readthedocs.io/en/stable/user_guide/messages/error/unrecognized-inline-option.html
+  "E0013", # https://pylint.readthedocs.io/en/stable/user_guide/messages/error/bad-plugin-value.html
+  "E0014", # https://pylint.readthedocs.io/en/stable/user_guide/messages/error/bad-configuration-section.html
+  "E0015", # https://pylint.readthedocs.io/en/stable/user_guide/messages/error/unrecognized-option.html
+  "E0106", # https://pylint.readthedocs.io/en/stable/user_guide/messages/error/return-arg-in-generator.html
+  "E0108", # https://pylint.readthedocs.io/en/stable/user_guide/messages/error/duplicate-argument-name.html
+  "E0203", # https://pylint.readthedocs.io/en/stable/user_guide/messages/error/access-member-before-definition.html
+  "E0211", # https://pylint.readthedocs.io/en/stable/user_guide/messages/error/no-method-argument.html
+  "E0242", # https://pylint.readthedocs.io/en/stable/user_guide/messages/error/class-variable-slots-conflict.html
+  "E0245", # https://pylint.readthedocs.io/en/stable/user_guide/messages/error/declare-non-slot.html
+  "E0310", # https://pylint.readthedocs.io/en/stable/user_guide/messages/error/invalid-length-hint-returned.html
+  "E0312", # https://pylint.readthedocs.io/en/stable/user_guide/messages/error/invalid-getnewargs-returned.html
+  "E0313", # https://pylint.readthedocs.io/en/stable/user_guide/messages/error/invalid-getnewargs-ex-returned.html
+  "E0606", # https://pylint.readthedocs.io/en/stable/user_guide/messages/error/possibly-used-before-assignment.html
+  "E0611", # https://pylint.readthedocs.io/en/stable/user_guide/messages/error/no-name-in-module.html
+  "E0701", # https://pylint.readthedocs.io/en/stable/user_guide/messages/error/bad-except-order.html
+  "E1144", # https://pylint.readthedocs.io/en/stable/user_guide/messages/error/invalid-slice-step.html
+  "E1200", # https://pylint.readthedocs.io/en/stable/user_guide/messages/error/logging-unsupported-format.html
+  "E1201", # https://pylint.readthedocs.io/en/stable/user_guide/messages/error/logging-format-truncated.html
+  "E2511", # https://pylint.readthedocs.io/en/stable/user_guide/messages/error/invalid-character-carriage-return.html
+  "E3102", # https://pylint.readthedocs.io/en/stable/user_guide/messages/error/positional-only-arguments-expected.html
+  "E3701", # https://pylint.readthedocs.io/en/stable/user_guide/messages/error/invalid-field-call.html
+  "E4702", # https://pylint.readthedocs.io/en/stable/user_guide/messages/error/modified-iterating-dict.html
+  "F0002", # https://pylint.readthedocs.io/en/stable/user_guide/messages/fatal/astroid-error.html
+  "F0010", # https://pylint.readthedocs.io/en/stable/user_guide/messages/fatal/parse-error.html
+  "F0011", # https://pylint.readthedocs.io/en/stable/user_guide/messages/fatal/config-parse-error.html
+  "F0202", # https://pylint.readthedocs.io/en/stable/user_guide/messages/fatal/method-check-failed.html
+  "I0001", # https://pylint.readthedocs.io/en/stable/user_guide/messages/info/raw-checker-failed.html
+  "I0010", # https://pylint.readthedocs.io/en/stable/user_guide/messages/info/bad-inline-option.html
+  "I0013", # https://pylint.readthedocs.io/en/stable/user_guide/messages/info/file-ignored.html
+  "I0021", # https://pylint.readthedocs.io/en/stable/user_guide/messages/info/useless-suppression.html
+  "I0022", # https://pylint.readthedocs.io/en/stable/user_guide/messages/info/deprecated-pragma.html
+  "I1101", # https://pylint.readthedocs.io/en/stable/user_guide/messages/info/c-extension-no-member.html
+  "R0022", # https://pylint.readthedocs.io/en/stable/user_guide/messages/refactor/useless-option-value.html
+  "R0401", # https://pylint.readthedocs.io/en/stable/user_guide/messages/refactor/cyclic-import.html
+  "R0901", # https://pylint.readthedocs.io/en/stable/user_guide/messages/refactor/too-many-ancestors.html
+  "R1706", # https://pylint.readthedocs.io/en/stable/user_guide/messages/refactor/consider-using-ternary.html
+  "R1708", # https://pylint.readthedocs.io/en/stable/user_guide/messages/refactor/stop-iteration-return.html
+  "R1709", # https://pylint.readthedocs.io/en/stable/user_guide/messages/refactor/simplify-boolean-expression.html
+  "R1712", # https://pylint.readthedocs.io/en/stable/user_guide/messages/refactor/consider-swap-variables.html
+  "R1713", # https://pylint.readthedocs.io/en/stable/user_guide/messages/refactor/consider-using-join.html
+  "R1716", # https://pylint.readthedocs.io/en/stable/user_guide/messages/refactor/chained-comparison.html
+  "R1726", # https://pylint.readthedocs.io/en/stable/user_guide/messages/refactor/simplifiable-condition.html
+  "R1727", # https://pylint.readthedocs.io/en/stable/user_guide/messages/refactor/condition-evals-to-constant.html
+  "R1736", # https://pylint.readthedocs.io/en/stable/user_guide/messages/refactor/unnecessary-list-index-lookup.html
+  "W0101", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/unreachable.html
+  "W0105", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/pointless-string-statement.html
+  "W0124", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/confusing-with-statement.html
+  "W0125", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/using-constant-test.html
+  "W0126", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/missing-parentheses-for-call-in-test.html
+  "W0128", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/redeclared-assigned-name.html
+  "W0134", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/return-in-finally.html
+  "W0135", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/contextmanager-generator-missing-cleanup.html
+  "W0201", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/attribute-defined-outside-init.html
+  "W0213", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/implicit-flag-alias.html
+  "W0223", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/abstract-method.html
+  "W0231", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/super-init-not-called.html
+  "W0233", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/non-parent-init-called.html
+  "W0237", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/arguments-renamed.html
+  "W0238", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/unused-private-member.html
+  "W0244", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/redefined-slots-in-subclass.html
+  "W0246", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/useless-parent-delegation.html
+  "W0407", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/preferred-module.html
+  "W0416", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/shadowed-import.html
+  "W0614", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/unused-wildcard-import.html
+  "W0621", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/redefined-outer-name.html
+  "W0631", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/undefined-loop-variable.html
+  "W0641", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/possibly-unused-variable.html
+  "W0715", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/raising-format-tuple.html
+  "W1114", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/arguments-out-of-order.html
+  "W1117", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/kwarg-superseded-by-positional-arg.html
+  "W1300", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/bad-format-string-key.html
+  "W1307", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/invalid-format-index.html
+  "W1308", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/duplicate-string-formatting-argument.html
+  "W1402", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/anomalous-unicode-escape-in-string.html
+  "W1502", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/boolean-datetime.html
+  "W1503", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/redundant-unittest-assert.html
+  "W1507", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/shallow-copy-environ.html
+  "W2601", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/using-f-string-in-unsupported-version.html
+  "W2603", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/using-exception-groups-in-unsupported-version.html
+  "W2604", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/using-generic-type-syntax-in-unsupported-version.html
+  "W2605", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/using-assignment-expression-in-unsupported-version.html
+  "W2606", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/using-positional-only-args-in-unsupported-version.html
+  "W3101", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/missing-timeout.html
+  "W3601", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/bad-chained-comparison.html
+  "W4701", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/modified-iterating-list.html
+  "W4901", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/deprecated-module.html
+  "W4902", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/deprecated-method.html
+  "W4903", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/deprecated-argument.html
+  "W4905", # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/deprecated-decorator.html
+  "W4906" # https://pylint.readthedocs.io/en/stable/user_guide/messages/warning/deprecated-attribute.html
 ]
 
 [tool.pytest.ini_options]

@@ -14,4 +14,4 @@ def test_integration(molecule_scenario: MoleculeScenario) -> None:
         AssertionError: If the molecule scenario test does not return a zero exit code.
     """
     proc = molecule_scenario.test()
-    assert proc.returncode == 0
+    assert not proc.returncode
