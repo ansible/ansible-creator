@@ -6,14 +6,14 @@ argcomplete==3.6.2        # via ansible-creator (pyproject.toml)
 astroid==3.3.11           # via pylint
 attrs==25.3.0             # via jsonschema, referencing
 babel==2.17.0             # via mkdocs-material
-backrefs==6.0.1             # via mkdocs-material
+backrefs==5.9             # via mkdocs-material
 beautifulsoup4==4.13.4    # via linkchecker, mkdocs-htmlproofer-plugin
 black==25.1.0             # via ansible-lint
 bracex==2.6               # via wcmatch
 cachetools==6.1.0         # via tox
 cairocffi==1.7.1          # via cairosvg
 cairosvg==2.8.2           # via mkdocs-ansible
-certifi==2025.8.3        # via requests
+certifi==2025.8.3         # via requests
 cffi==1.17.1              # via cairocffi, cryptography
 cfgv==3.4.0               # via pre-commit
 chardet==5.2.0            # via tox
@@ -32,7 +32,7 @@ docstring-parser-fork==0.0.12  # via pydoclint
 execnet==2.1.1            # via pytest-xdist
 filelock==3.18.0          # via ansible-lint, tox, virtualenv
 ghp-import==2.1.0         # via mkdocs
-griffe==1.11.0             # via mkdocstrings-python
+griffe==1.11.0            # via mkdocstrings-python
 hjson==3.1.0              # via mkdocs-macros-plugin, super-collections
 htmlmin2==0.1.13          # via mkdocs-minify-plugin
 identify==2.6.13          # via pre-commit
