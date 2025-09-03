@@ -1,2 +1,6 @@
 [settings]
-idiomatic_version_file_disable_tools = ["python"]
+idiomatic_version_file_enable_tools = []
+
+[tools]
+node = { version = "latest", postinstall = "corepack enable" }
+python = "latest"
