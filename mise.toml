@@ -2,5 +2,5 @@
 idiomatic_version_file_enable_tools = []
 
 [tools]
-node = { version = "latest", postinstall = "corepack enable" }
+node = {postinstall = "corepack enable", version = "latest"}
 python = "latest"
