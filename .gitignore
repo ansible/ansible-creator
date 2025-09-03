@@ -172,3 +172,4 @@ cython_debug/
 .DS_Store
 node_modules
 _readthedocs
+.ansible
