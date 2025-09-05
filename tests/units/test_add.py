@@ -1,5 +1,4 @@
 # cspell: ignore dcmp, subdcmp
-# ruff: noqa: ERA001
 # pylint: disable=C0302
 """Unit tests for ansible-creator add."""
 
