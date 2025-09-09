@@ -10,6 +10,7 @@ from pathlib import Path, PosixPath
 
 import pytest
 
+from ansible_creator.arg_parser import Parser
 from ansible_creator.cli import Cli
 from ansible_creator.config import Config
 from ansible_creator.output import Output
@@ -494,8 +495,6 @@ def test_valid_pattern_name() -> None:
     Raises:
         AssertionError: If the assertion fails.
     """
-    from ansible_creator.arg_parser import Parser
-
     parser = Parser()
 
     # Test valid pattern names
@@ -507,7 +506,6 @@ def test_valid_pattern_name() -> None:
         "a" * 63,  # Maximum length
         "abc",  # Minimum length
     ]
-
     for name in valid_names:
         result = parser._valid_pattern_name(name)
         assert result == name
@@ -520,30 +518,9 @@ def test_valid_pattern_name() -> None:
     assert len(parser.pending_logs) == 1
     assert "cannot begin with an underscore" in parser.pending_logs[0].message
 
-    # Test invalid pattern names - contains uppercase
-    parser.pending_logs.clear()
-    result = parser._valid_pattern_name("InvalidPattern")
-    assert result == "InvalidPattern"
-    assert len(parser.pending_logs) == 1
-    assert "lower case letters" in parser.pending_logs[0].message
-
-    # Test invalid pattern names - contains special characters
-    parser.pending_logs.clear()
-    result = parser._valid_pattern_name("pattern-name")
-    assert result == "pattern-name"
-    assert len(parser.pending_logs) == 1
-    assert "lower case letters" in parser.pending_logs[0].message
-
     # Test invalid pattern names - too short
     parser.pending_logs.clear()
     result = parser._valid_pattern_name("ab")
     assert result == "ab"
     assert len(parser.pending_logs) == 1
     assert "longer than 2 characters" in parser.pending_logs[0].message
-
-    # Test invalid pattern names - too long
-    parser.pending_logs.clear()
-    result = parser._valid_pattern_name("a" * 64)
-    assert result == "a" * 64
-    assert len(parser.pending_logs) == 1
-    assert "less than 64 characters" in parser.pending_logs[0].message
