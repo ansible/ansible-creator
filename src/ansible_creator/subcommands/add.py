@@ -13,7 +13,7 @@ from ansible_creator.constants import GLOBAL_TEMPLATE_VARS
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.templar import Templar
 from ansible_creator.types import TemplateData
-from ansible_creator.utils import Copier, Walker, ask_yes_no
+from ansible_creator.utils import Copier, FileList, Walker, ask_yes_no
 
 
 if TYPE_CHECKING:
@@ -350,6 +350,27 @@ class Add:
             templar=self.templar,
         )
         paths = walker.collect_paths()
+
+        # Filter out conflicting files for action plugins
+        # When scaffolding action plugins, we need to avoid conflicts between
+        # sample_action.py.j2 and sample_module.py.j2 in the modules directory
+        if self._plugin_type == "action" and "collection_project.plugins.modules" in resources:
+            filtered_paths = FileList()
+            for path in paths:
+                # Only include files that match our plugin name (from sample_action.py.j2)
+                # This filters out sample_module.py.j2 which would conflict
+                if path.dest.name == f"{self._plugin_name}.py":
+                    # Check if this is from the modules directory
+                    # and if it's the sample_action.py.j2 template
+                    if (
+                        "modules" in str(path.source) and "sample_action.py.j2" in str(path.source)
+                    ) or "action" in str(path.source):
+                        filtered_paths.append(path)
+                else:
+                    # Include all other files (like __init__.py.j2)
+                    filtered_paths.append(path)
+            paths = filtered_paths
+
         copier = Copier(output=self.output)
 
         if self._no_overwrite and paths.has_conflicts():

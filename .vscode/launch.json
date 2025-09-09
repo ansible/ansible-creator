@@ -31,9 +31,10 @@
       "module": "ansible_creator",
       "args": [
         "add",
-        "resource",
-        "devcontainer",
-        "/home/user/..path/to/your/existing_project"
+        "plugin",
+        "action",
+        "action_1",
+        "/Users/shamishr/Ansible/test-stuff/my_coll_proj"
       ],
       "cwd": "${workspaceFolder}/src",
       "justMyCode": false

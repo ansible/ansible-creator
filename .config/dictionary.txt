@@ -37,6 +37,7 @@ rulebook
 rulebooks
 selectattr
 sshpass
+shamishr
 sysargs
 templated
 templating

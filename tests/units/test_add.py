@@ -1,5 +1,4 @@
 # cspell: ignore dcmp, subdcmp
-# ruff: noqa: ERA001
 # pylint: disable=C0302
 """Unit tests for ansible-creator add."""
 
@@ -481,6 +480,12 @@ def test_devcontainer_usability(
             "sample_action",
             "Note: Action plugin added to",
             "plugins/action/sample_action.py",
+        ),
+        (
+            "action",
+            "sample_action",
+            "Note: Action plugin added to",
+            "plugins/modules/sample_action.py",
         ),
         (
             "filter",
