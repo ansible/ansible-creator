@@ -352,7 +352,7 @@ class Add:
         paths = walker.collect_paths()
 
         # Filter out conflicting files for action plugins
-        # When scaffolding action plugins, we need to avoid conflicts between
+        # When scaffolding an action plugin, we need to avoid conflicts between
         # sample_action.py.j2 and sample_module.py.j2 in the modules directory
         if self._plugin_type == "action" and "collection_project.plugins.modules" in resources:
             filtered_paths = FileList()
@@ -367,7 +367,6 @@ class Add:
                     ) or "action" in str(path.source):
                         filtered_paths.append(path)
                 else:
-                    # Include all other files (like __init__.py.j2)
                     filtered_paths.append(path)
             paths = filtered_paths
 
