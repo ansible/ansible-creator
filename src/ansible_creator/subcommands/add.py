@@ -351,24 +351,8 @@ class Add:
         )
         paths = walker.collect_paths()
 
-        # Filter out conflicting files for action plugins
-        # When scaffolding an action plugin, we need to avoid conflicts between
-        # sample_action.py.j2 and sample_module.py.j2 in the modules directory
-        if self._plugin_type == "action" and "collection_project.plugins.modules" in resources:
-            filtered_paths = FileList()
-            for path in paths:
-                # Only include files that match our plugin name (from sample_action.py.j2)
-                # This filters out sample_module.py.j2 which would conflict
-                if path.dest.name == f"{self._plugin_name}.py":
-                    # Check if this is from the modules directory
-                    # and if it's the sample_action.py.j2 template
-                    if (
-                        "modules" in str(path.source) and "sample_action.py.j2" in str(path.source)
-                    ) or "action" in str(path.source):
-                        filtered_paths.append(path)
-                else:
-                    filtered_paths.append(path)
-            paths = filtered_paths
+        # To remove unnecessarily collected files from paths list.
+        paths = self._action_plugin_file_conflicts(paths)
 
         copier = Copier(output=self.output)
 
@@ -499,3 +483,33 @@ class Add:
             collection_name=self._collection_name,
             creator_version=self._creator_version,
         )
+
+    def _action_plugin_file_conflicts(self, paths: FileList) -> FileList:
+        """Filter out conflicting files for action plugins.
+
+        When scaffolding an action plugin, we need to avoid conflicts between
+        sample_action.py.j2 and sample_module.py.j2 in the modules directory.
+
+        Args:
+            paths: The FileList of paths to filter
+
+        Returns:
+            FileList: Filtered paths list
+        """
+        if self._plugin_type != "action":
+            return paths
+
+        filtered_paths = FileList()
+        for path in paths:
+            # Only include files that match our plugin name (from sample_action.py.j2)
+            # This filters out sample_module.py.j2 which would conflict
+            if path.dest.name == f"{self._plugin_name}.py":
+                # Check if this is from the modules directory
+                # and if it's the sample_action.py.j2 template
+                if (
+                    "modules" in str(path.source) and "sample_action.py.j2" in str(path.source)
+                ) or "action" in str(path.source):
+                    filtered_paths.append(path)
+            else:
+                filtered_paths.append(path)
+        return filtered_paths
