@@ -12,13 +12,66 @@ dictionaries:
   - "!cryptocurrencies"
   - "!cpp"
 ignorePaths:
-  - .config/requirements*
-  - \.*
+  - "**/.gitignore*"
   - cspell.config.yaml
-  - mkdocs.yml
-  - pyproject.toml
-  - tox.ini
-
+  - .vscode/extensions.json
+  - .vscode/settings.json
+# - mkdocs.yml
+ignoreWords:
+  - CAP_MKNOD
+  - autorefs
+  - commitlint
+  - dists
+  - docstrings
+  - envrc
+  - facelessuser
+  - fontawesome
+  - htmlproofer
+  - inlinehilite
+  - junitxml
+  - linenums
+  - loglevel
+  - magiclink
+  - pkgs
+  - posargs
+  - pymdownx
+  - pypa
+  - seccomp
+  - sonarlint
+  - superfences
+  - triggertaskonsave
+  - userns
+suggestWords:
+  - alwayscopy->always_copy
+  - basepython->base_python
+  - changedir->change_dir
+  - env_log_dir->env_log_dir
+  - envbindir->env_bin_dir
+  - envdir->env_dir
+  - envlist->env_list
+  - envname->env_name
+  - envpython->env_python
+  - envsitepackagesdir->env_site_packages_dir
+  - envtmpdir->env_tmp_dir
+  - ignore_basepython_conflict->ignore_base_python_conflict
+  - isolated_build_env->package_env
+  - min_version->deprecated-use-requires
+  - minversion ->deprecated-use-requires
+  - passenv->pass_env
+  - setenv->set_env
+  - setupdir->package_root
+  - sitepackages->system_site_packages
+  - skipsdist->no_package
+  - toxinidir->tox_root
+  - "toxworkdir->work_dir"
+  - usedevelop->use_develop
 languageSettings:
   - languageId: python
     allowCompoundWords: false
+  - languageId: toml
+    allowCompoundWords: false
+    ignoreWords:
+      - showlocals
+      - xunit
+      - norecursedirs
+      - tomlsort
