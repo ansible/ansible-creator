@@ -38,7 +38,6 @@ class Add:
         """
         self._resource_type: str = config.resource_type
         self._role_name: str = config.role_name
-        self._pattern_name: str = config.pattern_name
         self._plugin_type: str = config.plugin_type
         self._resource_id: str = f"common.{self._resource_type}"
         self._plugin_id: str = f"collection_project.plugins.{self._plugin_type}"
@@ -173,12 +172,6 @@ class Add:
             template_data = self._get_devcontainer_template_data()
         elif self._resource_type == "execution-environment":
             template_data = self._get_ee_template_data()
-        elif self._resource_type == "patterns":
-            self._check_collection_path()
-            pattern_path = self._add_path / "extensions" / "patterns"
-            pattern_path.mkdir(parents=True, exist_ok=True)
-            dest_path = pattern_path
-            template_data = self._get_patterns_template_data()
         elif self._resource_type == "play-argspec":
             template_data = self._get_play_argspec_template_data()
         elif self._resource_type == "role":
@@ -455,18 +448,6 @@ class Add:
         """
         return TemplateData(
             resource_type=self._resource_type,
-            creator_version=self._creator_version,
-        )
-
-    def _get_patterns_template_data(self) -> TemplateData:
-        """Get the template data for pattern structure.
-
-        Returns:
-            TemplateData: Data required for templating the plugin.
-        """
-        return TemplateData(
-            resource_type=self._resource_type,
-            pattern_name=self._pattern_name,
             creator_version=self._creator_version,
         )
 

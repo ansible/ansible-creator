@@ -10,7 +10,6 @@ from pathlib import Path, PosixPath
 
 import pytest
 
-from ansible_creator.arg_parser import Parser
 from ansible_creator.cli import Cli
 from ansible_creator.config import Config
 from ansible_creator.output import Output
@@ -487,40 +486,3 @@ def test_config_post_init(
     )
     config.__post_init__()
     assert config.project == "playbook"
-
-
-def test_valid_pattern_name() -> None:
-    """Test the _valid_pattern_name function.
-
-    Raises:
-        AssertionError: If the assertion fails.
-    """
-    parser = Parser()
-
-    # Test valid pattern names
-    valid_names = [
-        "my_pattern",
-        "weather_forecast",
-        "test123",
-        "pattern_name_123",
-        "a" * 63,  # Maximum length
-        "abc",  # Minimum length
-    ]
-    for name in valid_names:
-        result = parser._valid_pattern_name(name)
-        assert result == name
-        assert len(parser.pending_logs) == 0
-
-    # Test invalid pattern names - starts with underscore
-    parser.pending_logs.clear()
-    result = parser._valid_pattern_name("_invalid")
-    assert result == "_invalid"
-    assert len(parser.pending_logs) == 1
-    assert "cannot begin with an underscore" in parser.pending_logs[0].message
-
-    # Test invalid pattern names - too short
-    parser.pending_logs.clear()
-    result = parser._valid_pattern_name("ab")
-    assert result == "ab"
-    assert len(parser.pending_logs) == 1
-    assert "longer than 2 characters" in parser.pending_logs[0].message

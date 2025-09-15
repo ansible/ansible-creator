@@ -214,7 +214,6 @@ class Parser:
         self._add_resource_devcontainer(subparser=subparser)
         self._add_resource_devfile(subparser=subparser)
         self._add_resource_execution_env(subparser=subparser)
-        self._add_resource_patterns(subparser=subparser)
         self._add_resource_play_argspec(subparser=subparser)
         self._add_resource_role(subparser=subparser)
 
@@ -295,34 +294,6 @@ class Parser:
             "The default is the current working directory.",
         )
 
-        self._add_overwrite(parser)
-        self._add_args_common(parser)
-
-    def _add_resource_patterns(self, subparser: SubParser[ArgumentParser]) -> None:
-        """Add pattern structure to an existing collection.
-
-        Args:
-            subparser: The subparser to add pattern structure to
-        """
-        parser = subparser.add_parser(
-            "pattern",
-            help="Add a pattern structure to an existing Ansible collection.",
-            formatter_class=CustomHelpFormatter,
-        )
-
-        parser.add_argument(
-            "pattern_name",
-            help="The name of the pattern.",
-            type=self._valid_pattern_name,
-        )
-        parser.add_argument(
-            "path",
-            default="./",
-            metavar="path",
-            nargs="?",
-            help="The path to the Ansible collection. The default is the "
-            "current working directory.",
-        )
         self._add_overwrite(parser)
         self._add_args_common(parser)
 
@@ -626,31 +597,6 @@ class Parser:
             msg = "Both the collection namespace and name must be longer than 2 characters."
             self.pending_logs.append(Msg(prefix=Level.CRITICAL, message=msg))
         return collection
-
-    def _valid_pattern_name(self, pattern_name: str) -> str:
-        """Validate the pattern name.
-
-        Args:
-            pattern_name: The pattern name to validate
-
-        Returns:
-            The validated pattern name
-        """
-        name_filter = re.compile(r"^(?!_)[a-z0-9_]+$")
-
-        if not name_filter.match(pattern_name):
-            msg = (
-                "Pattern name can only contain lower case letters, underscores, and numbers"
-                " and cannot begin with an underscore."
-            )
-            self.pending_logs.append(Msg(prefix=Level.CRITICAL, message=msg))
-        elif (
-            len(pattern_name) >= MAX_COLLECTION_NAME_LEN
-            or len(pattern_name) <= MIN_COLLECTION_NAME_LEN
-        ):
-            msg = "The pattern name must be longer than 2 characters and less than 64 characters."
-            self.pending_logs.append(Msg(prefix=Level.CRITICAL, message=msg))
-        return pattern_name
 
     def handle_deprecations(self) -> bool:  # noqa: C901
         """Start parsing args passed from Cli.
