@@ -53,7 +53,7 @@ def test_lint_collection(
     args = str(LINT_BIN)
     env = {"NO_COLOR": "1"}
     result = cli(args=args, env=env)
-    
+
     print("STDOUT:", result.stdout)
     print("STDERR:", result.stderr)
 
