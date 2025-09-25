@@ -1,0 +1,4 @@
+---
+exclude_paths:
+  - tests/fixtures/project/playbook_project/network_playbook.yml
+  - mkdocs.yml

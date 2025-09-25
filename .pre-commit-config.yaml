@@ -107,3 +107,7 @@ repos:
     hooks:
       - id: ccv
         name: codecov
+  - repo: https://github.com/ansible/ansible-lint
+    rev: v25.9.0
+    hooks:
+      - id: ansible-lint

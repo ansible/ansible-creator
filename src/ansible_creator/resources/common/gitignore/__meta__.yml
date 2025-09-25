@@ -1,11 +1,11 @@
 collection_project:
   additions:
-    template: False
+    template: false
     value: ""
 
 playbook_project:
   additions:
-    template: True
+    template: true
     value: |
       .logs/*
       *.retry
