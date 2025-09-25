@@ -25,8 +25,9 @@ GALAXY_BIN = Path(sys.executable).parent / "ansible-galaxy"
 LINT_BIN = Path(sys.executable).parent / "ansible-lint"
 
 LINT_RE = re.compile(
-    r"Passed: (?P<failures>\d+) failure\(s\),"
-    r" (?P<warnings>\d+) warning\(s\) on (?P<files>\d+) files.",
+    r"Passed: (?P<failures>\d+) failure\(s\), "
+    r"(?P<warnings>\d+) warning\(s\) in (?P<files>\d+) files processed "
+    r"of (?P<encountered>\d+) encountered\.",
 )
 LINT_PROFILE_RE = re.compile(
     r"Last profile that met the validation criteria was '(?P<profile>\w+)'.",
@@ -55,7 +56,11 @@ def test_lint_collection(
 
     assert result.returncode == 0
 
-    match = LINT_RE.search(result.stderr)
+    print("STDOUT:", result.stdout)
+    print("STDERR:", result.stderr)
+
+    combined = (result.stdout or "") + (result.stderr or "")
+    match = LINT_RE.search(combined)
     assert match is not None
     assert int(match.group("failures")) == 0
     assert int(match.group("warnings")) == 0
@@ -100,7 +105,8 @@ def test_lint_playbook_project(
 
     assert result.returncode == 0
 
-    match = LINT_RE.search(result.stderr)
+    combined = (result.stdout or "") + (result.stderr or "")
+    match = LINT_RE.search(combined)
     assert match is not None
     assert int(match.group("failures")) == 0
     assert int(match.group("warnings")) == 0
