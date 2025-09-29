@@ -9,7 +9,7 @@ ci:
     # No docker on pre-commit.ci
 repos:
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.8.17
+    rev: 0.8.22
     hooks:
       - id: uv-sync
       - id: uv-lock
@@ -70,13 +70,13 @@ repos:
       - id: toml-sort-fix
         alias: toml
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.13.0
+    rev: v0.13.2
     hooks:
       - id: ruff-format
         alias: ruff
       - id: ruff-check
   - repo: https://github.com/pre-commit/mirrors-mypy.git
-    rev: v1.18.1
+    rev: v1.18.2
     hooks:
       - id: mypy
         additional_dependencies: &deps
