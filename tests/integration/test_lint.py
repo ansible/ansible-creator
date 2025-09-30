@@ -26,8 +26,7 @@ LINT_BIN = Path(sys.executable).parent / "ansible-lint"
 
 LINT_RE = re.compile(
     r"Passed: (?P<failures>\d+) failure\(s\), "
-    r"(?P<warnings>\d+) warning\(s\) in (?P<files>\d+) files processed "
-    r"of (?P<encountered>\d+) encountered\.",
+    r"(?P<warnings>\d+) warning\(s\) (on|in) (?P<files>\d+) files"
 )
 LINT_PROFILE_RE = re.compile(
     r"Last profile that met the validation criteria was '(?P<profile>\w+)'.",

@@ -14,7 +14,6 @@ on:
   schedule:
     - cron: "0 0 * * *"
   workflow_call:
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
@@ -22,3 +21,4 @@ concurrency:
 jobs:
   tox:
     uses: ansible/team-devtools/.github/workflows/tox.yml@main
+    secrets: inherit

@@ -1,6 +1,0 @@
-# Stuff we don't want prettier to ever to look into
-tests/fixtures/collection/testorg/testcol/roles/
-tests/fixtures/collection/testorg/testcol/.github/workflows/tests.yml
-tests/fixtures/project/playbook_project/collections/ansible_collections/project_org/project_repo/roles/run/README.md
-tests/fixtures/project/playbook_project/.github/workflows/tests.yml
-tests/fixtures/project/playbook_project/collections/ansible_collections/weather/demo/roles/run/README.md

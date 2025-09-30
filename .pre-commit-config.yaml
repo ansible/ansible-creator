@@ -1,4 +1,5 @@
 ---
+# cspell:ignore tombi
 ci:
   # We rely on renovate to update it but there is no way to fully disable it
   # https://github.com/pre-commit-ci/issues/issues/83
@@ -7,7 +8,12 @@ ci:
     # https://github.com/pre-commit-ci/issues/issues/55
     - ccv
     # No docker on pre-commit.ci
+    - tombi-format
+    - tombi-lint
 repos:
+  - repo: meta
+    hooks:
+      - id: check-useless-excludes
   - repo: https://github.com/astral-sh/uv-pre-commit
     rev: 0.8.22
     hooks:
@@ -17,18 +23,13 @@ repos:
         alias: deps
         args: ["--upgrade"]
         stages: [manual]
-  - repo: meta
+  - repo: https://github.com/biomejs/pre-commit
+    rev: "v2.2.4"
     hooks:
-      - id: check-useless-excludes
-  - repo: https://github.com/rbubley/mirrors-prettier
-    # keep it before yamllint
-    rev: v3.6.2
-    hooks:
-      - id: prettier
-        always_run: true
-        additional_dependencies:
-          - prettier
-          - prettier-plugin-sort-json@3.1.0
+      - id: biome-check
+        name: biome
+        alias: biome
+        args: [--unsafe]
   - repo: https://github.com/streetsidesoftware/cspell-cli
     rev: v9.2.0
     hooks:
@@ -45,6 +46,13 @@ repos:
       - id: end-of-file-fixer
       - id: trailing-whitespace
       - id: mixed-line-ending
+  - repo: https://github.com/tombi-toml/tombi-pre-commit
+    rev: v0.6.17
+    hooks:
+      - id: tombi-format
+        alias: toml
+      - id: tombi-lint
+        alias: toml
   - repo: https://github.com/Lucas-C/pre-commit-hooks.git
     rev: v1.5.5
     hooks:
@@ -54,21 +62,6 @@ repos:
             .config/pydoclint-baseline.txt
           )$
 
-  - repo: https://github.com/rbubley/mirrors-prettier
-    rev: v3.6.2
-    hooks:
-      - id: prettier
-        always_run: true
-        additional_dependencies:
-          - prettier
-          - prettier-plugin-toml
-          - prettier-plugin-sort-json
-
-  - repo: https://github.com/pappasam/toml-sort
-    rev: v0.24.3
-    hooks:
-      - id: toml-sort-fix
-        alias: toml
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.13.2
     hooks:
@@ -111,3 +104,4 @@ repos:
     rev: v25.9.0
     hooks:
       - id: ansible-lint
+        args: [--fix]

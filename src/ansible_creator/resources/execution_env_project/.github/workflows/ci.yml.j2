@@ -1,3 +1,4 @@
+---
 # Combine workflow for pull-request, push-to-main and release events.
 
 name: Execution environment build
@@ -12,7 +13,7 @@ on:
       - main
   release:
     types: [published]
-{% raw %}
+{% raw -%}
 jobs:
   ee-build:
     uses: ansible/ansible-content-actions/.github/workflows/ee-build.yml@main
