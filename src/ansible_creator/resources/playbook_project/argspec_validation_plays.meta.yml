@@ -18,7 +18,7 @@ argument_specs:
       - import_playbook: argspec_validation_plays.yml
         vars:
           message: 'Custom debug message'
-    return: ~
+    return:
   ping_localhost:
     short_description: Play for pinging localhost with custom data
     description:
@@ -34,7 +34,7 @@ argument_specs:
       - import_playbook: argspec_validation_plays.yml
         vars:
           data: Pong
-    return: ~
+    return:
   set_stats:
     short_description: Play for setting a custom stat
     description:

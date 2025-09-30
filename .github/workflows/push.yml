@@ -8,7 +8,6 @@ on:
       - "releases/**"
       - "stable/**"
   workflow_dispatch:
-
 jobs:
   ack:
     uses: ansible/team-devtools/.github/workflows/push.yml@main

@@ -118,7 +118,7 @@ dev = [
     { name = "pre-commit", specifier = ">=4.3.0" },
     { name = "pydoclint", specifier = ">=0.7.3" },
     { name = "pylint", specifier = ">=3.3.8" },
-    { name = "pytest", specifier = ">=8.4.1" },
+    { name = "pytest", specifier = ">=8.4.2" },
     { name = "pytest-instafail", specifier = ">=0.5.0" },
     { name = "pytest-plus", specifier = ">=0.8.1" },
     { name = "pytest-xdist", specifier = ">=3.8.0" },
@@ -2348,14 +2348,14 @@ wheels = [
 
 [[package]]
 name = "super-collections"
-version = "0.6.0"
+version = "0.6.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "hjson" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/8c/2c/82f3db1c3a393edaf9e95c64e740bf10044f04d156c04466128f99e65c35/super_collections-0.6.0.tar.gz", hash = "sha256:6c537d9403e27c3626b992805ff2656ece43fc567725e7ccbb4291d6157db99f", size = 30650, upload-time = "2025-09-28T01:50:27.428Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e0/de/a0c3d1244912c260638f0f925e190e493ccea37ecaea9bbad7c14413b803/super_collections-0.6.2.tar.gz", hash = "sha256:0c8d8abacd9fad2c7c1c715f036c29f5db213f8cac65f24d45ecba12b4da187a", size = 31315, upload-time = "2025-09-30T00:37:08.067Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6c/10/95a07cff55e901359dd049839a4253fca524005072da845aef04180c7492/super_collections-0.6.0-py3-none-any.whl", hash = "sha256:608e5cbf26467a501eac04e9617d3cb1a0729347a27531d38b497603aac51a73", size = 15842, upload-time = "2025-09-28T01:50:26.061Z" },
+    { url = "https://files.pythonhosted.org/packages/17/43/47c7cf84b3bd74a8631b02d47db356656bb8dff6f2e61a4c749963814d0d/super_collections-0.6.2-py3-none-any.whl", hash = "sha256:291b74d26299e9051d69ad9d89e61b07b6646f86a57a2f5ab3063d206eee9c56", size = 16173, upload-time = "2025-09-30T00:37:07.104Z" },
 ]
 
 [[package]]
