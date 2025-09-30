@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ansible-lint:*)",
+      "Bash(python -m pytest -v)",
+      "Bash(pre-commit run:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
