@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 import runpy
 import sys
 
@@ -313,7 +312,7 @@ def test_cli_main(
 
     result = capsys.readouterr().out
     # check stdout
-    assert re.search(r"collection project created", result) is not None
+    assert r"collection project created" in result
 
 
 @pytest.mark.parametrize(argnames="project", argvalues=("collection", "playbook"))
@@ -393,6 +392,7 @@ def test_is_a_tty(monkeypatch: pytest.MonkeyPatch) -> None:
 
     monkeypatch.setattr("sys.argv", sysargs)
     monkeypatch.setattr("sys.stdout.isatty", lambda: True)
+    monkeypatch.delenv("NO_COLOR", raising=False)
 
     cli = Cli()
     cli.init_output()

@@ -179,7 +179,9 @@ def test_run_success_add_devfile(
     monkeypatch.setattr("builtins.input", lambda _: "y")
     add.run()
     result = capsys.readouterr().out
-    assert "already exists" in result, result
+    # Check for "already" and "exists" separately since they might be on different lines
+    assert "already" in result, result
+    assert "exists" in result, result
     assert "Note: Resource added to" in result
 
 
