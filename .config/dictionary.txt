@@ -11,6 +11,7 @@ antsibull
 argnames
 argspec
 argvalues
+blockinfile
 capsys
 delenv
 devel
