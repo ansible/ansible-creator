@@ -23,3 +23,12 @@ jobs:
   tox:
     uses: ansible/team-devtools/.github/workflows/tox.yml@main
     secrets: inherit
+    with:
+      min_python: "3.10"
+      default_python: "3.13"
+      max_python: "3.13"
+      other_names: |
+        pkg
+        lint
+        docs
+        py314-devel
