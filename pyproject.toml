@@ -102,7 +102,7 @@ allow-init-docstring = true
 arg-type-hints-in-docstring = false
 baseline = ".config/pydoclint-baseline.txt"
 check-return-types = false
-exclude = '\.git|\.tox|build|out|venv'
+exclude = '\.git|\.tox|build|out|venv|tests/fixtures'
 should-declare-assert-error-if-assert-statement-exists = true
 should-document-private-class-attributes = true
 show-filenames-in-every-violation-message = true
@@ -418,7 +418,7 @@ sort_inline_tables = true
 sort_table_keys = true
 
 [tool.tox]
-env_list = ["lint", "pkg", "py", "deps", "docs", "milestone"]
+env_list = ["lint", "pkg", "py", "deps", "docs", "py314-devel"]
 isolated_build = true
 requires = [
   "tox>=4.28.4",
@@ -471,16 +471,18 @@ dependency_groups = ["lint"]
 description = "Run all linters"
 skip_install = true
 
-[tool.tox.env.milestone]
+[tool.tox.env.py314-devel]
 deps = [
-  "ansible-core@ https://github.com/ansible/ansible/archive/milestone.tar.gz",
+  "ansible-core @ git+https://github.com/ansible/ansible.git",
 ]
-description = "Run tests with ansible-core milestone branch and without dependencies constraints"
-set_env = ["{[testenv]set_env}"]
+description = "Run tests with ansible-core devel branch and without dependencies constraints"
+runner = "uv-venv-runner"
+uv_sync_flags = ["--upgrade", "--prerelease=allow"]
+uv_sync_locked = false
 
 [tool.tox.env.pkg]
 commands = [
-  ["rm", "-rfv", "{tox_root}/dist/"],
+  ["rm", "-rf", "{tox_root}/dist/"],
   [
     "python",
     "-m",
@@ -526,6 +528,7 @@ commands_pre = [
   ["npm", "ci", "--silent"],
   ["npm", "exec", "-c", "devcontainer --version"],
   ["sh", "-c", "rm -f {env_dir}/.coverage* 2>/dev/null || true"],
+  ["ansible", "--version"],
 ]
 dependency_groups = ["dev"]
 description = "Run pytest with python {py_dot_ver}"

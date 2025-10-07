@@ -12,11 +12,17 @@ dictionaries:
   - "!backwards-compatibility"
   - "!cryptocurrencies"
   - "!cpp"
+useGitignore: true
 ignorePaths:
   - "**/.gitignore*"
-  - cspell.config.yaml
   - .vscode/extensions.json
   - .vscode/settings.json
+  - _readthedocs
+  - build
+  - coverage.lcov
+  - cspell.config.yaml
+  - junit.xml
+  - site
 # - mkdocs.yml
 ignoreWords:
   - CAP_MKNOD
