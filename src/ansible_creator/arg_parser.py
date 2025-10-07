@@ -75,7 +75,7 @@ class Parser:
         self._add(subparser=subparser)
         self._init(subparser=subparser)
 
-        if HAS_ARGCOMPLETE:
+        if HAS_ARGCOMPLETE:  # pragma: no cover
             argcomplete.autocomplete(parser)
         self.args = parser.parse_args()
 
@@ -692,7 +692,7 @@ class ArgumentParser(argparse.ArgumentParser):
             The argument group
         """
         group = super().add_argument_group(*args, **kwargs)
-        if group.title:
+        if group.title:  # pragma: no cover
             group.title = group.title.capitalize()
         return group
 

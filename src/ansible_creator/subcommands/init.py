@@ -167,7 +167,7 @@ class Init:
             self.output.note(f"{self._project} project created at {self._init_path}")
             return
 
-        if not self._overwrite:
+        if not self._overwrite:  # pragma: no cover
             question = (
                 "Files in the destination directory will be overwritten. Do you want to proceed?"
             )

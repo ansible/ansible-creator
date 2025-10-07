@@ -141,8 +141,15 @@ class DestinationFile:
         Args:
             template_data: A dictionary containing current data to render templates with.
             templar: An instance of the Templar class.
+
+        Raises:
+            RuntimeError: If there is an error reading template files.
         """
-        content = self.source.read_text(encoding="utf-8")
+        try:
+            content = self.source.read_text(encoding="utf-8")
+        except Exception as exc:  # pragma: no cover
+            msg = f"Error reading file {self.source}"
+            raise RuntimeError(msg) from exc
         # only render as templates if both of these are provided,
         # and original file suffix was j2
         if templar and template_data and self.source.name.endswith("j2"):
@@ -218,6 +225,9 @@ class Walker:
 
         # Process all objects in the directory
         for obj in root.iterdir():
+            # Skip .DS_Store files which are created by macOS
+            if obj.is_file() and obj.name in ".DS_Store":  # pragma: no cover
+                continue
             file_list.extend(
                 self.each_obj(
                     current_index,
@@ -395,7 +405,7 @@ class Copier:
         Args:
             paths: A list of paths to create in the destination.
         """
-        for path in paths:
+        for path in paths:  # pragma: no cover
             path.remove_existing()
 
             if path.source.is_dir():

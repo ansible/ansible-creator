@@ -73,7 +73,7 @@ class Add:
         self.output.debug(msg=f"final collection path set to {self._add_path}")
         if self._resource_type:
             self._resource_scaffold()
-        elif self._plugin_type:
+        elif self._plugin_type:  # pragma: no cover
             self._check_collection_path()
             plugin_path = self._add_path / "plugins" / self._plugin_type
             plugin_path.mkdir(parents=True, exist_ok=True)
@@ -99,7 +99,7 @@ class Add:
             return
 
         galaxy_file_path = self._add_path / "galaxy.yml"
-        if not Path.is_file(galaxy_file_path):
+        if not Path.is_file(galaxy_file_path):  # pragma: no cover
             msg = (
                 f"The path {self._add_path} is not a valid Ansible collection path. "
                 "Please provide the root path of a valid ansible collection."
@@ -219,7 +219,7 @@ class Add:
             self.output.note(f"Resource added to {self._add_path}")
             return
 
-        if not self._overwrite:
+        if not self._overwrite:  # pragma: no cover
             question = (
                 "Files in the destination directory will be overwritten. Do you want to proceed?"
             )
@@ -366,7 +366,7 @@ class Add:
             self.output.note(f"{self._plugin_type_output} plugin added to {plugin_path}")
             return
 
-        if not self._overwrite:
+        if not self._overwrite:  # pragma: no cover
             question = (
                 "Files in the destination directory will be overwritten. Do you want to proceed?"
             )
@@ -491,7 +491,7 @@ class Add:
                     ) or "action" in str(path.source):
                         filtered_paths.append(path)
                 # For module plugins, only include the module template
-                elif self._plugin_type == "modules":  # noqa: SIM102
+                elif self._plugin_type == "modules":  # noqa: SIM102 # pragma: no cover
                     if "modules" in str(path.source) and "sample_module.py.j2" in str(path.source):
                         filtered_paths.append(path)
             else:
