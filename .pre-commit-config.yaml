@@ -15,9 +15,10 @@ repos:
     hooks:
       - id: check-useless-excludes
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.8.22
+    rev: 0.8.23
     hooks:
       - id: uv-sync
+      - id: uv-lock
       - id: uv-lock
         name: "deps: upgrade via uv sync --upgrade"
         alias: deps
@@ -34,7 +35,15 @@ repos:
     rev: v9.2.0
     hooks:
       - id: cspell
-        name: Spell check with cspell
+        entry: bash
+        pass_filenames: false
+        args:
+          - "-euo"
+          - "pipefail"
+          - "-c"
+          - "cspell-cli . --relative --no-progress --no-summary && cspell-cli . --disable-dictionary=words --no-exit-code --words-only --quiet --unique | LC_ALL=C
+            sort > .config/dictionary.txt"
+        name: cspell + remove unused and sort dictionary
   - repo: https://github.com/pre-commit/pre-commit-hooks.git
     rev: v6.0.0
     hooks:
@@ -47,7 +56,7 @@ repos:
       - id: trailing-whitespace
       - id: mixed-line-ending
   - repo: https://github.com/tombi-toml/tombi-pre-commit
-    rev: v0.6.19
+    rev: v0.6.21
     hooks:
       - id: tombi-format
         alias: toml
@@ -68,6 +77,7 @@ repos:
       - id: ruff-format
         alias: ruff
       - id: ruff-check
+        alias: ruff
   - repo: https://github.com/pre-commit/mirrors-mypy.git
     rev: v1.18.2
     hooks:
