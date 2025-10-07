@@ -3,9 +3,10 @@
     "allow": [
       "Bash(ansible-lint:*)",
       "Bash(python -m pytest -v)",
-      "Bash(pre-commit run:*)"
+      "Bash(pre-commit run:*)",
+      "Bash(git -C /Users/ssbarnea/code/a/devtools/ansible-creator diff --stat tests/fixtures/collection/)"
     ],
-    "ask": [],
-    "deny": []
+    "deny": [],
+    "ask": []
   }
 }

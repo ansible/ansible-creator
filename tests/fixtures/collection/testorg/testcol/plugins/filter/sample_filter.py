@@ -39,11 +39,10 @@ EXAMPLES = """
 def _sample_filter(name: str) -> str:
     """Returns Hello message.
 
-    Args:
-        name: The name to greet.
-
-    Returns:
-        str: The greeting message.
+    :param name: The name to greet.
+    :type name: str
+    :return: The greeting message.
+    :rtype: str
     """
     return "Hello, " + name
 
@@ -54,7 +53,7 @@ class FilterModule:
     def filters(self) -> dict[str, Callable[[str], str]]:
         """Map filter plugin names to their functions.
 
-        Returns:
-            dict: The filter plugin functions.
+        :return: The filter plugin functions.
+        :rtype: dict
         """
         return {"sample_filter": _sample_filter}

@@ -57,17 +57,16 @@ if TYPE_CHECKING:
 def _sample_module(name: str) -> str:
     """Returns Hello message.
 
-    Args:
-        name: The name to greet.
-
-    Returns:
-        str: The greeting message.
+    :param name: The name to greet.
+    :type name: str
+    :return: The greeting message.
+    :rtype: str
     """
     return "Hello, " + name
 
 
 def main() -> None:
-    """Entry point for module execution"""
+    """Entry point for module execution."""
     argument_spec = dict(
         name=dict(type="str", required=True),
     )
