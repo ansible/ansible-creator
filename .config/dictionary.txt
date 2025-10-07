@@ -9,6 +9,7 @@ antsibull
 argnames
 argspec
 argvalues
+blockinfile
 capsys
 delenv
 devel
@@ -16,12 +17,14 @@ devfile
 devspaces
 docsite
 endraw
+equalto
 fileh
 flatmap
 fqcn
 hostvars
 httpapi
 levelname
+lineinfile
 myorg
 myproject
 myuser
