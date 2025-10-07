@@ -6,7 +6,7 @@
       "Bash(pre-commit run:*)",
       "Bash(git -C /Users/ssbarnea/code/a/devtools/ansible-creator diff --stat tests/fixtures/collection/)"
     ],
-    "deny": [],
-    "ask": []
+    "ask": [],
+    "deny": []
   }
 }
