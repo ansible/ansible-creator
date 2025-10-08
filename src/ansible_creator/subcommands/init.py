@@ -31,6 +31,7 @@ class Init:
         "common.devfile",
         "common.gitignore",
         "common.vscode",
+        "common.ai",
     )
 
     def __init__(

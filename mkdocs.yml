@@ -4,7 +4,7 @@ site_name: Ansible Creator Documentation
 site_url: https://ansible.readthedocs.io/projects/creator/
 repo_url: https://github.com/ansible/ansible-creator
 edit_uri: blob/main/docs/
-copyright: Copyright © 2023 Red Hat, Inc.
+copyright: Copyright © Red Hat, Inc.
 docs_dir: docs
 strict: true
 
@@ -68,6 +68,8 @@ nav:
   - Setup:
       - installing.md
       - content_creation.md
+  - AI:
+      - ai.md
   - Contributing: contributing.md
 
 exclude_docs: |
