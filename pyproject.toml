@@ -350,7 +350,8 @@ enable = ["useless-suppression"]
 fail-on = ["useless-suppression"]
 
 [tool.pytest.ini_options]
-addopts = "-ra --showlocals --durations=10"
+# -v is needed to see diff reports
+addopts = "-v -ra --showlocals --durations=10"
 cache_dir = "./.cache/.pytest"
 junit_family = "xunit2"  # see https://docs.codecov.com/docs/test-analytics
 norecursedirs = "tests/fixtures"

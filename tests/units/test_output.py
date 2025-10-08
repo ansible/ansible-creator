@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from types import SimpleNamespace
+import os
+
 from typing import TYPE_CHECKING
 
 import pytest
@@ -22,13 +23,22 @@ if TYPE_CHECKING:
 def test_console_width(width: int, expected: int, monkeypatch: pytest.MonkeyPatch) -> None:
     """Test the console width function."""
 
-    def mock_get_terminal_size() -> SimpleNamespace:
-        return SimpleNamespace(columns=width, lines=24)
+    def mock_get_terminal_size(
+        fallback: tuple[int, int] = (80, 24),  # noqa: ARG001
+    ) -> tuple[int, int]:
+        """Mock the get_terminal_size function.
+
+        Args:
+            fallback: Default terminal size.
+
+        Returns:
+            Mocked terminal size.
+        """
+        return os.terminal_size((width, 24))
 
     monkeypatch.setattr("shutil.get_terminal_size", mock_get_terminal_size)
 
     monkeypatch.delenv("COLUMNS", raising=False)
-
     assert console_width() == expected
 
 
