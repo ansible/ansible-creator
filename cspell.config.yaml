@@ -25,7 +25,13 @@ ignorePaths:
   - site
 # - mkdocs.yml
 ignoreWords:
+  - adoc
   - CAP_MKNOD
+  - CMDB
+  - equalto
+  - lineinfile
+  - SSOT
+  - SSOTs
   - autorefs
   - commitlint
   - dists
