@@ -1,7 +1,6 @@
 ---
 # tasks file for testorg.testcol.run
 
-# task example for debugging a value
-- name: Debug the value of my_variable
+- name: Display the value of run_my_variable
   ansible.builtin.debug:
-    msg: "The value of my_variable is {{ my_variable }}"
+    msg: "The value of run_my_variable is {{ run_my_variable }}"
