@@ -545,6 +545,7 @@ pass_env = [
   "SSH_AUTH_SOCK",
   "TERM",
   "USER",
+  "XDG_*",  # needed by pre-commit or it might fail to find the interpreter
 ]
 
 [tool.tox.env_run_base.set_env]
