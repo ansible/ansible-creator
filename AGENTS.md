@@ -1,5 +1,9 @@
+# Interacting with the project
+
+Always use `uv run` to run different commands, like pre-commit, tox, pytest,
+or the project itself. This will ensure that the dependencies are installed
+automatically.
+
 # Testing instructions
 
-- Running `uv tool run --with pre-commit-uv pre-commit -- run --all` should
-  return success. This might reformat some files.  Fix other reported issues
-  to ensure that in the end it reports success.
+- Ensure `tox` passes successfully. Fix any reported issues.
