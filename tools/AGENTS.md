@@ -46,7 +46,7 @@ to add other sections if needed:
 
 ## Preparatory information
 
-- When creating references try to avoid "see" sections if you can just user markdown hyperlinks inside the text.
+- When creating references try to avoid "see" sections if you can just use markdown hyperlinks inside the text.
 - Use inline markdown code blocks (backticks) when mentioning keywords or commands that are to be executed.
 - After you modify files run `pre-commit` and include changes it makes and fix reported problems if any until it passes.
 
