@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import sys
 
@@ -42,12 +43,18 @@ class Parser:
         """Initialize the parser."""
         self.args: argparse.Namespace
         self.pending_logs: list[Msg] = []
+        self.init_parser: ArgumentParser | None = None
+        self.add_parser: ArgumentParser | None = None
+        self.add_resource_parser: ArgumentParser | None = None
+        self.add_plugin_parser: ArgumentParser | None = None
+        self.exit_code: int = 0
 
-    def parse_args(self) -> tuple[argparse.Namespace, list[Msg]]:
+    def parse_args(self) -> tuple[argparse.Namespace, list[Msg], int]:
         """Parse the root arguments.
 
         Returns:
-            The parsed arguments and any pending logs
+            The parsed arguments, any pending logs, and exit code
+            (0 for success, os.EX_USAGE for usage error)
         """
         is_init = sys.argv[1:2] == ["init"]
         not_empty = sys.argv[2:] != []
@@ -55,7 +62,7 @@ class Parser:
         if all((is_init, not_empty, not_help)):
             proceed = self.handle_deprecations()
             if not proceed:
-                return argparse.Namespace(), self.pending_logs
+                return argparse.Namespace(), self.pending_logs, 1
 
         parser = ArgumentParser(
             description="The fastest way to generate all your ansible content.",
@@ -79,7 +86,65 @@ class Parser:
             argcomplete.autocomplete(parser)
         self.args = parser.parse_args()
 
-        return self.args, self.pending_logs
+        # Show help for 'ansible-creator init' without arguments
+        if self.args.subcommand == "init" and self.args.project is None and self.init_parser:
+            self.init_parser.print_help(sys.stderr)
+            self.pending_logs.append(
+                Msg(
+                    prefix=Level.ERROR,
+                    message="Missing required argument 'project-type'.\n"
+                    "Choose from: collection, playbook, execution_env",
+                )
+            )
+            self.exit_code = os.EX_USAGE
+
+        # Show help for 'ansible-creator add' without arguments
+        if self.args.subcommand == "add" and self.args.type is None and self.add_parser:
+            self.add_parser.print_help(sys.stderr)
+            self.pending_logs.append(
+                Msg(
+                    prefix=Level.ERROR,
+                    message="Missing required argument 'content-type'.\n"
+                    "Choose from: resource, plugin",
+                )
+            )
+            self.exit_code = os.EX_USAGE
+
+        # Show help for 'ansible-creator add resource' without arguments
+        if (
+            self.args.subcommand == "add"
+            and self.args.type == "resource"
+            and self.args.resource_type is None
+        ) and self.add_resource_parser:
+            self.add_resource_parser.print_help(sys.stderr)
+            self.pending_logs.append(
+                Msg(
+                    prefix=Level.ERROR,
+                    message="Missing required argument 'resource-type'.\n"
+                    "Choose from: devcontainer, devfile, execution-environment, "
+                    "play-argspec, role",
+                )
+            )
+            self.exit_code = os.EX_USAGE
+
+        # Show help for 'ansible-creator add plugin' without arguments
+        if (
+            self.args.subcommand == "add"
+            and self.args.type == "plugin"
+            and self.args.plugin_type is None
+            and self.add_plugin_parser
+        ):
+            self.add_plugin_parser.print_help(sys.stderr)
+            self.pending_logs.append(
+                Msg(
+                    prefix=Level.ERROR,
+                    message="Missing required argument 'plugin-type'.\n"
+                    "Choose from: action, filter, lookup, module, test",
+                )
+            )
+            self.exit_code = os.EX_USAGE
+
+        return self.args, self.pending_logs, self.exit_code
 
     def _add(self, subparser: SubParser[ArgumentParser]) -> None:
         """Add resources to an existing Ansible project.
@@ -92,9 +157,10 @@ class Parser:
             formatter_class=CustomHelpFormatter,
             help="Add resources to an existing Ansible project.",
         )
+        self.add_parser = parser
         subparser = parser.add_subparsers(
             dest="type",
-            required=True,
+            required=False,
             metavar="content-type",
         )
         self._add_resource(subparser=subparser)
@@ -206,10 +272,11 @@ class Parser:
             help="Add resources to an existing Ansible project.",
             formatter_class=CustomHelpFormatter,
         )
+        self.add_resource_parser = parser
         subparser = parser.add_subparsers(
             dest="resource_type",
             metavar="resource-type",
-            required=True,
+            required=False,
         )
         self._add_resource_devcontainer(subparser=subparser)
         self._add_resource_devfile(subparser=subparser)
@@ -359,10 +426,11 @@ class Parser:
             help="Add a plugin to an Ansible collection.",
             formatter_class=CustomHelpFormatter,
         )
+        self.add_plugin_parser = parser
         subparser = parser.add_subparsers(
             dest="plugin_type",
             metavar="plugin-type",
-            required=True,
+            required=False,
         )
 
         self._add_plugin_action(subparser=subparser)
@@ -480,10 +548,11 @@ class Parser:
             formatter_class=CustomHelpFormatter,
             help="Initialize a new Ansible project.",
         )
+        self.init_parser = parser
         subparser = parser.add_subparsers(
             dest="project",
             metavar="project-type",
-            required=True,
+            required=False,
         )
 
         self._init_collection(subparser=subparser)
@@ -613,7 +682,7 @@ class Parser:
         parser.add_argument("--init-path", help="")
         args, extras = parser.parse_known_args()
 
-        if args.collection in ["playbook", "collection", "execution_env"]:
+        if args.collection in {"playbook", "collection", "execution_env"}:
             return True
         if args.project:
             msg = "The `project` flag is no longer needed and will be removed."
