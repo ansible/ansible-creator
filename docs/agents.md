@@ -91,7 +91,7 @@ A playbook project orchestrates landscapes and types via one or more playbooks, 
 - [ ] Use per-environment [inventories](#inventories-and-variables) in structured directories
 - [ ] Organize playbooks in `playbooks/` directory
 - [ ] Keep adjacent collection in `collections/ansible_collections/<namespace>/<name>/`
-- [ ] Emphasize [data-driven inputs](#inventories-and-variables) following [SSOT](#ssot) principles
+- [ ] Emphasize [data-driven inputs](#inventories-and-variables) following [SSOT](#glossary) principles
 - [ ] Maintain clear [As-Is vs To-Be](#as-is-vs-to-be-information) separation
 - [ ] Use [FQCNs](#collections) for all modules, roles, and plugins
 - [ ] Ensure all content is [idempotent](#idempotency-and-check-mode) and supports [check mode](#idempotency-and-check-mode)
