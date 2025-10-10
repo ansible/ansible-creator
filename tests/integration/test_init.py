@@ -53,19 +53,38 @@ def test_run_no_subcommand(cli: CliRunCallable) -> None:
     assert "the following arguments are required: command" in result.stderr
 
 
-def test_run_init_no_input(cli: CliRunCallable) -> None:
-    """Test running ansible-creator init without any input.
+@pytest.mark.parametrize(
+    argnames=("args", "error_msg"),
+    argvalues=(
+        pytest.param("add", "Missing required argument 'content-type'.", id="add"),
+        pytest.param("add --help", "", id="add-help"),
+        pytest.param(
+            "add resource", "Missing required argument 'resource-type'.", id="add-resource"
+        ),
+        pytest.param("add resource --help", "", id="add-resource-help"),
+        pytest.param("add plugin", "Missing required argument 'plugin-type'.", id="add-plugin"),
+        pytest.param("add plugin --help", "", id="add-plugin-help"),
+        pytest.param("init", "Missing required argument 'project-type'.", id="init"),
+        pytest.param("init --help", "", id="init-help"),
+    ),
+)
+def test_run_no_input(cli: CliRunCallable, args: str, error_msg: str) -> None:
+    """Test running ansible-creator commands without input or --help.
 
     Args:
         cli: cli_run function.
+        args: args to pass to the CLI.
+        error_msg: Expected error message.
 
     Raises:
         AssertionError: If the assertion fails.
     """
-    result = cli(f"{CREATOR_BIN} init")
-    assert result.returncode != 0
-    err = "the following arguments are required: project-type"
-    assert err in result.stderr
+    result = cli(f"{CREATOR_BIN} {args}", env={"NO_COLOR": "1"})
+    if not error_msg:
+        assert result.returncode == 0
+    else:
+        assert result.returncode != 0
+        assert error_msg in result.stderr
 
 
 @pytest.mark.parametrize(
@@ -136,7 +155,7 @@ def test_run_init_basic(cli: CliRunCallable, tmp_path: Path) -> None:
     assert result.returncode == 0
 
     # check stdout
-    assert re.search(r"Note: collection project created at", result.stdout) is not None
+    assert r"Note: collection project created at" in result.stdout
 
     # fail to override existing collection with force=false (default)
     result = cli(
@@ -148,7 +167,7 @@ def test_run_init_basic(cli: CliRunCallable, tmp_path: Path) -> None:
     # override existing collection with force=true
     result = cli(f"{CREATOR_BIN} init testorg.testcol --init-path {tmp_path} --force")
     assert result.returncode == 0
-    assert re.search(r"Warning: re-initializing existing directory", result.stdout) is not None
+    assert r"Warning: re-initializing existing directory" in result.stdout
 
     # override existing collection with override=true
     result = cli(f"{CREATOR_BIN} init testorg.testcol --init-path {tmp_path} --overwrite")
@@ -180,4 +199,4 @@ def test_run_init_ee(cli: CliRunCallable, tmp_path: Path) -> None:
     assert result.returncode == 0
 
     # check stdout
-    assert re.search(r"Note: execution_env project created at", result.stdout) is not None
+    assert r"Note: execution_env project created at" in result.stdout

@@ -366,6 +366,7 @@ exclude = ["tests/fixtures"]
 fix = true
 line-length = 100
 target-version = "py310"
+unsafe-fixes = true
 
 [tool.ruff.lint]
 ignore = [
@@ -558,5 +559,8 @@ PRE_COMMIT_COLOR = "always"
 TERM = "xterm-256color"
 
 [tool.uv]
+constraint-dependencies = [
+  "ansible-core>=2.20.0.dev0; python_version >= '3.14'",
+]
 default-groups = ["dev", "docs", "lint", "pkg"]
 package = true
