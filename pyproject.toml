@@ -87,7 +87,7 @@ concurrency = ["multiprocessing", "thread"]
 omit = ["_version.py"]
 parallel = true
 relative_files = true
-source = ["src/ansible_creator"]
+source = ["src"]
 
 [tool.mypy]
 cache_dir = "./.cache/.mypy"
