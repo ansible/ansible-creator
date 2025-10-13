@@ -16,7 +16,7 @@ labels: bug, new
 
 <!--- Paste, BELOW THIS COMMENT, verbatim output from "ansible-navigator --version" between quotes below -->
 
-```
+```shell
 
 ```
 

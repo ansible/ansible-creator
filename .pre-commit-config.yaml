@@ -31,6 +31,16 @@ repos:
         name: biome
         alias: biome
         args: [--unsafe]
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.18.1
+    hooks:
+      - id: markdownlint-cli2
+        alias: md
+        pass_filenames: false
+        args: ["**/.*.md"]
+        additional_dependencies:
+          - markdownlint-cli2-formatter-pretty
+          - markdownlint-cli2-formatter-summarize
   - repo: https://github.com/streetsidesoftware/cspell-cli
     rev: v9.2.0
     hooks:

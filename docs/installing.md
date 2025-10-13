@@ -10,8 +10,8 @@ you to add resources to an existing ansible project.
 
 To install ansible-creator, use the following pip command:
 
-```console
-$ pip install ansible-creator
+```shell
+pip install ansible-creator
 ```
 
 ## CLI Usage
@@ -27,7 +27,7 @@ seamlessly into their development processes.
 
 If command line is not your preferred method, you can also leverage the GUI
 interface within VS Code's Ansible extension that offers a more visually
-intuitive experience of ansible-creator. See [here](content_creation.md).
+intuitive experience of ansible-creator. See [content creation](content_creation.md).
 
 ## Command line completion
 
@@ -35,16 +35,16 @@ intuitive experience of ansible-creator. See [here](content_creation.md).
 Please ensure you have the `argcomplete` package installed and configured.
 
 ```shell
-$ pip install argcomplete --user
-$ activate-global-python-argcomplete --user
+pip install argcomplete --user
+activate-global-python-argcomplete --user
 ```
 
 ### General Usage
 
 Get an overview of available commands and options by running:
 
-```console
-$ ansible-creator --help
+```shell
+ansible-creator --help
 ```
 
 ## Initialize projects
@@ -54,15 +54,15 @@ $ ansible-creator --help
 The `init collection` command enables you to initialize an Ansible collection
 project. Use the following command template:
 
-```console
-$ ansible-creator init collection <collection-name> <path>
+```shell
+ansible-creator init collection <collection-name> <path>
 ```
 
 #### Positional Arguments
 
 | Parameter       | Description                                             |
 | --------------- | ------------------------------------------------------- |
-| collection-name | The collection name in the format '<namespace>.<name>'. |
+| collection-name | The collection name in the format `<namespace>.<name>`. |
 | path            | The destination directory for the collection project.   |
 
 #### Optional Arguments
@@ -82,8 +82,8 @@ $ ansible-creator init collection <collection-name> <path>
 
 #### Example
 
-```console
-$ ansible-creator init collection testns.testname $HOME/collections/ansible_collections
+```shell
+ansible-creator init collection testns.testname $HOME/collections/ansible_collections
 ```
 
 This command will scaffold the collection `testns.testname` at
@@ -221,17 +221,17 @@ The `init playbook` command enables you to initialize an Ansible playbook
 project. Use the following command template:
 
 ```console
-$ ansible-creator init playbook <collection-name> <path>
+ansible-creator init playbook <collection-name> <path>
 ```
 
-#### Positional Arguments
+#### Collection Positional Arguments
 
 | Parameter       | Description                                                                       |
 | --------------- | --------------------------------------------------------------------------------- |
-| collection-name | The name for the playbook adjacent collection in the format '<namespace>.<name>'. |
+| collection-name | The name for the playbook adjacent collection in the format `<namespace>.<name>`. |
 | path            | The destination directory for the playbook project.                               |
 
-#### Optional Arguments
+#### Collection Optional Arguments
 
 | Short flag | Long flag      | Flag argument | Description                                                                                                                              |
 | ---------- | -------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
@@ -249,7 +249,7 @@ $ ansible-creator init playbook <collection-name> <path>
 Example:
 
 ```console
-$ ansible-creator init playbook myorg.myproject $HOME/ansible-projects/playbook-project
+ansible-creator init playbook myorg.myproject $HOME/ansible-projects/playbook-project
 ```
 
 This command will scaffold the new Ansible playbook project at
@@ -323,13 +323,13 @@ The `init execution_env` command enables you to initialize an Ansible execution
 environment project. Use the following command template:
 
 ```console
-$ ansible-creator init execution_env <path>
+ansible-creator init execution_env <path>
 ```
 
 Example:
 
 ```console
-$ ansible-creator init execution_env $HOME/ansible-projects/ee-project
+ansible-creator init execution_env $HOME/ansible-projects/ee-project
 ```
 
 This command will scaffold the new execution environment playbook project at
@@ -358,22 +358,22 @@ plugins into an existing project. This feature is designed to streamline the
 development environment setup by automatically generating the necessary
 configuration files.
 
-### General Usage
+### Resources General Usage
 
 Get an overview of available commands and options by running:
 
 ```console
-$ ansible-creator add --help
+ansible-creator add --help
 ```
 
-#### Positional Arguments
+#### Add Positional Arguments
 
 | Parameter | Description                                   |
 | --------- | --------------------------------------------- |
 | resource  | Add resources to an existing Ansible project. |
 | plugin    | Add a plugin to an Ansible collection.        |
 
-#### Optional Arguments
+#### Resource Optional Arguments
 
 | Short flag | Long flag | Flag argument | Description                      |
 | ---------- | --------- | ------------- | -------------------------------- |
@@ -385,10 +385,10 @@ The `add resource` command enables you to add a resource to an already existing
 project. Use the following command template:
 
 ```console
-$ ansible-creator add resource <resource-type> <path>
+ansible-creator add resource <resource-type> <path>
 ```
 
-#### Positional Arguments
+#### Resource Positional Arguments
 
 | Parameter             | Description                                                        |
 | --------------------- | ------------------------------------------------------------------ |
@@ -401,7 +401,7 @@ $ ansible-creator add resource <resource-type> <path>
 #### Example of adding a resource
 
 ```console
-$ ansible-creator add resource devcontainer /home/user/..path/to/your/existing_project
+ansible-creator add resource devcontainer /home/user/..path/to/your/existing_project
 ```
 
 This command will scaffold the devcontainer directory at
@@ -412,11 +412,11 @@ This command will scaffold the devcontainer directory at
 The `add plugin` command enables you to add a plugin to an existing collection
 project. Use the following command template:
 
-```console
-$ ansible-creator add plugin <plugin-type> <plugin-name> <collection-path>
+```shell
+ansible-creator add plugin <plugin-type> <plugin-name> <collection-path>
 ```
 
-#### Positional Arguments
+#### Plugin Positional Arguments
 
 | Parameter | Description                                             |
 | --------- | ------------------------------------------------------- |
@@ -429,7 +429,7 @@ $ ansible-creator add plugin <plugin-type> <plugin-name> <collection-path>
 #### Example of adding a plugin
 
 ```console
-$ ansible-creator add plugin action test_plugin /home/user/..path/to/your/existing_collection
+ansible-creator add plugin action test_plugin /home/user/..path/to/your/existing_collection
 ```
 
 This command will scaffold an action plugin at
