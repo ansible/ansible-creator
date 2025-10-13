@@ -17,4 +17,6 @@
   [guide](https://ansible.readthedocs.io/projects/vscode-ansible/) on creating
   an ansible content using the ansible-creator and VS Code Ansible extension.
 
-#TO-DO: Add VS Code extension guide here when its available.
+<!--
+TO-DO: Add VS Code extension guide here when its available.
+-->

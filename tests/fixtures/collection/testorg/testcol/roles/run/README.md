@@ -1,25 +1,20 @@
-testorg.testcol run Role
-========================
+# testorg.testcol run Role
 
 A brief description of the role goes here.
 
-Requirements
-------------
+## Requirements
 
 Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
 
-Role Variables
---------------
+## Role Variables
 
 A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
 
-Dependencies
-------------
+## Dependencies
 
 A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
 
-Example Playbook
-----------------
+## Example Playbook
 
 Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
 
@@ -45,27 +40,23 @@ Another way to consume this role would be:
         run_x: 42
 ```
 
-Role Idempotency
-----------------
+## Role Idempotency
 
 Designation of the role as idempotent (True/False)
 
-Role Atomicity
-----------------
+## Role Atomicity
 
 Designation of the role as atomic if applicable (True/False)
 
-Roll-back capabilities
-----------------------
+## Roll-back capabilities
 
 Define the roll-back capabilities of the role
 
-Argument Specification
-----------------------
+## Argument Specification
 
 Including an example of how to add an argument Specification file that validates the arguments provided to the role.
 
-```
+```yaml
 argument_specs:
   main:
     short_description: Role description.
@@ -77,13 +68,11 @@ argument_specs:
         choices: ["x", "y"]
 ```
 
-License
--------
+## License
 
-# TO-DO: Update the license to the one you want to use (delete this line after setting the license)
+<!-- TO-DO: Update the license to the one you want to use (delete this line after setting the license) -->
 BSD
 
-Author Information
-------------------
+## Author Information
 
 An optional section for the role authors to include contact information, or a website (HTML is not allowed).
