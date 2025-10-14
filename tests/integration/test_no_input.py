@@ -35,9 +35,6 @@ def test_run_no_input(cli: CliRunCallable, args: str, error_msg: str) -> None:
         cli: cli_run function.
         args: args to pass to the CLI.
         error_msg: Expected error message.
-
-    Raises:
-        AssertionError: If the assertion fails.
     """
     result = cli(f"{CREATOR_BIN} {args}", env={"NO_COLOR": "1"})
     if not error_msg:

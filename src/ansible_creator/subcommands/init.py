@@ -68,7 +68,7 @@ class Init:
 
     def _construct_init_path(self) -> None:
         """Construct the init path based on project type."""
-        if self._project in ("playbook", "execution_env"):
+        if self._project in {"playbook", "execution_env"}:
             return
 
         if (

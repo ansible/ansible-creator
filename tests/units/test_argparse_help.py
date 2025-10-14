@@ -10,11 +10,7 @@ from ansible_creator.arg_parser import CustomHelpFormatter
 
 
 def test_custom_help_single() -> None:
-    """Test the custom help formatter with single.
-
-    Raises:
-        AssertionError: If the assertion fails.
-    """
+    """Test the custom help formatter with single."""
     parser = argparse.ArgumentParser(formatter_class=CustomHelpFormatter)
     parser.add_argument("--foo", help="foo help")
     help_text = parser.format_help()
@@ -23,11 +19,7 @@ def test_custom_help_single() -> None:
 
 
 def test_custom_help_double() -> None:
-    """Test the custom help formatter with double.
-
-    Raises:
-        AssertionError: If the assertion fails.
-    """
+    """Test the custom help formatter with double."""
     parser = argparse.ArgumentParser(formatter_class=CustomHelpFormatter)
     parser.add_argument("-f", "--foo", help="foo help")
     help_text = parser.format_help()
