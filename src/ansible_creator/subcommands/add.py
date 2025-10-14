@@ -478,7 +478,7 @@ class Add:
         Returns:
             FileList: Filtered paths list
         """
-        if self._plugin_type not in ("action", "modules"):
+        if self._plugin_type not in {"action", "modules"}:
             return paths
 
         filtered_paths = FileList()

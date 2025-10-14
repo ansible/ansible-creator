@@ -22,9 +22,6 @@ def test_run_help(cli: CliRunCallable) -> None:
 
     Args:
         cli: cli_run function.
-
-    Raises:
-        AssertionError: If the assertion fails.
     """
     # Get the path to the current python interpreter
     result = cli(f"{CREATOR_BIN} --help")
@@ -43,9 +40,6 @@ def test_run_no_subcommand(cli: CliRunCallable) -> None:
 
     Args:
         cli: cli_run function.
-
-    Raises:
-        AssertionError: If the assertion fails.
     """
     result = cli(str(CREATOR_BIN))
     assert result.returncode != 0
@@ -63,9 +57,6 @@ def test_run_deprecated_failure(command: str, cli: CliRunCallable) -> None:
     Args:
         command: Command to run.
         cli: cli_run function.
-
-    Raises:
-        AssertionError: If the assertion fails.
     """
     result = cli(f"{CREATOR_BIN} {command}")
     assert result.returncode != 0
@@ -91,9 +82,6 @@ def test_run_init_invalid_name(command: str, args: str, expected: str, cli: CliR
         args: Arguments to pass to the CLI.
         expected: Expected error message.
         cli: cli_run function.
-
-    Raises:
-        AssertionError: If the assertion fails.
     """
     result = cli(f"{CREATOR_BIN} init {command} {args}")
     assert result.returncode != 0
@@ -107,9 +95,6 @@ def test_run_init_basic(cli: CliRunCallable, tmp_path: Path) -> None:
     Args:
         cli: cli_run function.
         tmp_path: Temporary path.
-
-    Raises:
-        AssertionError: If the assertion fails.
     """
     final_dest = f"{tmp_path}/collections/ansible_collections"
     cli(f"mkdir -p {final_dest}")
@@ -151,9 +136,6 @@ def test_run_init_ee(cli: CliRunCallable, tmp_path: Path) -> None:
     Args:
         cli: cli_run function.
         tmp_path: Temporary path.
-
-    Raises:
-        AssertionError: If the assertion fails.
     """
     final_dest = f"{tmp_path}/ee_project"
     cli(f"mkdir -p {final_dest}")
