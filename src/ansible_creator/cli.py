@@ -31,6 +31,7 @@ class Cli:
         self.output: Output
         self.pending_logs: list[Msg]
         self.term_features: TermFeatures
+        self.exit_code: int = 0
         self.parse_args()
 
     def init_output(self) -> None:
@@ -58,9 +59,10 @@ class Cli:
 
     def parse_args(self) -> None:
         """Start parsing args passed from Cli."""
-        args, pending_logs = Parser().parse_args()
+        args, pending_logs, exit_code = Parser().parse_args()
         self.args = vars(args)
         self.pending_logs = pending_logs
+        self.exit_code = exit_code
 
     def process_pending_logs(self) -> None:
         """Log any pending logs."""
@@ -92,6 +94,8 @@ def main() -> None:
     cli = Cli()
     cli.init_output()
     cli.process_pending_logs()
+    if cli.exit_code != 0:
+        sys.exit(cli.exit_code)
     cli.run()
 
 
