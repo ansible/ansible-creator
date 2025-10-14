@@ -172,8 +172,8 @@ class Add:
             template_data = self._get_devcontainer_template_data()
         elif self._resource_type == "execution-environment":
             template_data = self._get_ee_template_data()
-        elif self._resource_type == "play-argspec":
-            template_data = self._get_play_argspec_template_data()
+        elif self._resource_type in {"play-argspec", "ai"}:
+            template_data = self._get_template_data()
         elif self._resource_type == "role":
             self._check_collection_path()
             self._namespace, self._collection_name = self.role_galaxy()
@@ -440,11 +440,11 @@ class Add:
             creator_version=self._creator_version,
         )
 
-    def _get_play_argspec_template_data(self) -> TemplateData:
-        """Get the template data for playbook argspec resources.
+    def _get_template_data(self) -> TemplateData:
+        """Get the template data resources.
 
         Returns:
-            TemplateData: Data required for templating the playbook argspec resources.
+            TemplateData: Data required for templating resources.
         """
         return TemplateData(
             resource_type=self._resource_type,

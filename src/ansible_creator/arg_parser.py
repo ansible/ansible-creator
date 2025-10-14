@@ -278,11 +278,26 @@ class Parser:
             metavar="resource-type",
             required=False,
         )
+        # keep arguments order sorted alphabetically to ease reading
+        self._add_resource_ai(subparser=subparser)
         self._add_resource_devcontainer(subparser=subparser)
         self._add_resource_devfile(subparser=subparser)
         self._add_resource_execution_env(subparser=subparser)
         self._add_resource_play_argspec(subparser=subparser)
         self._add_resource_role(subparser=subparser)
+
+    def _add_resource_ai(self, subparser: SubParser[ArgumentParser]) -> None:
+        """Add AI files to an existing Ansible project.
+
+        Args:
+            subparser: The subparser to add files to
+        """
+        parser = subparser.add_parser(
+            "ai",
+            help="Add AI agent helper files.",
+            formatter_class=CustomHelpFormatter,
+        )
+        self._add_args_common(parser)
 
     def _add_resource_devcontainer(self, subparser: SubParser[ArgumentParser]) -> None:
         """Add devcontainer files to an existing Ansible project.

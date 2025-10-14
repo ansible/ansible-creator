@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -334,6 +335,35 @@ def test_run_error_unsupported_resource_type(
     assert "Unsupported resource type: unsupported_type" in str(exc_info.value)
 
 
+def test_run_success_add_ai(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test Add.run() for adding AI files.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Add class object.
+
+    Raises:
+        AssertionError: If the assertion fails.
+    """
+    cli_args["resource_type"] = "ai"
+    add = Add(
+        Config(**cli_args),
+    )
+    add.run()
+    result = capsys.readouterr().out
+    assert "Note: Resource added to" in result
+    expected_file = tmp_path / "AGENTS.md"
+    assert expected_file.exists()
+    assert not expected_file.is_symlink()
+    content = expected_file.read_text()
+    assert len(content) > 0
+
+
 def test_run_success_add_devcontainer(
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
@@ -397,7 +427,12 @@ def test_run_success_add_devcontainer(
 
 
 # Skip this test on macOS due to unavailability of docker on macOS GHA runners
-@pytest.mark.skipif(sys.platform == "darwin", reason="Skip test on macOS")
+@pytest.mark.skipif(
+    sys.platform == "darwin"
+    and os.environ.get("CI", "false") == "true"
+    and not shutil.which("docker"),
+    reason="Skip devcontainer test on CI macOS due to unavailability of docker.",
+)
 def test_devcontainer_usability(
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,

@@ -1,1 +1,1 @@
-../../../../../AGENTS.md
+../../../../../src/ansible_creator/resources/common/ai/AGENTS.md
