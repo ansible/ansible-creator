@@ -1,6 +1,6 @@
 ---
 version: 2
-
+# sadly no color output due to https://github.com/readthedocs/readthedocs.org/issues/8733
 mkdocs:
   fail_on_warning: true
   configuration: mkdocs.yml
@@ -16,10 +16,7 @@ build:
     - ~/.local/bin/mise settings python.uv_venv_auto=true
     - ~/.local/bin/mise trust
     - ~/.local/bin/mise install
-    # Apparently this command can block 'rtd' builds
-    # - PATH=~/.local/share/mise/shims:$PATH ~/.local/bin/mise doctor || true
-    - PATH=~/.local/share/mise/shims:$PATH ~/.local/bin/mise exec --command "python3 -m pip install tox"
-    - PATH=~/.local/share/mise/shims:$PATH ~/.local/bin/mise exec --command "python3 -m tox -e docs"
+    - ~/.local/bin/mise exec --command "uv run tox run -e docs"
 submodules:
   include: all
   recursive: true
