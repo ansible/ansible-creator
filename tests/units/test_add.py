@@ -369,6 +369,8 @@ def test_run_success_add_devcontainer(
         monkeypatch: Pytest monkeypatch fixture.
 
     """
+    # prevents test from failing due to the help formatter wrapping the output
+    monkeypatch.setenv("COLUMNS", "2048")
     # Set the resource_type to devcontainer
     cli_args["resource_type"] = "devcontainer"
     cli_args["image"] = "auto"
@@ -559,6 +561,8 @@ def test_run_success_add_plugin(  # noqa: PLR0913, # pylint: disable=too-many-po
         expected_file_path: Expected file path for the plugin.
 
     """
+    # prevents test from failing due to the help formatter wrapping the output
+    monkeypatch.setenv("COLUMNS", "2048")
     cli_args["plugin_type"] = plugin_type
     cli_args["plugin_name"] = plugin_name
     add = Add(Config(**cli_args))
