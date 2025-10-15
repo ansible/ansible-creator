@@ -526,8 +526,9 @@ commands = [
       "--junitxml=./junit.xml",
     ], extend = true, replace = "posargs" },
   ],
+  ["./tools/report-coverage"],
 ]
-commands_post = [["./tools/report-coverage"]]
+commands_post = []
 commands_pre = [
   ["uv", "sync", "--active", "-q"],  # see: https://github.com/tox-dev/tox-uv/issues/258
   ["npm", "ci", "--silent"],

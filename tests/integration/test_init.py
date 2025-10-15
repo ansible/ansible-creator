@@ -24,11 +24,11 @@ def test_run_help(cli: CliRunCallable) -> None:
         cli: cli_run function.
     """
     # Get the path to the current python interpreter
-    result = cli(f"{CREATOR_BIN} --help")
+    result = cli(f"{CREATOR_BIN} --help", env={"NO_COLOR": "1"})
     assert result.returncode == 0, (result.stdout, result.stderr)
 
     assert "The fastest way to generate all your ansible content." in result.stdout
-    assert "Positional arguments:" in result.stdout
+    assert re.search(r"positional arguments:", result.stdout, re.IGNORECASE)
     assert "add" in result.stdout
     assert "Add resources to an existing Ansible project." in result.stdout
     assert "init" in result.stdout
