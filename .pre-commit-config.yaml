@@ -15,7 +15,7 @@ repos:
     hooks:
       - id: check-useless-excludes
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.9.3
+    rev: 0.9.5
     hooks:
       - id: uv-sync
       - id: uv-lock
@@ -25,7 +25,7 @@ repos:
         args: ["--upgrade"]
         stages: [manual]
   - repo: https://github.com/biomejs/pre-commit
-    rev: "v2.2.6"
+    rev: "v2.3.1"
     hooks:
       - id: biome-check
         name: biome
@@ -42,7 +42,7 @@ repos:
           - markdownlint-cli2-formatter-pretty
           - markdownlint-cli2-formatter-summarize
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v9.2.0
+    rev: v9.2.1
     hooks:
       - id: cspell
         entry: bash
@@ -66,7 +66,7 @@ repos:
       - id: trailing-whitespace
       - id: mixed-line-ending
   - repo: https://github.com/tombi-toml/tombi-pre-commit
-    rev: v0.6.34
+    rev: v0.6.39
     hooks:
       - id: tombi-format
         alias: toml
@@ -82,7 +82,7 @@ repos:
           )$
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.1
+    rev: v0.14.2
     hooks:
       - id: ruff-format
         alias: ruff
@@ -101,7 +101,7 @@ repos:
         # Override default pre-commit '--ignore-missing-imports'
         args: []
   - repo: https://github.com/jsh9/pydoclint
-    rev: "0.7.3"
+    rev: "0.7.6"
     hooks:
       - id: pydoclint
         # This allows automatic reduction of the baseline file when needed.
@@ -109,7 +109,7 @@ repos:
         pass_filenames: false
 
   - repo: https://github.com/pycqa/pylint.git
-    rev: v4.0.1
+    rev: v4.0.2
     hooks:
       - id: pylint
         args:
