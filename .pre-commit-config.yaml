@@ -42,7 +42,7 @@ repos:
           - markdownlint-cli2-formatter-pretty
           - markdownlint-cli2-formatter-summarize
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v9.2.0
+    rev: v9.2.1
     hooks:
       - id: cspell
         entry: bash

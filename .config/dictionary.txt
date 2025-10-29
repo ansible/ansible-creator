@@ -13,7 +13,6 @@ argspec
 argvalues
 capsys
 delenv
-devel
 devfile
 devspaces
 docsite
