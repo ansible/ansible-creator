@@ -1,5 +1,3 @@
-#:tombi schema.strict = false
-
 [project]
 name = "ansible-creator"
 description = "A CLI tool for scaffolding Ansible Content."
