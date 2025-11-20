@@ -38,5 +38,4 @@ testname
 testns
 testorg
 testpaths
-tombi
 webservers
