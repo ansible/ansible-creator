@@ -1,5 +1,3 @@
-#:tombi schema.strict = false
-
 [tool.black]
 line-length = 100
 
