@@ -22,7 +22,6 @@ flatmap
 fqcn
 hostvars
 httpapi
-levelname
 myorg
 myproject
 myuser
