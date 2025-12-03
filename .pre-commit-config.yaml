@@ -15,7 +15,7 @@ repos:
     hooks:
       - id: check-useless-excludes
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.9.8
+    rev: 0.9.13
     hooks:
       - id: uv-sync
       - id: uv-lock
@@ -25,14 +25,14 @@ repos:
         args: ["--upgrade"]
         stages: [manual]
   - repo: https://github.com/biomejs/pre-commit
-    rev: "v2.3.4"
+    rev: "v2.3.8"
     hooks:
       - id: biome-check
         name: biome
         alias: biome
         args: [--unsafe]
   - repo: https://github.com/DavidAnson/markdownlint-cli2
-    rev: v0.18.1
+    rev: v0.19.1
     hooks:
       - id: markdownlint-cli2
         alias: md
@@ -42,7 +42,7 @@ repos:
           - markdownlint-cli2-formatter-pretty
           - markdownlint-cli2-formatter-summarize
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v9.2.1
+    rev: v9.3.3
     hooks:
       - id: cspell
         entry: bash
@@ -82,14 +82,14 @@ repos:
           )$
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.4
+    rev: v0.14.7
     hooks:
       - id: ruff-format
         alias: ruff
       - id: ruff-check
         alias: ruff
   - repo: https://github.com/pre-commit/mirrors-mypy.git
-    rev: v1.18.2
+    rev: v1.19.0
     hooks:
       - id: mypy
         additional_dependencies: &deps
@@ -101,7 +101,7 @@ repos:
         # Override default pre-commit '--ignore-missing-imports'
         args: []
   - repo: https://github.com/jsh9/pydoclint
-    rev: "0.8.1"
+    rev: "0.8.3"
     hooks:
       - id: pydoclint
         # This allows automatic reduction of the baseline file when needed.
@@ -109,7 +109,7 @@ repos:
         pass_filenames: false
 
   - repo: https://github.com/pycqa/pylint.git
-    rev: v4.0.2
+    rev: v4.0.4
     hooks:
       - id: pylint
         args:
@@ -121,7 +121,7 @@ repos:
       - id: ccv
         name: codecov
   - repo: https://github.com/ansible/ansible-lint
-    rev: v25.9.2
+    rev: v25.11.1
     hooks:
       - id: ansible-lint
         args: [--fix]
