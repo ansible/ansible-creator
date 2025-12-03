@@ -9,7 +9,7 @@ authors:
   - your name <example@domain.com>
 
 description: Collection for weather.demo playbook project
-
+license: ["GPL-3.0-or-later"]
 # TO-DO: update the tags based on your content type
 tags: ["tools"]
 repository: NA
