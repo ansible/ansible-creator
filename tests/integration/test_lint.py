@@ -90,7 +90,7 @@ def test_lint_playbook_project(
     dest_path = tmp_path / "collections"
     galaxy_cmd = f"{GALAXY_BIN} collection install -r {req_path} -p {dest_path}"
     result = cli(args=galaxy_cmd)
-    assert result.returncode == 0
+    assert result.returncode == 0, result.stderr
 
     project_path = FIXTURES_DIR / "project" / "playbook_project"
     monkeypatch.chdir(project_path)
@@ -98,7 +98,7 @@ def test_lint_playbook_project(
     env = {"NO_COLOR": "1", "ANSIBLE_COLLECTIONS_PATH": str(dest_path)}
     result = cli(args=args, env=env)
 
-    assert result.returncode == 0
+    assert result.returncode == 0, result.stderr
 
     combined = (result.stdout or "") + (result.stderr or "")
     match = LINT_RE.search(combined)
