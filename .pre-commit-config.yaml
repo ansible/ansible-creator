@@ -124,7 +124,6 @@ repos:
     rev: v25.12.1
     hooks:
       - id: ansible-lint
-        args: [--fix]
   - repo: https://github.com/ansible/team-devtools
     rev: v25.12.8
     hooks:
