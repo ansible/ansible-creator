@@ -142,6 +142,7 @@ class Parser:
         )
         self._add(subparser=subparser)  # type: ignore[arg-type]
         self._init(subparser=subparser)  # type: ignore[arg-type]
+        self._schema(subparser=subparser)  # type: ignore[arg-type]
 
         if HAS_ARGCOMPLETE:  # pragma: no cover
             argcomplete.autocomplete(parser)
@@ -643,6 +644,18 @@ class Parser:
         self._init_collection(subparser=subparser)
         self._init_playbook(subparser=subparser)
         self._init_ee_project(subparser=subparser)
+
+    def _schema(self, subparser: SubParser[argparse.ArgumentParser]) -> None:
+        """Output CLI schema as JSON.
+
+        Args:
+            subparser: The subparser to add schema to
+        """
+        parser = subparser.add_parser(
+            "schema",
+            help="Output the CLI schema as JSON for tool integration.",
+        )
+        self._add_args_common(parser)
 
     def _init_collection(self, subparser: SubParser[argparse.ArgumentParser]) -> None:
         """Initialize an Ansible collection.
