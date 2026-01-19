@@ -15,7 +15,7 @@ repos:
     hooks:
       - id: check-useless-excludes
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.9.24
+    rev: 0.9.26
     hooks:
       - id: uv-sync
       - id: uv-lock
@@ -66,14 +66,14 @@ repos:
       - id: trailing-whitespace
       - id: mixed-line-ending
   - repo: https://github.com/tombi-toml/tombi-pre-commit
-    rev: v0.7.16
+    rev: v0.7.19
     hooks:
       - id: tombi-format
         alias: toml
       - id: tombi-lint
         alias: toml
   - repo: https://github.com/Lucas-C/pre-commit-hooks.git
-    rev: v1.5.5
+    rev: v1.5.6
     hooks:
       - id: remove-tabs
         exclude: >
@@ -82,7 +82,7 @@ repos:
           )$
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.11
+    rev: v0.14.13
     hooks:
       - id: ruff-format
         alias: ruff
@@ -121,10 +121,10 @@ repos:
       - id: ccv
         name: codecov
   - repo: https://github.com/ansible/ansible-lint
-    rev: v26.1.0
+    rev: v26.1.1
     hooks:
       - id: ansible-lint
   - repo: https://github.com/ansible/team-devtools
-    rev: v25.12.8
+    rev: v26.1.0
     hooks:
       - id: check-platform-constraints
