@@ -401,6 +401,9 @@ required-imports = ["from __future__ import annotations"]
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
+[tool.setuptools.package-data]
+"ansible_creator" = ["resources/**/*"]
+
 [tool.setuptools_scm]
 # To prevent accidental pick of mobile version tags such 'v6'
 git_describe_command = [
