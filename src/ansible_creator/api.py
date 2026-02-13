@@ -274,6 +274,7 @@ class V1:
 
         Raises:
             KeyError: If a segment in the command path is not found.
+            TypeError: If kwargs contain routing keys derived from the path.
         """
         from ansible_creator.arg_parser import CustomArgumentParser, Parser  # noqa: PLC0415
 
@@ -320,10 +321,19 @@ class V1:
                 msg = f"Invalid command path segment: '{segment}'. Available: {available}"
                 raise KeyError(msg)
 
+        # Reject caller kwargs that conflict with routing keys derived
+        # from the command path.  These keys (subcommand, project, type,
+        # resource_type, plugin_type, …) are implicit in *command_path*;
+        # allowing overrides would produce an inconsistent Config.
+        conflicts = set(kwargs) & set(routing)
+        if conflicts:
+            msg = f"Cannot override routing keys derived from the command path: {sorted(conflicts)}"
+            raise TypeError(msg)
+
         # Collect defaults from the leaf parser
         defaults = V1._collect_defaults(current_parser)
 
-        # Merge: defaults < routing < caller kwargs < api-managed values
+        # Merge: defaults < routing < caller kwargs (no overlap with routing)
         merged = {**defaults, **routing, **kwargs}
 
         # Set API-managed values

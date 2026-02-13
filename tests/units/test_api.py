@@ -363,6 +363,20 @@ class TestErrorHandling:
         assert "Invalid command path" in result.message
         assert result.path is None
 
+    def test_routing_key_override_rejected(self, creator_api: V1) -> None:
+        """Test that kwargs conflicting with routing keys are rejected.
+
+        Routing keys (subcommand, project, etc.) are derived from the
+        command path and must not be overridden by caller kwargs.
+
+        Args:
+            creator_api: V1 API instance.
+        """
+        result = creator_api.run("init", "collection", project="playbook")
+        assert result.status == "error"
+        assert "Cannot override routing keys" in result.message
+        assert result.path is None
+
     def test_runtime_error_returns_temp_dir(
         self,
         creator_api: V1,
