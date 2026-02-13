@@ -134,7 +134,7 @@ class Init:
         )
 
         if self._project == "execution_env":
-            resources = (f"{self._project}_project",)
+            resources = (f"{self._project}_project", "common.ee-ci")
         elif self._project == "collection":
             self.common_resources = (*self.common_resources, "common.role")
             resources = (f"{self._project}_project", *self.common_resources)
