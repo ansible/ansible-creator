@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 
 from typing import TYPE_CHECKING, Any
@@ -15,7 +16,11 @@ if TYPE_CHECKING:
 
 
 class Schema:
-    """Class to handle the schema subcommand."""
+    """Class to handle the schema subcommand.
+
+    Provides both a CLI subcommand (via run()) and static methods
+    (as_dict, for_command) for programmatic access by the V1 API.
+    """
 
     def __init__(self, config: Config) -> None:
         """Initialize the schema action.
@@ -28,9 +33,22 @@ class Schema:
 
     def run(self) -> None:
         """Generate and output the CLI schema."""
-        from ansible_creator.arg_parser import CustomArgumentParser, Parser
+        schema = Schema.as_dict()
+        output = json.dumps(schema, indent=2, default=str)
+        sys.stdout.write(output + "\n")
 
-        # Build the full parser structure
+    @staticmethod
+    def as_dict() -> dict[str, Any]:
+        """Return the full CLI schema as a Python dictionary.
+
+        Builds the argparser tree and extracts the schema structure
+        including all subcommands, parameters, and metadata.
+
+        Returns:
+            Dictionary representing the full command schema.
+        """
+        from ansible_creator.arg_parser import CustomArgumentParser, Parser  # noqa: PLC0415
+
         main_parser = CustomArgumentParser(
             description="The fastest way to generate all your ansible content.",
         )
@@ -47,20 +65,44 @@ class Schema:
             required=True,
         )
 
-        # Use Parser instance to build subparsers
         parser_instance = Parser()
-        parser_instance._add(subparser=subparser)  # noqa: SLF001
-        parser_instance._init(subparser=subparser)  # noqa: SLF001
+        parser_instance._add(subparser=subparser)  # type: ignore[arg-type]  # noqa: SLF001
+        parser_instance._init(subparser=subparser)  # type: ignore[arg-type]  # noqa: SLF001
 
-        # Extract schema
-        schema = self._extract_parser_schema(main_parser, "ansible-creator")
+        return Schema._extract_parser_schema(main_parser, "ansible-creator")
 
-        # Output as JSON
-        output = json.dumps(schema, indent=2, default=str)
-        sys.stdout.write(output + "\n")
+    @staticmethod
+    def for_command(*path: str) -> dict[str, Any]:
+        """Return the schema subtree for a specific command path.
 
+        Example: ``Schema.for_command("init", "collection")`` returns
+        the schema node for ``ansible-creator init collection``.
+
+        Args:
+            *path: Sequence of subcommand names to traverse.
+
+        Returns:
+            Dictionary representing the schema for the given command path.
+
+        Raises:
+            KeyError: If the command path is invalid.
+        """
+        schema = Schema.as_dict()
+        node = schema
+        for segment in path:
+            subcommands = node.get("subcommands", {})
+            if segment not in subcommands:
+                msg = (
+                    f"Invalid command path: {' > '.join(path)!r}. "
+                    f"'{segment}' not found. "
+                    f"Available: {list(subcommands)}"
+                )
+                raise KeyError(msg)
+            node = subcommands[segment]
+        return node
+
+    @staticmethod
     def _extract_parser_schema(
-        self,
         parser: argparse.ArgumentParser,
         name: str,
         help_text: str = "",
@@ -94,35 +136,22 @@ class Schema:
 
             # Handle subparsers
             if hasattr(action, "choices") and isinstance(action.choices, dict):
-                # Build a map of subparser name -> help text from _choices_actions
                 help_map: dict[str, str] = {}
-                if hasattr(action, "_choices_actions"):
-                    for choice_action in action._choices_actions:
-                        help_map[choice_action.dest] = choice_action.help or ""
-                
+                for choice_action in action._choices_actions:  # type: ignore[attr-defined]  # noqa: SLF001
+                    help_map[choice_action.dest] = choice_action.help or ""
+
                 for sub_name, sub_parser in action.choices.items():
                     sub_help = help_map.get(sub_name, "")
-                    subcommands[sub_name] = self._extract_parser_schema(
+                    subcommands[sub_name] = Schema._extract_parser_schema(
                         sub_parser,
                         sub_name,
                         sub_help,
                     )
-            elif action.dest:
-                # Regular argument - skip internal routing params
-                if action.dest in (
-                    "subcommand",
-                    "project",
-                    "type",
-                    "resource_type",
-                    "plugin_type",
-                ):
-                    continue
-
-                param_info = self._extract_action_info(action)
+            else:
+                param_info = Schema._extract_action_info(action)
                 result["parameters"]["properties"][action.dest] = param_info
 
-                # Check if required (positional without default or nargs=?)
-                if self._is_required(action):
+                if Schema._is_required(action):
                     result["parameters"]["required"].append(action.dest)
 
         if subcommands:
@@ -130,7 +159,8 @@ class Schema:
 
         return result
 
-    def _extract_action_info(self, action: argparse.Action) -> dict[str, Any]:
+    @staticmethod
+    def _extract_action_info(action: argparse.Action) -> dict[str, Any]:
         """Extract parameter info from an argparse action.
 
         Args:
@@ -140,14 +170,14 @@ class Schema:
             Dictionary with parameter type, description, and other metadata.
         """
         info: dict[str, Any] = {
-            "description": self._clean_help_text(action.help or ""),
+            "description": Schema._clean_help_text(action.help or ""),
         }
 
         # Determine type
         if action.choices:
             info["type"] = "string"
             info["enum"] = list(action.choices)
-        elif isinstance(action, (argparse._StoreTrueAction, argparse._StoreFalseAction)):
+        elif isinstance(action, (argparse._StoreTrueAction, argparse._StoreFalseAction)):  # noqa: SLF001
             info["type"] = "boolean"
         elif action.type:
             type_name = getattr(action.type, "__name__", str(action.type))
@@ -155,9 +185,7 @@ class Schema:
                 info["type"] = type_name
             else:
                 info["type"] = "string"
-        elif action.nargs in ("+", "*") or (
-            isinstance(action.nargs, int) and action.nargs > 1
-        ):
+        elif action.nargs in ("+", "*") or (isinstance(action.nargs, int) and action.nargs > 1):
             info["type"] = "array"
             info["items"] = {"type": "string"}
         else:
@@ -173,7 +201,8 @@ class Schema:
 
         return info
 
-    def _is_required(self, action: argparse.Action) -> bool:
+    @staticmethod
+    def _is_required(action: argparse.Action) -> bool:
         """Determine if an argument is required.
 
         Args:
@@ -182,41 +211,21 @@ class Schema:
         Returns:
             True if the argument is required.
         """
-        # Explicitly marked as required
         if getattr(action, "required", False):
             return True
 
-        # Positional arguments without nargs=? or default are required
-        if not action.option_strings:
-            if action.nargs not in ("?", "*"):
-                if action.default is None or action.default == argparse.SUPPRESS:
-                    return True
+        return bool(
+            not action.option_strings
+            and action.nargs not in ("?", "*")
+            and (action.default is None or action.default == argparse.SUPPRESS)
+        )
 
-        return False
+    @staticmethod
+    def _clean_help_text(help_text: str) -> str:
+        """Clean up help text by removing default/choices suffixes.
 
-    def _get_subparser_help(
-        self,
-        parser: argparse.ArgumentParser,
-        subparser_name: str,
-    ) -> str:
-        """Get the help text for a subparser by name.
-
-        Args:
-            parser: The parent parser.
-            subparser_name: The name of the subparser.
-
-        Returns:
-            The help text for the subparser, or empty string if not found.
-        """
-        for action in parser._actions:  # noqa: SLF001
-            if hasattr(action, "_choices_actions"):
-                for choice_action in action._choices_actions:
-                    if choice_action.dest == subparser_name:
-                        return choice_action.help or ""
-        return ""
-
-    def _clean_help_text(self, help_text: str) -> str:
-        """Clean up help text by removing default/choices suffixes added by CustomArgumentParser.
+        Removes suffixes added by CustomArgumentParser such as
+        ``(default: ...)`` and ``(choices: ...)``.
 
         Args:
             help_text: The raw help text.
@@ -224,9 +233,6 @@ class Schema:
         Returns:
             Cleaned help text.
         """
-        # Remove " (default: ...)" and " (choices: ...)" suffixes
-        import re
-
         help_text = re.sub(r"\s*\(default:\s*[^)]+\)\s*$", "", help_text)
         help_text = re.sub(r"\s*\(choices:\s*[^)]+\)\s*$", "", help_text)
         return help_text.strip()
