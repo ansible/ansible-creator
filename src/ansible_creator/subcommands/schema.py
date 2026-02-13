@@ -12,7 +12,6 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from ansible_creator.config import Config
-    from ansible_creator.output import Output
 
 
 class Schema:
@@ -28,8 +27,6 @@ class Schema:
         Args:
             config: App configuration object.
         """
-        self.output: Output = config.output
-        self._format = getattr(config, "schema_format", "json")
 
     def run(self) -> None:
         """Generate and output the CLI schema."""
@@ -68,6 +65,7 @@ class Schema:
         parser_instance = Parser()
         parser_instance._add(subparser=subparser)  # type: ignore[arg-type]  # noqa: SLF001
         parser_instance._init(subparser=subparser)  # type: ignore[arg-type]  # noqa: SLF001
+        parser_instance._schema(subparser=subparser)  # type: ignore[arg-type]  # noqa: SLF001
 
         return Schema._extract_parser_schema(main_parser, "ansible-creator")
 

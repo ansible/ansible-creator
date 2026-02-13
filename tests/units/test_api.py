@@ -6,6 +6,7 @@ import argparse
 import json
 import shutil
 
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
@@ -18,8 +19,6 @@ from ansible_creator.subcommands.schema import Schema
 
 
 if TYPE_CHECKING:
-    from pathlib import Path
-
     from ansible_creator.output import Output
 
 
@@ -61,6 +60,7 @@ class TestSchema:
         assert "subcommands" in result
         assert "init" in result["subcommands"]
         assert "add" in result["subcommands"]
+        assert "schema" in result["subcommands"]
 
     def test_schema_init_has_subcommands(self, creator_api: V1) -> None:
         """Test that init subcommand has expected project types.
@@ -307,7 +307,7 @@ class TestErrorHandling:
     """Tests for error handling in V1.run()."""
 
     def test_empty_command_path(self, creator_api: V1) -> None:
-        """Test that an empty command path returns an error.
+        """Test that an empty command path returns an error with no temp dir.
 
         Args:
             creator_api: V1 API instance.
@@ -315,9 +315,11 @@ class TestErrorHandling:
         result = creator_api.run()
         assert result.status == "error"
         assert "No command path" in result.message
+        # No temp dir should be created for empty paths
+        assert result.path == Path()
 
     def test_invalid_command_path(self, creator_api: V1) -> None:
-        """Test that an invalid command path returns an error.
+        """Test that an invalid command path returns an error with no temp dir.
 
         Args:
             creator_api: V1 API instance.
@@ -325,6 +327,8 @@ class TestErrorHandling:
         result = creator_api.run("nonexistent")
         assert result.status == "error"
         assert "Invalid command path" in result.message
+        # No temp dir should be created when resolution fails
+        assert result.path == Path()
 
     def test_invalid_subcommand_segment(self, creator_api: V1) -> None:
         """Test that an invalid segment in a valid path returns an error.
@@ -335,6 +339,7 @@ class TestErrorHandling:
         result = creator_api.run("init", "nonexistent")
         assert result.status == "error"
         assert "Invalid command path" in result.message
+        assert result.path == Path()
 
     def test_result_dataclass_defaults(self, tmp_path: Path) -> None:
         """Test CreatorResult dataclass default values.
@@ -370,18 +375,14 @@ class TestVerbosity:
     def test_default_verbosity_no_debug(self, creator_api: V1) -> None:
         """Test that default verbosity does not capture debug messages.
 
-        The _CapturingOutput always captures all messages regardless of
-        verbosity, but the internal subcommands only emit debug messages
-        when the output's verbosity threshold allows it.
-
         Args:
             creator_api: V1 API instance with default verbosity.
         """
         result = creator_api.run("init", "execution_env")
         try:
             assert result.status == "success", result.message
-            # With default verbosity, the subcommand Output filtering
-            # prevents debug messages from being logged at all
+            debug_msgs = [m for m in result.logs if m.startswith("Debug:")]
+            assert not debug_msgs, f"Unexpected debug messages: {debug_msgs}"
         finally:
             shutil.rmtree(result.path, ignore_errors=True)
 
@@ -398,6 +399,33 @@ class TestCapturingOutput:
         output.critical("something went wrong")
         assert output.call_count["critical"] == 1
         assert any("something went wrong" in m for m in output.messages)
+
+    def test_log_does_not_double_count(self) -> None:
+        """Test that calling level methods does not double-increment call_count.
+
+        The parent's level-specific methods (note, debug, etc.) increment
+        call_count before calling log(). Our log() override must NOT
+        increment again.
+        """
+        expected_count = 1
+        expected_messages = 2
+        output = _CapturingOutput(verbosity=2)
+        output.note("a note message")
+        assert output.call_count["note"] == expected_count
+        output.debug("a debug message")
+        assert output.call_count["debug"] == expected_count
+        assert len(output.messages) == expected_messages
+
+    def test_log_direct_call(self) -> None:
+        """Test that calling log() directly does not increment call_count.
+
+        Direct log() calls are unusual but should not accidentally
+        increment a counter (the level-specific methods handle counting).
+        """
+        output = _CapturingOutput(verbosity=2)
+        output.log("direct message", level=Level.NOTE)
+        assert output.call_count["note"] == 0
+        assert len(output.messages) == 1
 
 
 # --- Message extraction tests ---
@@ -515,6 +543,7 @@ class TestSchemaClass:
         data = json.loads(captured)
         assert data["name"] == "ansible-creator"
         assert "subcommands" in data
+        assert "schema" in data["subcommands"]
 
     def test_schema_extract_int_type(self) -> None:
         """Test _extract_action_info handles int type arguments."""

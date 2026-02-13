@@ -27,10 +27,9 @@ Example usage::
 from __future__ import annotations
 
 import argparse
-import dataclasses
 import tempfile
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from importlib import import_module
 from pathlib import Path
 from typing import Any, Literal
@@ -42,7 +41,7 @@ from ansible_creator.utils import TermFeatures
 
 
 # Set of valid Config field names, used to filter argparser defaults
-_CONFIG_FIELDS = {f.name for f in dataclasses.fields(Config)}
+_CONFIG_FIELDS = {f.name for f in fields(Config)}
 
 
 try:
@@ -99,6 +98,10 @@ class _CapturingOutput(Output):
         Respects the same verbosity thresholds as the parent Output class:
         debug messages require verbosity >= 2, info requires >= 1.
 
+        Does NOT increment call_count because the parent's level-specific
+        methods (note, debug, info, etc.) already increment before calling
+        log(). This avoids double-counting.
+
         Args:
             msg: The message to capture.
             level: The level of the message.
@@ -110,19 +113,19 @@ class _CapturingOutput(Output):
         ):
             return
 
-        self.call_count[level.value.lower()] += 1
         self.messages.append(f"{level.value}: {msg}")
 
     def critical(self, msg: str) -> None:
         """Capture a critical message without calling sys.exit.
 
         The parent ``Output.critical`` calls ``sys.exit(1)``. This override
-        captures the message via ``self.log()`` instead of exiting.
+        captures the message instead of exiting.
 
         Args:
             msg: The message to capture.
         """
-        self.log(msg, level=Level.CRITICAL)
+        self.call_count["critical"] += 1
+        self.messages.append(f"{Level.CRITICAL.value}: {msg}")
 
 
 class V1:
@@ -195,11 +198,28 @@ class V1:
             )
 
         output = _CapturingOutput(verbosity=self.verbosity)
+
+        # Resolve and validate the command before creating a temp directory
+        try:
+            config_args = self._resolve_command(command_path, kwargs, output)
+        except (KeyError, TypeError) as exc:
+            return CreatorResult(
+                status="error",
+                path=Path(),
+                logs=output.messages,
+                message=str(exc),
+            )
+
         tmp_dir = Path(tempfile.mkdtemp(prefix="ansible-creator-"))
 
+        # Apply temp dir as the output path if the caller didn't provide one
+        subcommand = command_path[0]
+        if subcommand == "init" and "init_path" not in kwargs:
+            config_args["init_path"] = str(tmp_dir)
+        if subcommand == "add" and "path" not in kwargs:
+            config_args["path"] = str(tmp_dir)
+
         try:
-            config_args = self._resolve_command(command_path, kwargs, output, tmp_dir)
-            subcommand = command_path[0]
             subcommand_module = f"ansible_creator.subcommands.{subcommand}"
             subcommand_cls = subcommand.capitalize()
 
@@ -229,12 +249,11 @@ class V1:
             message=message,
         )
 
+    @staticmethod
     def _resolve_command(
-        self,
         command_path: tuple[str, ...],
         kwargs: dict[str, Any],
         output: _CapturingOutput,
-        tmp_dir: Path,
     ) -> dict[str, Any]:
         """Resolve a command path to a Config-compatible argument dictionary.
 
@@ -246,7 +265,6 @@ class V1:
             command_path: The command segments to traverse.
             kwargs: Caller-provided parameters to override defaults.
             output: The capturing output instance.
-            tmp_dir: Temporary directory for scaffolded output.
 
         Returns:
             Dictionary suitable for passing to ``Config(**result)``.
@@ -276,6 +294,7 @@ class V1:
         parser_instance = Parser()
         parser_instance._add(subparser=subparser_action)  # type: ignore[arg-type]  # noqa: SLF001
         parser_instance._init(subparser=subparser_action)  # type: ignore[arg-type]  # noqa: SLF001
+        parser_instance._schema(subparser=subparser_action)  # type: ignore[arg-type]  # noqa: SLF001
 
         # Walk the parser tree following the command path
         current_parser = main_parser
@@ -294,12 +313,12 @@ class V1:
                     found = True
                     break
             if not found:
-                available = self._get_subparser_choices(current_parser)
+                available = V1._get_subparser_choices(current_parser)
                 msg = f"Invalid command path segment: '{segment}'. Available: {available}"
                 raise KeyError(msg)
 
         # Collect defaults from the leaf parser
-        defaults = self._collect_defaults(current_parser)
+        defaults = V1._collect_defaults(current_parser)
 
         # Merge: defaults < routing < caller kwargs < api-managed values
         merged = {**defaults, **routing, **kwargs}
@@ -308,14 +327,8 @@ class V1:
         merged["creator_version"] = __version__
         merged["output"] = output
 
-        # Set the output path based on the subcommand,
-        # but only if the caller did not provide one explicitly.
         subcommand = command_path[0]
-        if subcommand == "init" and "init_path" not in kwargs:
-            merged["init_path"] = str(tmp_dir)
         if subcommand == "add":
-            if "path" not in kwargs:
-                merged["path"] = str(tmp_dir)
             # Skip collection path validation for API usage since the
             # target may be a bare temp directory without galaxy.yml.
             merged.setdefault("skip_collection_check", True)

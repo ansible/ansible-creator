@@ -1,0 +1,106 @@
+FROM ghcr.io/ansible/community-ansible-dev-tools:latest
+
+# Install additional Node.js dependencies (ansible-dev-tools already has Python tools)
+USER root
+RUN dnf update -y && \
+    dnf install -y \
+        git \
+        nodejs \
+        npm \
+        yarn \
+        which \
+        curl \
+        ca-certificates && \
+    dnf clean all
+
+# Install global Node.js tools
+RUN npm install -g tsx typescript
+
+# Create app directory
+WORKDIR /app
+
+# Clone the Ansible VS Code extension
+RUN git clone https://github.com/ansible/vscode-ansible.git vscode-ansible
+
+# Install extension dependencies
+WORKDIR /app/vscode-ansible
+RUN yarn install
+
+# Install MCP server dependencies specifically
+WORKDIR /app/vscode-ansible/packages/ansible-mcp-server
+RUN npm install --legacy-peer-deps
+
+# Create wrapper script
+WORKDIR /app
+COPY <<'EOF' ansible-mcp-wrapper.js
+#!/usr/bin/env node
+
+import { spawn } from "child_process";
+import { join } from "path";
+
+const extensionRoot = "/app/vscode-ansible";
+const mcpServerPath = join(extensionRoot, "packages/ansible-mcp-server/src/cli.ts");
+const workspaceRoot = process.env.WORKSPACE_ROOT || "/workspace";
+
+console.error(`Starting Ansible MCP Server from source...`);
+console.error(`Extension root: ${extensionRoot}`);
+console.error(`Workspace: ${workspaceRoot}`);
+
+const env = {
+  ...process.env,
+  WORKSPACE_ROOT: workspaceRoot,
+  NODE_PATH: [
+    join(extensionRoot, "node_modules"),
+    join(extensionRoot, "packages/ansible-mcp-server/node_modules"),
+    process.env.NODE_PATH || ""
+  ].filter(Boolean).join(":"),
+};
+
+// Use tsx to run the TypeScript source
+const child = spawn("tsx", [mcpServerPath, "--stdio"], {
+  stdio: ["inherit", "inherit", "inherit"],
+  env,
+  cwd: workspaceRoot,
+});
+
+child.on("error", (error) => {
+  console.error(`Failed to start MCP server: ${error.message}`);
+  process.exit(1);
+});
+
+child.on("exit", (code, signal) => {
+  if (signal) {
+    console.error(`MCP server terminated by signal: ${signal}`);
+    process.exit(1);
+  } else if (code !== 0) {
+    console.error(`MCP server exited with code: ${code}`);
+    process.exit(code);
+  }
+});
+
+// Handle termination signals
+process.on("SIGTERM", () => {
+  child.kill("SIGTERM");
+});
+
+process.on("SIGINT", () => {
+  child.kill("SIGINT");
+});
+EOF
+
+# Make wrapper executable
+RUN chmod +x ansible-mcp-wrapper.js
+
+# Python dependencies are already included in the base ansible-dev-tools image
+
+# Create workspace directory
+RUN mkdir -p /workspace
+
+# Switch back to the container's default user if needed
+# USER ansible
+
+# Set the working directory to workspace by default
+WORKDIR /workspace
+
+# Run the wrapper script
+CMD ["node", "/app/ansible-mcp-wrapper.js"]
