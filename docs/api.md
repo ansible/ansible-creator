@@ -110,14 +110,21 @@ result = api.run("add", "plugin", "lookup", plugin_name="my_lookup")
 
 **Important:** The scaffolded content is placed in a temporary directory
 returned via `result.path`. The caller is responsible for copying what they
-need and cleaning up (e.g., `shutil.rmtree(result.path)`).
+need and cleaning up (e.g., `shutil.rmtree(result.path)`). On validation
+errors (invalid command path, missing parameters), `result.path` is `None`
+because no temporary directory was created. Always check before cleanup:
+
+```python
+if result.path is not None:
+    shutil.rmtree(result.path)
+```
 
 ## `CreatorResult` dataclass
 
 | Field     | Type              | Description                                                |
 |-----------|-------------------|------------------------------------------------------------|
 | `status`  | `"success"` or `"error"` | Whether the operation succeeded                     |
-| `path`    | `pathlib.Path`    | Temp directory containing scaffolded content               |
+| `path`    | `Path \| None`    | Temp directory with scaffolded content, or `None` on validation errors |
 | `logs`    | `list[str]`       | Captured log messages (format: `"Level: message"`)         |
 | `message` | `str`             | Summary on success, error description on failure           |
 

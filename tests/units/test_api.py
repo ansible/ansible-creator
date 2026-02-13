@@ -6,7 +6,6 @@ import argparse
 import json
 import shutil
 
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
@@ -20,6 +19,8 @@ from ansible_creator.subcommands.schema import Schema
 
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from ansible_creator.output import Output
 
 
@@ -143,12 +144,14 @@ class TestRunInit:
         result = creator_api.run("init", "collection", collection="testns.testcol")
         try:
             assert result.status == "success", result.message
+            assert result.path is not None
             assert result.path.exists()
             assert (result.path / "galaxy.yml").exists()
             assert (result.path / "plugins").is_dir()
             assert "collection project created" in result.message
         finally:
-            shutil.rmtree(result.path, ignore_errors=True)
+            if result.path is not None:
+                shutil.rmtree(result.path, ignore_errors=True)
 
     def test_init_playbook(self, creator_api: V1) -> None:
         """Test scaffolding a playbook project.
@@ -159,11 +162,13 @@ class TestRunInit:
         result = creator_api.run("init", "playbook", collection="testns.testcol")
         try:
             assert result.status == "success", result.message
+            assert result.path is not None
             assert result.path.exists()
             assert (result.path / "site.yml").exists()
             assert "playbook project created" in result.message
         finally:
-            shutil.rmtree(result.path, ignore_errors=True)
+            if result.path is not None:
+                shutil.rmtree(result.path, ignore_errors=True)
 
     def test_init_execution_env(self, creator_api: V1) -> None:
         """Test scaffolding an execution environment project.
@@ -174,11 +179,13 @@ class TestRunInit:
         result = creator_api.run("init", "execution_env")
         try:
             assert result.status == "success", result.message
+            assert result.path is not None
             assert result.path.exists()
             assert (result.path / "execution-environment.yml").exists()
             assert "execution_env project created" in result.message
         finally:
-            shutil.rmtree(result.path, ignore_errors=True)
+            if result.path is not None:
+                shutil.rmtree(result.path, ignore_errors=True)
 
 
 # --- Add resource tests ---
@@ -196,11 +203,13 @@ class TestRunAddResource:
         result = creator_api.run("add", "resource", "devfile")
         try:
             assert result.status == "success", result.message
+            assert result.path is not None
             assert result.path.exists()
             assert (result.path / "devfile.yaml").exists()
             assert "Resource added to" in result.message
         finally:
-            shutil.rmtree(result.path, ignore_errors=True)
+            if result.path is not None:
+                shutil.rmtree(result.path, ignore_errors=True)
 
     def test_add_resource_devcontainer(self, creator_api: V1) -> None:
         """Test adding a devcontainer resource.
@@ -211,11 +220,13 @@ class TestRunAddResource:
         result = creator_api.run("add", "resource", "devcontainer")
         try:
             assert result.status == "success", result.message
+            assert result.path is not None
             assert result.path.exists()
             assert (result.path / ".devcontainer").is_dir()
             assert "Resource added to" in result.message
         finally:
-            shutil.rmtree(result.path, ignore_errors=True)
+            if result.path is not None:
+                shutil.rmtree(result.path, ignore_errors=True)
 
     def test_add_resource_execution_environment(self, creator_api: V1) -> None:
         """Test adding an execution-environment resource.
@@ -226,10 +237,12 @@ class TestRunAddResource:
         result = creator_api.run("add", "resource", "execution-environment")
         try:
             assert result.status == "success", result.message
+            assert result.path is not None
             assert result.path.exists()
             assert (result.path / "execution-environment.yml").exists()
         finally:
-            shutil.rmtree(result.path, ignore_errors=True)
+            if result.path is not None:
+                shutil.rmtree(result.path, ignore_errors=True)
 
     def test_add_resource_ai(self, creator_api: V1) -> None:
         """Test adding AI agent helper files.
@@ -240,10 +253,12 @@ class TestRunAddResource:
         result = creator_api.run("add", "resource", "ai")
         try:
             assert result.status == "success", result.message
+            assert result.path is not None
             assert result.path.exists()
             assert (result.path / "AGENTS.md").exists()
         finally:
-            shutil.rmtree(result.path, ignore_errors=True)
+            if result.path is not None:
+                shutil.rmtree(result.path, ignore_errors=True)
 
 
 # --- Add plugin tests ---
@@ -266,11 +281,13 @@ class TestRunAddPlugin:
         result = creator_api.run("add", "plugin", "filter", plugin_name="my_filter")
         try:
             assert result.status == "success", result.message
+            assert result.path is not None
             assert result.path.exists()
             assert (result.path / "plugins" / "filter" / "my_filter.py").exists()
             assert "Filter plugin added to" in result.message
         finally:
-            shutil.rmtree(result.path, ignore_errors=True)
+            if result.path is not None:
+                shutil.rmtree(result.path, ignore_errors=True)
 
     def test_add_plugin_lookup(self, creator_api: V1) -> None:
         """Test adding a lookup plugin.
@@ -281,10 +298,12 @@ class TestRunAddPlugin:
         result = creator_api.run("add", "plugin", "lookup", plugin_name="my_lookup")
         try:
             assert result.status == "success", result.message
+            assert result.path is not None
             assert result.path.exists()
             assert (result.path / "plugins" / "lookup" / "my_lookup.py").exists()
         finally:
-            shutil.rmtree(result.path, ignore_errors=True)
+            if result.path is not None:
+                shutil.rmtree(result.path, ignore_errors=True)
 
     def test_add_plugin_module(self, creator_api: V1) -> None:
         """Test adding a module plugin.
@@ -295,10 +314,12 @@ class TestRunAddPlugin:
         result = creator_api.run("add", "plugin", "module", plugin_name="my_module")
         try:
             assert result.status == "success", result.message
+            assert result.path is not None
             assert result.path.exists()
             assert (result.path / "plugins" / "modules" / "my_module.py").exists()
         finally:
-            shutil.rmtree(result.path, ignore_errors=True)
+            if result.path is not None:
+                shutil.rmtree(result.path, ignore_errors=True)
 
 
 # --- Error handling tests ---
@@ -317,7 +338,7 @@ class TestErrorHandling:
         assert result.status == "error"
         assert "No command path" in result.message
         # No temp dir should be created for empty paths
-        assert result.path == Path()
+        assert result.path is None
 
     def test_invalid_command_path(self, creator_api: V1) -> None:
         """Test that an invalid command path returns an error with no temp dir.
@@ -329,7 +350,7 @@ class TestErrorHandling:
         assert result.status == "error"
         assert "Invalid command path" in result.message
         # No temp dir should be created when resolution fails
-        assert result.path == Path()
+        assert result.path is None
 
     def test_invalid_subcommand_segment(self, creator_api: V1) -> None:
         """Test that an invalid segment in a valid path returns an error.
@@ -340,7 +361,7 @@ class TestErrorHandling:
         result = creator_api.run("init", "nonexistent")
         assert result.status == "error"
         assert "Invalid command path" in result.message
-        assert result.path == Path()
+        assert result.path is None
 
     def test_runtime_error_returns_temp_dir(
         self,
@@ -367,10 +388,11 @@ class TestErrorHandling:
         try:
             assert result.status == "error"
             assert result.message == "boom"
-            assert result.path != Path()
+            assert result.path is not None
             assert result.path.exists()
         finally:
-            shutil.rmtree(result.path, ignore_errors=True)
+            if result.path is not None:
+                shutil.rmtree(result.path, ignore_errors=True)
 
     def test_result_dataclass_defaults(self, tmp_path: Path) -> None:
         """Test CreatorResult dataclass default values.
@@ -398,10 +420,12 @@ class TestVerbosity:
         result = creator_api_verbose.run("init", "execution_env")
         try:
             assert result.status == "success", result.message
+            assert result.path is not None
             debug_msgs = [m for m in result.logs if m.startswith("Debug:")]
             assert len(debug_msgs) > 0, "Expected debug messages with verbosity=2"
         finally:
-            shutil.rmtree(result.path, ignore_errors=True)
+            if result.path is not None:
+                shutil.rmtree(result.path, ignore_errors=True)
 
     def test_default_verbosity_no_debug(self, creator_api: V1) -> None:
         """Test that default verbosity does not capture debug messages.
@@ -412,10 +436,12 @@ class TestVerbosity:
         result = creator_api.run("init", "execution_env")
         try:
             assert result.status == "success", result.message
+            assert result.path is not None
             debug_msgs = [m for m in result.logs if m.startswith("Debug:")]
             assert not debug_msgs, f"Unexpected debug messages: {debug_msgs}"
         finally:
-            shutil.rmtree(result.path, ignore_errors=True)
+            if result.path is not None:
+                shutil.rmtree(result.path, ignore_errors=True)
 
 
 # --- CapturingOutput tests ---
@@ -495,7 +521,8 @@ class TestMessageExtraction:
             assert result.message == ""
             assert len(result.logs) > 0
         finally:
-            shutil.rmtree(result.path, ignore_errors=True)
+            if result.path is not None:
+                shutil.rmtree(result.path, ignore_errors=True)
 
 
 # --- Explicit path override tests ---
@@ -522,7 +549,8 @@ class TestExplicitPaths:
             assert result.status == "success", result.message
             assert (target / "execution-environment.yml").exists()
         finally:
-            shutil.rmtree(result.path, ignore_errors=True)
+            if result.path is not None:
+                shutil.rmtree(result.path, ignore_errors=True)
 
     def test_add_with_explicit_path(self, creator_api: V1, tmp_path: Path) -> None:
         """Test add resource with an explicit path kwarg.
@@ -543,7 +571,8 @@ class TestExplicitPaths:
             assert result.status == "success", result.message
             assert (target / "devfile.yaml").exists()
         finally:
-            shutil.rmtree(result.path, ignore_errors=True)
+            if result.path is not None:
+                shutil.rmtree(result.path, ignore_errors=True)
 
 
 # --- Schema class direct tests ---

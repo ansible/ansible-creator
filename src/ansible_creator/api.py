@@ -58,14 +58,17 @@ class CreatorResult:
 
     Attributes:
         status: Whether the operation succeeded or failed.
-        path: Path to the temporary directory containing scaffolded content.
-            The caller is responsible for cleanup (e.g. ``shutil.rmtree``).
+        path: Path to the temporary directory containing scaffolded content,
+            or ``None`` when the command failed before any directory was
+            created (e.g. invalid command path). The caller is responsible
+            for cleanup (e.g. ``shutil.rmtree``) when ``path`` is not
+            ``None``.
         logs: Log messages captured during execution.
         message: Summary message on success, or error description on failure.
     """
 
     status: Literal["success", "error"]
-    path: Path
+    path: Path | None
     logs: list[str] = field(default_factory=list)
     message: str = ""
 
@@ -193,7 +196,7 @@ class V1:
         if not command_path:
             return CreatorResult(
                 status="error",
-                path=Path(),
+                path=None,
                 message="No command path provided.",
             )
 
@@ -205,7 +208,7 @@ class V1:
         except (KeyError, TypeError) as exc:
             return CreatorResult(
                 status="error",
-                path=Path(),
+                path=None,
                 logs=output.messages,
                 message=str(exc),
             )
