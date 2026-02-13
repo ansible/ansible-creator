@@ -259,6 +259,7 @@ class Output:
         term_features: TermFeatures,
         verbosity: int,
         display: str = "text",
+        captured_messages: list[str] | None = None,
     ) -> None:
         """Initialize the output object.
 
@@ -269,8 +270,13 @@ class Output:
             term_features: Terminal features
             verbosity: The verbosity level
             display: Whether to output as text or JSON
+            captured_messages: When not None, messages are appended to this
+                list instead of being printed to the console. File logging
+                still operates normally when configured. Used by the V1 API
+                to collect output programmatically.
         """
         self._verbosity = verbosity
+        self._captured_messages = captured_messages
         self.call_count: dict[str, int] = {
             "critical": 0,
             "debug": 0,
@@ -300,12 +306,25 @@ class Output:
         self.display = display
 
     def critical(self, msg: str) -> None:
-        """Print a critical message to the console.
+        """Print a critical message to the console, or capture and raise.
+
+        When ``captured_messages`` is set (API mode), the message is logged
+        to file (if configured), captured, and a ``CreatorError`` is raised
+        instead of calling ``sys.exit(1)``.
 
         Args:
             msg: The message to print
+
+        Raises:
+            CreatorError: When running in capture mode (API usage).
         """
         self.call_count["critical"] += 1
+        if self._captured_messages is not None:
+            # Route through self.log() so file logging is not bypassed.
+            self.log(msg, level=Level.CRITICAL)
+            from ansible_creator.exceptions import CreatorError  # noqa: PLC0415
+
+            raise CreatorError(msg)
         self.log(msg, level=Level.CRITICAL)
         sys.exit(1)
 
@@ -364,7 +383,11 @@ class Output:
         self.log(msg, level=Level.WARNING)
 
     def log(self, msg: str, level: Level = Level.ERROR) -> None:
-        """Print a message to the console.
+        """Print a message to the console (or capture it in API mode).
+
+        When ``captured_messages`` was provided at init time, messages are
+        appended to that list instead of being printed.  File logging still
+        operates normally regardless of capture mode.
 
         Args:
             msg: The message to print
@@ -378,6 +401,11 @@ class Output:
         if (self._verbosity < debug and level == Level.DEBUG) or (
             self._verbosity < info and level == Level.INFO
         ):
+            return
+
+        # API capture mode: collect messages instead of printing
+        if self._captured_messages is not None:
+            self._captured_messages.append(f"{level.value}: {msg}")
             return
 
         if self.display == "json":

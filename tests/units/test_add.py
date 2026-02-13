@@ -46,6 +46,7 @@ class ConfigDict(TypedDict):
         no_overwrite: To not overwrite files in an existing directory.
         image: The image to be used while scaffolding devcontainer.
         role_name: The name of role to be used while scaffolding.
+        skip_collection_check: Whether to skip collection path validation.
     """
 
     creator_version: str
@@ -61,6 +62,7 @@ class ConfigDict(TypedDict):
     no_overwrite: bool
     image: str
     role_name: str
+    skip_collection_check: bool
 
 
 @pytest.fixture(name="cli_args")
@@ -88,6 +90,7 @@ def fixture_cli_args(tmp_path: Path, output: Output) -> ConfigDict:
         "no_overwrite": False,
         "image": "",
         "role_name": "",
+        "skip_collection_check": False,
     }
 
 
@@ -278,9 +281,9 @@ def test_error_invalid_collection_path(
 
     """
     cli_args["plugin_type"] = "lookup"
+    cli_args["skip_collection_check"] = skip_collection_check
     add = Add(
         Config(**cli_args),
-        skip_collection_check=skip_collection_check,
     )
 
     if skip_collection_check:
