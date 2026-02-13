@@ -13,6 +13,7 @@ import pytest
 
 from ansible_creator.api import V1, CreatorResult, _CapturingOutput
 from ansible_creator.config import Config
+from ansible_creator.exceptions import CreatorError
 from ansible_creator.output import Level
 from ansible_creator.subcommands.init import Init
 from ansible_creator.subcommands.schema import Schema
@@ -340,6 +341,36 @@ class TestErrorHandling:
         assert result.status == "error"
         assert "Invalid command path" in result.message
         assert result.path == Path()
+
+    def test_runtime_error_returns_temp_dir(
+        self,
+        creator_api: V1,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """Test that a runtime error during execution returns an error result.
+
+        When command resolution succeeds but the subcommand raises
+        ``CreatorError``, the result should contain the temp directory
+        (so the caller can inspect partial output) and the error message.
+
+        Args:
+            creator_api: V1 API instance.
+            monkeypatch: Pytest monkeypatch fixture.
+        """
+
+        def _boom(_self: Init) -> None:
+            msg = "boom"
+            raise CreatorError(msg)
+
+        monkeypatch.setattr(Init, "run", _boom)
+        result = creator_api.run("init", "execution_env")
+        try:
+            assert result.status == "error"
+            assert result.message == "boom"
+            assert result.path != Path()
+            assert result.path.exists()
+        finally:
+            shutil.rmtree(result.path, ignore_errors=True)
 
     def test_result_dataclass_defaults(self, tmp_path: Path) -> None:
         """Test CreatorResult dataclass default values.
