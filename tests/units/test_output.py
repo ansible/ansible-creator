@@ -93,3 +93,14 @@ def test_console_output(level: str, capsys: pytest.CaptureFixture[str], tmp_path
     assert standard_x.endswith(Color.END + "\n")
     assert level.capitalize() in standard_x
     assert message in standard_x
+
+
+def test_multiline_message() -> None:
+    """Test Msg.to_lines() handles multi-line messages."""
+    expected_min_lines = 2
+    msg = Msg(message="first line\nsecond line", prefix=Level.NOTE)
+    lines = msg.to_lines(color=False, width=120, with_prefix=True)
+    combined = "\n".join(lines)
+    assert "first line" in combined
+    assert "second line" in combined
+    assert len(lines) >= expected_min_lines

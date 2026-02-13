@@ -26,6 +26,8 @@ ignorePaths:
 # - mkdocs.yml
 ignoreWords:
   - adoc
+  - argparser
+  - myns
   - CAP_MKNOD
   - CMDB
   - equalto

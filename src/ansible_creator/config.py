@@ -37,6 +37,7 @@ class Config:
         path: The file path where the resource should be added.
         image: The image to be used while scaffolding devcontainer.
         role_name: The role to be scaffolded.
+        skip_collection_check: Whether to skip collection path validation.
     """
 
     creator_version: str
@@ -57,6 +58,7 @@ class Config:
     path: str | Path = "./"
     image: str = ""
     role_name: str = "run"
+    skip_collection_check: bool = False
 
     def __post_init__(self) -> None:
         """Post process config values."""
