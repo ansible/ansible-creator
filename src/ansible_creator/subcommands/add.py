@@ -172,7 +172,7 @@ class Add:
             template_data = self._get_devcontainer_template_data()
         elif self._resource_type == "execution-environment":
             template_data = self._get_ee_template_data()
-        elif self._resource_type in {"play-argspec", "ai"}:
+        elif self._resource_type in {"play-argspec", "ai", "ee-ci"}:
             template_data = self._get_template_data()
         elif self._resource_type == "role":
             self._check_collection_path()

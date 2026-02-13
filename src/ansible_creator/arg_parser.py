@@ -182,7 +182,7 @@ class Parser:
                 Msg(
                     prefix=Level.ERROR,
                     message="Missing required argument 'resource-type'.\n"
-                    "Choose from: devcontainer, devfile, execution-environment, "
+                    "Choose from: devcontainer, devfile, ee-ci, execution-environment, "
                     "play-argspec, role",
                 )
             )
@@ -341,6 +341,7 @@ class Parser:
         self._add_resource_ai(subparser=subparser)
         self._add_resource_devcontainer(subparser=subparser)
         self._add_resource_devfile(subparser=subparser)
+        self._add_resource_ee_ci(subparser=subparser)
         self._add_resource_execution_env(subparser=subparser)
         self._add_resource_play_argspec(subparser=subparser)
         self._add_resource_role(subparser=subparser)
@@ -406,6 +407,29 @@ class Parser:
             nargs="?",
             help="The destination directory for the devfile file. The default is the "
             "current working directory.",
+        )
+
+        self._add_overwrite(parser)
+        self._add_args_common(parser)
+
+    def _add_resource_ee_ci(self, subparser: SubParser[argparse.ArgumentParser]) -> None:
+        """Add EE CI GitHub Action workflow to an existing path.
+
+        Args:
+            subparser: The subparser to add EE CI workflow to
+        """
+        parser = subparser.add_parser(
+            "ee-ci",
+            help="Add a GitHub Action CI workflow for building execution environments.",
+        )
+
+        parser.add_argument(
+            "path",
+            default="./",
+            metavar="path",
+            nargs="?",
+            help="The destination directory for the EE CI workflow. "
+            "The default is the current working directory.",
         )
 
         self._add_overwrite(parser)
