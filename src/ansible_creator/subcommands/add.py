@@ -27,14 +27,11 @@ class Add:
     def __init__(
         self,
         config: Config,
-        *,
-        skip_collection_check: bool = False,
     ) -> None:
         """Initialize the add action.
 
         Args:
             config: App configuration object.
-            skip_collection_check: Whether to skip the check for a valid collection before adding.
         """
         self._resource_type: str = config.resource_type
         self._role_name: str = config.role_name
@@ -54,7 +51,7 @@ class Add:
         self._namespace: str = config.namespace or ""
         self._collection_name: str = config.collection_name or ""
 
-        self._skip_collection_check = skip_collection_check
+        self._skip_collection_check = config.skip_collection_check
 
     @property
     def _plugin_type_output(self) -> str:
