@@ -38,6 +38,8 @@ jobs:
   forum_post:
     needs: release
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Retrieve the forum post script from team-devtools

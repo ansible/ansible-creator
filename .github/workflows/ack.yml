@@ -9,6 +9,12 @@ concurrency:
 on:
   pull_request_target:
     types: [opened, labeled, unlabeled, synchronize]
+
+permissions:
+  checks: write
+  contents: write
+  pull-requests: write
+
 jobs:
   ack:
     uses: ansible/team-devtools/.github/workflows/ack.yml@main

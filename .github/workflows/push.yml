@@ -8,6 +8,11 @@ on:
       - "releases/**"
       - "stable/**"
   workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: read
+
 jobs:
   ack:
     uses: ansible/team-devtools/.github/workflows/push.yml@main
