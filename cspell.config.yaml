@@ -27,6 +27,8 @@ ignorePaths:
 ignoreWords:
   - adoc
   - argparser
+  - endfor
+  - endif
   - myns
   - CAP_MKNOD
   - CMDB
