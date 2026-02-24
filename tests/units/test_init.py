@@ -21,7 +21,7 @@ from ansible_creator.utils import TermFeatures
 from tests.defaults import FIXTURES_DIR, UUID_LENGTH
 
 
-class ConfigDict(TypedDict):
+class ConfigDict(TypedDict, total=False):
     """Type hint for Config dictionary.
 
     Attributes:
@@ -34,6 +34,11 @@ class ConfigDict(TypedDict):
         force: Force overwrite of existing directory.
         overwrite: To overwrite files in an existing directory.
         no_overwrite: To not overwrite files in an existing directory.
+        base_image: Base image for execution environment.
+        ee_collections: List of Ansible collections for execution environment.
+        ee_python_deps: List of Python dependencies for execution environment.
+        ee_system_packages: List of system packages for execution environment.
+        ee_name: Name/tag for the execution environment image.
     """
 
     creator_version: str
@@ -45,6 +50,11 @@ class ConfigDict(TypedDict):
     force: bool
     overwrite: bool
     no_overwrite: bool
+    base_image: str
+    ee_collections: list[str]
+    ee_python_deps: list[str]
+    ee_system_packages: list[str]
+    ee_name: str
 
 
 @pytest.fixture(name="cli_args")
