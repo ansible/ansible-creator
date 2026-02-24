@@ -3,7 +3,7 @@ version: 3
 
 images:
   base_image:
-    name: quay.io/fedora/fedora:41
+    name: {{ ee_base_image }}
 
 dependencies:
   # Use python3
@@ -16,20 +16,28 @@ dependencies:
 
   ansible_runner:
     package_pip: ansible-runner
+{%- if ee_system_packages %}
 
   system:
-    - openssh-clients
-    - sshpass
+{%- for pkg in ee_system_packages %}
+    - {{ pkg }}
+{%- endfor %}
+{%- endif %}
+{%- if ee_python_deps %}
 
   python:
-    - ansible-navigator
-    - boto3
-    - requests
+{%- for dep in ee_python_deps %}
+    - {{ dep }}
+{%- endfor %}
+{%- endif %}
+{%- if ee_collections %}
 
   galaxy:
     collections:
-      - name: ansible.posix
-      - name: ansible.utils
+{%- for col in ee_collections %}
+      - name: {{ col }}
+{%- endfor %}
+{%- endif %}
 
 additional_build_steps:
   append_base:
@@ -37,4 +45,4 @@ additional_build_steps:
 
 options:
   tags:
-    - ansible_sample_ee
+    - {{ ee_name }}

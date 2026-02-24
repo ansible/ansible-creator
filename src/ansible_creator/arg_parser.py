@@ -751,6 +751,50 @@ class Parser:
             help="The destination directory for the EE project.",
         )
 
+        parser.add_argument(
+            "--base-image",
+            default="quay.io/fedora/fedora:41",
+            help="Base image for the execution environment. "
+            "Default: quay.io/fedora/fedora:41",
+        )
+
+        parser.add_argument(
+            "--collection",
+            dest="ee_collections",
+            action="append",
+            default=[],
+            metavar="COLLECTION",
+            help="Ansible collection to include (can be specified multiple times). "
+            "Example: --collection ansible.posix --collection ansible.utils",
+        )
+
+        parser.add_argument(
+            "--python-dep",
+            dest="ee_python_deps",
+            action="append",
+            default=[],
+            metavar="PACKAGE",
+            help="Python package dependency (can be specified multiple times). "
+            "Example: --python-dep requests --python-dep boto3",
+        )
+
+        parser.add_argument(
+            "--system-package",
+            dest="ee_system_packages",
+            action="append",
+            default=[],
+            metavar="PACKAGE",
+            help="System package dependency (can be specified multiple times). "
+            "Example: --system-package openssh-clients --system-package sshpass",
+        )
+
+        parser.add_argument(
+            "--ee-name",
+            default="ansible_sample_ee",
+            help="Name/tag for the execution environment image. "
+            "Default: ansible_sample_ee",
+        )
+
         self._add_args_common(parser)
         self._add_args_init_common(parser)
 

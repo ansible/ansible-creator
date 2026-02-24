@@ -54,6 +54,11 @@ class Init:
         self._templar = Templar()
         self.output: Output = config.output
         self._role_name: str = config.role_name
+        self._ee_base_image: str = config.base_image
+        self._ee_collections: list[str] = list(config.ee_collections)
+        self._ee_python_deps: list[str] = list(config.ee_python_deps)
+        self._ee_system_packages: list[str] = list(config.ee_system_packages)
+        self._ee_name: str = config.ee_name
 
     def run(self) -> None:
         """Start scaffolding skeleton."""
@@ -131,6 +136,11 @@ class Init:
             creator_version=self._creator_version,
             dev_file_name=self.unique_name_in_devfile(),
             role_name=self._role_name,
+            ee_base_image=self._ee_base_image,
+            ee_collections=self._ee_collections,
+            ee_python_deps=self._ee_python_deps,
+            ee_system_packages=self._ee_system_packages,
+            ee_name=self._ee_name,
         )
 
         if self._project == "execution_env":
