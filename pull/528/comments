@@ -1,0 +1,5 @@
+Thanks for adding parameterization for EE init — this is a solid improvement.
+
+One thought for future extensibility: if we add another EE-adjacent project type (e.g. an `mcp-ee` that scaffolds both a collection skeleton and an `execution-environment.yml`), it may be worth abstracting these EE options so they can be reused across multiple init targets. Concretely: a shared helper to add the EE-related argparse flags, and possibly grouping the config/template inputs into a single `ee` options structure (base_image, collections, python_deps, system_packages, ee_name). That would reduce duplication and make composition (collection + EE) easier.
+
+Also on CLI UX: since argparse help is effectively flat even if docs/grouping imply hierarchy, it may be clearer to EE-prefix EE-specific flags (e.g. `--ee-base-image`, `--ee-collection` (repeatable), `--ee-python-dep`, `--ee-system-package`, `--ee-name`) to avoid future ambiguity (especially for an `mcp-ee` project where “collection” can mean the collection being created vs collections included in the EE).
