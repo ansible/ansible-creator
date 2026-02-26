@@ -27,6 +27,7 @@ myproject
 myuser
 netcommon
 notesdir
+prek
 pydoclint
 rulebook
 rulebooks
@@ -37,4 +38,5 @@ testname
 testns
 testorg
 testpaths
+tombi
 webservers
