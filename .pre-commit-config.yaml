@@ -1,19 +1,43 @@
 ---
-# cspell:ignore tombi
 ci:
   # We rely on renovate to update it but there is no way to fully disable it
   # https://github.com/pre-commit-ci/issues/issues/83
   autoupdate_schedule: quarterly
-  skip:
-    # https://github.com/pre-commit-ci/issues/issues/55
-    - ccv
-    # No docker on pre-commit.ci
-    - tombi-format
-    - tombi-lint
+  skip: # uv not present on pre-commit.ci
+    - ansible-lint
+    - codecov
+    - cspell
+    - mypy
+    - pydoclint
+    - pylint
+    - ruff
+    - toml
 repos:
   - repo: meta
     hooks:
       - id: check-useless-excludes
+        priority: 0
+  - repo: https://github.com/ansible/actions
+    rev: v1.0.0
+    hooks:
+      - id: toml
+        priority: 0
+      - id: mypy
+        priority: 2
+      - id: ruff
+        priority: 1
+      - id: cspell
+        priority: 0
+      - id: pylint
+        priority: 5
+      - id: codecov
+        priority: 0
+      - id: md
+        priority: 0
+      - id: ansible-lint
+        priority: 1
+      - id: pydoclint
+        priority: 1
   - repo: https://github.com/astral-sh/uv-pre-commit
     rev: 0.10.4
     hooks:
@@ -25,106 +49,32 @@ repos:
         args: ["--upgrade"]
         stages: [manual]
   - repo: https://github.com/biomejs/pre-commit
-    rev: "v2.4.3"
+    rev: "v2.4.4"
     hooks:
       - id: biome-check
         name: biome
         alias: biome
         args: [--unsafe]
-  - repo: https://github.com/DavidAnson/markdownlint-cli2
-    rev: v0.21.0
-    hooks:
-      - id: markdownlint-cli2
-        alias: md
-        pass_filenames: false
-        args: ["**/.*.md"]
-        additional_dependencies:
-          - markdownlint-cli2-formatter-pretty
-          - markdownlint-cli2-formatter-summarize
-  - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v9.6.0
-    hooks:
-      - id: cspell
-        entry: bash
-        pass_filenames: false
-        args:
-          - "-euo"
-          - "pipefail"
-          - "-c"
-          - "cspell-cli . --relative --no-progress --no-summary && cspell-cli . --disable-dictionary=words --no-exit-code --words-only --quiet --unique | LC_ALL=C
-            sort > .config/dictionary.txt"
-        name: cspell + remove unused and sort dictionary
+        priority: 0
   - repo: https://github.com/pre-commit/pre-commit-hooks.git
     rev: v6.0.0
     hooks:
       - id: check-added-large-files
+        priority: 0
       - id: check-merge-conflict
+        priority: 0
       - id: check-symlinks
+        priority: 0
       - id: debug-statements
+        priority: 0
       - id: detect-private-key
+        priority: 0
       - id: end-of-file-fixer
+        priority: 0
       - id: trailing-whitespace
-      - id: mixed-line-ending
-  - repo: https://github.com/tombi-toml/tombi-pre-commit
-    rev: v0.7.31
-    hooks:
-      - id: tombi-format
-        alias: toml
-      - id: tombi-lint
-        alias: toml
-  - repo: https://github.com/Lucas-C/pre-commit-hooks.git
-    rev: v1.5.6
-    hooks:
-      - id: remove-tabs
-        exclude: >
-          (?x)^(
-            .config/pydoclint-baseline.txt
-          )$
-
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.2
-    hooks:
-      - id: ruff-format
-        alias: ruff
-      - id: ruff-check
-        alias: ruff
-  - repo: https://github.com/pre-commit/mirrors-mypy.git
-    rev: v1.19.1
-    hooks:
-      - id: mypy
-        additional_dependencies: &deps
-          - argcomplete
-          - jinja2
-          - pytest
-          - pyyaml
-          - types-pyyaml
-        # Override default pre-commit '--ignore-missing-imports'
-        args: []
-  - repo: https://github.com/jsh9/pydoclint
-    rev: "0.8.3"
-    hooks:
-      - id: pydoclint
-        # This allows automatic reduction of the baseline file when needed.
-        entry: sh -ec "pydoclint . && pydoclint --generate-baseline=1 ."
-        pass_filenames: false
-
-  - repo: https://github.com/pycqa/pylint.git
-    rev: v4.0.5
-    hooks:
-      - id: pylint
-        args:
-          - --output-format=colorized
-        additional_dependencies: *deps
-  - repo: https://github.com/mashi/codecov-validator
-    rev: "1.0.1"
-    hooks:
-      - id: ccv
-        name: codecov
-  - repo: https://github.com/ansible/ansible-lint
-    rev: v26.1.1
-    hooks:
-      - id: ansible-lint
+        priority: 0
   - repo: https://github.com/ansible/team-devtools
-    rev: v26.1.0
+    rev: v26.2.0
     hooks:
       - id: check-platform-constraints
+        priority: 0

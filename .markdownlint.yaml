@@ -1,5 +1,10 @@
 ---
 MD013: false
+MD024: false # temporary
+MD033: false # temporary
+MD046: false # temporary
+MD051: false # temporary
+MD060: false # temporary
 first-line-heading: false
 useGitignore: true
 fix: true

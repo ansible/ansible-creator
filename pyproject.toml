@@ -46,22 +46,24 @@ dev = [
   "ansible-lint>=25.8.2",
   "argcomplete>=3.6.2",
   "coverage[toml]>=7.10.6",
-  "mypy>=1.17.1",
-  "pre-commit>=4.3.0",
-  "pydoclint>=0.7.3",
-  "pylint>=3.3.8",
   "pytest>=8.4.2",
   "pytest-instafail>=0.5.0",
   "pytest-plus>=0.8.1",
   "pytest-xdist>=3.8.0",
-  "ruff>=0.12.11",
-  "toml-sort>=0.24.2",
   "tox>=4.30.1",
-  "types-pyyaml>=6.0.12.20250822",
   "uv>=0.8.15",
 ]
 docs = ["mkdocs-ansible>=24.3.0"]
-lint = ["pre-commit-uv>=4.1.5"]
+lint = [
+  "ansible-lint>=26.1.1",
+  "mypy>=1.17.1",
+  "prek>=0.3.3",
+  "pydoclint>=0.7.3",
+  "pylint>=3.3.8",
+  "ruff>=0.12.11",
+  "tombi>=0.7.32",
+  "types-pyyaml>=6.0.12.20250822",
+]
 pkg = ["build>=1.3.0", "twine>=6.1.0"]
 
 [build-system]
@@ -91,7 +93,7 @@ source = ["src"]
 
 [tool.mypy]
 cache_dir = "./.cache/.mypy"
-exclude = "tests/fixtures"
+exclude = ["build", "tests/fixtures"]
 files = ["src", "tests"]
 strict = true
 
@@ -117,9 +119,19 @@ max-line-length = 100
 
 [tool.pylint.master]
 good-names = "i,j,k,ex,Run,_,f,fh"
-ignore = [
+ignore-paths = [
+  ".ansible",
+  ".cache",
+  ".mypy_cache",
+  ".pytest_cache",
+  ".tox",
+  ".venv",
   "_version.py",  # built by setuptools_scm
+  "build",
+  "dist",
+  "node_modules",
   "test_integration.py",  # will have a pytest-ansible import error
+  "tests/fixtures/collection/",
 ]
 jobs = 0
 no-docstring-rgx = "__.*__"
@@ -435,7 +447,7 @@ skip_missing_interpreters = true
 [tool.tox.env.deps]
 commands = [
   [
-    "pre-commit",
+    "prek",
     "run",
     "--all-files",
     "--show-diff-on-failure",
@@ -443,7 +455,7 @@ commands = [
     "manual",
     "deps",
   ],
-  ["pre-commit", "autoupdate"],
+  ["prek", "autoupdate"],
   ["tox", "-e", "lint"],
 ]
 commands_post = []
@@ -468,7 +480,7 @@ description = "Builds docs"
 skip_install = false
 
 [tool.tox.env.lint]
-commands = [["pre-commit", "run", "--all-files", "--show-diff-on-failure"]]
+commands = [["prek", "run", "--all-files", "--show-diff-on-failure"]]
 commands_post = []
 commands_pre = []
 dependency_groups = ["lint"]
@@ -549,7 +561,7 @@ pass_env = [
   "SSH_AUTH_SOCK",
   "TERM",
   "USER",
-  "XDG_*",  # needed by pre-commit or it might fail to find the interpreter
+  "XDG_*",  # needed by prek or it might fail to find the interpreter
 ]
 
 [tool.tox.env_run_base.set_env]
