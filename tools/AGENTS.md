@@ -48,7 +48,7 @@ to add other sections if needed:
 
 - When creating references try to avoid "see" sections if you can just use markdown hyperlinks inside the text.
 - Use inline markdown code blocks (backticks) when mentioning keywords or commands that are to be executed.
-- After you modify files run `pre-commit` and include changes it makes and fix reported problems if any until it passes.
+- After you modify files run `prek` and include changes it makes and fix reported problems if any until it passes.
 
 Best practices suggest only two project layout structures:
 
@@ -78,8 +78,8 @@ When generating the "Project structure" section in the output document:
   - `../../automation-good-practices/**/*.adoc`
   - `../../ansible-lint/docs/rules/*.md`
   - `../../ansible-risk-insight/docs/rules/*.md`
-  - blog post from https://www.ansiblejunky.com/blog/ansible-101-standards/
-  - ansible core documentation from https://docs.ansible.com/ansible-core/devel/index.html
+  - blog post from <https://www.ansiblejunky.com/blog/ansible-101-standards/>
+  - ansible core documentation from <https://docs.ansible.com/ansible-core/devel/index.html>
 - [ ] Avoid using emoji in the generated file
 - [ ] Itemize generated rules as todo lists with the exception on Zen of Ansible ones for which a normal bullet list should be used.
 - [ ] Do not include code examples but if the text description of the rule is not clear enough try to improve it
