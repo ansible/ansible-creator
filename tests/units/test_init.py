@@ -21,7 +21,7 @@ from ansible_creator.utils import TermFeatures
 from tests.defaults import FIXTURES_DIR, UUID_LENGTH
 
 
-class ConfigDict(TypedDict):
+class ConfigDict(TypedDict, total=False):
     """Type hint for Config dictionary.
 
     Attributes:
@@ -34,6 +34,11 @@ class ConfigDict(TypedDict):
         force: Force overwrite of existing directory.
         overwrite: To overwrite files in an existing directory.
         no_overwrite: To not overwrite files in an existing directory.
+        base_image: Base image for execution environment.
+        ee_collections: List of Ansible collections for execution environment.
+        ee_python_deps: List of Python dependencies for execution environment.
+        ee_system_packages: List of system packages for execution environment.
+        ee_name: Name/tag for the execution environment image.
     """
 
     creator_version: str
@@ -45,6 +50,11 @@ class ConfigDict(TypedDict):
     force: bool
     overwrite: bool
     no_overwrite: bool
+    base_image: str
+    ee_collections: list[str]
+    ee_python_deps: list[str]
+    ee_system_packages: list[str]
+    ee_name: str
 
 
 @pytest.fixture(name="cli_args")
@@ -208,6 +218,64 @@ def test_run_success_ee_project(
     )
     diff = has_differences(dcmp=cmp, errors=[])
     assert diff == [], diff
+
+
+def test_run_success_ee_project_with_params(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test Init.run() with dynamic EE parameters.
+
+    Successfully create new ee project with custom parameters.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "custom_ee_project")
+    cli_args["base_image"] = "quay.io/ansible/ee-minimal-rhel9:latest"
+    cli_args["ee_collections"] = ["ansible.posix", "ansible.netcommon"]
+    cli_args["ee_python_deps"] = ["requests", "boto3"]
+    cli_args["ee_system_packages"] = ["git", "openssh-clients"]
+    cli_args["ee_name"] = "my-custom-ee"
+
+    init = Init(
+        Config(**cli_args),
+    )
+
+    init.run()
+    result = capsys.readouterr().out
+
+    # check stdout
+    assert r"Note: execution_env project created" in result
+
+    # verify the generated execution-environment.yml has the custom values
+    ee_file = tmp_path / "custom_ee_project" / "execution-environment.yml"
+    assert ee_file.exists()
+
+    ee_content = ee_file.read_text()
+
+    # Check base image
+    assert "quay.io/ansible/ee-minimal-rhel9:latest" in ee_content
+
+    # Check collections
+    assert "ansible.posix" in ee_content
+    assert "ansible.netcommon" in ee_content
+
+    # Check python deps
+    assert "requests" in ee_content
+    assert "boto3" in ee_content
+
+    # Check system packages
+    assert "git" in ee_content
+    assert "openssh-clients" in ee_content
+
+    # Check ee name
+    assert "my-custom-ee" in ee_content
 
 
 def test_run_success_ansible_project(

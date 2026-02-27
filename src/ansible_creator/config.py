@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 from ansible_creator.utils import expand_path
 
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
     from pathlib import Path
 
     from ansible_creator.output import Output
@@ -38,6 +39,11 @@ class Config:
         image: The image to be used while scaffolding devcontainer.
         role_name: The role to be scaffolded.
         skip_collection_check: Whether to skip collection path validation.
+        base_image: Base image for execution environment.
+        ee_collections: List of Ansible collections for execution environment.
+        ee_python_deps: List of Python dependencies for execution environment.
+        ee_system_packages: List of system packages for execution environment.
+        ee_name: Name/tag for the execution environment image.
     """
 
     creator_version: str
@@ -59,6 +65,11 @@ class Config:
     image: str = ""
     role_name: str = "run"
     skip_collection_check: bool = False
+    base_image: str = "quay.io/fedora/fedora:41"
+    ee_collections: Sequence[str] = field(default_factory=list)
+    ee_python_deps: Sequence[str] = field(default_factory=list)
+    ee_system_packages: Sequence[str] = field(default_factory=list)
+    ee_name: str = "ansible_sample_ee"
 
     def __post_init__(self) -> None:
         """Post process config values."""
