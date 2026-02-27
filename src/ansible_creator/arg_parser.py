@@ -755,8 +755,7 @@ class Parser:
             "--ee-base-image",
             dest="base_image",
             default="quay.io/fedora/fedora:41",
-            help="Base image for the execution environment. "
-            "Default: quay.io/fedora/fedora:41",
+            help="Base image for the execution environment. Default: quay.io/fedora/fedora:41",
         )
 
         parser.add_argument(
@@ -792,8 +791,7 @@ class Parser:
         parser.add_argument(
             "--ee-name",
             default="ansible_sample_ee",
-            help="Name/tag for the execution environment image. "
-            "Default: ansible_sample_ee",
+            help="Name/tag for the execution environment image. Default: ansible_sample_ee",
         )
 
         self._add_args_common(parser)
