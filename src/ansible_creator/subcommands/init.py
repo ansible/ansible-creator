@@ -55,7 +55,9 @@ class Init:
         self.output: Output = config.output
         self._role_name: str = config.role_name
         self._ee_base_image: str = config.base_image
-        self._ee_collections: list[str] = list(config.ee_collections)
+        self._ee_collections: list[dict[str, str]] = self._parse_collections(
+            list(config.ee_collections)
+        )
         self._ee_python_deps: list[str] = list(config.ee_python_deps)
         self._ee_system_packages: list[str] = list(config.ee_system_packages)
         self._ee_name: str = config.ee_name
@@ -118,6 +120,34 @@ class Init:
         final_name = f"{self._namespace}.{self._collection_name}"
         final_uuid = str(uuid.uuid4())[:8]
         return f"{final_name}-{final_uuid}"
+
+    def _parse_collections(self, collections: list[str]) -> list[dict[str, str]]:
+        """Parse collection strings into structured dictionaries.
+
+        Supports formats:
+        - 'name' -> {'name': 'name'}
+        - 'name:version' -> {'name': 'name', 'version': 'version'}
+        - 'name:version:type:source' -> {'name': '...', 'version': '...', 'type': '...', 'source': '...'}
+
+        Args:
+            collections: List of collection strings to parse.
+
+        Returns:
+            List of dictionaries with collection details.
+        """
+        parsed: list[dict[str, str]] = []
+        for col in collections:
+            # Split on colon but limit to 4 parts to preserve URLs in source
+            parts = col.split(":", maxsplit=3)
+            col_dict: dict[str, str] = {"name": parts[0]}
+            if len(parts) > 1 and parts[1]:
+                col_dict["version"] = parts[1]
+            if len(parts) > 2 and parts[2]:  # noqa: PLR2004
+                col_dict["type"] = parts[2]
+            if len(parts) > 3 and parts[3]:  # noqa: PLR2004
+                col_dict["source"] = parts[3]
+            parsed.append(col_dict)
+        return parsed
 
     def _scaffold(self) -> None:
         """Scaffold an ansible project.

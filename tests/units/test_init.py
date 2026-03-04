@@ -238,7 +238,11 @@ def test_run_success_ee_project_with_params(
     cli_args["project"] = "execution_env"
     cli_args["init_path"] = str(tmp_path / "custom_ee_project")
     cli_args["base_image"] = "quay.io/ansible/ee-minimal-rhel9:latest"
-    cli_args["ee_collections"] = ["ansible.posix", "ansible.netcommon"]
+    cli_args["ee_collections"] = [
+        "ansible.posix",
+        "ansible.netcommon:>=1.0.0",
+        "my.collection:1.0.0:galaxy:https://galaxy.ansible.com",
+    ]
     cli_args["ee_python_deps"] = ["requests", "boto3"]
     cli_args["ee_system_packages"] = ["git", "openssh-clients"]
     cli_args["ee_name"] = "my-custom-ee"
@@ -262,9 +266,15 @@ def test_run_success_ee_project_with_params(
     # Check base image
     assert "quay.io/ansible/ee-minimal-rhel9:latest" in ee_content
 
-    # Check collections
+    # Check collections - simple name
     assert "ansible.posix" in ee_content
+    # Check collection with version
     assert "ansible.netcommon" in ee_content
+    assert '">=' in ee_content or ">=1.0.0" in ee_content
+    # Check collection with full spec
+    assert "my.collection" in ee_content
+    assert "galaxy" in ee_content
+    assert "https://galaxy.ansible.com" in ee_content
 
     # Check python deps
     assert "requests" in ee_content

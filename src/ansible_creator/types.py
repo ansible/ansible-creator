@@ -31,7 +31,8 @@ class TemplateData:
         execution_environment_image: The execution environment image.
         recommended_extensions: A list of recommended VsCode extensions.
         ee_base_image: Base image for execution environment.
-        ee_collections: List of Ansible collections for execution environment.
+        ee_collections: List of Ansible collections for execution environment (dicts with name,
+            version, type, source).
         ee_python_deps: List of Python dependencies for execution environment.
         ee_system_packages: List of system packages for execution environment.
         ee_name: Name/tag for the execution environment image.
@@ -55,7 +56,7 @@ class TemplateData:
         default_factory=lambda: GLOBAL_TEMPLATE_VARS["RECOMMENDED_EXTENSIONS"],
     )
     ee_base_image: str = "quay.io/fedora/fedora:41"
-    ee_collections: Sequence[str] = field(default_factory=list)
+    ee_collections: Sequence[dict[str, str]] = field(default_factory=list)
     ee_python_deps: Sequence[str] = field(default_factory=list)
     ee_system_packages: Sequence[str] = field(default_factory=list)
     ee_name: str = "ansible_sample_ee"

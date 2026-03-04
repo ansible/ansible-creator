@@ -765,7 +765,9 @@ class Parser:
             default=[],
             metavar="COLLECTION",
             help="Ansible collection to include (can be specified multiple times). "
-            "Example: --ee-collections ansible.posix --ee-collections ansible.utils",
+            "Supports formats: 'name', 'name:version', or 'name:version:type:source'. "
+            "Example: --ee-collections ansible.posix --ee-collections 'ansible.utils:>=1.0.0' "
+            "--ee-collections 'my.collection:1.0.0:galaxy:https://galaxy.ansible.com'",
         )
 
         parser.add_argument(

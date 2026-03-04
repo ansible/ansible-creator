@@ -35,7 +35,16 @@ dependencies:
   galaxy:
     collections:
 {%- for col in ee_collections %}
-      - name: {{ col }}
+      - name: {{ col.name }}
+{%- if col.version is defined %}
+        version: "{{ col.version }}"
+{%- endif %}
+{%- if col.type is defined %}
+        type: {{ col.type }}
+{%- endif %}
+{%- if col.source is defined %}
+        source: {{ col.source }}
+{%- endif %}
 {%- endfor %}
 {%- endif %}
 
