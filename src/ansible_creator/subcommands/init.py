@@ -127,7 +127,7 @@ class Init:
         Supports formats:
         - 'name' -> {'name': 'name'}
         - 'name:version' -> {'name': 'name', 'version': 'version'}
-        - 'name:version:type:source' -> {'name': '...', 'version': '...', 'type': '...', 'source': '...'}
+        - 'name:version:type:source' -> dict with name, version, type, source
 
         Args:
             collections: List of collection strings to parse.
