@@ -321,7 +321,7 @@ class Init:
         """
         # HTTP is intentionally supported for internal/private registries.
         # This only validates URL format; actual network security is handled by ansible-builder.
-        if source.startswith(("https://", "http://")):
+        if source.startswith(("https://", "http://")):  # NOSONAR
             parsed_url = urlparse(source)
             if not parsed_url.netloc:
                 msg = f"Invalid source URL '{source}'. Must be a valid URL."
