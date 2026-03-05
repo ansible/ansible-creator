@@ -1,0 +1,62 @@
+# Example EE configuration file for ansible-creator
+# Use with: ansible-creator init execution_env --ee-config ee-config.yaml <output-dir>
+
+# Name/tag for the execution environment image
+name: my-custom-ee
+
+# Base image for the execution environment
+base_image: registry.redhat.io/ansible-automation-platform-25/ee-minimal-rhel8:latest
+
+# Ansible collections to include
+# Supports multiple formats:
+# - Simple name: "namespace.collection"
+# - With version: {"name": "namespace.collection", "version": ">=1.0.0"}
+# - Full spec: {"name": "namespace.collection", "version": "1.0.0", "type": "galaxy", "source": "https://galaxy.ansible.com"}
+collections:
+  - name: ansible.netcommon
+    version: ">=5.0.0"
+  - name: ansible.utils
+    version: ">=2.0.0"
+  - name: community.network
+
+# Python package dependencies
+python_deps:
+  - paramiko
+  - netaddr
+  - jmespath
+
+# System packages to install
+system_packages:
+  - openssh-clients
+  - sshpass
+
+# EE build options
+options:
+  # Specify package manager (useful for RHEL-based images)
+  package_manager_path: /usr/bin/microdnf
+
+# Additional files to include in the build context
+# Use this for files like ansible.cfg that need to be copied during build
+additional_build_files:
+  - src: ansible.cfg
+    dest: configs
+
+# Custom build steps
+additional_build_steps:
+  # Steps to run before the base image is modified
+  prepend_base:
+    - RUN mkdir -p /etc/ansible
+  # Steps to run after all other steps
+  append_final:
+    - COPY _build/configs/ansible.cfg /etc/ansible/ansible.cfg
+
+# Optional: ansible.cfg content for Automation Hub authentication
+# This will create an ansible.cfg file in the EE project directory
+ansible_cfg: |
+  [galaxy]
+  server_list = automation_hub
+
+  [galaxy_server.automation_hub]
+  url = https://console.redhat.com/api/automation-hub/content/published/
+  auth_url = https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
+  token = PLACEHOLDER_TOKEN

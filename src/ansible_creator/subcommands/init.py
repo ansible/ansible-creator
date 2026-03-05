@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
+import json
 import re
 import shutil
 import uuid
 
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
+
+import yaml
 
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.templar import Templar
@@ -56,13 +59,47 @@ class Init:
         self._templar = Templar()
         self.output: Output = config.output
         self._role_name: str = config.role_name
-        self._ee_base_image: str = config.base_image
-        self._ee_collections: list[dict[str, str]] = self._parse_collections(
-            list(config.ee_collections)
+
+        # Load EE config from file if provided, then merge with CLI args
+        ee_config = self._load_ee_config(config.ee_config) if config.ee_config else {}
+
+        # CLI args override config file values
+        self._ee_base_image: str = (
+            config.base_image if config.base_image != "quay.io/fedora/fedora:41"
+            else ee_config.get("base_image", config.base_image)
         )
-        self._ee_python_deps: list[str] = list(config.ee_python_deps)
-        self._ee_system_packages: list[str] = list(config.ee_system_packages)
-        self._ee_name: str = config.ee_name
+
+        # For collections, merge CLI args with config file (CLI takes precedence)
+        config_collections: list[str | dict[str, str]] = ee_config.get("collections", [])
+        cli_collections: list[str | dict[str, str]] = list(config.ee_collections)
+        collections_to_parse: list[str | dict[str, str]] = cli_collections or config_collections
+        self._ee_collections: list[dict[str, str]] = self._parse_collections_from_config(
+            collections_to_parse
+        )
+
+        # For deps/packages, merge CLI args with config file
+        self._ee_python_deps: list[str] = (
+            list(config.ee_python_deps) if config.ee_python_deps
+            else ee_config.get("python_deps", [])
+        )
+        self._ee_system_packages: list[str] = (
+            list(config.ee_system_packages) if config.ee_system_packages
+            else ee_config.get("system_packages", [])
+        )
+        self._ee_name: str = (
+            config.ee_name if config.ee_name != "ansible_sample_ee"
+            else ee_config.get("name", config.ee_name)
+        )
+
+        # Additional EE config options (only from config file)
+        self._ee_additional_build_files: list[dict[str, str]] = ee_config.get(
+            "additional_build_files", []
+        )
+        self._ee_additional_build_steps: dict[str, list[str]] = ee_config.get(
+            "additional_build_steps", {}
+        )
+        self._ee_options: dict[str, Any] = ee_config.get("options", {})
+        self._ee_ansible_cfg: str = ee_config.get("ansible_cfg", "")
 
     def run(self) -> None:
         """Start scaffolding skeleton."""
@@ -122,6 +159,100 @@ class Init:
         final_name = f"{self._namespace}.{self._collection_name}"
         final_uuid = str(uuid.uuid4())[:8]
         return f"{final_name}-{final_uuid}"
+
+    def _load_ee_config(self, config_path: str) -> dict[str, Any]:
+        """Load EE configuration from a JSON or YAML file.
+
+        Args:
+            config_path: Path to the config file.
+
+        Returns:
+            Dictionary containing EE configuration.
+
+        Raises:
+            CreatorError: If the file cannot be read or parsed.
+        """
+        path = Path(config_path)
+        if not path.exists():
+            msg = f"EE config file not found: {config_path}"
+            raise CreatorError(msg)
+
+        content = path.read_text(encoding="utf-8")
+        if path.suffix.lower() == ".json":
+            try:
+                data: dict[str, Any] = json.loads(content)
+            except json.JSONDecodeError as e:
+                msg = f"Invalid JSON in EE config file {config_path}: {e}"
+                raise CreatorError(msg) from e
+            return data
+        # Default to YAML for .yml, .yaml, or unknown extensions
+        try:
+            yaml_data: dict[str, Any] = yaml.safe_load(content) or {}
+        except yaml.YAMLError as e:
+            msg = f"Invalid YAML in EE config file {config_path}: {e}"
+            raise CreatorError(msg) from e
+        return yaml_data
+
+    def _parse_collections_from_config(
+        self, collections: list[str | dict[str, str]]
+    ) -> list[dict[str, str]]:
+        """Parse collections from config file or CLI args.
+
+        Handles both string format (from CLI) and dict format (from config file).
+
+        Args:
+            collections: List of collection strings or dicts.
+
+        Returns:
+            List of dictionaries with collection details.
+        """
+        parsed: list[dict[str, str]] = []
+        for col in collections:
+            if isinstance(col, dict):
+                # Already a dict from config file, validate it
+                self._validate_collection_dict(col)
+                parsed.append(col)
+            else:
+                # String from CLI, parse it
+                parsed.extend(self._parse_collections([col]))
+        return parsed
+
+    def _validate_collection_dict(self, col: dict[str, str]) -> None:
+        """Validate a collection dictionary from config file.
+
+        Args:
+            col: Collection dictionary to validate.
+
+        Raises:
+            CreatorError: If the collection dict is invalid.
+        """
+        if "name" not in col:
+            msg = "Collection in config file must have a 'name' field"
+            raise CreatorError(msg)
+
+        name_pattern = re.compile(r"^[a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*$")
+        if not name_pattern.match(col["name"]):
+            msg = (
+                f"Invalid collection name '{col['name']}'. "
+                "Must be in format 'namespace.name' with lowercase letters, "
+                "numbers, and underscores."
+            )
+            raise CreatorError(msg)
+
+        if "type" in col:
+            valid_types = {"galaxy", "git", "url", "file", "dir"}
+            if col["type"].lower() not in valid_types:
+                msg = (
+                    f"Invalid collection type '{col['type']}'. "
+                    f"Must be one of: {', '.join(sorted(valid_types))}"
+                )
+                raise CreatorError(msg)
+
+        if "source" in col and col["source"].startswith(("http://", "https://")):
+            parsed_url = urlparse(col["source"])
+            if not parsed_url.netloc:
+                msg = f"Invalid source URL '{col['source']}'. Must be a valid URL."
+                raise CreatorError(msg)
 
     def _parse_collections(self, collections: list[str]) -> list[dict[str, str]]:
         """Parse collection strings into structured dictionaries.
@@ -210,6 +341,10 @@ class Init:
             ee_python_deps=self._ee_python_deps,
             ee_system_packages=self._ee_system_packages,
             ee_name=self._ee_name,
+            ee_additional_build_files=self._ee_additional_build_files,
+            ee_additional_build_steps=self._ee_additional_build_steps,
+            ee_options=self._ee_options,
+            ee_ansible_cfg=self._ee_ansible_cfg,
         )
 
         if self._project == "execution_env":
@@ -244,6 +379,7 @@ class Init:
 
         if not paths.has_conflicts() or self._force or self._overwrite:
             copier.copy_containers(paths)
+            self._write_optional_files()
             self.output.note(f"{self._project} project created at {self._init_path}")
             return
 
@@ -254,6 +390,7 @@ class Init:
             answer = ask_yes_no(question)
             if answer:
                 copier.copy_containers(paths)
+                self._write_optional_files()
             else:
                 msg = (
                     "The destination directory contains files that will be overwritten."
@@ -262,3 +399,18 @@ class Init:
                 raise CreatorError(msg)
 
         self.output.note(f"{self._project} project created at {self._init_path}")
+
+    def _write_optional_files(self) -> None:
+        """Write optional files based on configuration.
+
+        This method writes files that should only be created when specific
+        configuration is provided, such as ansible.cfg for EE projects.
+        """
+        if self._project != "execution_env":
+            return
+
+        # Write ansible.cfg only if content was provided via config file
+        if self._ee_ansible_cfg:
+            ansible_cfg_path = self._init_path / "ansible.cfg"
+            ansible_cfg_path.write_text(self._ee_ansible_cfg, encoding="utf-8")
+            self.output.debug(msg=f"Writing to {ansible_cfg_path}")

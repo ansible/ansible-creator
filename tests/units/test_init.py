@@ -34,6 +34,7 @@ class ConfigDict(TypedDict, total=False):
         force: Force overwrite of existing directory.
         overwrite: To overwrite files in an existing directory.
         no_overwrite: To not overwrite files in an existing directory.
+        ee_config: Path to a JSON/YAML config file for EE parameters.
         base_image: Base image for execution environment.
         ee_collections: List of Ansible collections for execution environment.
         ee_python_deps: List of Python dependencies for execution environment.
@@ -50,6 +51,7 @@ class ConfigDict(TypedDict, total=False):
     force: bool
     overwrite: bool
     no_overwrite: bool
+    ee_config: str | None
     base_image: str
     ee_collections: list[str]
     ee_python_deps: list[str]
@@ -370,6 +372,174 @@ def test_ee_project_collection_with_file_source(
     assert "ansible.posix" in ee_content
     assert "type: file" in ee_content
     assert "source: /path/to/collection" in ee_content
+
+
+def test_ee_project_with_config_file(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test Init with EE config file.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    config_content = """
+name: config-file-ee
+base_image: registry.redhat.io/ansible-automation-platform-25/ee-minimal-rhel8:latest
+
+collections:
+  - name: ansible.netcommon
+    version: ">=5.0.0"
+  - name: ansible.utils
+
+python_deps:
+  - paramiko
+  - netaddr
+
+system_packages:
+  - openssh-clients
+
+options:
+  package_manager_path: /usr/bin/microdnf
+
+additional_build_files:
+  - src: ansible.cfg
+    dest: configs
+
+additional_build_steps:
+  prepend_base:
+    - RUN mkdir -p /etc/ansible
+  append_final:
+    - COPY _build/configs/ansible.cfg /etc/ansible/ansible.cfg
+
+ansible_cfg: |
+  [galaxy]
+  server_list = automation_hub
+
+  [galaxy_server.automation_hub]
+  url = https://console.redhat.com/api/automation-hub/content/published/
+"""
+    config_file = tmp_path / "ee-config.yaml"
+    config_file.write_text(config_content)
+
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_from_config")
+    cli_args["ee_config"] = str(config_file)
+
+    init = Init(Config(**cli_args))
+    init.run()
+    result = capsys.readouterr().out
+
+    assert r"Note: execution_env project created" in result
+
+    ee_file = tmp_path / "ee_from_config" / "execution-environment.yml"
+    ee_content = ee_file.read_text()
+
+    # Check config values were applied
+    assert "ee-minimal-rhel8" in ee_content
+    assert "ansible.netcommon" in ee_content
+    assert "ansible.utils" in ee_content
+    assert "paramiko" in ee_content
+    assert "openssh-clients" in ee_content
+    assert "package_manager_path: /usr/bin/microdnf" in ee_content
+    assert "config-file-ee" in ee_content
+    assert "additional_build_files:" in ee_content
+    assert "prepend_base:" in ee_content
+    assert "append_final:" in ee_content
+
+    # Check ansible.cfg was created
+    ansible_cfg = tmp_path / "ee_from_config" / "ansible.cfg"
+    assert ansible_cfg.exists()
+    cfg_content = ansible_cfg.read_text()
+    assert "automation_hub" in cfg_content
+
+
+def test_ee_project_config_file_not_found(
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test Init with non-existent config file.
+
+    Args:
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_missing_config")
+    cli_args["ee_config"] = str(tmp_path / "nonexistent.yaml")
+
+    with pytest.raises(CreatorError, match="EE config file not found"):
+        Init(Config(**cli_args))
+
+
+def test_ee_project_invalid_json_config(
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test Init with invalid JSON config file.
+
+    Args:
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    config_file = tmp_path / "invalid.json"
+    config_file.write_text("{invalid json content")
+
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_invalid_json")
+    cli_args["ee_config"] = str(config_file)
+
+    with pytest.raises(CreatorError, match="Invalid JSON"):
+        Init(Config(**cli_args))
+
+
+def test_ee_project_invalid_yaml_config(
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test Init with invalid YAML config file.
+
+    Args:
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    config_file = tmp_path / "invalid.yaml"
+    config_file.write_text("invalid: yaml: content: [")
+
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_invalid_yaml")
+    cli_args["ee_config"] = str(config_file)
+
+    with pytest.raises(CreatorError, match="Invalid YAML"):
+        Init(Config(**cli_args))
+
+
+def test_ee_project_config_collection_validation(
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test Init validates collections from config file.
+
+    Args:
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    config_content = """
+collections:
+  - name: invalid-collection
+"""
+    config_file = tmp_path / "invalid-collection.yaml"
+    config_file.write_text(config_content)
+
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_invalid_config_collection")
+    cli_args["ee_config"] = str(config_file)
+
+    with pytest.raises(CreatorError, match="Invalid collection name"):
+        Init(Config(**cli_args))
 
 
 def test_run_success_ansible_project(

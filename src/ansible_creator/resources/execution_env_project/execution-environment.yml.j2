@@ -47,11 +47,45 @@ dependencies:
 {%- endif %}
 {%- endfor %}
 {%- endif %}
+{%- if ee_additional_build_files %}
+
+additional_build_files:
+{%- for file in ee_additional_build_files %}
+  - src: {{ file.src }}
+    dest: {{ file.dest }}
+{%- endfor %}
+{%- endif %}
 
 additional_build_steps:
+{%- if ee_additional_build_steps.prepend_base is defined %}
+  prepend_base:
+{%- for step in ee_additional_build_steps.prepend_base %}
+    - {{ step }}
+{%- endfor %}
+{%- endif %}
   append_base:
     - RUN $PYCMD -m pip install -U pip
+{%- if ee_additional_build_steps.append_base is defined %}
+{%- for step in ee_additional_build_steps.append_base %}
+    - {{ step }}
+{%- endfor %}
+{%- endif %}
+{%- if ee_additional_build_steps.prepend_final is defined %}
+  prepend_final:
+{%- for step in ee_additional_build_steps.prepend_final %}
+    - {{ step }}
+{%- endfor %}
+{%- endif %}
+{%- if ee_additional_build_steps.append_final is defined %}
+  append_final:
+{%- for step in ee_additional_build_steps.append_final %}
+    - {{ step }}
+{%- endfor %}
+{%- endif %}
 
 options:
+{%- if ee_options.package_manager_path is defined %}
+  package_manager_path: {{ ee_options.package_manager_path }}
+{%- endif %}
   tags:
     - {{ ee_name }}

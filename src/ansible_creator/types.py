@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from ansible_creator.constants import GLOBAL_TEMPLATE_VARS
 
@@ -36,6 +36,11 @@ class TemplateData:
         ee_python_deps: List of Python dependencies for execution environment.
         ee_system_packages: List of system packages for execution environment.
         ee_name: Name/tag for the execution environment image.
+        ee_additional_build_files: List of additional files to include in the EE build context.
+        ee_additional_build_steps: Dict with prepend_base, append_base, prepend_final,
+            append_final steps.
+        ee_options: Dict of EE build options (e.g., package_manager_path).
+        ee_ansible_cfg: Content for ansible.cfg file (for Automation Hub auth).
     """
 
     resource_type: str = ""
@@ -60,3 +65,7 @@ class TemplateData:
     ee_python_deps: Sequence[str] = field(default_factory=list)
     ee_system_packages: Sequence[str] = field(default_factory=list)
     ee_name: str = "ansible_sample_ee"
+    ee_additional_build_files: Sequence[dict[str, str]] = field(default_factory=list)
+    ee_additional_build_steps: dict[str, list[str]] = field(default_factory=dict)
+    ee_options: dict[str, Any] = field(default_factory=dict)
+    ee_ansible_cfg: str = ""

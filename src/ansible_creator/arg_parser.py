@@ -752,6 +752,15 @@ class Parser:
         )
 
         parser.add_argument(
+            "--ee-config",
+            dest="ee_config",
+            metavar="FILE",
+            help="Path to a JSON/YAML config file containing EE parameters. "
+            "This is the recommended way to provide complex EE configurations. "
+            "See documentation for the expected schema.",
+        )
+
+        parser.add_argument(
             "--ee-base-image",
             dest="base_image",
             default="quay.io/fedora/fedora:41",
