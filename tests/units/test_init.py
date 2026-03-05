@@ -288,6 +288,60 @@ def test_run_success_ee_project_with_params(
     assert "my-custom-ee" in ee_content
 
 
+def test_ee_project_invalid_collection_name(
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test Init with invalid collection name format.
+
+    Args:
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "invalid_ee_project")
+    cli_args["ee_collections"] = ["invalid-collection-name"]
+
+    with pytest.raises(CreatorError, match="Invalid collection name"):
+        Init(Config(**cli_args))
+
+
+def test_ee_project_invalid_collection_type(
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test Init with invalid collection type.
+
+    Args:
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "invalid_ee_project")
+    cli_args["ee_collections"] = ["ansible.posix:1.0.0:invalidtype"]
+
+    with pytest.raises(CreatorError, match="Invalid collection type"):
+        Init(Config(**cli_args))
+
+
+def test_ee_project_invalid_collection_source_url(
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test Init with invalid collection source URL.
+
+    Args:
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "invalid_ee_project")
+    cli_args["ee_collections"] = ["ansible.posix:1.0.0:galaxy:https://"]
+
+    with pytest.raises(CreatorError, match="Invalid source URL"):
+        Init(Config(**cli_args))
+
+
 def test_run_success_ansible_project(
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
