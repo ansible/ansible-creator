@@ -342,6 +342,36 @@ def test_ee_project_invalid_collection_source_url(
         Init(Config(**cli_args))
 
 
+def test_ee_project_collection_with_file_source(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test Init with collection using file source (non-URL).
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_file_source")
+    cli_args["ee_collections"] = ["ansible.posix:1.0.0:file:/path/to/collection"]
+
+    init = Init(Config(**cli_args))
+    init.run()
+    result = capsys.readouterr().out
+
+    assert r"Note: execution_env project created" in result
+
+    ee_file = tmp_path / "ee_file_source" / "execution-environment.yml"
+    ee_content = ee_file.read_text()
+
+    assert "ansible.posix" in ee_content
+    assert "type: file" in ee_content
+    assert "source: /path/to/collection" in ee_content
+
+
 def test_run_success_ansible_project(
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,

@@ -29,6 +29,7 @@ ignoreWords:
   - argparser
   - endfor
   - endif
+  - invalidtype
   - myns
   - CAP_MKNOD
   - CMDB
