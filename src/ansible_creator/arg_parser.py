@@ -751,6 +751,60 @@ class Parser:
             help="The destination directory for the EE project.",
         )
 
+        parser.add_argument(
+            "--ee-config",
+            dest="ee_config",
+            metavar="FILE",
+            help="Path to a JSON/YAML config file containing EE parameters. "
+            "This is the recommended way to provide complex EE configurations. "
+            "See documentation for the expected schema.",
+        )
+
+        parser.add_argument(
+            "--ee-base-image",
+            dest="base_image",
+            default="quay.io/fedora/fedora:41",
+            help="Base image for the execution environment. Default: quay.io/fedora/fedora:41",
+        )
+
+        parser.add_argument(
+            "--ee-collections",
+            dest="ee_collections",
+            action="append",
+            default=[],
+            metavar="COLLECTION",
+            help="Ansible collection to include (can be specified multiple times). "
+            "Supports formats: 'name', 'name:version', or 'name:version:type:source'. "
+            "Example: --ee-collections ansible.posix --ee-collections 'ansible.utils:>=1.0.0' "
+            "--ee-collections 'my.collection:1.0.0:galaxy:https://galaxy.ansible.com'",
+        )
+
+        parser.add_argument(
+            "--ee-python-deps",
+            dest="ee_python_deps",
+            action="append",
+            default=[],
+            metavar="PACKAGE",
+            help="Python package dependency (can be specified multiple times). "
+            "Example: --ee-python-deps requests --ee-python-deps boto3",
+        )
+
+        parser.add_argument(
+            "--ee-system-packages",
+            dest="ee_system_packages",
+            action="append",
+            default=[],
+            metavar="PACKAGE",
+            help="System package dependency (can be specified multiple times). "
+            "Example: --ee-system-packages openssh-clients --ee-system-packages sshpass",
+        )
+
+        parser.add_argument(
+            "--ee-name",
+            default="ansible_sample_ee",
+            help="Name/tag for the execution environment image. Default: ansible_sample_ee",
+        )
+
         self._add_args_common(parser)
         self._add_args_init_common(parser)
 

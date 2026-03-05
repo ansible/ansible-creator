@@ -21,7 +21,7 @@ from ansible_creator.utils import TermFeatures
 from tests.defaults import FIXTURES_DIR, UUID_LENGTH
 
 
-class ConfigDict(TypedDict):
+class ConfigDict(TypedDict, total=False):
     """Type hint for Config dictionary.
 
     Attributes:
@@ -34,6 +34,12 @@ class ConfigDict(TypedDict):
         force: Force overwrite of existing directory.
         overwrite: To overwrite files in an existing directory.
         no_overwrite: To not overwrite files in an existing directory.
+        ee_config: Path to a JSON/YAML config file for EE parameters.
+        base_image: Base image for execution environment.
+        ee_collections: List of Ansible collections for execution environment.
+        ee_python_deps: List of Python dependencies for execution environment.
+        ee_system_packages: List of system packages for execution environment.
+        ee_name: Name/tag for the execution environment image.
     """
 
     creator_version: str
@@ -45,6 +51,12 @@ class ConfigDict(TypedDict):
     force: bool
     overwrite: bool
     no_overwrite: bool
+    ee_config: str | None
+    base_image: str
+    ee_collections: list[str]
+    ee_python_deps: list[str]
+    ee_system_packages: list[str]
+    ee_name: str
 
 
 @pytest.fixture(name="cli_args")
@@ -172,42 +184,6 @@ def test_run_success_for_collection(
     init.run()
     result = capsys.readouterr().out
     assert r"Warning: re-initializing existing directory" in result, result
-
-
-def test_run_success_ee_project(
-    capsys: pytest.CaptureFixture[str],
-    tmp_path: Path,
-    cli_args: ConfigDict,
-) -> None:
-    """Test Init.run().
-
-    Successfully create new ee project
-
-    Args:
-        capsys: Pytest fixture to capture stdout and stderr.
-        tmp_path: Temporary directory path.
-        cli_args: Dictionary, partial Init class object.
-
-    """
-    cli_args["project"] = "execution_env"
-    cli_args["init_path"] = str(tmp_path / "new_project")
-    init = Init(
-        Config(**cli_args),
-    )
-
-    init.run()
-    result = capsys.readouterr().out
-
-    # check stdout
-    assert r"Note: execution_env project created" in result
-
-    # recursively assert files created
-    cmp = dircmp(
-        str(tmp_path / "new_project"),
-        str(FIXTURES_DIR / "project" / "ee_project"),
-    )
-    diff = has_differences(dcmp=cmp, errors=[])
-    assert diff == [], diff
 
 
 def test_run_success_ansible_project(

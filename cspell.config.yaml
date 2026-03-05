@@ -27,6 +27,11 @@ ignorePaths:
 ignoreWords:
   - adoc
   - argparser
+  - dellos
+  - endfor
+  - endif
+  - invalidtype
+  - microdnf
   - myns
   - CAP_MKNOD
   - CMDB
@@ -53,6 +58,7 @@ ignoreWords:
   - pypa
   - seccomp
   - sonarlint
+  - NOSONAR
   - superfences
   - triggertaskonsave
   - userns
