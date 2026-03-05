@@ -18,7 +18,25 @@ from tests.defaults import FIXTURES_DIR
 
 
 class ConfigDict(TypedDict, total=False):
-    """Type hint for Config dictionary."""
+    """Type hint for Config dictionary.
+
+    Attributes:
+        creator_version: The version of the creator.
+        output: The output object to use for logging.
+        subcommand: The subcommand to execute.
+        collection: The name of the collection.
+        init_path: Path to initialize the project.
+        project: The type of project to scaffold.
+        force: Force overwrite of existing directory.
+        overwrite: To overwrite files in an existing directory.
+        no_overwrite: To not overwrite files in an existing directory.
+        ee_config: Path to a JSON/YAML config file for EE parameters.
+        base_image: Base image for execution environment.
+        ee_collections: List of Ansible collections for execution environment.
+        ee_python_deps: List of Python dependencies for execution environment.
+        ee_system_packages: List of system packages for execution environment.
+        ee_name: Name/tag for the execution environment image.
+    """
 
     creator_version: str
     output: Output
