@@ -65,7 +65,8 @@ class Init:
 
         # CLI args override config file values
         self._ee_base_image: str = (
-            config.base_image if config.base_image != "quay.io/fedora/fedora:41"
+            config.base_image
+            if config.base_image != "quay.io/fedora/fedora:41"
             else ee_config.get("base_image", config.base_image)
         )
 
@@ -79,15 +80,18 @@ class Init:
 
         # For deps/packages, merge CLI args with config file
         self._ee_python_deps: list[str] = (
-            list(config.ee_python_deps) if config.ee_python_deps
+            list(config.ee_python_deps)
+            if config.ee_python_deps
             else ee_config.get("python_deps", [])
         )
         self._ee_system_packages: list[str] = (
-            list(config.ee_system_packages) if config.ee_system_packages
+            list(config.ee_system_packages)
+            if config.ee_system_packages
             else ee_config.get("system_packages", [])
         )
         self._ee_name: str = (
-            config.ee_name if config.ee_name != "ansible_sample_ee"
+            config.ee_name
+            if config.ee_name != "ansible_sample_ee"
             else ee_config.get("name", config.ee_name)
         )
 
@@ -102,9 +106,8 @@ class Init:
         self._ee_ansible_cfg: str = ee_config.get("ansible_cfg", "")
 
         # Auto-detect official EE images and set microdnf as package manager
-        if (
-            "package_manager_path" not in self._ee_options
-            and self._is_official_ee_image(self._ee_base_image)
+        if "package_manager_path" not in self._ee_options and self._is_official_ee_image(
+            self._ee_base_image
         ):
             self._ee_options["package_manager_path"] = "/usr/bin/microdnf"
 
