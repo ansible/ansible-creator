@@ -542,6 +542,66 @@ collections:
         Init(Config(**cli_args))
 
 
+def test_ee_project_official_image_microdnf(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test that official EE images automatically get microdnf as package manager.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_official_image")
+    cli_args["base_image"] = (
+        "registry.redhat.io/ansible-automation-platform-25/ee-minimal-rhel8:latest"
+    )
+
+    init = Init(Config(**cli_args))
+    init.run()
+    result = capsys.readouterr().out
+
+    assert r"Note: execution_env project created" in result
+
+    ee_file = tmp_path / "ee_official_image" / "execution-environment.yml"
+    ee_content = ee_file.read_text()
+
+    # Verify microdnf is automatically set for official EE images
+    assert "package_manager_path: /usr/bin/microdnf" in ee_content
+
+
+def test_ee_project_non_official_image_no_microdnf(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test that non-official images don't get microdnf automatically.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_fedora_image")
+    # Default fedora image should not get microdnf
+
+    init = Init(Config(**cli_args))
+    init.run()
+    result = capsys.readouterr().out
+
+    assert r"Note: execution_env project created" in result
+
+    ee_file = tmp_path / "ee_fedora_image" / "execution-environment.yml"
+    ee_content = ee_file.read_text()
+
+    # Verify microdnf is NOT set for non-official images
+    assert "package_manager_path" not in ee_content
+
+
 def test_run_success_ansible_project(
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,

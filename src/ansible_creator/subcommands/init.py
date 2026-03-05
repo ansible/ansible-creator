@@ -101,6 +101,13 @@ class Init:
         self._ee_options: dict[str, Any] = ee_config.get("options", {})
         self._ee_ansible_cfg: str = ee_config.get("ansible_cfg", "")
 
+        # Auto-detect official EE images and set microdnf as package manager
+        if (
+            "package_manager_path" not in self._ee_options
+            and self._is_official_ee_image(self._ee_base_image)
+        ):
+            self._ee_options["package_manager_path"] = "/usr/bin/microdnf"
+
     def run(self) -> None:
         """Start scaffolding skeleton."""
         self._construct_init_path()
@@ -159,6 +166,28 @@ class Init:
         final_name = f"{self._namespace}.{self._collection_name}"
         final_uuid = str(uuid.uuid4())[:8]
         return f"{final_name}-{final_uuid}"
+
+    def _is_official_ee_image(self, image: str) -> bool:
+        """Check if the image is an official Red Hat EE image requiring microdnf.
+
+        Official EE images from Red Hat use microdnf as the package manager
+        instead of dnf/yum due to their minimal RHEL base.
+
+        Args:
+            image: The container image name/URL.
+
+        Returns:
+            True if the image is an official EE image requiring microdnf.
+        """
+        official_ee_patterns = (
+            "registry.redhat.io/ansible-automation-platform",
+            "registry.redhat.io/aap",
+            "ee-minimal-rhel",
+            "ee-supported-rhel",
+            "ee-29-rhel",
+            "ee-dellos",
+        )
+        return any(pattern in image for pattern in official_ee_patterns)
 
     def _load_ee_config(self, config_path: str) -> dict[str, Any]:
         """Load EE configuration from a JSON or YAML file.
