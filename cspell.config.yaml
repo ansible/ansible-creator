@@ -58,6 +58,7 @@ ignoreWords:
   - pypa
   - seccomp
   - sonarlint
+  - NOSONAR
   - superfences
   - triggertaskonsave
   - userns
