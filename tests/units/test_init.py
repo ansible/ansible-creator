@@ -475,6 +475,38 @@ def test_ee_project_config_file_not_found(
         Init(Config(**cli_args))
 
 
+def test_ee_project_valid_json_config(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test Init with valid JSON config file.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    config_content = '{"name": "json-ee", "collections": [{"name": "ansible.utils"}]}'
+    config_file = tmp_path / "valid.json"
+    config_file.write_text(config_content)
+
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_valid_json")
+    cli_args["ee_config"] = str(config_file)
+
+    init = Init(Config(**cli_args))
+    init.run()
+    result = capsys.readouterr().out
+
+    assert r"Note: execution_env project created" in result
+
+    ee_file = tmp_path / "ee_valid_json" / "execution-environment.yml"
+    ee_content = ee_file.read_text()
+    assert "json-ee" in ee_content
+    assert "ansible.utils" in ee_content
+
+
 def test_ee_project_invalid_json_config(
     tmp_path: Path,
     cli_args: ConfigDict,
@@ -539,6 +571,83 @@ collections:
     cli_args["ee_config"] = str(config_file)
 
     with pytest.raises(CreatorError, match="Invalid collection name"):
+        Init(Config(**cli_args))
+
+
+def test_ee_project_config_collection_missing_name(
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test Init with collection dict missing 'name' field.
+
+    Args:
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    config_content = """
+collections:
+  - version: "1.0.0"
+"""
+    config_file = tmp_path / "missing-name.yaml"
+    config_file.write_text(config_content)
+
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_missing_name")
+    cli_args["ee_config"] = str(config_file)
+
+    with pytest.raises(CreatorError, match="must have a 'name' field"):
+        Init(Config(**cli_args))
+
+
+def test_ee_project_config_collection_invalid_type(
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test Init with collection dict having invalid type.
+
+    Args:
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    config_content = """
+collections:
+  - name: ansible.utils
+    type: invalid_type
+"""
+    config_file = tmp_path / "invalid-type.yaml"
+    config_file.write_text(config_content)
+
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_invalid_type")
+    cli_args["ee_config"] = str(config_file)
+
+    with pytest.raises(CreatorError, match="Invalid collection type"):
+        Init(Config(**cli_args))
+
+
+def test_ee_project_config_collection_invalid_source_url(
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test Init with collection dict having invalid source URL.
+
+    Args:
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    config_content = """
+collections:
+  - name: ansible.utils
+    source: "https://"
+"""
+    config_file = tmp_path / "invalid-url.yaml"
+    config_file.write_text(config_content)
+
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_invalid_url")
+    cli_args["ee_config"] = str(config_file)
+
+    with pytest.raises(CreatorError, match="Invalid source URL"):
         Init(Config(**cli_args))
 
 
