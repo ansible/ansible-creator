@@ -134,18 +134,58 @@ class Init:
 
         Returns:
             List of dictionaries with collection details.
+
+        Raises:
+            CreatorError: If collection name or source URL is invalid.
         """
+        import re
+        from urllib.parse import urlparse
+
+        # Valid collection name pattern: namespace.name
+        name_pattern = re.compile(r"^[a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*$")
+        # Valid collection types
+        valid_types = {"galaxy", "git", "url", "file", "dir"}
+
         parsed: list[dict[str, str]] = []
         for col in collections:
             # Split on colon but limit to 4 parts to preserve URLs in source
             parts = col.split(":", maxsplit=3)
-            col_dict: dict[str, str] = {"name": parts[0]}
+            col_name = parts[0]
+
+            # Validate collection name format
+            if not name_pattern.match(col_name):
+                msg = (
+                    f"Invalid collection name '{col_name}'. "
+                    "Must be in format 'namespace.name' with lowercase letters, "
+                    "numbers, and underscores."
+                )
+                raise CreatorError(msg)
+
+            col_dict: dict[str, str] = {"name": col_name}
+
             if len(parts) > 1 and parts[1]:
                 col_dict["version"] = parts[1]
+
             if len(parts) > 2 and parts[2]:  # noqa: PLR2004
-                col_dict["type"] = parts[2]
+                col_type = parts[2].lower()
+                if col_type not in valid_types:
+                    msg = (
+                        f"Invalid collection type '{parts[2]}'. "
+                        f"Must be one of: {', '.join(sorted(valid_types))}"
+                    )
+                    raise CreatorError(msg)
+                col_dict["type"] = col_type
+
             if len(parts) > 3 and parts[3]:  # noqa: PLR2004
-                col_dict["source"] = parts[3]
+                source = parts[3]
+                # Validate URL format if it looks like a URL
+                if source.startswith(("http://", "https://")):
+                    parsed_url = urlparse(source)
+                    if not parsed_url.netloc:
+                        msg = f"Invalid source URL '{source}'. Must be a valid URL."
+                        raise CreatorError(msg)
+                col_dict["source"] = source
+
             parsed.append(col_dict)
         return parsed
 

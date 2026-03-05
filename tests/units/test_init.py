@@ -241,7 +241,7 @@ def test_run_success_ee_project_with_params(
     cli_args["ee_collections"] = [
         "ansible.posix",
         "ansible.netcommon:>=1.0.0",
-        "my.collection:1.0.0:galaxy:https://galaxy.ansible.com",
+        "my.collection:1.0.0:galaxy:https://custom.galaxy.example.com",
     ]
     cli_args["ee_python_deps"] = ["requests", "boto3"]
     cli_args["ee_system_packages"] = ["git", "openssh-clients"]
@@ -273,8 +273,8 @@ def test_run_success_ee_project_with_params(
     assert '">=' in ee_content or ">=1.0.0" in ee_content
     # Check collection with full spec
     assert "my.collection" in ee_content
-    assert "galaxy" in ee_content
-    assert "https://galaxy.ansible.com" in ee_content
+    assert "type: galaxy" in ee_content
+    assert "source: https://custom.galaxy.example.com" in ee_content
 
     # Check python deps
     assert "requests" in ee_content
