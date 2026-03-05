@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import re
 import shutil
 import uuid
 
 from pathlib import Path
 from typing import TYPE_CHECKING
+from urllib.parse import urlparse
 
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.templar import Templar
@@ -138,9 +140,6 @@ class Init:
         Raises:
             CreatorError: If collection name or source URL is invalid.
         """
-        import re
-        from urllib.parse import urlparse
-
         # Valid collection name pattern: namespace.name
         name_pattern = re.compile(r"^[a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*$")
         # Valid collection types
