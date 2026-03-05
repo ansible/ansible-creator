@@ -262,29 +262,95 @@ class Init:
             msg = "Collection in config file must have a 'name' field"
             raise CreatorError(msg)
 
+        self._validate_collection_name(col["name"])
+
+        if "type" in col:
+            self._validate_collection_type(col["type"])
+
+        if "source" in col:
+            self._validate_source_url(col["source"])
+
+    def _validate_collection_name(self, col_name: str) -> None:
+        """Validate collection name format.
+
+        Args:
+            col_name: The collection name to validate.
+
+        Raises:
+            CreatorError: If the collection name is invalid.
+        """
         name_pattern = re.compile(r"^[a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*$")
-        if not name_pattern.match(col["name"]):
+        if not name_pattern.match(col_name):
             msg = (
-                f"Invalid collection name '{col['name']}'. "
+                f"Invalid collection name '{col_name}'. "
                 "Must be in format 'namespace.name' with lowercase letters, "
                 "numbers, and underscores."
             )
             raise CreatorError(msg)
 
-        if "type" in col:
-            valid_types = {"galaxy", "git", "url", "file", "dir"}
-            if col["type"].lower() not in valid_types:
-                msg = (
-                    f"Invalid collection type '{col['type']}'. "
-                    f"Must be one of: {', '.join(sorted(valid_types))}"
-                )
+    def _validate_collection_type(self, col_type: str) -> str:
+        """Validate and normalize collection type.
+
+        Args:
+            col_type: The collection type to validate.
+
+        Returns:
+            The normalized (lowercase) collection type.
+
+        Raises:
+            CreatorError: If the collection type is invalid.
+        """
+        valid_types = {"galaxy", "git", "url", "file", "dir"}
+        normalized = col_type.lower()
+        if normalized not in valid_types:
+            msg = (
+                f"Invalid collection type '{col_type}'. "
+                f"Must be one of: {', '.join(sorted(valid_types))}"
+            )
+            raise CreatorError(msg)
+        return normalized
+
+    def _validate_source_url(self, source: str) -> None:
+        """Validate source URL format if it's an HTTP(S) URL.
+
+        Args:
+            source: The source URL to validate.
+
+        Raises:
+            CreatorError: If the source URL is invalid.
+        """
+        if source.startswith(("http://", "https://")):
+            parsed_url = urlparse(source)
+            if not parsed_url.netloc:
+                msg = f"Invalid source URL '{source}'. Must be a valid URL."
                 raise CreatorError(msg)
 
-        if "source" in col and col["source"].startswith(("http://", "https://")):
-            parsed_url = urlparse(col["source"])
-            if not parsed_url.netloc:
-                msg = f"Invalid source URL '{col['source']}'. Must be a valid URL."
-                raise CreatorError(msg)
+    def _parse_single_collection(self, col: str) -> dict[str, str]:
+        """Parse a single collection string into a dictionary.
+
+        Args:
+            col: Collection string in format 'name[:version[:type[:source]]]'.
+
+        Returns:
+            Dictionary with collection details.
+        """
+        parts = col.split(":", maxsplit=3)
+        col_name = parts[0]
+
+        self._validate_collection_name(col_name)
+        col_dict: dict[str, str] = {"name": col_name}
+
+        if len(parts) > 1 and parts[1]:
+            col_dict["version"] = parts[1]
+
+        if len(parts) > 2 and parts[2]:  # noqa: PLR2004
+            col_dict["type"] = self._validate_collection_type(parts[2])
+
+        if len(parts) > 3 and parts[3]:  # noqa: PLR2004
+            self._validate_source_url(parts[3])
+            col_dict["source"] = parts[3]
+
+        return col_dict
 
     def _parse_collections(self, collections: list[str]) -> list[dict[str, str]]:
         """Parse collection strings into structured dictionaries.
@@ -299,57 +365,8 @@ class Init:
 
         Returns:
             List of dictionaries with collection details.
-
-        Raises:
-            CreatorError: If collection name or source URL is invalid.
         """
-        # Valid collection name pattern: namespace.name
-        name_pattern = re.compile(r"^[a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*$")
-        # Valid collection types
-        valid_types = {"galaxy", "git", "url", "file", "dir"}
-
-        parsed: list[dict[str, str]] = []
-        for col in collections:
-            # Split on colon but limit to 4 parts to preserve URLs in source
-            parts = col.split(":", maxsplit=3)
-            col_name = parts[0]
-
-            # Validate collection name format
-            if not name_pattern.match(col_name):
-                msg = (
-                    f"Invalid collection name '{col_name}'. "
-                    "Must be in format 'namespace.name' with lowercase letters, "
-                    "numbers, and underscores."
-                )
-                raise CreatorError(msg)
-
-            col_dict: dict[str, str] = {"name": col_name}
-
-            if len(parts) > 1 and parts[1]:
-                col_dict["version"] = parts[1]
-
-            if len(parts) > 2 and parts[2]:  # noqa: PLR2004
-                col_type = parts[2].lower()
-                if col_type not in valid_types:
-                    msg = (
-                        f"Invalid collection type '{parts[2]}'. "
-                        f"Must be one of: {', '.join(sorted(valid_types))}"
-                    )
-                    raise CreatorError(msg)
-                col_dict["type"] = col_type
-
-            if len(parts) > 3 and parts[3]:  # noqa: PLR2004
-                source = parts[3]
-                # Validate URL format if it looks like a URL
-                if source.startswith(("http://", "https://")):
-                    parsed_url = urlparse(source)
-                    if not parsed_url.netloc:
-                        msg = f"Invalid source URL '{source}'. Must be a valid URL."
-                        raise CreatorError(msg)
-                col_dict["source"] = source
-
-            parsed.append(col_dict)
-        return parsed
+        return [self._parse_single_collection(col) for col in collections]
 
     def _scaffold(self) -> None:
         """Scaffold an ansible project.
