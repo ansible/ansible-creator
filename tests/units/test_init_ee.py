@@ -1,4 +1,4 @@
-# cspell: ignore microdnf
+# cspell: ignore dcmp, subdcmp, microdnf
 """Unit tests for ansible-creator init execution environment projects."""
 
 from __future__ import annotations
