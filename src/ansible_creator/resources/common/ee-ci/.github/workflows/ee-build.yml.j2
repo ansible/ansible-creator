@@ -32,21 +32,19 @@ on:
   workflow_dispatch:
     inputs:
       skip_validation:
-        description: 'Skip token and image validation'
+        description: "Skip token and image validation"
         required: false
-        default: 'false'
+        default: "false"
         type: boolean
 
 env:
   # Container registry configuration
-  REGISTRY: {% raw %}${{ vars.EE_REGISTRY || 'ghcr.io' }}{% endraw %}
-
-  IMAGE_NAME: {% raw %}${{ vars.EE_IMAGE_NAME || github.repository }}{% endraw %}
-
+  REGISTRY: {% raw %}${{ vars.EE_REGISTRY || 'ghcr.io' }}
+  IMAGE_NAME: ${{ vars.EE_IMAGE_NAME || github.repository }}
   # Base image age thresholds (in days)
   IMAGE_WARN_AGE: 40
   IMAGE_FAIL_AGE: 80
-{% raw %}
+
 jobs:
   # ============================================================================
   # Validation Stage
@@ -205,7 +203,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Install ansible-builder
         run: |

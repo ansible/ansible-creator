@@ -32,9 +32,9 @@ on:
   workflow_dispatch:
     inputs:
       skip_validation:
-        description: 'Skip token and image validation'
+        description: "Skip token and image validation"
         required: false
-        default: 'false'
+        default: "false"
         type: boolean
 
 env:
@@ -203,7 +203,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Install ansible-builder
         run: |

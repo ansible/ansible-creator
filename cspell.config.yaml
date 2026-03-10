@@ -56,9 +56,12 @@ ignoreWords:
   - posargs
   - pymdownx
   - pypa
+  - Lifecycle
+  - MYCOMPANY
+  - mycompany
+  - NOSONAR
   - seccomp
   - sonarlint
-  - NOSONAR
   - superfences
   - triggertaskonsave
   - userns
