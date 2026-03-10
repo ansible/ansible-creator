@@ -57,6 +57,7 @@ The included GitHub Actions workflow (`ee-build.yml`) provides:
 #### Secret Naming Convention
 
 For organization-specific secrets, use the naming pattern:
+
 - `AAP_EE_BUILDER_GITHUB_<ORG_NAME>` - GitHub token for specific org
 - `AAP_EE_BUILDER_GITLAB_<ORG_NAME>` - GitLab token for specific org
 
