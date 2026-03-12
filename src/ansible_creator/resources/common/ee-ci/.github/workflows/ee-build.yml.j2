@@ -316,14 +316,14 @@ jobs:
           SCM_TOKEN: ${{ secrets.SCM_TOKEN }}
         run: |
           echo "::group::Creating build context"
-          
+
           # Substitute environment variables in execution-environment.yml
           # This allows using ${AAP_EE_BUILDER_GITHUB_TOKEN} in collection URLs for private repos
           if command -v envsubst &> /dev/null; then
             envsubst < execution-environment.yml > execution-environment.yml.tmp
             mv execution-environment.yml.tmp execution-environment.yml
           fi
-          
+
           ansible-builder create --file execution-environment.yml --output-filename Containerfile
           echo "::endgroup::"
 
