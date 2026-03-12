@@ -309,29 +309,29 @@ jobs:
       - name: Build execution environment
         id: build
         env:
-          # Pass SCM tokens as build args for collections from Git
-          GITHUB_SCM_TOKEN: ${{ secrets.AAP_EE_BUILDER_GITHUB_TOKEN }}
-          GITLAB_SCM_TOKEN: ${{ secrets.AAP_EE_BUILDER_GITLAB_TOKEN }}
+          # Pass SCM tokens for collections from private Git repos
+          # These can be referenced in execution-environment.yml as ${AAP_EE_BUILDER_GITHUB_TOKEN}
+          AAP_EE_BUILDER_GITHUB_TOKEN: ${{ secrets.AAP_EE_BUILDER_GITHUB_TOKEN }}
+          AAP_EE_BUILDER_GITLAB_TOKEN: ${{ secrets.AAP_EE_BUILDER_GITLAB_TOKEN }}
+          SCM_TOKEN: ${{ secrets.SCM_TOKEN }}
         run: |
           echo "::group::Creating build context"
+          
+          # Substitute environment variables in execution-environment.yml
+          # This allows using ${AAP_EE_BUILDER_GITHUB_TOKEN} in collection URLs for private repos
+          if command -v envsubst &> /dev/null; then
+            envsubst < execution-environment.yml > execution-environment.yml.tmp
+            mv execution-environment.yml.tmp execution-environment.yml
+          fi
+          
           ansible-builder create --file execution-environment.yml --output-filename Containerfile
           echo "::endgroup::"
 
           echo "::group::Building image"
           # Build with buildah for better compatibility
-          # Pass Git tokens as build args for private collection installation
-          BUILD_ARGS=""
-          if [[ -n "$GITHUB_SCM_TOKEN" ]]; then
-            BUILD_ARGS="$BUILD_ARGS --build-arg GITHUB_TOKEN=${GITHUB_SCM_TOKEN}"
-          fi
-          if [[ -n "$GITLAB_SCM_TOKEN" ]]; then
-            BUILD_ARGS="$BUILD_ARGS --build-arg GITLAB_TOKEN=${GITLAB_SCM_TOKEN}"
-          fi
-
           buildah bud \
             --tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
             --file context/Containerfile \
-            $BUILD_ARGS \
             context/
           echo "::endgroup::"
 
