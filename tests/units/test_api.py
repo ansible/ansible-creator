@@ -849,6 +849,66 @@ def test_schema_run_outputs_json(
     assert "schema" in data["subcommands"]
 
 
+def test_build_command_append_action_expands_list(
+    creator_api: V1,
+    tmp_path: Path,
+) -> None:
+    """Test that append-action options expand a list into repeated flags.
+
+    The ``--ee-collections`` argument uses ``action="append"``, so
+    ``ee_collections=["cisco.nxos", "ansible.utils"]`` should produce
+    ``["--ee-collections", "cisco.nxos", "--ee-collections", "ansible.utils"]``
+    rather than ``["--ee-collections", "['cisco.nxos', 'ansible.utils']"]``.
+
+    Args:
+        creator_api: V1 API instance.
+        tmp_path: Temporary directory path.
+    """
+    target = tmp_path / "ee"
+    argv = creator_api.build_command(
+        "init",
+        "execution_env",
+        init_path=str(target),
+        ee_collections=["cisco.nxos", "ansible.utils"],
+    )
+    assert argv.count("--ee-collections") == 2  # noqa: PLR2004
+    nxos_idx = argv.index("cisco.nxos")
+    utils_idx = argv.index("ansible.utils")
+    assert argv[nxos_idx - 1] == "--ee-collections"
+    assert argv[utils_idx - 1] == "--ee-collections"
+
+
+def test_run_init_ee_with_collections(creator_api: V1, tmp_path: Path) -> None:
+    """Test EE scaffolding with multiple collections via the API.
+
+    Args:
+        creator_api: V1 API instance.
+        tmp_path: Temporary directory path.
+    """
+    target = tmp_path / "ee"
+    target.mkdir()
+    result = creator_api.run(
+        "init",
+        "execution_env",
+        init_path=str(target),
+        ee_collections=["cisco.nxos", "ansible.utils"],
+    )
+    assert result.status == "success", result.message
+    ee_yml = (target / "execution-environment.yml").read_text()
+    assert "cisco.nxos" in ee_yml
+    assert "ansible.utils" in ee_yml
+
+
+def test_schema_extract_append_action_type() -> None:
+    """Test _extract_action_info handles action='append' as array type."""
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--items", action="append", help="Repeatable items")
+    action = next(a for a in parser._actions if a.dest == "items")
+    info = _extract_action_info(action)
+    assert info["type"] == "array"
+    assert info["items"] == {"type": "string"}
+
+
 def test_schema_extract_int_type() -> None:
     """Test _extract_action_info handles int type arguments."""
     parser = argparse.ArgumentParser()
