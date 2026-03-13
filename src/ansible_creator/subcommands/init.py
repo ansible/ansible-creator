@@ -262,7 +262,10 @@ class Init:
             msg = "Collection in config file must have a 'name' field"
             raise CreatorError(msg)
 
-        self._validate_collection_name(col["name"])
+        col_name = col["name"]
+        # Skip namespace.name validation for Git URLs (they use the URL as the name)
+        if not col_name.startswith(("https://", "http://")):
+            self._validate_collection_name(col_name)
 
         if "type" in col:
             self._validate_collection_type(col["type"])
@@ -330,12 +333,21 @@ class Init:
     def _parse_single_collection(self, col: str) -> dict[str, str]:
         """Parse a single collection string into a dictionary.
 
+        Supports two formats:
+        1. Standard: 'namespace.name[:version[:type[:source]]]'
+        2. Git URL: 'https://...path/namespace.name[:version]:git'
+
         Args:
-            col: Collection string in format 'name[:version[:type[:source]]]'.
+            col: Collection string to parse.
 
         Returns:
             Dictionary with collection details.
         """
+        # Check if this is a Git URL (starts with http:// or https://)
+        if col.startswith(("https://", "http://")):
+            return self._parse_git_url_collection(col)
+
+        # Standard format: name[:version[:type[:source]]]
         parts = col.split(":", maxsplit=3)
         col_name = parts[0]
 
@@ -353,6 +365,42 @@ class Init:
             col_dict["source"] = parts[3]
 
         return col_dict
+
+    def _parse_git_url_collection(self, col: str) -> dict[str, str]:
+        """Parse a Git URL collection string.
+
+        Format: 'https://[token@]host/path/namespace.name[:version]:git'
+
+        Args:
+            col: Git URL collection string.
+
+        Returns:
+            Dictionary with name (URL), optional version, and type=git.
+        """
+        # Split from the right to handle URLs with colons
+        # Expected format: URL[:version]:git
+        parts = col.rsplit(":", maxsplit=2)
+
+        if len(parts) < 2:  # noqa: PLR2004
+            # Just a URL, no version or type specified
+            return {"name": col, "type": "git"}
+
+        last_part = parts[-1].lower()
+
+        # Check if last part is a type indicator
+        if last_part == "git":
+            if len(parts) == 2:  # noqa: PLR2004
+                # Format: URL followed by git type
+                return {"name": parts[0], "type": "git"}
+            # Format: URL followed by version and git type
+            return {"name": parts[0], "version": parts[1], "type": "git"}
+
+        # No type specified, assume git and treat second part as version
+        if len(parts) == 2:  # noqa: PLR2004
+            return {"name": parts[0], "version": parts[1], "type": "git"}
+
+        # Fallback: treat entire string as the URL
+        return {"name": col, "type": "git"}
 
     def _parse_collections(self, collections: list[str]) -> list[dict[str, str]]:
         """Parse collection strings into structured dictionaries.
