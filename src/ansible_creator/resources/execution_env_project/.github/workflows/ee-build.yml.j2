@@ -8,12 +8,13 @@
 # - Production release workflow with tagging
 # - Registry authentication for build and push
 #
-# Secret Naming Convention:
-#   AAP_EE_BUILDER_GITHUB_<ORG_NAME> - GitHub PAT for private collections
-#   AAP_EE_BUILDER_GITLAB_<ORG_NAME> - GitLab PAT for private collections
-#   ANSIBLE_GALAXY_SERVER_TOKEN     - Automation Hub token
-#   REGISTRY_USERNAME/PASSWORD      - Container registry credentials
-#   REDHAT_REGISTRY_PASSWORD        - Red Hat registry for base images
+# Supported Secrets:
+#   AAP_EE_BUILDER_GITHUB_TOKEN  - GitHub PAT for private collections
+#   AAP_EE_BUILDER_GITLAB_TOKEN  - GitLab PAT for private collections
+#   SCM_TOKEN                    - Generic SCM token for custom Git servers
+#   ANSIBLE_GALAXY_SERVER_TOKEN  - Automation Hub token
+#   REGISTRY_USERNAME/PASSWORD   - Container registry credentials
+#   REDHAT_REGISTRY_PASSWORD     - Red Hat registry for base images
 
 name: Execution Environment Build
 
@@ -36,6 +37,11 @@ on:
         required: false
         default: "false"
         type: boolean
+
+# Permissions required for GHCR push
+permissions:
+  contents: read
+  packages: write
 
 env:
   # Container registry configuration
@@ -73,8 +79,6 @@ jobs:
       - name: Check if Git SCM token is configured
         id: check-git-token
         env:
-          # Check for organization-specific tokens using naming convention
-          # AAP_EE_BUILDER_GITHUB_<ORG> or AAP_EE_BUILDER_GITLAB_<ORG>
           GITHUB_SCM_TOKEN: ${{ secrets.AAP_EE_BUILDER_GITHUB_TOKEN }}
           GITLAB_SCM_TOKEN: ${{ secrets.AAP_EE_BUILDER_GITLAB_TOKEN }}
           GENERIC_SCM_TOKEN: ${{ secrets.SCM_TOKEN }}
@@ -128,6 +132,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Login to Red Hat registry (for private base images)
+        if: vars.REDHAT_REGISTRY_USERNAME != ''
+        run: |
+          echo "${{ secrets.REDHAT_REGISTRY_PASSWORD }}" | \
+            podman login -u "${{ vars.REDHAT_REGISTRY_USERNAME }}" \
+            --password-stdin registry.redhat.io
 
       - name: Extract base image from execution-environment.yml
         id: get-image
@@ -279,19 +290,17 @@ jobs:
           echo "::notice::Configured Automation Hub authentication"
 
       - name: Login to container registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.REGISTRY_USERNAME || github.actor }}
-          password: ${{ secrets.REGISTRY_PASSWORD || secrets.GITHUB_TOKEN }}
+        run: |
+          echo "${{ secrets.REGISTRY_PASSWORD || secrets.GITHUB_TOKEN }}" | \
+            buildah login -u "${{ secrets.REGISTRY_USERNAME || github.actor }}" \
+            --password-stdin "${{ env.REGISTRY }}"
 
       - name: Login to Red Hat registry (for base images)
         if: vars.REDHAT_REGISTRY_USERNAME != ''
-        uses: docker/login-action@v3
-        with:
-          registry: registry.redhat.io
-          username: ${{ vars.REDHAT_REGISTRY_USERNAME }}
-          password: ${{ secrets.REDHAT_REGISTRY_PASSWORD }}
+        run: |
+          echo "${{ secrets.REDHAT_REGISTRY_PASSWORD }}" | \
+            buildah login -u "${{ vars.REDHAT_REGISTRY_USERNAME }}" \
+            --password-stdin registry.redhat.io
 
       - name: Generate image metadata
         id: meta
@@ -349,19 +358,22 @@ jobs:
             ansible-galaxy collection list
           echo "::endgroup::"
 
-      - name: Push image (PR)
-        if: github.event_name == 'pull_request'
+      - name: Push image
         run: |
+          # Always push with build SHA tag (needed for release job)
           buildah push "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
-            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:pr-${{ github.event.pull_request.number }}"
+            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}"
 
-      - name: Push image (push to main)
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
-        run: |
-          buildah push "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
-            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
-          buildah push "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
-            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+          # Additional tags based on event type
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            buildah push "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
+              "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:pr-${{ github.event.pull_request.number }}"
+          elif [[ "${{ github.event_name }}" == "push" ]]; then
+            buildah push "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
+              "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+            buildah push "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
+              "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+          fi
 
   # ============================================================================
   # Release Stage
@@ -373,18 +385,17 @@ jobs:
     if: github.event_name == 'release'
     steps:
       - name: Login to container registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.REGISTRY_USERNAME || github.actor }}
-          password: ${{ secrets.REGISTRY_PASSWORD || secrets.GITHUB_TOKEN }}
+        run: |
+          echo "${{ secrets.REGISTRY_PASSWORD || secrets.GITHUB_TOKEN }}" | \
+            buildah login -u "${{ secrets.REGISTRY_USERNAME || github.actor }}" \
+            --password-stdin "${{ env.REGISTRY }}"
 
       - name: Tag and push release
         env:
           VERSION: ${{ github.event.release.tag_name }}
         run: |
-          # Pull the latest image
-          buildah pull "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+          # Pull the image built from this commit (pushed in build job)
+          buildah pull "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}"
 
           # Backup previous production tag if it exists
           if buildah pull "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:prd" 2>/dev/null; then
@@ -394,14 +405,17 @@ jobs:
             buildah push "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:previous"
           fi
 
-          # Tag with version and production
-          buildah tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" \
+          # Tag build image with version, latest, and production
+          buildah tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
             "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${VERSION}"
-          buildah tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" \
+          buildah tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
+            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+          buildah tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
             "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:prd"
 
           # Push all tags
           buildah push "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${VERSION}"
+          buildah push "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
           buildah push "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:prd"
 
           echo "::notice::Released version ${VERSION}"
