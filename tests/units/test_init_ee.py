@@ -762,3 +762,44 @@ def test_ee_project_git_url_formats(
 
     # Plain URL format should work too
     assert "https://github.com/org/ns.col3" in ee_content
+
+
+def test_ee_project_git_url_edge_cases(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test edge case Git URL formats without protocol separator.
+
+    These test cases cover code paths for URLs without :// separator,
+    such as git@host:path or simple host/path formats.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_git_edge")
+    cli_args["ee_collections"] = [
+        # SSH-style URL with :git suffix (hits line 393 - 2 parts after rsplit)
+        "git@github.com/org/ns.col1:git",
+        # SSH-style URL without :git suffix (hits line 410 - fallback case)
+        "git@github.com/org/ns.col2",
+    ]
+
+    init = Init(Config(**cli_args))
+    init.run()
+    result = capsys.readouterr().out
+
+    assert r"Note: execution_env project created" in result
+
+    ee_file = tmp_path / "ee_git_edge" / "execution-environment.yml"
+    ee_content = ee_file.read_text()
+
+    # SSH-style URL with :git suffix
+    assert "git@github.com/org/ns.col1" in ee_content
+    assert "type: git" in ee_content
+
+    # SSH-style URL without :git suffix (fallback)
+    assert "git@github.com/org/ns.col2" in ee_content
