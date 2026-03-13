@@ -377,29 +377,36 @@ class Init:
         Returns:
             Dictionary with name (URL), optional version, and type=git.
         """
-        # Split from the right to handle URLs with colons
-        # Expected format: URL[:version]:git
+        # Split from the right to handle URLs with colons in the protocol
+        # Expected formats:
+        #   https://host/path (just URL)
+        #   https://host/path:git (URL with type)
+        #   https://host/path:version:git (URL with version and type)
         parts = col.rsplit(":", maxsplit=2)
-
-        if len(parts) < 2:  # noqa: PLR2004
-            # Just a URL, no version or type specified
-            return {"name": col, "type": "git"}
-
         last_part = parts[-1].lower()
 
         # Check if last part is a type indicator
         if last_part == "git":
             if len(parts) == 2:  # noqa: PLR2004
-                # Format: URL followed by git type
+                # Format: URL:git (split on protocol colon and :git)
+                # Reconstruct URL from first part
                 return {"name": parts[0], "type": "git"}
-            # Format: URL followed by version and git type
+            # Format: URL:version:git (3 parts)
             return {"name": parts[0], "version": parts[1], "type": "git"}
 
-        # No type specified, assume git and treat second part as version
-        if len(parts) == 2:  # noqa: PLR2004
-            return {"name": parts[0], "version": parts[1], "type": "git"}
+        # No :git suffix - check if it looks like a version (no / or .)
+        # For https://host/path:1.0.0 -> parts = ['https', '//host/path', '1.0.0']
+        if len(parts) == 3 and not parts[-1].startswith("/"):  # noqa: PLR2004
+            # Reconstruct URL and treat last part as version
+            url = f"{parts[0]}:{parts[1]}"
+            return {"name": url, "version": parts[-1], "type": "git"}
 
-        # Fallback: treat entire string as the URL
+        # Default: treat the whole string as URL (e.g., https://host/path)
+        # This handles cases like https://host/path where rsplit gives
+        # ['https', '//host/path'] - reconstruct the URL
+        if len(parts) == 2 and parts[1].startswith("//"):  # noqa: PLR2004
+            return {"name": col, "type": "git"}
+
         return {"name": col, "type": "git"}
 
     def _parse_collections(self, collections: list[str]) -> list[dict[str, str]]:
