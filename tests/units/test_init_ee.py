@@ -644,3 +644,77 @@ def test_ee_project_non_official_image_no_microdnf(
     ee_content = ee_file.read_text()
 
     assert "package_manager_path" not in ee_content
+
+
+def test_ee_project_git_url_collection_cli(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test Init with Git URL collection via CLI argument.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_git_url")
+    cli_args["ee_collections"] = [
+        "cisco.nxos",
+        "https://${AAP_EE_BUILDER_GITHUB_MY_ORG}@github.com/my_org/my_ns.my_col:1.0.0:git",
+    ]
+
+    init = Init(Config(**cli_args))
+    init.run()
+    result = capsys.readouterr().out
+
+    assert r"Note: execution_env project created" in result
+
+    ee_file = tmp_path / "ee_git_url" / "execution-environment.yml"
+    ee_content = ee_file.read_text()
+
+    assert "cisco.nxos" in ee_content
+    assert "https://${AAP_EE_BUILDER_GITHUB_MY_ORG}@github.com/my_org/my_ns.my_col" in ee_content
+    assert "type: git" in ee_content
+    assert "1.0.0" in ee_content
+
+
+def test_ee_project_git_url_collection_config(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test Init with Git URL collection via config file.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    config_content = """
+collections:
+  - name: cisco.nxos
+  - name: https://${AAP_EE_BUILDER_GITHUB_MY_ORG}@github.com/my_org/my_ns.my_col
+    type: git
+    version: "1.0.0"
+"""
+    config_file = tmp_path / "git-url-config.yaml"
+    config_file.write_text(config_content)
+
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_git_url_config")
+    cli_args["ee_config"] = str(config_file)
+
+    init = Init(Config(**cli_args))
+    init.run()
+    result = capsys.readouterr().out
+
+    assert r"Note: execution_env project created" in result
+
+    ee_file = tmp_path / "ee_git_url_config" / "execution-environment.yml"
+    ee_content = ee_file.read_text()
+
+    assert "cisco.nxos" in ee_content
+    assert "https://${AAP_EE_BUILDER_GITHUB_MY_ORG}@github.com/my_org/my_ns.my_col" in ee_content
+    assert "type: git" in ee_content
