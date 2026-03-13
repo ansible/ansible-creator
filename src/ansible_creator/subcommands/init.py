@@ -23,6 +23,10 @@ if TYPE_CHECKING:
     from ansible_creator.config import Config
     from ansible_creator.output import Output
 
+# URL protocol prefixes for Git URL collection detection
+HTTP_PROTOCOLS = ("https://", "http://")
+GIT_URL_PROTOCOLS = ("https://", "http://", "git://", "ssh://", "file://")
+
 
 class Init:
     """Class representing ansible-creator init subcommand.
@@ -264,7 +268,7 @@ class Init:
 
         col_name = col["name"]
         # Skip namespace.name validation for Git URLs (they use the URL as the name)
-        if not col_name.startswith(("https://", "http://")):
+        if not col_name.startswith(HTTP_PROTOCOLS):
             self._validate_collection_name(col_name)
 
         if "type" in col:
@@ -324,7 +328,7 @@ class Init:
         """
         # HTTP is intentionally supported for internal/private registries.
         # This only validates URL format; actual network security is handled by ansible-builder.
-        if source.startswith(("https://", "http://")):  # NOSONAR
+        if source.startswith(HTTP_PROTOCOLS):  # NOSONAR
             parsed_url = urlparse(source)
             if not parsed_url.netloc:
                 msg = f"Invalid source URL '{source}'. Must be a valid URL."
@@ -343,7 +347,7 @@ class Init:
             True if the string appears to be a Git URL collection name.
         """
         # URL protocols at the start of the string
-        if col.startswith(("https://", "http://", "git://", "ssh://", "file://")):
+        if col.startswith(GIT_URL_PROTOCOLS):
             return True
         # SSH-style git@host:path or git@host/path
         return bool(col.startswith("git@"))
