@@ -718,3 +718,47 @@ collections:
     assert "cisco.nxos" in ee_content
     assert "https://${AAP_EE_BUILDER_GITHUB_MY_ORG}@github.com/my_org/my_ns.my_col" in ee_content
     assert "type: git" in ee_content
+
+
+def test_ee_project_git_url_formats(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test various Git URL collection formats for full coverage.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_git_formats")
+    cli_args["ee_collections"] = [
+        # URL:git format (no version)
+        "https://github.com/org/ns.col:git",
+        # URL:version format (no explicit git type, assumes git)
+        "https://github.com/org/ns.col2:2.0.0",
+        # Plain URL format (no version, no git suffix)
+        "https://github.com/org/ns.col3",
+    ]
+
+    init = Init(Config(**cli_args))
+    init.run()
+    result = capsys.readouterr().out
+
+    assert r"Note: execution_env project created" in result
+
+    ee_file = tmp_path / "ee_git_formats" / "execution-environment.yml"
+    ee_content = ee_file.read_text()
+
+    # URL:git format should have type but no version
+    assert "https://github.com/org/ns.col" in ee_content
+    assert "type: git" in ee_content
+
+    # URL:version format should have version and assume git type
+    assert "https://github.com/org/ns.col2" in ee_content
+    assert "2.0.0" in ee_content
+
+    # Plain URL format should work too
+    assert "https://github.com/org/ns.col3" in ee_content
