@@ -23,6 +23,10 @@ if TYPE_CHECKING:
     from ansible_creator.config import Config
     from ansible_creator.output import Output
 
+# URL protocol prefixes for Git URL collection detection
+HTTP_PROTOCOLS = ("https://", "http://")
+GIT_URL_PROTOCOLS = ("https://", "http://", "git://", "ssh://", "file://")
+
 
 class Init:
     """Class representing ansible-creator init subcommand.
@@ -262,7 +266,10 @@ class Init:
             msg = "Collection in config file must have a 'name' field"
             raise CreatorError(msg)
 
-        self._validate_collection_name(col["name"])
+        col_name = col["name"]
+        # Skip namespace.name validation for Git URLs (they use the URL as the name)
+        if not col_name.startswith(HTTP_PROTOCOLS):
+            self._validate_collection_name(col_name)
 
         if "type" in col:
             self._validate_collection_type(col["type"])
@@ -321,21 +328,48 @@ class Init:
         """
         # HTTP is intentionally supported for internal/private registries.
         # This only validates URL format; actual network security is handled by ansible-builder.
-        if source.startswith(("https://", "http://")):  # NOSONAR
+        if source.startswith(HTTP_PROTOCOLS):  # NOSONAR
             parsed_url = urlparse(source)
             if not parsed_url.netloc:
                 msg = f"Invalid source URL '{source}'. Must be a valid URL."
                 raise CreatorError(msg)
 
+    def _is_git_url_collection(self, col: str) -> bool:
+        """Check if a collection string is a Git URL.
+
+        A Git URL collection is one where the collection name itself is a URL,
+        not a standard namespace.name format with a URL as the source field.
+
+        Args:
+            col: Collection string to check.
+
+        Returns:
+            True if the string appears to be a Git URL collection name.
+        """
+        # URL protocols at the start of the string
+        if col.startswith(GIT_URL_PROTOCOLS):
+            return True
+        # SSH-style git@host:path or git@host/path
+        return bool(col.startswith("git@"))
+
     def _parse_single_collection(self, col: str) -> dict[str, str]:
         """Parse a single collection string into a dictionary.
 
+        Supports two formats:
+        1. Standard: 'namespace.name[:version[:type[:source]]]'
+        2. Git URL: 'https://...path/namespace.name[:version]:git'
+
         Args:
-            col: Collection string in format 'name[:version[:type[:source]]]'.
+            col: Collection string to parse.
 
         Returns:
             Dictionary with collection details.
         """
+        # Check if this is a Git URL
+        if self._is_git_url_collection(col):
+            return self._parse_git_url_collection(col)
+
+        # Standard format: name[:version[:type[:source]]]
         parts = col.split(":", maxsplit=3)
         col_name = parts[0]
 
@@ -353,6 +387,49 @@ class Init:
             col_dict["source"] = parts[3]
 
         return col_dict
+
+    def _parse_git_url_collection(self, col: str) -> dict[str, str]:
+        """Parse a Git URL collection string.
+
+        Format: 'https://[token@]host/path/namespace.name[:version]:git'
+
+        Args:
+            col: Git URL collection string.
+
+        Returns:
+            Dictionary with name (URL), optional version, and type=git.
+        """
+        # Split from the right to handle URLs with colons in the protocol
+        # Expected formats:
+        #   https://host/path (just URL)
+        #   https://host/path:git (URL with type)
+        #   https://host/path:version:git (URL with version and type)
+        parts = col.rsplit(":", maxsplit=2)
+        last_part = parts[-1].lower()
+
+        # Check if last part is a type indicator
+        if last_part == "git":
+            if len(parts) == 2:  # noqa: PLR2004
+                # Format: URL:git (split on protocol colon and :git)
+                # Reconstruct URL from first part
+                return {"name": parts[0], "type": "git"}
+            # Format: URL:version:git (3 parts)
+            return {"name": parts[0], "version": parts[1], "type": "git"}
+
+        # No :git suffix - check if it looks like a version (no / or .)
+        # For https://host/path:1.0.0 -> parts = ['https', '//host/path', '1.0.0']
+        if len(parts) == 3 and not parts[-1].startswith("/"):  # noqa: PLR2004
+            # Reconstruct URL and treat last part as version
+            url = f"{parts[0]}:{parts[1]}"
+            return {"name": url, "version": parts[-1], "type": "git"}
+
+        # Default: treat the whole string as URL (e.g., https://host/path)
+        # This handles cases like https://host/path where rsplit gives
+        # ['https', '//host/path'] - reconstruct the URL
+        if len(parts) == 2 and parts[1].startswith("//"):  # noqa: PLR2004
+            return {"name": col, "type": "git"}
+
+        return {"name": col, "type": "git"}
 
     def _parse_collections(self, collections: list[str]) -> list[dict[str, str]]:
         """Parse collection strings into structured dictionaries.

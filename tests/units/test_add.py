@@ -390,7 +390,7 @@ def test_run_success_add_ee_ci(
     assert diff == [], diff
 
     # Test for overwrite prompt and failure with no overwrite option
-    conflict_file = tmp_path / ".github" / "workflows" / "ci.yml"
+    conflict_file = tmp_path / ".github" / "workflows" / "ee-build.yml"
     conflict_file.write_text("name: conflict")
 
     # expect a CreatorError when the response to overwrite is no.
