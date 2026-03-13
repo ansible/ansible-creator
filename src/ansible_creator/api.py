@@ -362,6 +362,11 @@ class V1:
             return [flag] if value else []
         if isinstance(action, argparse._CountAction):  # noqa: SLF001
             return [flag] * int(value)
+        if isinstance(action, argparse._AppendAction):  # noqa: SLF001
+            tokens: list[str] = []
+            for item in value:
+                tokens.extend([flag, str(item)])
+            return tokens
         return [flag, str(value)]
 
     @staticmethod

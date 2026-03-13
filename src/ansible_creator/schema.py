@@ -146,7 +146,11 @@ def _extract_action_info(action: argparse.Action) -> dict[str, Any]:
             info["type"] = type_name
         else:
             info["type"] = "string"
-    elif action.nargs in ("+", "*") or (isinstance(action.nargs, int) and action.nargs > 1):
+    elif (
+        isinstance(action, argparse._AppendAction)  # noqa: SLF001
+        or action.nargs in ("+", "*")
+        or (isinstance(action.nargs, int) and action.nargs > 1)
+    ):
         info["type"] = "array"
         info["items"] = {"type": "string"}
     else:
