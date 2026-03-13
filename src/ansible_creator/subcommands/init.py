@@ -330,6 +330,24 @@ class Init:
                 msg = f"Invalid source URL '{source}'. Must be a valid URL."
                 raise CreatorError(msg)
 
+    def _is_git_url_collection(self, col: str) -> bool:
+        """Check if a collection string is a Git URL.
+
+        A Git URL collection is one where the collection name itself is a URL,
+        not a standard namespace.name format with a URL as the source field.
+
+        Args:
+            col: Collection string to check.
+
+        Returns:
+            True if the string appears to be a Git URL collection name.
+        """
+        # URL protocols at the start of the string
+        if col.startswith(("https://", "http://", "git://", "ssh://", "file://")):
+            return True
+        # SSH-style git@host:path or git@host/path
+        return bool(col.startswith("git@"))
+
     def _parse_single_collection(self, col: str) -> dict[str, str]:
         """Parse a single collection string into a dictionary.
 
@@ -343,8 +361,8 @@ class Init:
         Returns:
             Dictionary with collection details.
         """
-        # Check if this is a Git URL (starts with http:// or https://)
-        if col.startswith(("https://", "http://")):
+        # Check if this is a Git URL
+        if self._is_git_url_collection(col):
             return self._parse_git_url_collection(col)
 
         # Standard format: name[:version[:type[:source]]]
