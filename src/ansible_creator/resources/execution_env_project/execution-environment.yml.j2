@@ -7,7 +7,6 @@ images:
 
 dependencies:
 {%- if not is_official_ee %}
-{%- if not is_official_ee %}
   # Use python3
   python_interpreter:
     package_system: python3
@@ -18,10 +17,6 @@ dependencies:
 
   ansible_runner:
     package_pip: ansible-runner
-{%- else %}
-  python_interpreter:
-    python_path: /usr/bin/python3
-{%- endif %}
 {%- else %}
   python_interpreter:
     python_path: /usr/bin/python3.11

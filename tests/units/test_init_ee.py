@@ -681,6 +681,7 @@ def test_ee_project_official_image_microdnf(
 
     Official EE images already have ansible-core and ansible-runner pre-installed,
     so we should not include them in the EE definition to avoid conflicts.
+    They also get ansible.cfg with Portal anchors for Automation Hub configuration.
 
     Args:
         capsys: Pytest fixture to capture stdout and stderr.
@@ -711,9 +712,26 @@ def test_ee_project_official_image_microdnf(
     assert "package_pip: ansible-core" not in ee_content
     assert "package_pip: ansible-runner" not in ee_content
 
-    # Should still have python_interpreter
+    # Should have python_interpreter with python3.11 for official EE images
     assert "python_interpreter:" in ee_content
-    assert "python_path:" in ee_content
+    assert "python_path: /usr/bin/python3.11" in ee_content
+
+    # Official EE images should have additional_build_files for ansible.cfg
+    assert "additional_build_files:" in ee_content
+    assert "src: ansible.cfg" in ee_content
+    assert "dest: configs" in ee_content
+
+    # Official EE images should have prepend_galaxy step for ANSIBLE_CONFIG
+    assert "prepend_galaxy:" in ee_content
+    assert "ENV ANSIBLE_CONFIG=/etc/ansible/ansible.cfg" in ee_content
+
+    # ansible.cfg file should be generated with Portal anchors
+    ansible_cfg_file = tmp_path / "ee_official_image" / "ansible.cfg"
+    assert ansible_cfg_file.exists()
+    ansible_cfg_content = ansible_cfg_file.read_text()
+    assert "[galaxy]" in ansible_cfg_content
+    assert "<!--start PAH content-->" in ansible_cfg_content
+    assert "<!--end PAH content-->" in ansible_cfg_content
 
 
 def test_ee_project_non_official_image_no_microdnf(
@@ -724,6 +742,7 @@ def test_ee_project_non_official_image_no_microdnf(
     """Test that non-official images get full skeleton with ansible_core/runner.
 
     Non-official images need ansible-core and ansible-runner installed via pip.
+    They should NOT have the ansible.cfg file or additional_build_files for it.
 
     Args:
         capsys: Pytest fixture to capture stdout and stderr.
@@ -750,6 +769,14 @@ def test_ee_project_non_official_image_no_microdnf(
     assert "ansible_runner:" in ee_content
     assert "package_pip: ansible-core" in ee_content
     assert "package_pip: ansible-runner" in ee_content
+
+    # Non-official images should NOT have additional_build_files for ansible.cfg
+    assert "src: ansible.cfg" not in ee_content
+    assert "prepend_galaxy:" not in ee_content
+
+    # ansible.cfg file should NOT be generated for non-official images
+    ansible_cfg_file = tmp_path / "ee_fedora_image" / "ansible.cfg"
+    assert not ansible_cfg_file.exists()
 
 
 def test_ee_project_git_url_collection_cli(
