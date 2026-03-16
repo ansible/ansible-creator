@@ -24,8 +24,10 @@ if TYPE_CHECKING:
     from ansible_creator.output import Output
 
 # URL protocol prefixes for Git URL collection detection
-HTTP_PROTOCOLS = ("https://", "http://")
-GIT_URL_PROTOCOLS = ("https://", "http://", "git://", "ssh://", "file://")
+# HTTP is intentionally supported for internal/private registries and Git servers.
+# These are string pattern constants for URL detection, not network connections.
+HTTP_PROTOCOLS = ("https://", "http://")  # NOSONAR
+GIT_URL_PROTOCOLS = ("https://", "http://", "git://", "ssh://", "file://")  # NOSONAR
 
 
 class Init:
