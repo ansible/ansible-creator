@@ -109,5 +109,7 @@ options:
 {%- if ee_options.package_manager_path is defined %}
   package_manager_path: {{ ee_options.package_manager_path }}
 {%- endif %}
+{%- if not is_official_ee or ee_name != 'ansible_sample_ee' %}
   tags:
     - {{ ee_name }}
+{%- endif %}

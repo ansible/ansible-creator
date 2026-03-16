@@ -725,6 +725,11 @@ def test_ee_project_official_image_microdnf(
     assert "prepend_galaxy:" in ee_content
     assert "ENV ANSIBLE_CONFIG=/etc/ansible/ansible.cfg" in ee_content
 
+    # Official EE images should NOT have append_base pip upgrade or default tag
+    # (as per NilashishC's review comment)
+    assert "RUN $PYCMD -m pip install -U pip" not in ee_content
+    assert "ansible_sample_ee" not in ee_content
+
     # ansible.cfg file should be generated with Portal anchors
     ansible_cfg_file = tmp_path / "ee_official_image" / "ansible.cfg"
     assert ansible_cfg_file.exists()
@@ -765,6 +770,40 @@ def test_ee_project_official_image_aap26_python312(
 
     # AAP 2.6 should use Python 3.12
     assert "python_path: /usr/bin/python3.12" in ee_content
+
+
+def test_ee_project_official_image_fallback_python(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test that official EE images without specific version use fallback Python path.
+
+    Images like ee-dellos or ee-29-rhel are official but don't have specific
+    Python version mappings, so they should use the default fallback.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_dellos_image")
+    cli_args["base_image"] = "registry.redhat.io/ee-dellos-rhel8:latest"
+
+    init = Init(Config(**cli_args))
+    init.run()
+    result = capsys.readouterr().out
+
+    assert r"Note: execution_env project created" in result
+
+    ee_file = tmp_path / "ee_dellos_image" / "execution-environment.yml"
+    ee_content = ee_file.read_text()
+
+    # Should use fallback Python 3.11
+    assert "python_path: /usr/bin/python3.11" in ee_content
+    # Should still be detected as official EE (microdnf)
+    assert "package_manager_path: /usr/bin/microdnf" in ee_content
 
 
 def test_ee_project_non_official_image_no_microdnf(
