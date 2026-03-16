@@ -39,7 +39,7 @@ repos:
       - id: pydoclint
         priority: 1
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.10.9
+    rev: 0.10.10
     hooks:
       - id: uv-sync
       - id: uv-lock
@@ -74,7 +74,7 @@ repos:
       - id: trailing-whitespace
         priority: 0
   - repo: https://github.com/ansible/team-devtools
-    rev: v26.2.1
+    rev: v26.2.2
     hooks:
       - id: check-platform-constraints
         priority: 0
