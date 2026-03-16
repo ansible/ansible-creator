@@ -333,6 +333,7 @@ class TemplateData:
             append_final steps.
         ee_options: Dict of EE build options (e.g., package_manager_path).
         ee_ansible_cfg: Content for ansible.cfg file (for Automation Hub auth).
+        is_official_ee: Whether the base image is an official Red Hat EE image.
     """
 
     resource_type: str = ""
@@ -361,3 +362,4 @@ class TemplateData:
     ee_additional_build_steps: dict[str, list[str]] = field(default_factory=dict)
     ee_options: dict[str, Any] = field(default_factory=dict)
     ee_ansible_cfg: str = ""
+    is_official_ee: bool = False

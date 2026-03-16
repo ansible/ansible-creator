@@ -677,7 +677,10 @@ def test_ee_project_official_image_microdnf(
     tmp_path: Path,
     cli_args: ConfigDict,
 ) -> None:
-    """Test that official EE images automatically get microdnf as package manager.
+    """Test that official EE images get minimal skeleton without ansible_core/runner.
+
+    Official EE images already have ansible-core and ansible-runner pre-installed,
+    so we should not include them in the EE definition to avoid conflicts.
 
     Args:
         capsys: Pytest fixture to capture stdout and stderr.
@@ -699,7 +702,18 @@ def test_ee_project_official_image_microdnf(
     ee_file = tmp_path / "ee_official_image" / "execution-environment.yml"
     ee_content = ee_file.read_text()
 
+    # Official EE images should have microdnf
     assert "package_manager_path: /usr/bin/microdnf" in ee_content
+
+    # Official EE images should NOT have ansible_core/ansible_runner (pre-installed)
+    assert "ansible_core:" not in ee_content
+    assert "ansible_runner:" not in ee_content
+    assert "package_pip: ansible-core" not in ee_content
+    assert "package_pip: ansible-runner" not in ee_content
+
+    # Should still have python_interpreter
+    assert "python_interpreter:" in ee_content
+    assert "python_path:" in ee_content
 
 
 def test_ee_project_non_official_image_no_microdnf(
@@ -707,7 +721,9 @@ def test_ee_project_non_official_image_no_microdnf(
     tmp_path: Path,
     cli_args: ConfigDict,
 ) -> None:
-    """Test that non-official images don't get microdnf automatically.
+    """Test that non-official images get full skeleton with ansible_core/runner.
+
+    Non-official images need ansible-core and ansible-runner installed via pip.
 
     Args:
         capsys: Pytest fixture to capture stdout and stderr.
@@ -726,7 +742,14 @@ def test_ee_project_non_official_image_no_microdnf(
     ee_file = tmp_path / "ee_fedora_image" / "execution-environment.yml"
     ee_content = ee_file.read_text()
 
+    # Non-official images should NOT have microdnf
     assert "package_manager_path" not in ee_content
+
+    # Non-official images SHOULD have ansible_core and ansible_runner
+    assert "ansible_core:" in ee_content
+    assert "ansible_runner:" in ee_content
+    assert "package_pip: ansible-core" in ee_content
+    assert "package_pip: ansible-runner" in ee_content
 
 
 def test_ee_project_git_url_collection_cli(

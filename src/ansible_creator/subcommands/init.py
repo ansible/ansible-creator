@@ -386,6 +386,7 @@ class Init:
             ee_additional_build_steps=ec.additional_build_steps,
             ee_options=ec.options,
             ee_ansible_cfg=ec.ansible_cfg,
+            is_official_ee=self._is_official_ee_image(ec.base_image),
         )
 
         if self._project == "execution_env":
