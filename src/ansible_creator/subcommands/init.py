@@ -451,7 +451,26 @@ class Init:
         if self._project != "execution_env":
             return
 
+        ansible_cfg_path = self._init_path / "ansible.cfg"
+
         if self._ee_config.ansible_cfg:
-            ansible_cfg_path = self._init_path / "ansible.cfg"
             ansible_cfg_path.write_text(self._ee_config.ansible_cfg, encoding="utf-8")
+            self.output.debug(msg=f"Writing to {ansible_cfg_path}")
+        elif self._is_official_ee_image(self._ee_config.base_image):
+            # For official EE images, generate a static ansible.cfg with Portal anchors
+            ansible_cfg_content = """\
+[galaxy]
+# Automation Hub server configuration
+# Portal will populate this section with appropriate server entries
+# <!--start PAH content-->
+# Example:
+# server_list = automation_hub
+#
+# [galaxy_server.automation_hub]
+# url = https://console.redhat.com/api/automation-hub/content/published/
+# auth_url = https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
+# token = <your_token>
+# <!--end PAH content-->
+"""
+            ansible_cfg_path.write_text(ansible_cfg_content, encoding="utf-8")
             self.output.debug(msg=f"Writing to {ansible_cfg_path}")
