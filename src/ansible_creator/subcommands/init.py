@@ -31,6 +31,23 @@ if TYPE_CHECKING:
 
 GIT_URL_PROTOCOLS = ("https://", "http://", "git://", "ssh://", "file://")  # NOSONAR
 
+# Mapping of official EE base image patterns to their Python interpreter paths
+# Different AAP versions use different Python versions in their minimal EE images
+OFFICIAL_EE_PYTHON_MAP: dict[str, str] = {
+    # AAP 2.6+ uses Python 3.12
+    "ansible-automation-platform-26": "/usr/bin/python3.12",
+    "aap-26": "/usr/bin/python3.12",
+    # AAP 2.5 uses Python 3.11
+    "ansible-automation-platform-25": "/usr/bin/python3.11",
+    "aap-25": "/usr/bin/python3.11",
+    # AAP 2.4 uses Python 3.11
+    "ansible-automation-platform-24": "/usr/bin/python3.11",
+    "aap-24": "/usr/bin/python3.11",
+    # Default for other official EE images (fallback to 3.11)
+    "ee-minimal-rhel": "/usr/bin/python3.11",
+    "ee-supported-rhel": "/usr/bin/python3.11",
+}
+
 
 class Init:
     """Class representing ansible-creator init subcommand.
@@ -71,6 +88,13 @@ class Init:
         # Build the canonical EEConfig from JSON, file, or defaults, then
         # layer CLI flag overrides on top.
         self._ee_config: EEConfig = self._build_ee_config(config)
+
+        # Get the correct Python interpreter path for official EE images
+        self._ee_python_path = (
+            self._get_official_ee_python_path(self._ee_base_image)
+            if self._is_official_ee
+            else "/usr/bin/python3"
+        )
 
     def run(self) -> None:
         """Start scaffolding skeleton."""
@@ -152,6 +176,24 @@ class Init:
             "ee-dellos",
         )
         return any(pattern in image for pattern in official_ee_patterns)
+
+    def _get_official_ee_python_path(self, image: str) -> str:
+        """Get the Python interpreter path for an official EE base image.
+
+        Different AAP versions use different Python versions:
+        - AAP 2.6+: Python 3.12
+        - AAP 2.4/2.5: Python 3.11
+
+        Args:
+            image: The container image name/URL.
+
+        Returns:
+            The Python interpreter path for the image.
+        """
+        for pattern, python_path in OFFICIAL_EE_PYTHON_MAP.items():
+            if pattern in image:
+                return python_path
+        return "/usr/bin/python3.11"
 
     def _build_ee_config(self, config: Config) -> EEConfig:
         """Build the final EEConfig by merging JSON/file config with CLI flags.
@@ -387,6 +429,7 @@ class Init:
             ee_options=ec.options,
             ee_ansible_cfg=ec.ansible_cfg,
             is_official_ee=self._is_official_ee_image(ec.base_image),
+            ee_python_path=self._get_official_ee_python_path(ec.base_image) if self._is_official_ee_image(ec.base_image) else "",
         )
 
         if self._project == "execution_env":

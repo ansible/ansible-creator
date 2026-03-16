@@ -10,7 +10,7 @@ dependencies:
   # Use python3
   python_interpreter:
     package_system: python3
-    python_path: /usr/bin/python3
+    python_path: {{ ee_python_path }}
 
   ansible_core:
     package_pip: ansible-core
@@ -19,7 +19,7 @@ dependencies:
     package_pip: ansible-runner
 {%- else %}
   python_interpreter:
-    python_path: /usr/bin/python3.11
+    python_path: {{ ee_python_path }}
 {%- endif %}
 {%- if ee_system_packages %}
 

@@ -334,6 +334,7 @@ class TemplateData:
         ee_options: Dict of EE build options (e.g., package_manager_path).
         ee_ansible_cfg: Content for ansible.cfg file (for Automation Hub auth).
         is_official_ee: Whether the base image is an official Red Hat EE image.
+        ee_python_path: Python interpreter path for the EE (varies by AAP version).
     """
 
     resource_type: str = ""
@@ -363,3 +364,4 @@ class TemplateData:
     ee_options: dict[str, Any] = field(default_factory=dict)
     ee_ansible_cfg: str = ""
     is_official_ee: bool = False
+    ee_python_path: str = "/usr/bin/python3"

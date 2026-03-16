@@ -734,6 +734,39 @@ def test_ee_project_official_image_microdnf(
     assert "<!--end PAH content-->" in ansible_cfg_content
 
 
+def test_ee_project_official_image_aap26_python312(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test that AAP 2.6 EE images use Python 3.12 interpreter.
+
+    AAP 2.6 switched from Python 3.11 to Python 3.12.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_aap26_image")
+    cli_args["base_image"] = (
+        "registry.redhat.io/ansible-automation-platform-26/ee-minimal-rhel9:latest"
+    )
+
+    init = Init(Config(**cli_args))
+    init.run()
+    result = capsys.readouterr().out
+
+    assert r"Note: execution_env project created" in result
+
+    ee_file = tmp_path / "ee_aap26_image" / "execution-environment.yml"
+    ee_content = ee_file.read_text()
+
+    # AAP 2.6 should use Python 3.12
+    assert "python_path: /usr/bin/python3.12" in ee_content
+
+
 def test_ee_project_non_official_image_no_microdnf(
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
@@ -769,6 +802,9 @@ def test_ee_project_non_official_image_no_microdnf(
     assert "ansible_runner:" in ee_content
     assert "package_pip: ansible-core" in ee_content
     assert "package_pip: ansible-runner" in ee_content
+
+    # Non-official images should use generic python3 path
+    assert "python_path: /usr/bin/python3" in ee_content
 
     # Non-official images should NOT have additional_build_files for ansible.cfg
     assert "src: ansible.cfg" not in ee_content
