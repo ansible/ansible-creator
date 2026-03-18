@@ -47,16 +47,17 @@ permissions:
 concurrency:
   group: ee-build-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
-
+{% endraw %}
 env:
   # Container registry configuration (override via repository Variables)
-  REGISTRY: ${{ vars.EE_REGISTRY || 'ghcr.io' }}
-  IMAGE_NAME: ${{ vars.EE_IMAGE_NAME || github.repository }}
-  # Base image age thresholds (in days) - warn early, fail if stale
+  REGISTRY: {% raw %}${{ vars.EE_REGISTRY || '{% endraw %}{{ ee_registry }}{% raw %}' }}{% endraw %}
+{% if ee_image_name %}  IMAGE_NAME: {% raw %}${{ vars.EE_IMAGE_NAME || '{% endraw %}{{ ee_image_name }}{% raw %}' }}{% endraw %}
+{% else %}  IMAGE_NAME: {% raw %}${{ vars.EE_IMAGE_NAME || github.repository }}{% endraw %}
+{% endif %}  # Base image age thresholds (in days) - warn early, fail if stale
   IMAGE_WARN_AGE: 40
   IMAGE_FAIL_AGE: 80
 
-jobs:
+{% raw %}jobs:
   # ============================================================================
   # Validation Stage
   # ============================================================================
