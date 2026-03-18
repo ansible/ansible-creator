@@ -724,6 +724,7 @@ def test_ee_project_official_image_microdnf(
     # Official EE images should have prepend_galaxy step for ANSIBLE_CONFIG
     assert "prepend_galaxy:" in ee_content
     assert "ENV ANSIBLE_CONFIG=/etc/ansible/ansible.cfg" in ee_content
+    assert "COPY _build/configs/ansible.cfg /etc/ansible/ansible.cfg" in ee_content
 
     # Official EE images should NOT have pip upgrade or the default sample tag
     assert "RUN $PYCMD -m pip install -U pip" not in ee_content
@@ -776,10 +777,10 @@ def test_ee_project_official_image_fallback_python(
     tmp_path: Path,
     cli_args: ConfigDict,
 ) -> None:
-    """Test that official EE images without specific version use fallback Python path.
+    """Test that non-versioned official EE images use Python 3.11.
 
-    Images like ee-dellos or ee-29-rhel are official but don't have specific
-    Python version mappings, so they should use the default fallback.
+    Images like ee-dellos or ee-29-rhel are official but not tied to a
+    specific AAP version, so they map to Python 3.11 in OFFICIAL_EE_IMAGES.
 
     Args:
         capsys: Pytest fixture to capture stdout and stderr.
@@ -799,7 +800,7 @@ def test_ee_project_official_image_fallback_python(
     ee_file = tmp_path / "ee_dellos_image" / "execution-environment.yml"
     ee_content = ee_file.read_text()
 
-    # Should use fallback Python 3.11
+    # Non-versioned official image uses Python 3.11
     assert "python_path: /usr/bin/python3.11" in ee_content
     # Should still be detected as official EE (microdnf)
     assert "package_manager_path: /usr/bin/microdnf" in ee_content

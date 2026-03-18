@@ -321,7 +321,7 @@ class OfficialEEImage:
 # Ordered most-specific first so versioned patterns match before broad ones.
 # Update this tuple when new AAP versions ship with different Python versions.
 OFFICIAL_EE_IMAGES: tuple[OfficialEEImage, ...] = (
-    # AAP 2.6+ uses Python 3.12
+    # AAP 2.6 uses Python 3.12
     OfficialEEImage("ansible-automation-platform-26", "/usr/bin/python3.12"),
     OfficialEEImage("aap-26", "/usr/bin/python3.12"),
     # AAP 2.4/2.5 uses Python 3.11
@@ -403,5 +403,5 @@ class TemplateData:
     ee_options: dict[str, Any] = field(default_factory=dict)
     ee_ansible_cfg: str = ""
     is_official_ee: bool = False
-    ee_python_path: str = "/usr/bin/python3"
+    ee_python_path: str = DEFAULT_PYTHON_PATH
     ee_name_is_default: bool = True

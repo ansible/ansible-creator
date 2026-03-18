@@ -75,6 +75,7 @@ additional_build_steps:
 {%- if is_official_ee %}
   prepend_galaxy:
     - ENV ANSIBLE_CONFIG=/etc/ansible/ansible.cfg
+    - COPY _build/configs/ansible.cfg /etc/ansible/ansible.cfg
 {%- endif %}
 {%- if not is_official_ee or ee_additional_build_steps.append_base is defined %}
   append_base:
