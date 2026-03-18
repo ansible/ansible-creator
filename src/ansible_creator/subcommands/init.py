@@ -72,9 +72,6 @@ class Init:
         # layer CLI flag overrides on top.
         self._ee_config: EEConfig = self._build_ee_config(config)
 
-        # Get the correct Python interpreter path for official EE images
-        self._ee_python_path = self._get_ee_python_path(self._ee_base_image)
-
     def run(self) -> None:
         """Start scaffolding skeleton."""
         self._construct_init_path()
@@ -409,11 +406,7 @@ class Init:
             ee_options=ec.options,
             ee_ansible_cfg=ec.ansible_cfg,
             is_official_ee=self._is_official_ee_image(ec.base_image),
-            ee_python_path=(
-                self._get_official_ee_python_path(ec.base_image)
-                if self._is_official_ee_image(ec.base_image)
-                else ""
-            ),
+            ee_python_path=self._get_ee_python_path(ec.base_image),
             ee_name_is_default=ec.name == "ansible_sample_ee",
         )
 

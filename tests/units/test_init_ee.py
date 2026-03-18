@@ -739,6 +739,40 @@ def test_ee_project_official_image_microdnf(
     assert "<!--end PAH content-->" in ansible_cfg_content
 
 
+def test_ee_project_official_image_no_overwrite_ansible_cfg(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test that --no-overwrite skips existing ansible.cfg for official EE images.
+
+    Pre-plant only ``ansible.cfg`` (not the template files) so the copier
+    ``has_conflicts()`` check passes, letting ``_write_optional_files()``
+    exercise the ``--no-overwrite`` guard.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    project_dir = tmp_path / "ee_no_overwrite"
+    project_dir.mkdir()
+    custom = "# custom ansible.cfg\n"
+    (project_dir / "ansible.cfg").write_text(custom, encoding="utf-8")
+
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(project_dir)
+    cli_args["no_overwrite"] = True
+    cli_args["base_image"] = (
+        "registry.redhat.io/ansible-automation-platform-25/ee-minimal-rhel9:latest"
+    )
+
+    Init(Config(**cli_args)).run()
+    capsys.readouterr()
+
+    assert (project_dir / "ansible.cfg").read_text() == custom
+
+
 def test_ee_project_official_image_aap26_python312(
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
