@@ -31,23 +31,6 @@ if TYPE_CHECKING:
 
 GIT_URL_PROTOCOLS = ("https://", "http://", "git://", "ssh://", "file://")  # NOSONAR
 
-# Mapping of official EE base image patterns to their Python interpreter paths
-# Different AAP versions use different Python versions in their minimal EE images
-OFFICIAL_EE_PYTHON_MAP: dict[str, str] = {
-    # AAP 2.6+ uses Python 3.12
-    "ansible-automation-platform-26": "/usr/bin/python3.12",
-    "aap-26": "/usr/bin/python3.12",
-    # AAP 2.5 uses Python 3.11
-    "ansible-automation-platform-25": "/usr/bin/python3.11",
-    "aap-25": "/usr/bin/python3.11",
-    # AAP 2.4 uses Python 3.11
-    "ansible-automation-platform-24": "/usr/bin/python3.11",
-    "aap-24": "/usr/bin/python3.11",
-    # Default for other official EE images (fallback to 3.11)
-    "ee-minimal-rhel": "/usr/bin/python3.11",
-    "ee-supported-rhel": "/usr/bin/python3.11",
-}
-
 
 class Init:
     """Class representing ansible-creator init subcommand.
@@ -90,11 +73,7 @@ class Init:
         self._ee_config: EEConfig = self._build_ee_config(config)
 
         # Get the correct Python interpreter path for official EE images
-        self._ee_python_path = (
-            self._get_official_ee_python_path(self._ee_base_image)
-            if self._is_official_ee
-            else "/usr/bin/python3"
-        )
+        self._ee_python_path = self._get_ee_python_path(self._ee_base_image)
 
     def run(self) -> None:
         """Start scaffolding skeleton."""
@@ -155,34 +134,30 @@ class Init:
         final_uuid = str(uuid.uuid4())[:8]
         return f"{final_name}-{final_uuid}"
 
-    def _is_official_ee_image(self, image: str) -> bool:
-        """Check if the image is an official Red Hat EE image requiring microdnf.
+    @staticmethod
+    def _is_official_ee_image(image: str) -> bool:
+        """Check if the image is an official Red Hat EE image.
 
-        Official EE images from Red Hat use microdnf as the package manager
-        instead of dnf/yum due to their minimal RHEL base.
+        Official EE images have ansible-core/runner pre-installed and
+        use microdnf as the package manager.
 
         Args:
             image: The container image name/URL.
 
         Returns:
-            True if the image is an official EE image requiring microdnf.
+            True if the image matches any official EE pattern.
         """
-        official_ee_patterns = (
-            "registry.redhat.io/ansible-automation-platform",
-            "registry.redhat.io/aap",
-            "ee-minimal-rhel",
-            "ee-supported-rhel",
-            "ee-29-rhel",
-            "ee-dellos",
-        )
-        return any(pattern in image for pattern in official_ee_patterns)
+        from ansible_creator.types import OFFICIAL_EE_IMAGES  # noqa: PLC0415
 
-    def _get_official_ee_python_path(self, image: str) -> str:
-        """Get the Python interpreter path for an official EE base image.
+        return any(entry.pattern in image for entry in OFFICIAL_EE_IMAGES)
 
-        Different AAP versions use different Python versions:
-        - AAP 2.6+: Python 3.12
-        - AAP 2.4/2.5: Python 3.11
+    @staticmethod
+    def _get_ee_python_path(image: str) -> str:
+        """Get the Python interpreter path for a base image.
+
+        For official EE images, returns the version-specific path
+        (e.g. AAP 2.6 uses Python 3.12, AAP 2.4/2.5 uses 3.11).
+        For non-official images, returns the generic ``/usr/bin/python3``.
 
         Args:
             image: The container image name/URL.
@@ -190,10 +165,15 @@ class Init:
         Returns:
             The Python interpreter path for the image.
         """
-        for pattern, python_path in OFFICIAL_EE_PYTHON_MAP.items():
-            if pattern in image:
-                return python_path
-        return "/usr/bin/python3.11"
+        from ansible_creator.types import (  # noqa: PLC0415
+            DEFAULT_PYTHON_PATH,
+            OFFICIAL_EE_IMAGES,
+        )
+
+        for entry in OFFICIAL_EE_IMAGES:
+            if entry.pattern in image:
+                return entry.python_path
+        return DEFAULT_PYTHON_PATH
 
     def _build_ee_config(self, config: Config) -> EEConfig:
         """Build the final EEConfig by merging JSON/file config with CLI flags.
@@ -429,7 +409,12 @@ class Init:
             ee_options=ec.options,
             ee_ansible_cfg=ec.ansible_cfg,
             is_official_ee=self._is_official_ee_image(ec.base_image),
-            ee_python_path=self._get_official_ee_python_path(ec.base_image) if self._is_official_ee_image(ec.base_image) else "",
+            ee_python_path=(
+                self._get_official_ee_python_path(ec.base_image)
+                if self._is_official_ee_image(ec.base_image)
+                else ""
+            ),
+            ee_name_is_default=ec.name == "ansible_sample_ee",
         )
 
         if self._project == "execution_env":

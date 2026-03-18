@@ -76,17 +76,12 @@ additional_build_steps:
   prepend_galaxy:
     - ENV ANSIBLE_CONFIG=/etc/ansible/ansible.cfg
 {%- endif %}
+{%- if not is_official_ee or ee_additional_build_steps.append_base is defined %}
+  append_base:
 {%- if not is_official_ee %}
-  append_base:
     - RUN $PYCMD -m pip install -U pip
-{%- if ee_additional_build_steps.append_base is defined %}
-{%- for step in ee_additional_build_steps.append_base %}
-    - {{ step }}
-{%- endfor %}
 {%- endif %}
-{%- else %}
 {%- if ee_additional_build_steps.append_base is defined %}
-  append_base:
 {%- for step in ee_additional_build_steps.append_base %}
     - {{ step }}
 {%- endfor %}
@@ -109,7 +104,7 @@ options:
 {%- if ee_options.package_manager_path is defined %}
   package_manager_path: {{ ee_options.package_manager_path }}
 {%- endif %}
-{%- if not is_official_ee or ee_name != 'ansible_sample_ee' %}
+{%- if not (is_official_ee and ee_name_is_default) %}
   tags:
     - {{ ee_name }}
 {%- endif %}

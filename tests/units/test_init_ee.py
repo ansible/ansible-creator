@@ -725,8 +725,7 @@ def test_ee_project_official_image_microdnf(
     assert "prepend_galaxy:" in ee_content
     assert "ENV ANSIBLE_CONFIG=/etc/ansible/ansible.cfg" in ee_content
 
-    # Official EE images should NOT have append_base pip upgrade or default tag
-    # (as per NilashishC's review comment)
+    # Official EE images should NOT have pip upgrade or the default sample tag
     assert "RUN $PYCMD -m pip install -U pip" not in ee_content
     assert "ansible_sample_ee" not in ee_content
 
