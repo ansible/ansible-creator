@@ -1099,6 +1099,18 @@ def test_ee_project_custom_registry(
     result = capsys.readouterr().out
     assert "Note:" in result
 
-    workflow = (tmp_path / "custom-ee" / ".github" / "workflows" / "ee-build.yml").read_text()
-    assert "vars.EE_REGISTRY || 'quay.io'" in workflow
-    assert "vars.EE_IMAGE_NAME || 'my-org/my-ee'" in workflow
+    workflow_text = (tmp_path / "custom-ee" / ".github" / "workflows" / "ee-build.yml").read_text()
+    assert "vars.EE_REGISTRY || 'quay.io'" in workflow_text
+    assert "vars.EE_IMAGE_NAME || 'my-org/my-ee'" in workflow_text
+
+    import yaml  # noqa: PLC0415
+
+    parsed = yaml.safe_load(workflow_text)
+    assert "REGISTRY" in parsed["env"]
+    assert "IMAGE_NAME" in parsed["env"]
+
+
+def test_ee_config_registry_rejects_url() -> None:
+    """Test EEConfig.from_dict rejects registry with URL scheme."""
+    with pytest.raises(CreatorError, match="Provide a hostname"):
+        EEConfig.from_dict({"registry": "https://ghcr.io"})

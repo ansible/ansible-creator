@@ -194,8 +194,8 @@ class EEConfig:
     Attributes:
         name: Name/tag for the EE image.
         base_image: Base container image.
-        registry: Container registry URL for the CI workflow.
-        image_name: Image name for the CI workflow.
+        registry: Container registry hostname for the CI workflow (e.g. ghcr.io, quay.io).
+        image_name: Image name for the CI workflow (e.g. my-org/my-ee).
         collections: Ansible collections to include.
         python_deps: Python package dependencies.
         system_packages: System packages to install.
@@ -229,16 +229,24 @@ class EEConfig:
 
         Returns:
             A validated EEConfig instance.
+
+        Raises:
+            CreatorError: If the registry value contains a URL scheme.
         """
         raw_collections = data.get("collections", [])
         collections = tuple(
             EECollection.from_dict(c if isinstance(c, dict) else {"name": c})
             for c in raw_collections
         )
+        registry = data.get("registry", "ghcr.io")
+        if "://" in registry:
+            msg = f"Invalid registry '{registry}'. Provide a hostname (e.g. 'ghcr.io'), not a URL."
+            raise CreatorError(msg)
+
         return cls(
             name=data.get("name", "ansible_sample_ee"),
             base_image=data.get("base_image", "quay.io/fedora/fedora:41"),
-            registry=data.get("registry", "ghcr.io"),
+            registry=registry,
             image_name=data.get("image_name", ""),
             collections=collections,
             python_deps=tuple(data.get("python_deps", [])),
@@ -276,7 +284,9 @@ class EEConfig:
                 "registry": {
                     "type": "string",
                     "default": "ghcr.io",
-                    "description": "Container registry URL for the CI workflow",
+                    "description": (
+                        "Container registry hostname for the CI workflow (e.g. ghcr.io, quay.io)"
+                    ),
                 },
                 "image_name": {
                     "type": "string",
@@ -352,7 +362,7 @@ class TemplateData:
             append_final steps.
         ee_options: Dict of EE build options (e.g., package_manager_path).
         ee_ansible_cfg: Content for ansible.cfg file (for Automation Hub auth).
-        ee_registry: Container registry URL for the EE CI workflow.
+        ee_registry: Container registry hostname for the EE CI workflow.
         ee_image_name: Image name for the EE CI workflow.
     """
 

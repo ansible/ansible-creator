@@ -51,7 +51,9 @@ concurrency:
 env:
   # Container registry configuration (override via repository Variables)
   REGISTRY: ${{ vars.EE_REGISTRY || 'ghcr.io' }}
+
   IMAGE_NAME: ${{ vars.EE_IMAGE_NAME || github.repository }}
+
   # Base image age thresholds (in days) - warn early, fail if stale
   IMAGE_WARN_AGE: 40
   IMAGE_FAIL_AGE: 80
