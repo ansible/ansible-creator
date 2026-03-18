@@ -19,12 +19,13 @@ if TYPE_CHECKING:
 # URL protocol prefixes for validation and Git URL collection detection.
 # HTTP is intentionally supported for internal/private registries and Git servers.
 HTTP_PROTOCOLS = ("https://", "http://")  # NOSONAR
+GIT_URL_PREFIXES = ("https://", "http://", "git://", "ssh://", "file://", "git@")  # NOSONAR
 
-_COLLECTION_NAME_RE = re.compile(r"^[a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*$")
-_VALID_COLLECTION_TYPES = frozenset({"galaxy", "git", "url", "file", "dir"})
+COLLECTION_NAME_RE = re.compile(r"^[a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*$")
+VALID_COLLECTION_TYPES = frozenset({"galaxy", "git", "url", "file", "dir"})
 
 
-def _validate_collection_name(name: str) -> None:
+def validate_collection_name(name: str) -> None:
     """Validate that a collection name follows the namespace.name format.
 
     Args:
@@ -33,7 +34,7 @@ def _validate_collection_name(name: str) -> None:
     Raises:
         CreatorError: If the name is invalid.
     """
-    if not _COLLECTION_NAME_RE.match(name):
+    if not COLLECTION_NAME_RE.match(name):
         msg = (
             f"Invalid collection name '{name}'. "
             "Must be in format 'namespace.name' with lowercase letters, "
@@ -42,7 +43,7 @@ def _validate_collection_name(name: str) -> None:
         raise CreatorError(msg)
 
 
-def _validate_collection_type(col_type: str) -> str:
+def validate_collection_type(col_type: str) -> str:
     """Validate and normalize a collection type string.
 
     Args:
@@ -55,16 +56,16 @@ def _validate_collection_type(col_type: str) -> str:
         CreatorError: If the type is invalid.
     """
     normalized = col_type.lower()
-    if normalized not in _VALID_COLLECTION_TYPES:
+    if normalized not in VALID_COLLECTION_TYPES:
         msg = (
             f"Invalid collection type '{col_type}'. "
-            f"Must be one of: {', '.join(sorted(_VALID_COLLECTION_TYPES))}"
+            f"Must be one of: {', '.join(sorted(VALID_COLLECTION_TYPES))}"
         )
         raise CreatorError(msg)
     return normalized
 
 
-def _validate_source_url(source: str) -> None:
+def validate_source_url(source: str) -> None:
     """Validate a source URL format if it is an HTTP(S) URL.
 
     Args:
@@ -114,16 +115,16 @@ class EECollection:
             raise CreatorError(msg)
 
         name = data["name"]
-        if not name.startswith(HTTP_PROTOCOLS):
-            _validate_collection_name(name)
+        if not name.startswith(GIT_URL_PREFIXES):
+            validate_collection_name(name)
 
         col_type = data.get("type", "")
         if col_type:
-            col_type = _validate_collection_type(col_type)
+            col_type = validate_collection_type(col_type)
 
         source = data.get("source", "")
         if source:
-            _validate_source_url(source)
+            validate_source_url(source)
 
         return cls(
             name=name,
@@ -169,7 +170,7 @@ class EECollection:
                 "type": {
                     "type": "string",
                     "description": "Collection type",
-                    "enum": sorted(_VALID_COLLECTION_TYPES),
+                    "enum": sorted(VALID_COLLECTION_TYPES),
                     "default": "",
                 },
                 "source": {

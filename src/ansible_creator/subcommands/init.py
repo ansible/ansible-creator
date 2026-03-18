@@ -18,9 +18,9 @@ from ansible_creator.types import (
     EECollection,
     EEConfig,
     TemplateData,
-    _validate_collection_name,
-    _validate_collection_type,
-    _validate_source_url,
+    validate_collection_name,
+    validate_collection_type,
+    validate_source_url,
 )
 from ansible_creator.utils import Copier, Walker, ask_yes_no
 
@@ -200,7 +200,13 @@ class Init:
 
         Returns:
             An EEConfig instance (empty defaults if neither source is provided).
+
+        Raises:
+            CreatorError: If both ee_config and ee_config_file are set.
         """
+        if config.ee_config and config.ee_config_file:
+            msg = "Cannot specify both --ee-config and --ee-config-file"
+            raise CreatorError(msg)
         if config.ee_config:
             return Init._parse_ee_config_json(config.ee_config)
         if config.ee_config_file:
@@ -251,16 +257,24 @@ class Init:
         content = path.read_text(encoding="utf-8")
         if path.suffix.lower() == ".json":
             try:
-                data: dict[str, Any] = json.loads(content)
+                data: Any = json.loads(content)
             except json.JSONDecodeError as e:
                 msg = f"Invalid JSON in EE config file {config_path}: {e}"
                 raise CreatorError(msg) from e
+            if not isinstance(data, dict):
+                msg = (
+                    f"EE config file {config_path} must contain a JSON object, not a list or scalar"
+                )
+                raise CreatorError(msg)
             return EEConfig.from_dict(data)
         try:
-            yaml_data: dict[str, Any] = yaml.safe_load(content) or {}
+            yaml_data: Any = yaml.safe_load(content) or {}
         except yaml.YAMLError as e:
             msg = f"Invalid YAML in EE config file {config_path}: {e}"
             raise CreatorError(msg) from e
+        if not isinstance(yaml_data, dict):
+            msg = f"EE config file {config_path} must contain a YAML mapping, not a list or scalar"
+            raise CreatorError(msg)
         return EEConfig.from_dict(yaml_data)
 
     def _is_git_url_collection(self, col: str) -> bool:
@@ -300,7 +314,7 @@ class Init:
         parts = col.split(":", maxsplit=3)
         col_name = parts[0]
 
-        _validate_collection_name(col_name)
+        validate_collection_name(col_name)
         version = ""
         col_type = ""
         source = ""
@@ -309,10 +323,10 @@ class Init:
             version = parts[1]
 
         if len(parts) > 2 and parts[2]:  # noqa: PLR2004
-            col_type = _validate_collection_type(parts[2])
+            col_type = validate_collection_type(parts[2])
 
         if len(parts) > 3 and parts[3]:  # noqa: PLR2004
-            _validate_source_url(parts[3])
+            validate_source_url(parts[3])
             source = parts[3]
 
         return EECollection(name=col_name, version=version, type=col_type, source=source)

@@ -1,8 +1,10 @@
 # cspell: ignore dcmp, subdcmp, microdnf
+# pylint: disable=too-many-lines
 """Unit tests for ansible-creator init execution environment projects."""
 
 from __future__ import annotations
 
+import argparse
 import json
 
 from filecmp import dircmp
@@ -14,7 +16,7 @@ import pytest
 from ansible_creator.config import Config
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.output import Output
-from ansible_creator.schema import for_command
+from ansible_creator.schema import _extract_action_info, for_command
 from ansible_creator.subcommands.init import Init
 from ansible_creator.types import EECollection, EEConfig
 from ansible_creator.utils import TermFeatures
@@ -972,3 +974,77 @@ def test_ee_config_schema_in_cli_schema() -> None:
     assert "name" in ee_config_schema["properties"]
     assert "base_image" in ee_config_schema["properties"]
     assert "collections" in ee_config_schema["properties"]
+
+
+def test_extract_action_info_schema_class_no_option_strings() -> None:
+    """Test _extract_action_info with schema_class but no option_strings."""
+    action = argparse.Action(option_strings=[], dest="ee_config")
+    action.help = "EE configuration"
+    action.schema_class = EEConfig  # type: ignore[attr-defined]
+
+    info = _extract_action_info(action)
+
+    assert info["type"] == "object"
+    assert info["description"] == "EE configuration"
+    assert "aliases" not in info
+
+
+def test_ee_collection_from_dict_git_url_formats() -> None:
+    """Test that EECollection.from_dict accepts all Git URL formats."""
+    git_urls = [
+        "git://github.com/org/repo",
+        "ssh://git@github.com/org/repo",
+        "file:///local/path/to/collection",
+        "git@github.com:org/repo.git",
+        "https://github.com/org/repo",
+    ]
+    for url in git_urls:
+        col = EECollection.from_dict({"name": url})
+        assert col.name == url
+
+
+def test_ee_config_file_json_non_object(tmp_path: Path) -> None:
+    """Test that _load_ee_config_file rejects JSON files with non-object content.
+
+    Args:
+        tmp_path: Temporary directory path.
+    """
+    json_file = tmp_path / "bad.json"
+    json_file.write_text('["a", "b"]')
+    with pytest.raises(CreatorError, match="must contain a JSON object"):
+        Init._load_ee_config_file(str(json_file))
+
+
+def test_ee_config_file_yaml_non_mapping(tmp_path: Path) -> None:
+    """Test that _load_ee_config_file rejects YAML files with non-mapping content.
+
+    Args:
+        tmp_path: Temporary directory path.
+    """
+    yaml_file = tmp_path / "bad.yml"
+    yaml_file.write_text("- item1\n- item2\n")
+    with pytest.raises(CreatorError, match="must contain a YAML mapping"):
+        Init._load_ee_config_file(str(yaml_file))
+
+
+def test_ee_config_both_sources_rejected(
+    output: Output,
+    tmp_path: Path,
+) -> None:
+    """Test that providing both ee_config and ee_config_file is rejected.
+
+    Args:
+        output: Output instance for logging.
+        tmp_path: Temporary directory path.
+    """
+    config = Config(
+        creator_version="0.0.1",
+        output=output,
+        subcommand="init",
+        project="execution_env",
+        init_path=str(tmp_path / "test-ee"),
+        ee_config='{"name": "test"}',
+        ee_config_file="/some/file.yml",
+    )
+    with pytest.raises(CreatorError, match="Cannot specify both"):
+        Init(config=config)

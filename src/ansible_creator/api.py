@@ -27,6 +27,7 @@ Example usage::
 from __future__ import annotations
 
 import argparse
+import json
 import tempfile
 
 from dataclasses import dataclass, field, fields
@@ -367,6 +368,8 @@ class V1:
             for item in value:
                 tokens.extend([flag, str(item)])
             return tokens
+        if isinstance(value, (dict, list)):
+            return [flag, json.dumps(value)]
         return [flag, str(value)]
 
     @staticmethod

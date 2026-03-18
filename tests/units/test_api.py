@@ -190,6 +190,28 @@ def test_build_command_unknown_kwarg_rejected(creator_api: V1) -> None:
         )
 
 
+def test_build_command_dict_value_serialized_as_json(creator_api: V1) -> None:
+    """Test that dict values are serialized as JSON strings in argv.
+
+    When a caller passes a dict for a string-type argument (e.g. ee_config),
+    the API should use json.dumps() so the downstream JSON parser can
+    decode it correctly.
+
+    Args:
+        creator_api: V1 API instance.
+    """
+    ee_data = {"name": "my-ee", "base_image": "quay.io/fedora/fedora:41"}
+    argv = creator_api.build_command(
+        "init",
+        "execution_env",
+        ee_config=ee_data,
+    )
+    idx = argv.index("--ee-config")
+    raw_value = argv[idx + 1]
+    parsed = json.loads(raw_value)
+    assert parsed == ee_data
+
+
 def test_run_unknown_kwarg_returns_error(creator_api: V1) -> None:
     """Test that run() surfaces unknown kwargs as an error result.
 
