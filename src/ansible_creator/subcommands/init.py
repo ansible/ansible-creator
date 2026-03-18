@@ -2,20 +2,26 @@
 
 from __future__ import annotations
 
+import dataclasses
 import json
-import re
 import shutil
 import uuid
 
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
-from urllib.parse import urlparse
 
 import yaml
 
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.templar import Templar
-from ansible_creator.types import TemplateData
+from ansible_creator.types import (
+    EECollection,
+    EEConfig,
+    TemplateData,
+    _validate_collection_name,
+    _validate_collection_type,
+    _validate_source_url,
+)
 from ansible_creator.utils import Copier, Walker, ask_yes_no
 
 
@@ -23,10 +29,6 @@ if TYPE_CHECKING:
     from ansible_creator.config import Config
     from ansible_creator.output import Output
 
-# URL protocol prefixes for Git URL collection detection
-# HTTP is intentionally supported for internal/private registries and Git servers.
-# These are string pattern constants for URL detection, not network connections.
-HTTP_PROTOCOLS = ("https://", "http://")  # NOSONAR
 GIT_URL_PROTOCOLS = ("https://", "http://", "git://", "ssh://", "file://")  # NOSONAR
 
 
@@ -66,56 +68,9 @@ class Init:
         self.output: Output = config.output
         self._role_name: str = config.role_name
 
-        # Load EE config from file if provided, then merge with CLI args
-        ee_config = self._load_ee_config(config.ee_config) if config.ee_config else {}
-
-        # CLI args override config file values
-        self._ee_base_image: str = (
-            config.base_image
-            if config.base_image != "quay.io/fedora/fedora:41"
-            else ee_config.get("base_image", config.base_image)
-        )
-
-        # For collections, merge CLI args with config file (CLI takes precedence)
-        config_collections: list[str | dict[str, str]] = ee_config.get("collections", [])
-        cli_collections: list[str | dict[str, str]] = list(config.ee_collections)
-        collections_to_parse: list[str | dict[str, str]] = cli_collections or config_collections
-        self._ee_collections: list[dict[str, str]] = self._parse_collections_from_config(
-            collections_to_parse
-        )
-
-        # For deps/packages, merge CLI args with config file
-        self._ee_python_deps: list[str] = (
-            list(config.ee_python_deps)
-            if config.ee_python_deps
-            else ee_config.get("python_deps", [])
-        )
-        self._ee_system_packages: list[str] = (
-            list(config.ee_system_packages)
-            if config.ee_system_packages
-            else ee_config.get("system_packages", [])
-        )
-        self._ee_name: str = (
-            config.ee_name
-            if config.ee_name != "ansible_sample_ee"
-            else ee_config.get("name", config.ee_name)
-        )
-
-        # Additional EE config options (only from config file)
-        self._ee_additional_build_files: list[dict[str, str]] = ee_config.get(
-            "additional_build_files", []
-        )
-        self._ee_additional_build_steps: dict[str, list[str]] = ee_config.get(
-            "additional_build_steps", {}
-        )
-        self._ee_options: dict[str, Any] = ee_config.get("options", {})
-        self._ee_ansible_cfg: str = ee_config.get("ansible_cfg", "")
-
-        # Auto-detect official EE images and set microdnf as package manager
-        if "package_manager_path" not in self._ee_options and self._is_official_ee_image(
-            self._ee_base_image
-        ):
-            self._ee_options["package_manager_path"] = "/usr/bin/microdnf"
+        # Build the canonical EEConfig from JSON, file, or defaults, then
+        # layer CLI flag overrides on top.
+        self._ee_config: EEConfig = self._build_ee_config(config)
 
     def run(self) -> None:
         """Start scaffolding skeleton."""
@@ -198,14 +153,92 @@ class Init:
         )
         return any(pattern in image for pattern in official_ee_patterns)
 
-    def _load_ee_config(self, config_path: str) -> dict[str, Any]:
+    def _build_ee_config(self, config: Config) -> EEConfig:
+        """Build the final EEConfig by merging JSON/file config with CLI flags.
+
+        Args:
+            config: The application configuration.
+
+        Returns:
+            A fully resolved EEConfig instance.
+        """
+        ee_cfg = self._resolve_ee_config(config)
+
+        # CLI flags override values from config JSON/file.
+        overrides: dict[str, Any] = {}
+        if config.base_image != "quay.io/fedora/fedora:41":
+            overrides["base_image"] = config.base_image
+        if config.ee_name != "ansible_sample_ee":
+            overrides["name"] = config.ee_name
+        if config.ee_collections:
+            overrides["collections"] = tuple(
+                self._parse_single_collection(c) for c in config.ee_collections
+            )
+        if config.ee_python_deps:
+            overrides["python_deps"] = tuple(config.ee_python_deps)
+        if config.ee_system_packages:
+            overrides["system_packages"] = tuple(config.ee_system_packages)
+
+        if overrides:
+            ee_cfg = dataclasses.replace(ee_cfg, **overrides)
+
+        # Auto-detect official EE images and set microdnf as package manager.
+        if "package_manager_path" not in ee_cfg.options and self._is_official_ee_image(
+            ee_cfg.base_image
+        ):
+            updated_opts = {**ee_cfg.options, "package_manager_path": "/usr/bin/microdnf"}
+            ee_cfg = dataclasses.replace(ee_cfg, options=updated_opts)
+
+        return ee_cfg
+
+    @staticmethod
+    def _resolve_ee_config(config: Config) -> EEConfig:
+        """Resolve EE configuration from inline JSON or a config file.
+
+        Args:
+            config: The application configuration.
+
+        Returns:
+            An EEConfig instance (empty defaults if neither source is provided).
+        """
+        if config.ee_config:
+            return Init._parse_ee_config_json(config.ee_config)
+        if config.ee_config_file:
+            return Init._load_ee_config_file(config.ee_config_file)
+        return EEConfig()
+
+    @staticmethod
+    def _parse_ee_config_json(json_str: str) -> EEConfig:
+        """Parse an inline JSON string into an EEConfig.
+
+        Args:
+            json_str: JSON string containing EE parameters.
+
+        Returns:
+            A validated EEConfig instance.
+
+        Raises:
+            CreatorError: If the JSON is invalid or not an object.
+        """
+        try:
+            data: Any = json.loads(json_str)
+        except json.JSONDecodeError as e:
+            msg = f"Invalid JSON in --ee-config: {e}"
+            raise CreatorError(msg) from e
+        if not isinstance(data, dict):
+            msg = "--ee-config must be a JSON object, not a list or scalar"
+            raise CreatorError(msg)
+        return EEConfig.from_dict(data)
+
+    @staticmethod
+    def _load_ee_config_file(config_path: str) -> EEConfig:
         """Load EE configuration from a JSON or YAML file.
 
         Args:
             config_path: Path to the config file.
 
         Returns:
-            Dictionary containing EE configuration.
+            A validated EEConfig instance.
 
         Raises:
             CreatorError: If the file cannot be read or parsed.
@@ -222,119 +255,13 @@ class Init:
             except json.JSONDecodeError as e:
                 msg = f"Invalid JSON in EE config file {config_path}: {e}"
                 raise CreatorError(msg) from e
-            return data
-        # Default to YAML for .yml, .yaml, or unknown extensions
+            return EEConfig.from_dict(data)
         try:
             yaml_data: dict[str, Any] = yaml.safe_load(content) or {}
         except yaml.YAMLError as e:
             msg = f"Invalid YAML in EE config file {config_path}: {e}"
             raise CreatorError(msg) from e
-        return yaml_data
-
-    def _parse_collections_from_config(
-        self, collections: list[str | dict[str, str]]
-    ) -> list[dict[str, str]]:
-        """Parse collections from config file or CLI args.
-
-        Handles both string format (from CLI) and dict format (from config file).
-
-        Args:
-            collections: List of collection strings or dicts.
-
-        Returns:
-            List of dictionaries with collection details.
-        """
-        parsed: list[dict[str, str]] = []
-        for col in collections:
-            if isinstance(col, dict):
-                # Already a dict from config file, validate it
-                self._validate_collection_dict(col)
-                parsed.append(col)
-            else:
-                # String from CLI, parse it
-                parsed.extend(self._parse_collections([col]))
-        return parsed
-
-    def _validate_collection_dict(self, col: dict[str, str]) -> None:
-        """Validate a collection dictionary from config file.
-
-        Args:
-            col: Collection dictionary to validate.
-
-        Raises:
-            CreatorError: If the collection dict is invalid.
-        """
-        if "name" not in col:
-            msg = "Collection in config file must have a 'name' field"
-            raise CreatorError(msg)
-
-        col_name = col["name"]
-        # Skip namespace.name validation for Git URLs (they use the URL as the name)
-        if not col_name.startswith(HTTP_PROTOCOLS):
-            self._validate_collection_name(col_name)
-
-        if "type" in col:
-            self._validate_collection_type(col["type"])
-
-        if "source" in col:
-            self._validate_source_url(col["source"])
-
-    def _validate_collection_name(self, col_name: str) -> None:
-        """Validate collection name format.
-
-        Args:
-            col_name: The collection name to validate.
-
-        Raises:
-            CreatorError: If the collection name is invalid.
-        """
-        name_pattern = re.compile(r"^[a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*$")
-        if not name_pattern.match(col_name):
-            msg = (
-                f"Invalid collection name '{col_name}'. "
-                "Must be in format 'namespace.name' with lowercase letters, "
-                "numbers, and underscores."
-            )
-            raise CreatorError(msg)
-
-    def _validate_collection_type(self, col_type: str) -> str:
-        """Validate and normalize collection type.
-
-        Args:
-            col_type: The collection type to validate.
-
-        Returns:
-            The normalized (lowercase) collection type.
-
-        Raises:
-            CreatorError: If the collection type is invalid.
-        """
-        valid_types = {"galaxy", "git", "url", "file", "dir"}
-        normalized = col_type.lower()
-        if normalized not in valid_types:
-            msg = (
-                f"Invalid collection type '{col_type}'. "
-                f"Must be one of: {', '.join(sorted(valid_types))}"
-            )
-            raise CreatorError(msg)
-        return normalized
-
-    def _validate_source_url(self, source: str) -> None:
-        """Validate source URL format if it's an HTTP(S) URL.
-
-        Args:
-            source: The source URL to validate.
-
-        Raises:
-            CreatorError: If the source URL is invalid.
-        """
-        # HTTP is intentionally supported for internal/private registries.
-        # This only validates URL format; actual network security is handled by ansible-builder.
-        if source.startswith(HTTP_PROTOCOLS):  # NOSONAR
-            parsed_url = urlparse(source)
-            if not parsed_url.netloc:
-                msg = f"Invalid source URL '{source}'. Must be a valid URL."
-                raise CreatorError(msg)
+        return EEConfig.from_dict(yaml_data)
 
     def _is_git_url_collection(self, col: str) -> bool:
         """Check if a collection string is a Git URL.
@@ -354,8 +281,8 @@ class Init:
         # SSH-style git@host:path or git@host/path
         return bool(col.startswith("git@"))
 
-    def _parse_single_collection(self, col: str) -> dict[str, str]:
-        """Parse a single collection string into a dictionary.
+    def _parse_single_collection(self, col: str) -> EECollection:
+        """Parse a single collection string into an EECollection.
 
         Supports two formats:
         1. Standard: 'namespace.name[:version[:type[:source]]]'
@@ -365,32 +292,32 @@ class Init:
             col: Collection string to parse.
 
         Returns:
-            Dictionary with collection details.
+            A validated EECollection instance.
         """
-        # Check if this is a Git URL
         if self._is_git_url_collection(col):
             return self._parse_git_url_collection(col)
 
-        # Standard format: name[:version[:type[:source]]]
         parts = col.split(":", maxsplit=3)
         col_name = parts[0]
 
-        self._validate_collection_name(col_name)
-        col_dict: dict[str, str] = {"name": col_name}
+        _validate_collection_name(col_name)
+        version = ""
+        col_type = ""
+        source = ""
 
         if len(parts) > 1 and parts[1]:
-            col_dict["version"] = parts[1]
+            version = parts[1]
 
         if len(parts) > 2 and parts[2]:  # noqa: PLR2004
-            col_dict["type"] = self._validate_collection_type(parts[2])
+            col_type = _validate_collection_type(parts[2])
 
         if len(parts) > 3 and parts[3]:  # noqa: PLR2004
-            self._validate_source_url(parts[3])
-            col_dict["source"] = parts[3]
+            _validate_source_url(parts[3])
+            source = parts[3]
 
-        return col_dict
+        return EECollection(name=col_name, version=version, type=col_type, source=source)
 
-    def _parse_git_url_collection(self, col: str) -> dict[str, str]:
+    def _parse_git_url_collection(self, col: str) -> EECollection:
         """Parse a Git URL collection string.
 
         Format: 'https://[token@]host/path/namespace.name[:version]:git'
@@ -399,55 +326,24 @@ class Init:
             col: Git URL collection string.
 
         Returns:
-            Dictionary with name (URL), optional version, and type=git.
+            An EECollection with the URL as the name and type=git.
         """
-        # Split from the right to handle URLs with colons in the protocol
-        # Expected formats:
-        #   https://host/path (just URL)
-        #   https://host/path:git (URL with type)
-        #   https://host/path:version:git (URL with version and type)
         parts = col.rsplit(":", maxsplit=2)
         last_part = parts[-1].lower()
 
-        # Check if last part is a type indicator
         if last_part == "git":
             if len(parts) == 2:  # noqa: PLR2004
-                # Format: URL:git (split on protocol colon and :git)
-                # Reconstruct URL from first part
-                return {"name": parts[0], "type": "git"}
-            # Format: URL:version:git (3 parts)
-            return {"name": parts[0], "version": parts[1], "type": "git"}
+                return EECollection(name=parts[0], type="git")
+            return EECollection(name=parts[0], version=parts[1], type="git")
 
-        # No :git suffix - check if it looks like a version (no / or .)
-        # For https://host/path:1.0.0 -> parts = ['https', '//host/path', '1.0.0']
         if len(parts) == 3 and not parts[-1].startswith("/"):  # noqa: PLR2004
-            # Reconstruct URL and treat last part as version
             url = f"{parts[0]}:{parts[1]}"
-            return {"name": url, "version": parts[-1], "type": "git"}
+            return EECollection(name=url, version=parts[-1], type="git")
 
-        # Default: treat the whole string as URL (e.g., https://host/path)
-        # This handles cases like https://host/path where rsplit gives
-        # ['https', '//host/path'] - reconstruct the URL
         if len(parts) == 2 and parts[1].startswith("//"):  # noqa: PLR2004
-            return {"name": col, "type": "git"}
+            return EECollection(name=col, type="git")
 
-        return {"name": col, "type": "git"}
-
-    def _parse_collections(self, collections: list[str]) -> list[dict[str, str]]:
-        """Parse collection strings into structured dictionaries.
-
-        Supports formats:
-        - 'name' -> {'name': 'name'}
-        - 'name:version' -> {'name': 'name', 'version': 'version'}
-        - 'name:version:type:source' -> dict with name, version, type, source
-
-        Args:
-            collections: List of collection strings to parse.
-
-        Returns:
-            List of dictionaries with collection details.
-        """
-        return [self._parse_single_collection(col) for col in collections]
+        return EECollection(name=col, type="git")
 
     def _scaffold(self) -> None:
         """Scaffold an ansible project.
@@ -460,21 +356,22 @@ class Init:
         self.output.debug(
             msg=f"started copying {self._project} skeleton to destination",
         )
+        ec = self._ee_config
         template_data = TemplateData(
             namespace=self._namespace,
             collection_name=self._collection_name,
             creator_version=self._creator_version,
             dev_file_name=self.unique_name_in_devfile(),
             role_name=self._role_name,
-            ee_base_image=self._ee_base_image,
-            ee_collections=self._ee_collections,
-            ee_python_deps=self._ee_python_deps,
-            ee_system_packages=self._ee_system_packages,
-            ee_name=self._ee_name,
-            ee_additional_build_files=self._ee_additional_build_files,
-            ee_additional_build_steps=self._ee_additional_build_steps,
-            ee_options=self._ee_options,
-            ee_ansible_cfg=self._ee_ansible_cfg,
+            ee_base_image=ec.base_image,
+            ee_collections=[c.as_dict() for c in ec.collections],
+            ee_python_deps=list(ec.python_deps),
+            ee_system_packages=list(ec.system_packages),
+            ee_name=ec.name,
+            ee_additional_build_files=list(ec.additional_build_files),
+            ee_additional_build_steps=ec.additional_build_steps,
+            ee_options=ec.options,
+            ee_ansible_cfg=ec.ansible_cfg,
         )
 
         if self._project == "execution_env":
@@ -539,8 +436,7 @@ class Init:
         if self._project != "execution_env":
             return
 
-        # Write ansible.cfg only if content was provided via config file
-        if self._ee_ansible_cfg:
+        if self._ee_config.ansible_cfg:
             ansible_cfg_path = self._init_path / "ansible.cfg"
-            ansible_cfg_path.write_text(self._ee_ansible_cfg, encoding="utf-8")
+            ansible_cfg_path.write_text(self._ee_config.ansible_cfg, encoding="utf-8")
             self.output.debug(msg=f"Writing to {ansible_cfg_path}")

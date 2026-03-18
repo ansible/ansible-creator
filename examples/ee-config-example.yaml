@@ -1,6 +1,6 @@
 ---
 # Example EE configuration file for ansible-creator
-# Use with: ansible-creator init execution_env --ee-config ee-config.yaml <output-dir>
+# Use with: ansible-creator init execution_env --ee-config-file ee-config.yaml <output-dir>
 
 # Name/tag for the execution environment image
 name: my-custom-ee

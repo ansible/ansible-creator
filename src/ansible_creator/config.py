@@ -39,7 +39,8 @@ class Config:
         image: The image to be used while scaffolding devcontainer.
         role_name: The role to be scaffolded.
         skip_collection_check: Whether to skip collection path validation.
-        ee_config: Path to a JSON/YAML config file for EE parameters.
+        ee_config: Inline JSON string containing EE parameters.
+        ee_config_file: Path to a JSON/YAML config file for EE parameters.
         base_image: Base image for execution environment.
         ee_collections: List of Ansible collections for execution environment.
         ee_python_deps: List of Python dependencies for execution environment.
@@ -67,6 +68,7 @@ class Config:
     role_name: str = "run"
     skip_collection_check: bool = False
     ee_config: str | None = None
+    ee_config_file: str | None = None
     base_image: str = "quay.io/fedora/fedora:41"
     ee_collections: Sequence[str] = field(default_factory=list)
     ee_python_deps: Sequence[str] = field(default_factory=list)

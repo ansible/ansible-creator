@@ -124,12 +124,27 @@ def _extract_parser_schema(
 def _extract_action_info(action: argparse.Action) -> dict[str, Any]:
     """Extract parameter info from an argparse action.
 
+    For the ``ee_config`` parameter the returned dict is enriched with
+    the full ``EEConfig.to_schema()`` structure so that consumers (e.g.
+    the ADT server) know the expected JSON shape.
+
     Args:
         action: The argparse action to extract info from.
 
     Returns:
         Dictionary with parameter type, description, and other metadata.
     """
+    # If the argparse action carries a schema_class attribute (a dataclass
+    # with a to_schema() classmethod), use it to expose the structured
+    # payload shape instead of a flat "type: string".
+    schema_cls = getattr(action, "schema_class", None)
+    if schema_cls is not None:
+        structured: dict[str, Any] = schema_cls.to_schema()
+        structured["description"] = _clean_help_text(action.help or "")
+        if action.option_strings:
+            structured["aliases"] = list(action.option_strings)
+        return structured
+
     info: dict[str, Any] = {
         "description": _clean_help_text(action.help or ""),
     }
