@@ -1,0 +1,470 @@
+---
+# Execution Environment Build and Publish Workflow
+# Features:
+# - Token validation before build
+# - Support for AAP/Automation Hub authentication
+# - Support for private collection repositories (Git SCM tokens)
+# - Base image lifecycle checks
+# - Production release workflow with tagging
+# - Registry authentication for build and push
+#
+# Supported Secrets:
+#   AAP_EE_BUILDER_GITHUB_TOKEN  - GitHub PAT for private collections
+#   AAP_EE_BUILDER_GITLAB_TOKEN  - GitLab PAT for private collections
+#   SCM_TOKEN                    - Generic SCM token for custom Git servers
+#   ANSIBLE_GALAXY_SERVER_TOKEN  - Automation Hub token
+#   REGISTRY_USERNAME/PASSWORD   - Container registry credentials
+#   REDHAT_REGISTRY_PASSWORD     - Red Hat registry for base images
+
+name: Execution Environment Build
+
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+    types: [opened, reopened, synchronize]
+  push:
+    branches:
+      - main
+      - master
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      skip_validation:
+        description: "Skip token and image validation"
+        required: false
+        default: "false"
+        type: boolean
+
+# Required for pushing images to GHCR
+permissions:
+  contents: read
+  packages: write
+
+# Prevent concurrent builds on the same branch from racing to push tags
+concurrency:
+  group: ee-build-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # Container registry configuration (override via repository Variables)
+  REGISTRY: ${{ vars.EE_REGISTRY || 'ghcr.io' }}
+  IMAGE_NAME: ${{ vars.EE_IMAGE_NAME || github.repository }}
+  # Base image age thresholds (in days) - warn early, fail if stale
+  IMAGE_WARN_AGE: 40
+  IMAGE_FAIL_AGE: 80
+
+jobs:
+  # ============================================================================
+  # Validation Stage
+  # ============================================================================
+  validate-tokens:
+    name: Validate Tokens
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name != 'workflow_dispatch' ||
+      github.event.inputs.skip_validation != 'true'
+    outputs:
+      ah_configured: ${{ steps.check-ah.outputs.configured }}
+      git_token_configured: ${{ steps.check-git-token.outputs.configured }}
+    steps:
+      - name: Check if Automation Hub is configured
+        id: check-ah
+        env:
+          AH_TOKEN: ${{ secrets.ANSIBLE_GALAXY_SERVER_TOKEN }}
+        run: |
+          if [[ -n "$AH_TOKEN" ]]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Automation Hub token is configured"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Automation Hub token not configured, using public Galaxy only"
+          fi
+
+      - name: Check if Git SCM token is configured
+        id: check-git-token
+        env:
+          GITHUB_SCM_TOKEN: ${{ secrets.AAP_EE_BUILDER_GITHUB_TOKEN }}
+          GITLAB_SCM_TOKEN: ${{ secrets.AAP_EE_BUILDER_GITLAB_TOKEN }}
+          GENERIC_SCM_TOKEN: ${{ secrets.SCM_TOKEN }}
+        run: |
+          if [[ -n "$GITHUB_SCM_TOKEN" ]] || [[ -n "$GITLAB_SCM_TOKEN" ]] || [[ -n "$GENERIC_SCM_TOKEN" ]]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Git SCM token is configured for private collection repositories"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No Git SCM token configured, private Git repositories will not be accessible"
+          fi
+
+      - name: Validate Automation Hub Token
+        if: steps.check-ah.outputs.configured == 'true'
+        env:
+          AH_TOKEN: ${{ secrets.ANSIBLE_GALAXY_SERVER_TOKEN }}
+          AH_SERVER: ${{ vars.AUTOMATION_HUB_URL || 'console.redhat.com' }}
+        run: |
+          echo "Validating Automation Hub token against $AH_SERVER..."
+
+          # Determine the correct API endpoint based on server
+          if [[ "$AH_SERVER" == "console.redhat.com" ]]; then
+            API_URL="https://console.redhat.com/api/automation-hub/"
+          else
+            API_URL="https://${AH_SERVER}/api/galaxy/"
+          fi
+
+          # Validate token (-o /dev/null discards body; -w captures status)
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer ${AH_TOKEN}" \
+            "${API_URL}" 2>/dev/null || echo "000")
+
+          if [[ "$HTTP_CODE" == "200" ]] || [[ "$HTTP_CODE" == "302" ]]; then
+            echo "::notice::Automation Hub token validation successful"
+          elif [[ "$HTTP_CODE" == "401" ]] || [[ "$HTTP_CODE" == "403" ]]; then
+            echo "::error::Automation Hub token is invalid or expired"
+            exit 1
+          else
+            echo "::warning::Could not validate token (HTTP $HTTP_CODE), proceeding anyway"
+          fi
+
+  check-base-image:
+    name: Check Base Image Lifecycle
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name != 'workflow_dispatch' ||
+      github.event.inputs.skip_validation != 'true'
+    outputs:
+      image_age_days: ${{ steps.check-age.outputs.age_days }}
+      image_status: ${{ steps.check-age.outputs.status }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Login to Red Hat registry (for private base images)
+        if: vars.REDHAT_REGISTRY_USERNAME != ''
+        run: |
+          echo "${{ secrets.REDHAT_REGISTRY_PASSWORD }}" | \
+            podman login -u "${{ vars.REDHAT_REGISTRY_USERNAME }}" \
+            --password-stdin registry.redhat.io
+
+      - name: Extract base image from execution-environment.yml
+        id: get-image
+        run: |
+          # Handle both flat and nested (v3) EE spec formats
+          if command -v yq &> /dev/null; then
+            BASE_IMAGE=$(yq -r '.images.base_image.name // .images.base_image // empty' \
+              execution-environment.yml 2>/dev/null || echo "")
+          fi
+          if [[ -z "$BASE_IMAGE" ]]; then
+            BASE_IMAGE=$(grep -A2 'base_image:' execution-environment.yml | \
+              grep -oP 'name:\s*\K\S+' || \
+              grep -oP 'base_image:\s*\K\S+' execution-environment.yml || echo "")
+            BASE_IMAGE=$(echo "$BASE_IMAGE" | tr -d '"' | tr -d "'" | head -1)
+          fi
+          echo "base_image=$BASE_IMAGE" >> "$GITHUB_OUTPUT"
+          echo "::notice::Base image: $BASE_IMAGE"
+
+      - name: Check base image age
+        id: check-age
+        env:
+          BASE_IMAGE: ${{ steps.get-image.outputs.base_image }}
+        run: |
+          if [[ -z "$BASE_IMAGE" ]]; then
+            echo "::warning::Could not determine base image, skipping age check"
+            echo "age_days=0" >> "$GITHUB_OUTPUT"
+            echo "status=unknown" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Pull the image to inspect it
+          if ! podman pull "$BASE_IMAGE" 2>/dev/null; then
+            echo "::warning::Could not pull base image, skipping age check"
+            echo "age_days=0" >> "$GITHUB_OUTPUT"
+            echo "status=unknown" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Get image creation date
+          CREATED=$(podman inspect "$BASE_IMAGE" --format '{{.Created}}' 2>/dev/null || echo "")
+          if [[ -z "$CREATED" ]]; then
+            echo "::warning::Could not determine image creation date"
+            echo "age_days=0" >> "$GITHUB_OUTPUT"
+            echo "status=unknown" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Calculate age in days
+          CREATED_EPOCH=$(date -d "$CREATED" +%s 2>/dev/null || \
+            date -j -f "%Y-%m-%dT%H:%M:%S" "${CREATED%%.*}" +%s 2>/dev/null || echo "0")
+          CURRENT_EPOCH=$(date +%s)
+          AGE_DAYS=$(( (CURRENT_EPOCH - CREATED_EPOCH) / 86400 ))
+
+          echo "age_days=$AGE_DAYS" >> "$GITHUB_OUTPUT"
+          echo "::notice::Base image is $AGE_DAYS days old"
+
+          if [[ $AGE_DAYS -gt ${{ env.IMAGE_FAIL_AGE }} ]]; then
+            echo "::error::Base image is more than ${{ env.IMAGE_FAIL_AGE }} days old. Consider updating."
+            echo "status=critical" >> "$GITHUB_OUTPUT"
+            exit 1
+          elif [[ $AGE_DAYS -gt ${{ env.IMAGE_WARN_AGE }} ]]; then
+            echo "::warning::Base image is more than ${{ env.IMAGE_WARN_AGE }} days old. Consider updating soon."
+            echo "status=warning" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=ok" >> "$GITHUB_OUTPUT"
+          fi
+
+  # ============================================================================
+  # Build Stage
+  # ============================================================================
+  build:
+    name: Build Execution Environment
+    runs-on: ubuntu-latest
+    needs: [validate-tokens, check-base-image]
+    # Runs even if validation was skipped (workflow_dispatch) so builds are not blocked
+    if: |
+      always() &&
+      (needs.validate-tokens.result == 'success' || needs.validate-tokens.result == 'skipped') &&
+      (needs.check-base-image.result == 'success' || needs.check-base-image.result == 'skipped')
+    outputs:
+      image_digest: ${{ steps.push.outputs.digest }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install ansible-builder
+        run: |
+          python -m pip install --upgrade pip
+          pip install ansible-builder ansible-core
+
+      - name: Configure Git credentials for private repositories
+        if: needs.validate-tokens.outputs.git_token_configured == 'true' || needs.validate-tokens.result == 'skipped'
+        env:
+          GITHUB_SCM_TOKEN: ${{ secrets.AAP_EE_BUILDER_GITHUB_TOKEN }}
+          GITLAB_SCM_TOKEN: ${{ secrets.AAP_EE_BUILDER_GITLAB_TOKEN }}
+          GENERIC_SCM_TOKEN: ${{ secrets.SCM_TOKEN }}
+        run: |
+          # Configure git credential helper for private repository access
+          git config --global credential.helper store
+
+          # Configure GitHub token if available
+          if [[ -n "$GITHUB_SCM_TOKEN" ]]; then
+            echo "https://x-access-token:${GITHUB_SCM_TOKEN}@github.com" >> ~/.git-credentials
+            echo "::notice::Configured GitHub credentials for private repositories"
+          fi
+
+          # Configure GitLab token if available
+          if [[ -n "$GITLAB_SCM_TOKEN" ]]; then
+            echo "https://oauth2:${GITLAB_SCM_TOKEN}@gitlab.com" >> ~/.git-credentials
+            echo "::notice::Configured GitLab credentials for private repositories"
+          fi
+
+          # Configure generic SCM token if available (for custom Git servers)
+          if [[ -n "$GENERIC_SCM_TOKEN" ]] && [[ -n "${{ vars.SCM_SERVER }}" ]]; then
+            echo "https://token:${GENERIC_SCM_TOKEN}@${{ vars.SCM_SERVER }}" >> ~/.git-credentials
+            echo "::notice::Configured generic SCM credentials"
+          fi
+
+          chmod 600 ~/.git-credentials
+
+      - name: Configure Automation Hub authentication
+        if: needs.validate-tokens.outputs.ah_configured == 'true' || needs.validate-tokens.result == 'skipped'
+        env:
+          AH_TOKEN: ${{ secrets.ANSIBLE_GALAXY_SERVER_TOKEN }}
+          AH_SERVER: ${{ vars.AUTOMATION_HUB_URL || 'console.redhat.com' }}
+        run: |
+          mkdir -p ~/.ansible
+
+          # Determine server URLs based on AH_SERVER
+          # console.redhat.com uses SSO token auth; on-prem AAP uses direct token auth
+          if [[ "$AH_SERVER" == "console.redhat.com" ]]; then
+            cat > ~/.ansible/ansible.cfg <<'ANSIBLE_CFG'
+          [galaxy]
+          server_list = automation_hub, galaxy
+
+          [galaxy_server.automation_hub]
+          url = https://console.redhat.com/api/automation-hub/content/published/
+          auth_url = https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
+          ANSIBLE_CFG
+            echo "token = ${AH_TOKEN}" >> ~/.ansible/ansible.cfg
+          else
+            cat > ~/.ansible/ansible.cfg <<ANSIBLE_CFG
+          [galaxy]
+          server_list = automation_hub, galaxy
+
+          [galaxy_server.automation_hub]
+          url = https://${AH_SERVER}/api/galaxy/content/published/
+          token = ${AH_TOKEN}
+          ANSIBLE_CFG
+          fi
+
+          cat >> ~/.ansible/ansible.cfg <<'ANSIBLE_CFG'
+
+          [galaxy_server.galaxy]
+          url = https://galaxy.ansible.com/
+          ANSIBLE_CFG
+
+          echo "::notice::Configured Automation Hub authentication"
+
+      - name: Login to container registry
+        run: |
+          echo "${{ secrets.REGISTRY_PASSWORD || secrets.GITHUB_TOKEN }}" | \
+            buildah login -u "${{ secrets.REGISTRY_USERNAME || github.actor }}" \
+            --password-stdin "${{ env.REGISTRY }}"
+
+      - name: Login to Red Hat registry (for base images)
+        if: vars.REDHAT_REGISTRY_USERNAME != ''
+        run: |
+          echo "${{ secrets.REDHAT_REGISTRY_PASSWORD }}" | \
+            buildah login -u "${{ vars.REDHAT_REGISTRY_USERNAME }}" \
+            --password-stdin registry.redhat.io
+
+      - name: Build execution environment
+        id: build
+        env:
+          # Pass SCM tokens so they can be referenced in execution-environment.yml
+          # collection URLs, e.g. https://x-access-token:${AAP_EE_BUILDER_GITHUB_TOKEN}@github.com/org/repo
+          AAP_EE_BUILDER_GITHUB_TOKEN: ${{ secrets.AAP_EE_BUILDER_GITHUB_TOKEN }}
+          AAP_EE_BUILDER_GITLAB_TOKEN: ${{ secrets.AAP_EE_BUILDER_GITLAB_TOKEN }}
+          SCM_TOKEN: ${{ secrets.SCM_TOKEN }}
+        run: |
+          echo "::group::Creating build context"
+
+          # Resolve SCM token references (e.g. ${AAP_EE_BUILDER_GITHUB_TOKEN} in
+          # collection URLs) into a temp copy so the workspace file stays clean.
+          # Only substitute the specific SCM token variables, not all env vars,
+          # to avoid corrupting other ${} patterns in execution-environment.yml.
+          EE_FILE="execution-environment.yml"
+          if command -v envsubst &> /dev/null; then
+            envsubst '$AAP_EE_BUILDER_GITHUB_TOKEN $AAP_EE_BUILDER_GITLAB_TOKEN $SCM_TOKEN' \
+              < execution-environment.yml > /tmp/ee-resolved.yml
+            EE_FILE="/tmp/ee-resolved.yml"
+          fi
+
+          ansible-builder create --file "$EE_FILE" --output-filename Containerfile
+          echo "::endgroup::"
+
+          echo "::group::Building image"
+          # Build with buildah for OCI compatibility
+          buildah bud \
+            --tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
+            --file context/Containerfile \
+            context/
+          echo "::endgroup::"
+
+      - name: Test execution environment
+        run: |
+          echo "::group::Testing EE"
+          podman run --rm "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
+            ansible --version
+          podman run --rm "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
+            ansible-galaxy collection list
+          echo "::endgroup::"
+
+      - name: Push image
+        id: push
+        if: github.event_name != 'pull_request'
+        run: |
+          # Always push with build SHA tag (needed by release job)
+          buildah push --digestfile /tmp/digest \
+            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
+            "docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}"
+          echo "digest=$(cat /tmp/digest)" >> "$GITHUB_OUTPUT"
+
+          # Additional tags based on event type
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            buildah push "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
+              "docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+            buildah push "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
+              "docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+          fi
+
+  # ============================================================================
+  # Release Stage
+  # ============================================================================
+  release:
+    name: Release Execution Environment
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.event_name == 'release'
+    steps:
+      - name: Login to container registry
+        run: |
+          echo "${{ secrets.REGISTRY_PASSWORD || secrets.GITHUB_TOKEN }}" | \
+            buildah login -u "${{ secrets.REGISTRY_USERNAME || github.actor }}" \
+            --password-stdin "${{ env.REGISTRY }}"
+
+      - name: Tag and push release
+        env:
+          VERSION: ${{ github.event.release.tag_name }}
+        run: |
+          # Pull the image built from this commit (pushed in build job)
+          buildah pull "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}"
+
+          # Backup previous production tag if it exists
+          if buildah pull "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:prd" 2>/dev/null; then
+            echo "::notice::Backing up previous production image to 'previous' tag"
+            buildah tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:prd" \
+              "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:previous"
+            buildah push "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:previous"
+          fi
+
+          # Tag and push version, latest, and production
+          for TAG in "${VERSION}" "latest" "prd"; do
+            buildah tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
+              "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG}"
+            buildah push "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG}"
+          done
+
+          echo "::notice::Released version ${VERSION}"
+
+  # ============================================================================
+  # Summary
+  # ============================================================================
+  summary:
+    name: Build Summary
+    runs-on: ubuntu-latest
+    needs: [validate-tokens, check-base-image, build]
+    if: always()
+    steps:
+      - name: Generate summary
+        run: |
+          echo "## Execution Environment Build Summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+
+          echo "### Validation Results" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Check | Status |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|-------|--------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Token Validation | ${{ needs.validate-tokens.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Base Image Check | ${{ needs.check-base-image.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+
+          echo "### Authentication Status" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Provider | Configured |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|----------|------------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Automation Hub | ${{ needs.validate-tokens.outputs.ah_configured }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Git SCM Token | ${{ needs.validate-tokens.outputs.git_token_configured }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ "${{ needs.check-base-image.outputs.image_age_days }}" != "" ]]; then
+            echo "### Base Image Status" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Age: ${{ needs.check-base-image.outputs.image_age_days }} days" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Status: ${{ needs.check-base-image.outputs.image_status }}" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          echo "### Build Results" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Step | Status |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|------|--------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Build | ${{ needs.build.result }} |" >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ "${{ needs.build.result }}" == "success" ]]; then
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "### Image Details" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Registry: \`${{ env.REGISTRY }}\`" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Image: \`${{ env.IMAGE_NAME }}\`" >> "$GITHUB_STEP_SUMMARY"
+          fi
