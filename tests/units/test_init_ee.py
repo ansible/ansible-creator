@@ -1,7 +1,11 @@
 # cspell: ignore dcmp, subdcmp, microdnf
+# pylint: disable=too-many-lines
 """Unit tests for ansible-creator init execution environment projects."""
 
 from __future__ import annotations
+
+import argparse
+import json
 
 from filecmp import dircmp
 from pathlib import Path
@@ -12,7 +16,9 @@ import pytest
 from ansible_creator.config import Config
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.output import Output
+from ansible_creator.schema import _extract_action_info, for_command
 from ansible_creator.subcommands.init import Init
+from ansible_creator.types import EECollection, EEConfig
 from ansible_creator.utils import TermFeatures
 from tests.defaults import FIXTURES_DIR
 
@@ -30,7 +36,8 @@ class ConfigDict(TypedDict, total=False):
         force: Force overwrite of existing directory.
         overwrite: To overwrite files in an existing directory.
         no_overwrite: To not overwrite files in an existing directory.
-        ee_config: Path to a JSON/YAML config file for EE parameters.
+        ee_config: Inline JSON string containing EE parameters.
+        ee_config_file: Path to a JSON/YAML config file for EE parameters.
         base_image: Base image for execution environment.
         ee_collections: List of Ansible collections for execution environment.
         ee_python_deps: List of Python dependencies for execution environment.
@@ -48,6 +55,7 @@ class ConfigDict(TypedDict, total=False):
     overwrite: bool
     no_overwrite: bool
     ee_config: str | None
+    ee_config_file: str | None
     base_image: str
     ee_collections: list[str]
     ee_python_deps: list[str]
@@ -329,7 +337,7 @@ ansible_cfg: |
 
     cli_args["project"] = "execution_env"
     cli_args["init_path"] = str(tmp_path / "ee_from_config")
-    cli_args["ee_config"] = str(config_file)
+    cli_args["ee_config_file"] = str(config_file)
 
     init = Init(Config(**cli_args))
     init.run()
@@ -357,6 +365,81 @@ ansible_cfg: |
     assert "automation_hub" in cfg_content
 
 
+def test_ee_project_inline_json_config(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test Init with inline JSON via --ee-config.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    config_data = {
+        "name": "inline-json-ee",
+        "base_image": "quay.io/fedora/fedora:41",
+        "collections": [{"name": "ansible.posix"}],
+        "python_deps": ["jmespath"],
+        "system_packages": ["git"],
+    }
+
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_inline_json")
+    cli_args["ee_config"] = json.dumps(config_data)
+
+    init = Init(Config(**cli_args))
+    init.run()
+    result = capsys.readouterr().out
+
+    assert r"Note: execution_env project created" in result
+
+    ee_file = tmp_path / "ee_inline_json" / "execution-environment.yml"
+    ee_content = ee_file.read_text()
+
+    assert "inline-json-ee" in ee_content
+    assert "ansible.posix" in ee_content
+    assert "jmespath" in ee_content
+    assert "git" in ee_content
+
+
+def test_ee_project_inline_json_invalid(
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test Init with invalid inline JSON via --ee-config.
+
+    Args:
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_bad_json")
+    cli_args["ee_config"] = "{not valid json"
+
+    with pytest.raises(CreatorError, match="Invalid JSON in --ee-config"):
+        Init(Config(**cli_args))
+
+
+def test_ee_project_inline_json_not_object(
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test Init rejects non-object JSON via --ee-config.
+
+    Args:
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_list_json")
+    cli_args["ee_config"] = '["not", "an", "object"]'
+
+    with pytest.raises(CreatorError, match="must be a JSON object"):
+        Init(Config(**cli_args))
+
+
 def test_ee_project_config_file_not_found(
     tmp_path: Path,
     cli_args: ConfigDict,
@@ -369,7 +452,7 @@ def test_ee_project_config_file_not_found(
     """
     cli_args["project"] = "execution_env"
     cli_args["init_path"] = str(tmp_path / "ee_missing_config")
-    cli_args["ee_config"] = str(tmp_path / "nonexistent.yaml")
+    cli_args["ee_config_file"] = str(tmp_path / "nonexistent.yaml")
 
     with pytest.raises(CreatorError, match="EE config file not found"):
         Init(Config(**cli_args))
@@ -393,7 +476,7 @@ def test_ee_project_valid_json_config(
 
     cli_args["project"] = "execution_env"
     cli_args["init_path"] = str(tmp_path / "ee_valid_json")
-    cli_args["ee_config"] = str(config_file)
+    cli_args["ee_config_file"] = str(config_file)
 
     init = Init(Config(**cli_args))
     init.run()
@@ -422,7 +505,7 @@ def test_ee_project_invalid_json_config(
 
     cli_args["project"] = "execution_env"
     cli_args["init_path"] = str(tmp_path / "ee_invalid_json")
-    cli_args["ee_config"] = str(config_file)
+    cli_args["ee_config_file"] = str(config_file)
 
     with pytest.raises(CreatorError, match="Invalid JSON"):
         Init(Config(**cli_args))
@@ -443,7 +526,7 @@ def test_ee_project_invalid_yaml_config(
 
     cli_args["project"] = "execution_env"
     cli_args["init_path"] = str(tmp_path / "ee_invalid_yaml")
-    cli_args["ee_config"] = str(config_file)
+    cli_args["ee_config_file"] = str(config_file)
 
     with pytest.raises(CreatorError, match="Invalid YAML"):
         Init(Config(**cli_args))
@@ -468,7 +551,7 @@ collections:
 
     cli_args["project"] = "execution_env"
     cli_args["init_path"] = str(tmp_path / "ee_invalid_config_collection")
-    cli_args["ee_config"] = str(config_file)
+    cli_args["ee_config_file"] = str(config_file)
 
     with pytest.raises(CreatorError, match="Invalid collection name"):
         Init(Config(**cli_args))
@@ -493,7 +576,7 @@ collections:
 
     cli_args["project"] = "execution_env"
     cli_args["init_path"] = str(tmp_path / "ee_missing_name")
-    cli_args["ee_config"] = str(config_file)
+    cli_args["ee_config_file"] = str(config_file)
 
     with pytest.raises(CreatorError, match="must have a 'name' field"):
         Init(Config(**cli_args))
@@ -519,7 +602,7 @@ collections:
 
     cli_args["project"] = "execution_env"
     cli_args["init_path"] = str(tmp_path / "ee_invalid_type")
-    cli_args["ee_config"] = str(config_file)
+    cli_args["ee_config_file"] = str(config_file)
 
     with pytest.raises(CreatorError, match="Invalid collection type"):
         Init(Config(**cli_args))
@@ -545,7 +628,7 @@ collections:
 
     cli_args["project"] = "execution_env"
     cli_args["init_path"] = str(tmp_path / "ee_invalid_url")
-    cli_args["ee_config"] = str(config_file)
+    cli_args["ee_config_file"] = str(config_file)
 
     with pytest.raises(CreatorError, match="Invalid source URL"):
         Init(Config(**cli_args))
@@ -574,7 +657,7 @@ collections:
 
     cli_args["project"] = "execution_env"
     cli_args["init_path"] = str(tmp_path / "ee_valid_type_source")
-    cli_args["ee_config"] = str(config_file)
+    cli_args["ee_config_file"] = str(config_file)
 
     init = Init(Config(**cli_args))
     init.run()
@@ -704,7 +787,7 @@ collections:
 
     cli_args["project"] = "execution_env"
     cli_args["init_path"] = str(tmp_path / "ee_git_url_config")
-    cli_args["ee_config"] = str(config_file)
+    cli_args["ee_config_file"] = str(config_file)
 
     init = Init(Config(**cli_args))
     init.run()
@@ -803,3 +886,165 @@ def test_ee_project_git_url_edge_cases(
 
     # SSH-style URL without :git suffix (fallback)
     assert "git@github.com/org/ns.col2" in ee_content
+
+
+# ---------------------------------------------------------------------------
+# EEConfig / EECollection dataclass tests
+# ---------------------------------------------------------------------------
+
+
+def test_ee_config_from_dict_full() -> None:
+    """Test EEConfig.from_dict with all supported fields."""
+    data = {
+        "name": "my-ee",
+        "base_image": "quay.io/custom:latest",
+        "collections": [{"name": "ansible.posix", "version": ">=1.0"}],
+        "python_deps": ["jmespath"],
+        "system_packages": ["git"],
+        "additional_build_files": [{"src": "a.cfg", "dest": "configs"}],
+        "additional_build_steps": {"prepend_base": ["RUN echo hi"]},
+        "options": {"package_manager_path": "/usr/bin/dnf"},
+        "ansible_cfg": "[galaxy]\nserver_list = hub\n",
+    }
+    cfg = EEConfig.from_dict(data)
+
+    assert cfg.name == "my-ee"
+    assert cfg.base_image == "quay.io/custom:latest"
+    assert len(cfg.collections) == 1
+    assert cfg.collections[0].name == "ansible.posix"
+    assert cfg.collections[0].version == ">=1.0"
+    assert cfg.python_deps == ("jmespath",)
+    assert cfg.system_packages == ("git",)
+    assert cfg.additional_build_files == ({"src": "a.cfg", "dest": "configs"},)
+    assert cfg.additional_build_steps == {"prepend_base": ["RUN echo hi"]}
+    assert cfg.options == {"package_manager_path": "/usr/bin/dnf"}
+    assert "server_list" in cfg.ansible_cfg
+
+
+def test_ee_config_from_dict_defaults() -> None:
+    """Test EEConfig.from_dict with empty dict uses defaults."""
+    cfg = EEConfig.from_dict({})
+
+    assert cfg.name == "ansible_sample_ee"
+    assert cfg.base_image == "quay.io/fedora/fedora:41"
+    assert not cfg.collections
+    assert not cfg.python_deps
+
+
+def test_ee_collection_from_dict_invalid_name() -> None:
+    """Test EECollection.from_dict rejects invalid collection names."""
+    with pytest.raises(CreatorError, match="Invalid collection name"):
+        EECollection.from_dict({"name": "bad-name"})
+
+
+def test_ee_collection_as_dict_sparse() -> None:
+    """Test EECollection.as_dict only includes non-empty fields."""
+    col = EECollection(name="ansible.posix")
+    assert col.as_dict() == {"name": "ansible.posix"}
+
+    col_full = EECollection(name="ansible.posix", version="1.0", type="galaxy")
+    result = col_full.as_dict()
+    assert result == {"name": "ansible.posix", "version": "1.0", "type": "galaxy"}
+
+
+def test_ee_config_to_schema_shape() -> None:
+    """Test EEConfig.to_schema returns expected structure."""
+    schema = EEConfig.to_schema()
+
+    assert schema["type"] == "object"
+    props = schema["properties"]
+    assert "name" in props
+    assert "base_image" in props
+    assert "collections" in props
+    assert props["collections"]["type"] == "array"
+    assert props["collections"]["items"]["type"] == "object"
+    assert "name" in props["collections"]["items"]["properties"]
+    assert "python_deps" in props
+    assert "system_packages" in props
+    assert "ansible_cfg" in props
+
+
+def test_ee_config_schema_in_cli_schema() -> None:
+    """Test that the CLI schema exposes EEConfig structure for ee_config."""
+    schema = for_command("init", "execution_env")
+    ee_config_schema = schema["parameters"]["properties"]["ee_config"]
+
+    assert ee_config_schema["type"] == "object"
+    assert "properties" in ee_config_schema
+    assert "name" in ee_config_schema["properties"]
+    assert "base_image" in ee_config_schema["properties"]
+    assert "collections" in ee_config_schema["properties"]
+
+
+def test_extract_action_info_schema_class_no_option_strings() -> None:
+    """Test _extract_action_info with schema_class but no option_strings."""
+    action = argparse.Action(option_strings=[], dest="ee_config")
+    action.help = "EE configuration"
+    action.schema_class = EEConfig  # type: ignore[attr-defined]
+
+    info = _extract_action_info(action)
+
+    assert info["type"] == "object"
+    assert info["description"] == "EE configuration"
+    assert "aliases" not in info
+
+
+def test_ee_collection_from_dict_git_url_formats() -> None:
+    """Test that EECollection.from_dict accepts all Git URL formats."""
+    git_urls = [
+        "git://github.com/org/repo",
+        "ssh://git@github.com/org/repo",
+        "file:///local/path/to/collection",
+        "git@github.com:org/repo.git",
+        "https://github.com/org/repo",
+    ]
+    for url in git_urls:
+        col = EECollection.from_dict({"name": url})
+        assert col.name == url
+
+
+def test_ee_config_file_json_non_object(tmp_path: Path) -> None:
+    """Test that _load_ee_config_file rejects JSON files with non-object content.
+
+    Args:
+        tmp_path: Temporary directory path.
+    """
+    json_file = tmp_path / "bad.json"
+    json_file.write_text('["a", "b"]')
+    with pytest.raises(CreatorError, match="must contain a JSON object"):
+        Init._load_ee_config_file(str(json_file))
+
+
+def test_ee_config_file_yaml_non_mapping(tmp_path: Path) -> None:
+    """Test that _load_ee_config_file rejects YAML files with non-mapping content.
+
+    Args:
+        tmp_path: Temporary directory path.
+    """
+    yaml_file = tmp_path / "bad.yml"
+    yaml_file.write_text("- item1\n- item2\n")
+    with pytest.raises(CreatorError, match="must contain a YAML mapping"):
+        Init._load_ee_config_file(str(yaml_file))
+
+
+def test_ee_config_both_sources_rejected(
+    output: Output,
+    tmp_path: Path,
+) -> None:
+    """Test that providing both ee_config and ee_config_file is rejected.
+
+    Args:
+        output: Output instance for logging.
+        tmp_path: Temporary directory path.
+    """
+    config = Config(
+        creator_version="0.0.1",
+        output=output,
+        subcommand="init",
+        project="execution_env",
+        init_path=str(tmp_path / "test-ee"),
+        ee_config='{"name": "test"}',
+        ee_config_file="/some/file.yml",
+    )
+    with pytest.raises(CreatorError, match="Cannot specify both"):
+        Init(config=config)

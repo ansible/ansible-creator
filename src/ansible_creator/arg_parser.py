@@ -751,12 +751,22 @@ class Parser:
             help="The destination directory for the EE project.",
         )
 
-        parser.add_argument(
+        from ansible_creator.types import EEConfig  # noqa: PLC0415
+
+        ee_config_group = parser.add_mutually_exclusive_group()
+        ee_config_action = ee_config_group.add_argument(
             "--ee-config",
             dest="ee_config",
+            metavar="JSON",
+            help="Inline JSON string containing EE parameters. "
+            'Example: --ee-config \'{"base_image": "...", "collections": [...]}\'',
+        )
+        ee_config_action.schema_class = EEConfig  # type: ignore[attr-defined]
+        ee_config_group.add_argument(
+            "--ee-config-file",
+            dest="ee_config_file",
             metavar="FILE",
             help="Path to a JSON/YAML config file containing EE parameters. "
-            "This is the recommended way to provide complex EE configurations. "
             "See documentation for the expected schema.",
         )
 

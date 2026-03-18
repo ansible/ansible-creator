@@ -34,7 +34,8 @@ class ConfigDict(TypedDict, total=False):
         force: Force overwrite of existing directory.
         overwrite: To overwrite files in an existing directory.
         no_overwrite: To not overwrite files in an existing directory.
-        ee_config: Path to a JSON/YAML config file for EE parameters.
+        ee_config: Inline JSON string containing EE parameters.
+        ee_config_file: Path to a JSON/YAML config file for EE parameters.
         base_image: Base image for execution environment.
         ee_collections: List of Ansible collections for execution environment.
         ee_python_deps: List of Python dependencies for execution environment.
@@ -52,6 +53,7 @@ class ConfigDict(TypedDict, total=False):
     overwrite: bool
     no_overwrite: bool
     ee_config: str | None
+    ee_config_file: str | None
     base_image: str
     ee_collections: list[str]
     ee_python_deps: list[str]
