@@ -304,6 +304,44 @@ class EEConfig:
         }
 
 
+@dataclass(frozen=True)
+class OfficialEEImage:
+    """An official Red Hat EE base image pattern and its Python interpreter.
+
+    Attributes:
+        pattern: Substring matched against the container image name/URL.
+        python_path: Absolute path to the Python interpreter in the image.
+    """
+
+    pattern: str
+    python_path: str
+
+
+# Single source of truth for official EE image detection and Python paths.
+# Ordered most-specific first so versioned patterns match before broad ones.
+# Update this tuple when new AAP versions ship with different Python versions.
+OFFICIAL_EE_IMAGES: tuple[OfficialEEImage, ...] = (
+    # AAP 2.6 uses Python 3.12
+    OfficialEEImage("ansible-automation-platform-26", "/usr/bin/python3.12"),
+    OfficialEEImage("aap-26", "/usr/bin/python3.12"),
+    # AAP 2.4/2.5 uses Python 3.11
+    OfficialEEImage("ansible-automation-platform-25", "/usr/bin/python3.11"),
+    OfficialEEImage("aap-25", "/usr/bin/python3.11"),
+    OfficialEEImage("ansible-automation-platform-24", "/usr/bin/python3.11"),
+    OfficialEEImage("aap-24", "/usr/bin/python3.11"),
+    # Broad registry prefixes (catch-all for unversioned official images)
+    OfficialEEImage("registry.redhat.io/ansible-automation-platform", "/usr/bin/python3.11"),
+    OfficialEEImage("registry.redhat.io/aap", "/usr/bin/python3.11"),
+    # Named official EE images
+    OfficialEEImage("ee-minimal-rhel", "/usr/bin/python3.11"),
+    OfficialEEImage("ee-supported-rhel", "/usr/bin/python3.11"),
+    OfficialEEImage("ee-29-rhel", "/usr/bin/python3.11"),
+    OfficialEEImage("ee-dellos", "/usr/bin/python3.11"),
+)
+
+DEFAULT_PYTHON_PATH = "/usr/bin/python3"
+
+
 @dataclass
 class TemplateData:
     """Dataclass representing the template data.
@@ -333,6 +371,9 @@ class TemplateData:
             append_final steps.
         ee_options: Dict of EE build options (e.g., package_manager_path).
         ee_ansible_cfg: Content for ansible.cfg file (for Automation Hub auth).
+        is_official_ee: Whether the base image is an official Red Hat EE image.
+        ee_python_path: Python interpreter path for the EE (varies by AAP version).
+        ee_name_is_default: Whether ee_name is the unchanged default value.
     """
 
     resource_type: str = ""
@@ -361,3 +402,6 @@ class TemplateData:
     ee_additional_build_steps: dict[str, list[str]] = field(default_factory=dict)
     ee_options: dict[str, Any] = field(default_factory=dict)
     ee_ansible_cfg: str = ""
+    is_official_ee: bool = False
+    ee_python_path: str = DEFAULT_PYTHON_PATH
+    ee_name_is_default: bool = True

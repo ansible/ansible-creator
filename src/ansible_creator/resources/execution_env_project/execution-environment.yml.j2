@@ -6,16 +6,21 @@ images:
     name: {{ ee_base_image }}
 
 dependencies:
+{%- if not is_official_ee %}
   # Use python3
   python_interpreter:
     package_system: python3
-    python_path: /usr/bin/python3
+    python_path: {{ ee_python_path }}
 
   ansible_core:
     package_pip: ansible-core
 
   ansible_runner:
     package_pip: ansible-runner
+{%- else %}
+  python_interpreter:
+    python_path: {{ ee_python_path }}
+{%- endif %}
 {%- if ee_system_packages %}
 
   system:
@@ -47,9 +52,13 @@ dependencies:
 {%- endif %}
 {%- endfor %}
 {%- endif %}
-{%- if ee_additional_build_files %}
+{%- if ee_additional_build_files or is_official_ee %}
 
 additional_build_files:
+{%- if is_official_ee %}
+  - src: ansible.cfg
+    dest: configs
+{%- endif %}
 {%- for file in ee_additional_build_files %}
   - src: {{ file.src }}
     dest: {{ file.dest }}
@@ -63,12 +72,21 @@ additional_build_steps:
     - {{ step }}
 {%- endfor %}
 {%- endif %}
+{%- if is_official_ee %}
+  prepend_galaxy:
+    - ENV ANSIBLE_CONFIG=/etc/ansible/ansible.cfg
+    - COPY _build/configs/ansible.cfg /etc/ansible/ansible.cfg
+{%- endif %}
+{%- if not is_official_ee or ee_additional_build_steps.append_base is defined %}
   append_base:
+{%- if not is_official_ee %}
     - RUN $PYCMD -m pip install -U pip
+{%- endif %}
 {%- if ee_additional_build_steps.append_base is defined %}
 {%- for step in ee_additional_build_steps.append_base %}
     - {{ step }}
 {%- endfor %}
+{%- endif %}
 {%- endif %}
 {%- if ee_additional_build_steps.prepend_final is defined %}
   prepend_final:
@@ -87,5 +105,7 @@ options:
 {%- if ee_options.package_manager_path is defined %}
   package_manager_path: {{ ee_options.package_manager_path }}
 {%- endif %}
+{%- if not (is_official_ee and ee_name_is_default) %}
   tags:
     - {{ ee_name }}
+{%- endif %}

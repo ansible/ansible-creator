@@ -677,7 +677,11 @@ def test_ee_project_official_image_microdnf(
     tmp_path: Path,
     cli_args: ConfigDict,
 ) -> None:
-    """Test that official EE images automatically get microdnf as package manager.
+    """Test that official EE images get minimal skeleton without ansible_core/runner.
+
+    Official EE images already have ansible-core and ansible-runner pre-installed,
+    so we should not include them in the EE definition to avoid conflicts.
+    They also get ansible.cfg with Portal anchors for Automation Hub configuration.
 
     Args:
         capsys: Pytest fixture to capture stdout and stderr.
@@ -699,6 +703,140 @@ def test_ee_project_official_image_microdnf(
     ee_file = tmp_path / "ee_official_image" / "execution-environment.yml"
     ee_content = ee_file.read_text()
 
+    # Official EE images should have microdnf
+    assert "package_manager_path: /usr/bin/microdnf" in ee_content
+
+    # Official EE images should NOT have ansible_core/ansible_runner (pre-installed)
+    assert "ansible_core:" not in ee_content
+    assert "ansible_runner:" not in ee_content
+    assert "package_pip: ansible-core" not in ee_content
+    assert "package_pip: ansible-runner" not in ee_content
+
+    # Should have python_interpreter with python3.11 for official EE images
+    assert "python_interpreter:" in ee_content
+    assert "python_path: /usr/bin/python3.11" in ee_content
+
+    # Official EE images should have additional_build_files for ansible.cfg
+    assert "additional_build_files:" in ee_content
+    assert "src: ansible.cfg" in ee_content
+    assert "dest: configs" in ee_content
+
+    # Official EE images should have prepend_galaxy step for ANSIBLE_CONFIG
+    assert "prepend_galaxy:" in ee_content
+    assert "ENV ANSIBLE_CONFIG=/etc/ansible/ansible.cfg" in ee_content
+    assert "COPY _build/configs/ansible.cfg /etc/ansible/ansible.cfg" in ee_content
+
+    # Official EE images should NOT have pip upgrade or the default sample tag
+    assert "RUN $PYCMD -m pip install -U pip" not in ee_content
+    assert "ansible_sample_ee" not in ee_content
+
+    # ansible.cfg file should be generated with Portal anchors
+    ansible_cfg_file = tmp_path / "ee_official_image" / "ansible.cfg"
+    assert ansible_cfg_file.exists()
+    ansible_cfg_content = ansible_cfg_file.read_text()
+    assert "[galaxy]" in ansible_cfg_content
+    assert "<!--start PAH content-->" in ansible_cfg_content
+    assert "<!--end PAH content-->" in ansible_cfg_content
+
+
+def test_ee_project_official_image_no_overwrite_ansible_cfg(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test that --no-overwrite skips existing ansible.cfg for official EE images.
+
+    Pre-plant only ``ansible.cfg`` (not the template files) so the copier
+    ``has_conflicts()`` check passes, letting ``_write_optional_files()``
+    exercise the ``--no-overwrite`` guard.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    project_dir = tmp_path / "ee_no_overwrite"
+    project_dir.mkdir()
+    custom = "# custom ansible.cfg\n"
+    (project_dir / "ansible.cfg").write_text(custom, encoding="utf-8")
+
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(project_dir)
+    cli_args["no_overwrite"] = True
+    cli_args["base_image"] = (
+        "registry.redhat.io/ansible-automation-platform-25/ee-minimal-rhel9:latest"
+    )
+
+    Init(Config(**cli_args)).run()
+    capsys.readouterr()
+
+    assert (project_dir / "ansible.cfg").read_text() == custom
+
+
+def test_ee_project_official_image_aap26_python312(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test that AAP 2.6 EE images use Python 3.12 interpreter.
+
+    AAP 2.6 switched from Python 3.11 to Python 3.12.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_aap26_image")
+    cli_args["base_image"] = (
+        "registry.redhat.io/ansible-automation-platform-26/ee-minimal-rhel9:latest"
+    )
+
+    init = Init(Config(**cli_args))
+    init.run()
+    result = capsys.readouterr().out
+
+    assert r"Note: execution_env project created" in result
+
+    ee_file = tmp_path / "ee_aap26_image" / "execution-environment.yml"
+    ee_content = ee_file.read_text()
+
+    # AAP 2.6 should use Python 3.12
+    assert "python_path: /usr/bin/python3.12" in ee_content
+
+
+def test_ee_project_official_image_fallback_python(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test that non-versioned official EE images use Python 3.11.
+
+    Images like ee-dellos or ee-29-rhel are official but not tied to a
+    specific AAP version, so they map to Python 3.11 in OFFICIAL_EE_IMAGES.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_dellos_image")
+    cli_args["base_image"] = "registry.redhat.io/ee-dellos-rhel8:latest"
+
+    init = Init(Config(**cli_args))
+    init.run()
+    result = capsys.readouterr().out
+
+    assert r"Note: execution_env project created" in result
+
+    ee_file = tmp_path / "ee_dellos_image" / "execution-environment.yml"
+    ee_content = ee_file.read_text()
+
+    # Non-versioned official image uses Python 3.11
+    assert "python_path: /usr/bin/python3.11" in ee_content
+    # Should still be detected as official EE (microdnf)
     assert "package_manager_path: /usr/bin/microdnf" in ee_content
 
 
@@ -707,7 +845,10 @@ def test_ee_project_non_official_image_no_microdnf(
     tmp_path: Path,
     cli_args: ConfigDict,
 ) -> None:
-    """Test that non-official images don't get microdnf automatically.
+    """Test that non-official images get full skeleton with ansible_core/runner.
+
+    Non-official images need ansible-core and ansible-runner installed via pip.
+    They should NOT have the ansible.cfg file or additional_build_files for it.
 
     Args:
         capsys: Pytest fixture to capture stdout and stderr.
@@ -726,7 +867,25 @@ def test_ee_project_non_official_image_no_microdnf(
     ee_file = tmp_path / "ee_fedora_image" / "execution-environment.yml"
     ee_content = ee_file.read_text()
 
+    # Non-official images should NOT have microdnf
     assert "package_manager_path" not in ee_content
+
+    # Non-official images SHOULD have ansible_core and ansible_runner
+    assert "ansible_core:" in ee_content
+    assert "ansible_runner:" in ee_content
+    assert "package_pip: ansible-core" in ee_content
+    assert "package_pip: ansible-runner" in ee_content
+
+    # Non-official images should use generic python3 path
+    assert "python_path: /usr/bin/python3" in ee_content
+
+    # Non-official images should NOT have additional_build_files for ansible.cfg
+    assert "src: ansible.cfg" not in ee_content
+    assert "prepend_galaxy:" not in ee_content
+
+    # ansible.cfg file should NOT be generated for non-official images
+    ansible_cfg_file = tmp_path / "ee_fedora_image" / "ansible.cfg"
+    assert not ansible_cfg_file.exists()
 
 
 def test_ee_project_git_url_collection_cli(

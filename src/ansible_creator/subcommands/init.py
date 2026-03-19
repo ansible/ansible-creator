@@ -131,27 +131,46 @@ class Init:
         final_uuid = str(uuid.uuid4())[:8]
         return f"{final_name}-{final_uuid}"
 
-    def _is_official_ee_image(self, image: str) -> bool:
-        """Check if the image is an official Red Hat EE image requiring microdnf.
+    @staticmethod
+    def _is_official_ee_image(image: str) -> bool:
+        """Check if the image is an official Red Hat EE image.
 
-        Official EE images from Red Hat use microdnf as the package manager
-        instead of dnf/yum due to their minimal RHEL base.
+        Official EE images have ansible-core/runner pre-installed and
+        use microdnf as the package manager.
 
         Args:
             image: The container image name/URL.
 
         Returns:
-            True if the image is an official EE image requiring microdnf.
+            True if the image matches any official EE pattern.
         """
-        official_ee_patterns = (
-            "registry.redhat.io/ansible-automation-platform",
-            "registry.redhat.io/aap",
-            "ee-minimal-rhel",
-            "ee-supported-rhel",
-            "ee-29-rhel",
-            "ee-dellos",
+        from ansible_creator.types import OFFICIAL_EE_IMAGES  # noqa: PLC0415
+
+        return any(entry.pattern in image for entry in OFFICIAL_EE_IMAGES)
+
+    @staticmethod
+    def _get_ee_python_path(image: str) -> str:
+        """Get the Python interpreter path for a base image.
+
+        For official EE images, returns the version-specific path
+        (e.g. AAP 2.6 uses Python 3.12, AAP 2.4/2.5 uses 3.11).
+        For non-official images, returns the generic ``/usr/bin/python3``.
+
+        Args:
+            image: The container image name/URL.
+
+        Returns:
+            The Python interpreter path for the image.
+        """
+        from ansible_creator.types import (  # noqa: PLC0415
+            DEFAULT_PYTHON_PATH,
+            OFFICIAL_EE_IMAGES,
         )
-        return any(pattern in image for pattern in official_ee_patterns)
+
+        for entry in OFFICIAL_EE_IMAGES:
+            if entry.pattern in image:
+                return entry.python_path
+        return DEFAULT_PYTHON_PATH
 
     def _build_ee_config(self, config: Config) -> EEConfig:
         """Build the final EEConfig by merging JSON/file config with CLI flags.
@@ -386,6 +405,9 @@ class Init:
             ee_additional_build_steps=ec.additional_build_steps,
             ee_options=ec.options,
             ee_ansible_cfg=ec.ansible_cfg,
+            is_official_ee=self._is_official_ee_image(ec.base_image),
+            ee_python_path=self._get_ee_python_path(ec.base_image),
+            ee_name_is_default=ec.name == "ansible_sample_ee",
         )
 
         if self._project == "execution_env":
@@ -446,11 +468,38 @@ class Init:
 
         This method writes files that should only be created when specific
         configuration is provided, such as ansible.cfg for EE projects.
+        Respects the ``--no-overwrite`` / ``--overwrite`` flags.
         """
         if self._project != "execution_env":
             return
 
+        ansible_cfg_path = self._init_path / "ansible.cfg"
+        ansible_cfg_content: str | None = None
+
         if self._ee_config.ansible_cfg:
-            ansible_cfg_path = self._init_path / "ansible.cfg"
-            ansible_cfg_path.write_text(self._ee_config.ansible_cfg, encoding="utf-8")
-            self.output.debug(msg=f"Writing to {ansible_cfg_path}")
+            ansible_cfg_content = self._ee_config.ansible_cfg
+        elif self._is_official_ee_image(self._ee_config.base_image):
+            ansible_cfg_content = """\
+[galaxy]
+# Automation Hub server configuration
+# Portal will populate this section with appropriate server entries
+# <!--start PAH content-->
+# Example:
+# server_list = automation_hub
+#
+# [galaxy_server.automation_hub]
+# url = https://console.redhat.com/api/automation-hub/content/published/
+# auth_url = https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
+# token = <your_token>
+# <!--end PAH content-->
+"""
+
+        if ansible_cfg_content is None:
+            return
+
+        if ansible_cfg_path.exists() and self._no_overwrite:
+            self.output.warning(msg=f"Skipping existing {ansible_cfg_path} (--no-overwrite)")
+            return
+
+        ansible_cfg_path.write_text(ansible_cfg_content, encoding="utf-8")
+        self.output.debug(msg=f"Writing to {ansible_cfg_path}")
