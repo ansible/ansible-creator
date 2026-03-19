@@ -927,6 +927,8 @@ def test_ee_config_from_dict_defaults() -> None:
 
     assert cfg.name == "ansible_sample_ee"
     assert cfg.base_image == "quay.io/fedora/fedora:41"
+    assert cfg.registry == "ghcr.io"
+    assert cfg.image_name == ""
     assert not cfg.collections
     assert not cfg.python_deps
 
@@ -955,6 +957,10 @@ def test_ee_config_to_schema_shape() -> None:
     props = schema["properties"]
     assert "name" in props
     assert "base_image" in props
+    assert "registry" in props
+    assert props["registry"]["default"] == "ghcr.io"
+    assert "image_name" in props
+    assert props["image_name"]["default"] == ""
     assert "collections" in props
     assert props["collections"]["type"] == "array"
     assert props["collections"]["items"]["type"] == "object"
@@ -1048,3 +1054,63 @@ def test_ee_config_both_sources_rejected(
     )
     with pytest.raises(CreatorError, match="Cannot specify both"):
         Init(config=config)
+
+
+def test_ee_config_from_dict_registry_and_image_name() -> None:
+    """Test EEConfig.from_dict parses registry and image_name fields."""
+    cfg = EEConfig.from_dict(
+        {
+            "registry": "quay.io",
+            "image_name": "my-org/my-ee",
+        }
+    )
+    assert cfg.registry == "quay.io"
+    assert cfg.image_name == "my-org/my-ee"
+
+
+def test_ee_project_custom_registry(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    output: Output,
+) -> None:
+    """Test that custom registry/image_name are rendered into the workflow.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        output: Output instance for logging.
+    """
+    config = Config(
+        creator_version="0.0.1",
+        output=output,
+        subcommand="init",
+        project="execution_env",
+        init_path=str(tmp_path / "custom-ee"),
+        overwrite=True,
+        ee_config=json.dumps(
+            {
+                "registry": "quay.io",
+                "image_name": "my-org/my-ee",
+            }
+        ),
+    )
+    init = Init(config=config)
+    init.run()
+    result = capsys.readouterr().out
+    assert "Note:" in result
+
+    workflow_text = (tmp_path / "custom-ee" / ".github" / "workflows" / "ee-build.yml").read_text()
+    assert "vars.EE_REGISTRY || 'quay.io'" in workflow_text
+    assert "vars.EE_IMAGE_NAME || 'my-org/my-ee'" in workflow_text
+
+    import yaml  # noqa: PLC0415
+
+    parsed = yaml.safe_load(workflow_text)
+    assert "REGISTRY" in parsed["env"]
+    assert "IMAGE_NAME" in parsed["env"]
+
+
+def test_ee_config_registry_rejects_url() -> None:
+    """Test EEConfig.from_dict rejects registry with URL scheme."""
+    with pytest.raises(CreatorError, match="Provide a hostname"):
+        EEConfig.from_dict({"registry": "https://ghcr.io"})

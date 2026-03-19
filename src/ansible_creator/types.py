@@ -194,6 +194,8 @@ class EEConfig:
     Attributes:
         name: Name/tag for the EE image.
         base_image: Base container image.
+        registry: Container registry hostname for the CI workflow (e.g. ghcr.io, quay.io).
+        image_name: Image name for the CI workflow (e.g. my-org/my-ee).
         collections: Ansible collections to include.
         python_deps: Python package dependencies.
         system_packages: System packages to install.
@@ -205,6 +207,8 @@ class EEConfig:
 
     name: str = "ansible_sample_ee"
     base_image: str = "quay.io/fedora/fedora:41"
+    registry: str = "ghcr.io"
+    image_name: str = ""
     collections: tuple[EECollection, ...] = ()
     python_deps: tuple[str, ...] = ()
     system_packages: tuple[str, ...] = ()
@@ -225,15 +229,25 @@ class EEConfig:
 
         Returns:
             A validated EEConfig instance.
+
+        Raises:
+            CreatorError: If the registry value contains a URL scheme.
         """
         raw_collections = data.get("collections", [])
         collections = tuple(
             EECollection.from_dict(c if isinstance(c, dict) else {"name": c})
             for c in raw_collections
         )
+        registry = data.get("registry", "ghcr.io")
+        if "://" in registry:
+            msg = f"Invalid registry '{registry}'. Provide a hostname (e.g. 'ghcr.io'), not a URL."
+            raise CreatorError(msg)
+
         return cls(
             name=data.get("name", "ansible_sample_ee"),
             base_image=data.get("base_image", "quay.io/fedora/fedora:41"),
+            registry=registry,
+            image_name=data.get("image_name", ""),
             collections=collections,
             python_deps=tuple(data.get("python_deps", [])),
             system_packages=tuple(data.get("system_packages", [])),
@@ -266,6 +280,21 @@ class EEConfig:
                     "type": "string",
                     "default": "quay.io/fedora/fedora:41",
                     "description": "Base container image",
+                },
+                "registry": {
+                    "type": "string",
+                    "default": "ghcr.io",
+                    "description": (
+                        "Container registry hostname for the CI workflow (e.g. ghcr.io, quay.io)"
+                    ),
+                },
+                "image_name": {
+                    "type": "string",
+                    "default": "",
+                    "description": (
+                        "Image name for the CI workflow "
+                        "(defaults to github.repository, i.e. owner/repo)"
+                    ),
                 },
                 "collections": {
                     "type": "array",
@@ -333,6 +362,8 @@ class TemplateData:
             append_final steps.
         ee_options: Dict of EE build options (e.g., package_manager_path).
         ee_ansible_cfg: Content for ansible.cfg file (for Automation Hub auth).
+        ee_registry: Container registry hostname for the EE CI workflow.
+        ee_image_name: Image name for the EE CI workflow.
     """
 
     resource_type: str = ""
@@ -361,3 +392,5 @@ class TemplateData:
     ee_additional_build_steps: dict[str, list[str]] = field(default_factory=dict)
     ee_options: dict[str, Any] = field(default_factory=dict)
     ee_ansible_cfg: str = ""
+    ee_registry: str = "ghcr.io"
+    ee_image_name: str = ""
