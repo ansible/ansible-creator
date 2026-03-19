@@ -730,13 +730,18 @@ def test_ee_project_official_image_microdnf(
     assert "RUN $PYCMD -m pip install -U pip" not in ee_content
     assert "ansible_sample_ee" not in ee_content
 
-    # ansible.cfg file should be generated with Portal anchors
+    # ansible.cfg file should be generated with working config and Portal anchors
     ansible_cfg_file = tmp_path / "ee_official_image" / "ansible.cfg"
     assert ansible_cfg_file.exists()
     ansible_cfg_content = ansible_cfg_file.read_text()
     assert "[galaxy]" in ansible_cfg_content
+    assert "server_list=automation_hub_published" in ansible_cfg_content
     assert "<!--start PAH content-->" in ansible_cfg_content
     assert "<!--end PAH content-->" in ansible_cfg_content
+    assert "[galaxy_server.automation_hub_published]" in ansible_cfg_content
+    assert "[galaxy_server.automation_hub_validated]" in ansible_cfg_content
+    assert "[galaxy_server.release_galaxy]" in ansible_cfg_content
+    assert "url=https://galaxy.ansible.com/" in ansible_cfg_content
 
 
 def test_ee_project_official_image_no_overwrite_ansible_cfg(
