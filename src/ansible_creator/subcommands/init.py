@@ -408,6 +408,7 @@ class Init:
             is_official_ee=self._is_official_ee_image(ec.base_image),
             ee_python_path=self._get_ee_python_path(ec.base_image),
             ee_name_is_default=ec.name == "ansible_sample_ee",
+            ee_file_name=ec.ee_file_name,
         )
 
         if self._project == "execution_env":

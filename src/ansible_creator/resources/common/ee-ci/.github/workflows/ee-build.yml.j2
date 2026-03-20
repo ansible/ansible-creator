@@ -9,12 +9,20 @@
 # - Registry authentication for build and push
 #
 # Supported Secrets:
+#   ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN - Red Hat Automation Hub token
+#   ANSIBLE_GALAXY_SERVER_PRIVATE_HUB_TOKEN    - Private Automation Hub token
 #   AAP_EE_BUILDER_GITHUB_TOKEN  - GitHub PAT for private collections
 #   AAP_EE_BUILDER_GITLAB_TOKEN  - GitLab PAT for private collections
 #   SCM_TOKEN                    - Generic SCM token for custom Git servers
-#   ANSIBLE_GALAXY_SERVER_TOKEN  - Automation Hub token
 #   REGISTRY_USERNAME/PASSWORD   - Container registry credentials
 #   REDHAT_REGISTRY_PASSWORD     - Red Hat registry for base images
+#
+# Token Security:
+#   Automation Hub tokens are passed via Containerfile ARG directives and
+#   --build-arg, which are available during the build but do NOT persist
+#   in the final image (not in layers, metadata, or history).
+#   The ansible.cfg (server URLs only, no tokens) is volume-mounted into
+#   the build and also never enters any OCI layer.
 
 name: Execution Environment Build
 
@@ -70,18 +78,26 @@ jobs:
       ah_configured: ${{ steps.check-ah.outputs.configured }}
       git_token_configured: ${{ steps.check-git-token.outputs.configured }}
     steps:
-      - name: Check if Automation Hub is configured
+      - name: Check if Automation Hub tokens are configured
         id: check-ah
         env:
-          AH_TOKEN: ${{ secrets.ANSIBLE_GALAXY_SERVER_TOKEN }}
+          AH_TOKEN: ${{ secrets.ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN }}
+          PAH_TOKEN: ${{ secrets.ANSIBLE_GALAXY_SERVER_PRIVATE_HUB_TOKEN }}
         run: |
+          CONFIGURED=false
           if [[ -n "$AH_TOKEN" ]]; then
-            echo "configured=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::Automation Hub token is configured"
+            echo "::notice::Automation Hub token (ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN) is configured"
+            CONFIGURED=true
           else
-            echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Automation Hub token not configured, using public Galaxy only"
+            echo "::notice::No ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN secret configured"
           fi
+          if [[ -n "$PAH_TOKEN" ]]; then
+            echo "::notice::Private Automation Hub token (ANSIBLE_GALAXY_SERVER_PRIVATE_HUB_TOKEN) is configured"
+            CONFIGURED=true
+          else
+            echo "::notice::No ANSIBLE_GALAXY_SERVER_PRIVATE_HUB_TOKEN secret configured"
+          fi
+          echo "configured=$CONFIGURED" >> "$GITHUB_OUTPUT"
 
       - name: Check if Git SCM token is configured
         id: check-git-token
@@ -101,19 +117,16 @@ jobs:
       - name: Validate Automation Hub Token
         if: steps.check-ah.outputs.configured == 'true'
         env:
-          AH_TOKEN: ${{ secrets.ANSIBLE_GALAXY_SERVER_TOKEN }}
-          AH_SERVER: ${{ vars.AUTOMATION_HUB_URL || 'console.redhat.com' }}
+          AH_TOKEN: ${{ secrets.ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN }}
         run: |
-          echo "Validating Automation Hub token against $AH_SERVER..."
-
-          # Determine the correct API endpoint based on server
-          if [[ "$AH_SERVER" == "console.redhat.com" ]]; then
-            API_URL="https://console.redhat.com/api/automation-hub/"
-          else
-            API_URL="https://${AH_SERVER}/api/galaxy/"
+          if [[ -z "$AH_TOKEN" ]]; then
+            echo "::notice::Skipping validation — no Automation Hub token"
+            exit 0
           fi
 
-          # Validate token (-o /dev/null discards body; -w captures status)
+          echo "Validating Automation Hub token..."
+          API_URL="https://console.redhat.com/api/automation-hub/"
+
           HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
             -H "Authorization: Bearer ${AH_TOKEN}" \
             "${API_URL}" 2>/dev/null || echo "000")
@@ -147,18 +160,20 @@ jobs:
             podman login -u "${{ vars.REDHAT_REGISTRY_USERNAME }}" \
             --password-stdin registry.redhat.io
 
-      - name: Extract base image from execution-environment.yml
+      - name: Extract base image from {% endraw %}{{ ee_file_name }}{% raw %}
+
         id: get-image
         run: |
           # Handle both flat and nested (v3) EE spec formats
+          EE_DEF="{% endraw %}{{ ee_file_name }}{% raw %}"
           if command -v yq &> /dev/null; then
             BASE_IMAGE=$(yq -r '.images.base_image.name // .images.base_image // empty' \
-              execution-environment.yml 2>/dev/null || echo "")
+              "$EE_DEF" 2>/dev/null || echo "")
           fi
           if [[ -z "$BASE_IMAGE" ]]; then
-            BASE_IMAGE=$(grep -A2 'base_image:' execution-environment.yml | \
+            BASE_IMAGE=$(grep -A2 'base_image:' "$EE_DEF" | \
               grep -oP 'name:\s*\K\S+' || \
-              grep -oP 'base_image:\s*\K\S+' execution-environment.yml || echo "")
+              grep -oP 'base_image:\s*\K\S+' "$EE_DEF" || echo "")
             BASE_IMAGE=$(echo "$BASE_IMAGE" | tr -d '"' | tr -d "'" | head -1)
           fi
           echo "base_image=$BASE_IMAGE" >> "$GITHUB_OUTPUT"
@@ -242,7 +257,7 @@ jobs:
           pip install ansible-builder ansible-core
 
       - name: Configure Git credentials for private repositories
-        if: needs.validate-tokens.outputs.git_token_configured == 'true' || needs.validate-tokens.result == 'skipped'
+        if: needs.validate-tokens.outputs.git_token_configured == 'true'
         env:
           GITHUB_SCM_TOKEN: ${{ secrets.AAP_EE_BUILDER_GITHUB_TOKEN }}
           GITLAB_SCM_TOKEN: ${{ secrets.AAP_EE_BUILDER_GITLAB_TOKEN }}
@@ -271,45 +286,6 @@ jobs:
 
           chmod 600 ~/.git-credentials
 
-      - name: Configure Automation Hub authentication
-        if: needs.validate-tokens.outputs.ah_configured == 'true' || needs.validate-tokens.result == 'skipped'
-        env:
-          AH_TOKEN: ${{ secrets.ANSIBLE_GALAXY_SERVER_TOKEN }}
-          AH_SERVER: ${{ vars.AUTOMATION_HUB_URL || 'console.redhat.com' }}
-        run: |
-          mkdir -p ~/.ansible
-
-          # Determine server URLs based on AH_SERVER
-          # console.redhat.com uses SSO token auth; on-prem AAP uses direct token auth
-          if [[ "$AH_SERVER" == "console.redhat.com" ]]; then
-            cat > ~/.ansible/ansible.cfg <<'ANSIBLE_CFG'
-          [galaxy]
-          server_list = automation_hub, galaxy
-
-          [galaxy_server.automation_hub]
-          url = https://console.redhat.com/api/automation-hub/content/published/
-          auth_url = https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
-          ANSIBLE_CFG
-            echo "token = ${AH_TOKEN}" >> ~/.ansible/ansible.cfg
-          else
-            cat > ~/.ansible/ansible.cfg <<ANSIBLE_CFG
-          [galaxy]
-          server_list = automation_hub, galaxy
-
-          [galaxy_server.automation_hub]
-          url = https://${AH_SERVER}/api/galaxy/content/published/
-          token = ${AH_TOKEN}
-          ANSIBLE_CFG
-          fi
-
-          cat >> ~/.ansible/ansible.cfg <<'ANSIBLE_CFG'
-
-          [galaxy_server.galaxy]
-          url = https://galaxy.ansible.com/
-          ANSIBLE_CFG
-
-          echo "::notice::Configured Automation Hub authentication"
-
       - name: Login to container registry
         run: |
           echo "${{ secrets.REGISTRY_PASSWORD || secrets.GITHUB_TOKEN }}" | \
@@ -326,22 +302,24 @@ jobs:
       - name: Build execution environment
         id: build
         env:
-          # Pass SCM tokens so they can be referenced in execution-environment.yml
-          # collection URLs, e.g. https://x-access-token:${AAP_EE_BUILDER_GITHUB_TOKEN}@github.com/org/repo
+          # SCM tokens for private collection Git URLs
           AAP_EE_BUILDER_GITHUB_TOKEN: ${{ secrets.AAP_EE_BUILDER_GITHUB_TOKEN }}
           AAP_EE_BUILDER_GITLAB_TOKEN: ${{ secrets.AAP_EE_BUILDER_GITLAB_TOKEN }}
           SCM_TOKEN: ${{ secrets.SCM_TOKEN }}
+          # Automation Hub / Private Automation Hub tokens (passed as build args)
+          ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN: ${{ secrets.ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN }}
+          ANSIBLE_GALAXY_SERVER_PRIVATE_HUB_TOKEN: ${{ secrets.ANSIBLE_GALAXY_SERVER_PRIVATE_HUB_TOKEN }}
+          # Use the repo's ansible.cfg for host-side dependency resolution
+          ANSIBLE_CONFIG: ./ansible.cfg
         run: |
           echo "::group::Creating build context"
 
           # Resolve SCM token references (e.g. ${AAP_EE_BUILDER_GITHUB_TOKEN} in
           # collection URLs) into a temp copy so the workspace file stays clean.
-          # Only substitute the specific SCM token variables, not all env vars,
-          # to avoid corrupting other ${} patterns in execution-environment.yml.
-          EE_FILE="execution-environment.yml"
+          EE_FILE="{% endraw %}{{ ee_file_name }}{% raw %}"
           if command -v envsubst &> /dev/null; then
             envsubst '$AAP_EE_BUILDER_GITHUB_TOKEN $AAP_EE_BUILDER_GITLAB_TOKEN $SCM_TOKEN' \
-              < execution-environment.yml > /tmp/ee-resolved.yml
+              < "$EE_FILE" > /tmp/ee-resolved.yml
             EE_FILE="/tmp/ee-resolved.yml"
           fi
 
@@ -349,8 +327,26 @@ jobs:
           echo "::endgroup::"
 
           echo "::group::Building image"
-          # Build with buildah for OCI compatibility
-          buildah bud \
+
+          # Volume-mount ansible.cfg into the build (never enters any OCI layer).
+          # Ansible reads /etc/ansible/ansible.cfg as a fallback config path.
+          VOLUME_ARGS=""
+          if [[ -f ansible.cfg ]]; then
+            VOLUME_ARGS="--volume $(pwd)/ansible.cfg:/etc/ansible/ansible.cfg:ro"
+          fi
+
+          # Pass non-empty tokens as build args. ARG values are available during
+          # RUN instructions but do not persist in the final image.
+          BUILD_ARGS=""
+          if [[ -n "$ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN" ]]; then
+            BUILD_ARGS="$BUILD_ARGS --build-arg ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN"
+          fi
+          if [[ -n "$ANSIBLE_GALAXY_SERVER_PRIVATE_HUB_TOKEN" ]]; then
+            BUILD_ARGS="$BUILD_ARGS --build-arg ANSIBLE_GALAXY_SERVER_PRIVATE_HUB_TOKEN"
+          fi
+
+          # shellcheck disable=SC2086
+          buildah bud $VOLUME_ARGS $BUILD_ARGS \
             --tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
             --file context/Containerfile \
             context/
