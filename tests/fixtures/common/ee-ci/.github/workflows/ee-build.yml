@@ -71,9 +71,6 @@ jobs:
   validate-tokens:
     name: Validate Tokens
     runs-on: ubuntu-latest
-    if: |
-      github.event_name != 'workflow_dispatch' ||
-      github.event.inputs.skip_validation != 'true'
     outputs:
       ah_configured: ${{ steps.check-ah.outputs.configured }}
       git_token_configured: ${{ steps.check-git-token.outputs.configured }}
@@ -115,7 +112,9 @@ jobs:
           fi
 
       - name: Validate Automation Hub Token
-        if: steps.check-ah.outputs.configured == 'true'
+        if: |
+          steps.check-ah.outputs.configured == 'true' &&
+          (github.event_name != 'workflow_dispatch' || github.event.inputs.skip_validation != 'true')
         env:
           AH_TOKEN: ${{ secrets.ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN }}
         run: |
@@ -124,7 +123,10 @@ jobs:
             exit 0
           fi
 
-          echo "Validating Automation Hub token..."
+          # Only validate against Red Hat Automation Hub (SSO-backed).
+          # Non-default automation_hub_url values (e.g. on-prem PAH) use direct
+          # token auth and cannot be validated with this endpoint.
+          echo "Validating Automation Hub token against console.redhat.com..."
           API_URL="https://console.redhat.com/api/automation-hub/"
 
           HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
@@ -233,10 +235,10 @@ jobs:
     name: Build Execution Environment
     runs-on: ubuntu-latest
     needs: [validate-tokens, check-base-image]
-    # Runs even if validation was skipped (workflow_dispatch) so builds are not blocked
+    # Runs even if check-base-image was skipped (workflow_dispatch) so builds are not blocked
     if: |
       always() &&
-      (needs.validate-tokens.result == 'success' || needs.validate-tokens.result == 'skipped') &&
+      needs.validate-tokens.result == 'success' &&
       (needs.check-base-image.result == 'success' || needs.check-base-image.result == 'skipped')
     outputs:
       image_digest: ${{ steps.push.outputs.digest }}
@@ -328,23 +330,21 @@ jobs:
 
           # Volume-mount ansible.cfg into the build (never enters any OCI layer).
           # Ansible reads /etc/ansible/ansible.cfg as a fallback config path.
-          VOLUME_ARGS=""
+          EXTRA_ARGS=()
           if [[ -f ansible.cfg ]]; then
-            VOLUME_ARGS="--volume $(pwd)/ansible.cfg:/etc/ansible/ansible.cfg:ro"
+            EXTRA_ARGS+=(--volume "$(pwd)/ansible.cfg:/etc/ansible/ansible.cfg:ro")
           fi
 
           # Pass non-empty tokens as build args. ARG values are available during
           # RUN instructions but do not persist in the final image.
-          BUILD_ARGS=""
           if [[ -n "$ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN" ]]; then
-            BUILD_ARGS="$BUILD_ARGS --build-arg ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN"
+            EXTRA_ARGS+=(--build-arg ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN)
           fi
           if [[ -n "$ANSIBLE_GALAXY_SERVER_PRIVATE_HUB_TOKEN" ]]; then
-            BUILD_ARGS="$BUILD_ARGS --build-arg ANSIBLE_GALAXY_SERVER_PRIVATE_HUB_TOKEN"
+            EXTRA_ARGS+=(--build-arg ANSIBLE_GALAXY_SERVER_PRIVATE_HUB_TOKEN)
           fi
 
-          # shellcheck disable=SC2086
-          buildah bud $VOLUME_ARGS $BUILD_ARGS \
+          buildah bud "${EXTRA_ARGS[@]}" \
             --tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
             --file context/Containerfile \
             context/

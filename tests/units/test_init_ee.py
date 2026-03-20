@@ -737,6 +737,7 @@ def test_ee_project_official_image_microdnf(
     assert "server_list = automation_hub, galaxy" in ansible_cfg_content
     assert "[galaxy_server.automation_hub]" in ansible_cfg_content
     assert "console.redhat.com/api/automation-hub" in ansible_cfg_content
+    assert "auth_url = https://sso.redhat.com/" in ansible_cfg_content
     assert "[galaxy_server.galaxy]" in ansible_cfg_content
     # private_hub should be commented out by default
     assert "# [galaxy_server.private_hub]" in ansible_cfg_content
@@ -777,8 +778,41 @@ def test_ee_project_official_image_with_private_hub_url(
     assert "[galaxy_server.private_hub]" in cfg
     assert "pah.corp.example.com" in cfg
     assert "# [galaxy_server.private_hub]" not in cfg
+    assert "auth_url = https://sso.redhat.com/" in cfg
     assert "token =" not in cfg
     assert "token=" not in cfg
+
+
+def test_ee_project_official_image_custom_hub_no_auth_url(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test that auth_url is omitted when automation_hub_url is not Red Hat AH.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_custom_hub")
+    cli_args["base_image"] = (
+        "registry.redhat.io/ansible-automation-platform-25/ee-minimal-rhel8:latest"
+    )
+    cli_args["ee_config"] = '{"automation_hub_url": "https://custom-ah.example.com/api/hub/"}'
+
+    Init(Config(**cli_args)).run()
+    capsys.readouterr()
+
+    ansible_cfg_file = tmp_path / "ee_custom_hub" / "ansible.cfg"
+    assert ansible_cfg_file.exists()
+    cfg = ansible_cfg_file.read_text()
+
+    assert "[galaxy_server.automation_hub]" in cfg
+    assert "custom-ah.example.com" in cfg
+    assert "auth_url" not in cfg
+    assert "sso.redhat.com" not in cfg
 
 
 def test_ee_project_official_image_no_overwrite_ansible_cfg(

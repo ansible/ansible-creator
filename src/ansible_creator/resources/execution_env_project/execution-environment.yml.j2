@@ -69,6 +69,11 @@ additional_build_steps:
 {%- endfor %}
 {%- endif %}
 {%- if is_official_ee %}
+  # The generated GitHub Actions workflow mounts the repo's ansible.cfg into
+  # /etc/ansible/ansible.cfg at build time (via --volume) and passes tokens as
+  # --build-arg. If building outside the workflow (e.g. with ansible-builder
+  # directly), ensure ansible.cfg is available — either mount it manually or
+  # add it under additional_build_files above.
   prepend_galaxy:
     - ARG ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN
     - ARG ANSIBLE_GALAXY_SERVER_PRIVATE_HUB_TOKEN

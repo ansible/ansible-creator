@@ -516,10 +516,15 @@ class Init:
             "",
             "[galaxy_server.automation_hub]",
             f"url = {ec.automation_hub_url}",
-            "auth_url = https://sso.redhat.com/auth/realms/redhat-external"
-            "/protocol/openid-connect/token",
-            "",
         ]
+
+        if "console.redhat.com" in ec.automation_hub_url:
+            lines.append(
+                "auth_url = https://sso.redhat.com/auth/realms/redhat-external"
+                "/protocol/openid-connect/token",
+            )
+
+        lines.append("")
 
         if has_private_hub:
             lines.extend(
