@@ -201,6 +201,7 @@ class EEConfig:
         additional_build_steps: Custom build steps keyed by phase.
         options: Build options (e.g. package_manager_path).
         ansible_cfg: Content for an ansible.cfg file.
+        ee_file_name: Name of the EE definition file (default: execution-environment.yml).
     """
 
     name: str = "ansible_sample_ee"
@@ -212,6 +213,7 @@ class EEConfig:
     additional_build_steps: dict[str, list[str]] = field(default_factory=dict)
     options: dict[str, Any] = field(default_factory=dict)
     ansible_cfg: str = ""
+    ee_file_name: str = "execution-environment.yml"
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> EEConfig:
@@ -241,6 +243,7 @@ class EEConfig:
             additional_build_steps=data.get("additional_build_steps", {}),
             options=dict(data.get("options", {})),
             ansible_cfg=data.get("ansible_cfg", ""),
+            ee_file_name=data.get("ee_file_name", "execution-environment.yml"),
         )
 
     @classmethod
@@ -299,6 +302,11 @@ class EEConfig:
                     "type": "string",
                     "description": "Content for ansible.cfg file",
                     "default": "",
+                },
+                "ee_file_name": {
+                    "type": "string",
+                    "description": "Name of the EE definition file",
+                    "default": "execution-environment.yml",
                 },
             },
         }
@@ -374,6 +382,7 @@ class TemplateData:
         is_official_ee: Whether the base image is an official Red Hat EE image.
         ee_python_path: Python interpreter path for the EE (varies by AAP version).
         ee_name_is_default: Whether ee_name is the unchanged default value.
+        ee_file_name: Name of the EE definition file.
     """
 
     resource_type: str = ""
@@ -405,3 +414,4 @@ class TemplateData:
     is_official_ee: bool = False
     ee_python_path: str = DEFAULT_PYTHON_PATH
     ee_name_is_default: bool = True
+    ee_file_name: str = "execution-environment.yml"

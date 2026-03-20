@@ -1121,6 +1121,16 @@ def test_ee_config_to_schema_shape() -> None:
     assert "python_deps" in props
     assert "system_packages" in props
     assert "ansible_cfg" in props
+    assert "ee_file_name" in props
+
+
+def test_ee_config_from_dict_ee_file_name() -> None:
+    """Test EEConfig.from_dict with custom ee_file_name."""
+    cfg = EEConfig.from_dict({"ee_file_name": "my-ee.yml"})
+    assert cfg.ee_file_name == "my-ee.yml"
+
+    cfg_default = EEConfig.from_dict({})
+    assert cfg_default.ee_file_name == "execution-environment.yml"
 
 
 def test_ee_config_schema_in_cli_schema() -> None:
