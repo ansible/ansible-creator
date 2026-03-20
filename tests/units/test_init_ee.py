@@ -1129,8 +1129,29 @@ def test_ee_config_from_dict_ee_file_name() -> None:
     cfg = EEConfig.from_dict({"ee_file_name": "my-ee.yml"})
     assert cfg.ee_file_name == "my-ee.yml"
 
+    cfg_yaml = EEConfig.from_dict({"ee_file_name": "custom.yaml"})
+    assert cfg_yaml.ee_file_name == "custom.yaml"
+
     cfg_default = EEConfig.from_dict({})
     assert cfg_default.ee_file_name == "execution-environment.yml"
+
+
+def test_ee_config_ee_file_name_validation() -> None:
+    """Test that ee_file_name rejects paths and non-YAML extensions."""
+    with pytest.raises(ValueError, match="plain filename"):
+        EEConfig.from_dict({"ee_file_name": "../etc/evil.yml"})
+
+    with pytest.raises(ValueError, match="plain filename"):
+        EEConfig.from_dict({"ee_file_name": "sub/dir/ee.yml"})
+
+    with pytest.raises(ValueError, match="plain filename"):
+        EEConfig.from_dict({"ee_file_name": "sub\\dir\\ee.yml"})
+
+    with pytest.raises(ValueError, match=r"\.yml or \.yaml"):
+        EEConfig.from_dict({"ee_file_name": "ee-def.json"})
+
+    with pytest.raises(ValueError, match=r"\.yml or \.yaml"):
+        EEConfig.from_dict({"ee_file_name": "ee-def.txt"})
 
 
 def test_ee_config_schema_in_cli_schema() -> None:

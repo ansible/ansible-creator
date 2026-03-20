@@ -243,8 +243,32 @@ class EEConfig:
             additional_build_steps=data.get("additional_build_steps", {}),
             options=dict(data.get("options", {})),
             ansible_cfg=data.get("ansible_cfg", ""),
-            ee_file_name=data.get("ee_file_name", "execution-environment.yml"),
+            ee_file_name=cls._validate_ee_file_name(
+                data.get("ee_file_name", "execution-environment.yml"),
+            ),
         )
+
+    @staticmethod
+    def _validate_ee_file_name(name: str) -> str:
+        """Validate ee_file_name is a safe basename with a YAML extension.
+
+        Args:
+            name: The proposed EE definition file name.
+
+        Returns:
+            The validated file name.
+
+        Raises:
+            ValueError: If the name contains path separators or has an
+                invalid extension.
+        """
+        if "/" in name or "\\" in name or ".." in name:
+            msg = f"ee_file_name must be a plain filename, not a path: {name!r}"
+            raise ValueError(msg)
+        if not name.endswith((".yml", ".yaml")):
+            msg = f"ee_file_name must end with .yml or .yaml: {name!r}"
+            raise ValueError(msg)
+        return name
 
     @classmethod
     def to_schema(cls) -> dict[str, Any]:
