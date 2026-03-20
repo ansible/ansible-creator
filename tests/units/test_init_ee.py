@@ -730,13 +730,64 @@ def test_ee_project_official_image_microdnf(
     assert "RUN $PYCMD -m pip install -U pip" not in ee_content
     assert "ansible_sample_ee" not in ee_content
 
-    # ansible.cfg file should be generated with Portal anchors
+    # Official EE images should have append_final step to remove ansible.cfg (security)
+    assert "append_final:" in ee_content
+    assert "RUN rm -f /etc/ansible/ansible.cfg" in ee_content
+
+    # ansible.cfg file should be generated with working config and Portal anchors
     ansible_cfg_file = tmp_path / "ee_official_image" / "ansible.cfg"
     assert ansible_cfg_file.exists()
     ansible_cfg_content = ansible_cfg_file.read_text()
     assert "[galaxy]" in ansible_cfg_content
+    assert "server_list=automation_hub_published" in ansible_cfg_content
     assert "<!--start PAH content-->" in ansible_cfg_content
     assert "<!--end PAH content-->" in ansible_cfg_content
+    assert "[galaxy_server.automation_hub_published]" in ansible_cfg_content
+    assert "[galaxy_server.automation_hub_validated]" in ansible_cfg_content
+    assert "[galaxy_server.release_galaxy]" in ansible_cfg_content
+    assert "url=https://galaxy.ansible.com/" in ansible_cfg_content
+
+
+def test_ee_project_official_image_prepend_galaxy_appends(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test that user prepend_galaxy steps are appended to static steps for official EEs.
+
+    When using an official EE image with additional_build_steps.prepend_galaxy,
+    user steps should be appended after the static ansible.cfg setup steps.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_prepend_galaxy")
+    cli_args["base_image"] = (
+        "registry.redhat.io/ansible-automation-platform/ee-minimal-rhel8"
+    )
+    cli_args["ee_config"] = """{
+        "additional_build_steps": {
+            "prepend_galaxy": ["RUN echo \\"Hello, World!\\" > /etc/hello-world"]
+        }
+    }"""
+
+    init = Init(Config(**cli_args))
+    init.run()
+    result = capsys.readouterr().out
+
+    assert r"Note: execution_env project created" in result
+
+    ee_file = tmp_path / "ee_prepend_galaxy" / "execution-environment.yml"
+    ee_content = ee_file.read_text()
+
+    # Should have prepend_galaxy with BOTH static and user steps
+    assert "prepend_galaxy:" in ee_content
+    assert "ENV ANSIBLE_CONFIG=/etc/ansible/ansible.cfg" in ee_content
+    assert "COPY _build/configs/ansible.cfg /etc/ansible/ansible.cfg" in ee_content
+    assert 'RUN echo "Hello, World!" > /etc/hello-world' in ee_content
 
 
 def test_ee_project_official_image_no_overwrite_ansible_cfg(

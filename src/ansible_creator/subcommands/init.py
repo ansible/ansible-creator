@@ -481,17 +481,25 @@ class Init:
         elif self._is_official_ee_image(self._ee_config.base_image):
             ansible_cfg_content = """\
 [galaxy]
-# Automation Hub server configuration
-# Portal will populate this section with appropriate server entries
+server_list=automation_hub_published, automation_hub_validated, release_galaxy
+
 # <!--start PAH content-->
-# Example:
-# server_list = automation_hub
-#
-# [galaxy_server.automation_hub]
-# url = https://console.redhat.com/api/automation-hub/content/published/
-# auth_url = https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
-# token = <your_token>
 # <!--end PAH content-->
+
+[galaxy_server.automation_hub_published]
+url=https://console.redhat.com/api/automation-hub/content/published/
+auth_url=https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
+# Add the token for the automation hub published server
+token=
+
+[galaxy_server.automation_hub_validated]
+url=https://console.redhat.com/api/automation-hub/content/validated/
+auth_url=https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
+# Add the token for the automation hub validated server
+token=
+
+[galaxy_server.release_galaxy]
+url=https://galaxy.ansible.com/
 """
 
         if ansible_cfg_content is None:
