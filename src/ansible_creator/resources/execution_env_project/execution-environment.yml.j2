@@ -52,13 +52,9 @@ dependencies:
 {%- endif %}
 {%- endfor %}
 {%- endif %}
-{%- if ee_additional_build_files or is_official_ee %}
+{%- if ee_additional_build_files %}
 
 additional_build_files:
-{%- if is_official_ee %}
-  - src: ansible.cfg
-    dest: configs
-{%- endif %}
 {%- for file in ee_additional_build_files %}
   - src: {{ file.src }}
     dest: {{ file.dest }}
@@ -72,17 +68,23 @@ additional_build_steps:
     - {{ step }}
 {%- endfor %}
 {%- endif %}
-{%- if is_official_ee or ee_additional_build_steps.prepend_galaxy is defined %}
-  prepend_galaxy:
 {%- if is_official_ee %}
-    - ENV ANSIBLE_CONFIG=/etc/ansible/ansible.cfg
-    - COPY _build/configs/ansible.cfg /etc/ansible/ansible.cfg
+  # The generated GitHub Actions workflow mounts the repo's ansible.cfg into
+  # /etc/ansible/ansible.cfg at build time (via --volume) and passes tokens as
+  # --build-arg. If building outside the workflow (e.g. with ansible-builder
+  # directly), ensure ansible.cfg is available — either mount it manually or
+  # add it under additional_build_files above.
+  prepend_galaxy:
+    - ARG ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN
+    - ARG ANSIBLE_GALAXY_SERVER_PRIVATE_HUB_TOKEN
+{%- endif %}
+{%- if not is_official_ee and ee_additional_build_steps.prepend_galaxy is defined %}
+  prepend_galaxy:
 {%- endif %}
 {%- if ee_additional_build_steps.prepend_galaxy is defined %}
 {%- for step in ee_additional_build_steps.prepend_galaxy %}
     - {{ step }}
 {%- endfor %}
-{%- endif %}
 {%- endif %}
 {%- if not is_official_ee or ee_additional_build_steps.append_base is defined %}
   append_base:
@@ -101,16 +103,11 @@ additional_build_steps:
     - {{ step }}
 {%- endfor %}
 {%- endif %}
-{%- if is_official_ee or ee_additional_build_steps.append_final is defined %}
-  append_final:
 {%- if ee_additional_build_steps.append_final is defined %}
+  append_final:
 {%- for step in ee_additional_build_steps.append_final %}
     - {{ step }}
 {%- endfor %}
-{%- endif %}
-{%- if is_official_ee %}
-    - RUN rm -f /etc/ansible/ansible.cfg
-{%- endif %}
 {%- endif %}
 
 options:
