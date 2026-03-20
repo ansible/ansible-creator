@@ -52,7 +52,7 @@ env:
   # Container registry configuration (override via repository Variables)
   REGISTRY: ${{ vars.EE_REGISTRY || 'ghcr.io' }}
   IMAGE_NAME: ${{ vars.EE_IMAGE_NAME || github.repository }}
-  # Base image age thresholds (in days) - warn early, fail if stale
+  # Base image age thresholds (in days) - annotations only, never blocks the build
   IMAGE_WARN_AGE: 40
   IMAGE_FAIL_AGE: 80
 
@@ -63,9 +63,6 @@ jobs:
   validate-tokens:
     name: Validate Tokens
     runs-on: ubuntu-latest
-    if: |
-      github.event_name != 'workflow_dispatch' ||
-      github.event.inputs.skip_validation != 'true'
     outputs:
       ah_configured: ${{ steps.check-ah.outputs.configured }}
       git_token_configured: ${{ steps.check-git-token.outputs.configured }}
@@ -99,7 +96,9 @@ jobs:
           fi
 
       - name: Validate Automation Hub Token
-        if: steps.check-ah.outputs.configured == 'true'
+        if: |
+          steps.check-ah.outputs.configured == 'true' &&
+          (github.event_name != 'workflow_dispatch' || github.event.inputs.skip_validation != 'true')
         env:
           AH_TOKEN: ${{ secrets.ANSIBLE_GALAXY_SERVER_TOKEN }}
           AH_SERVER: ${{ vars.AUTOMATION_HUB_URL || 'console.redhat.com' }}
@@ -203,9 +202,8 @@ jobs:
           echo "::notice::Base image is $AGE_DAYS days old"
 
           if [[ $AGE_DAYS -gt ${{ env.IMAGE_FAIL_AGE }} ]]; then
-            echo "::error::Base image is more than ${{ env.IMAGE_FAIL_AGE }} days old. Consider updating."
-            echo "status=critical" >> "$GITHUB_OUTPUT"
-            exit 1
+            echo "::warning::Base image is more than ${{ env.IMAGE_FAIL_AGE }} days old. Consider updating."
+            echo "status=stale" >> "$GITHUB_OUTPUT"
           elif [[ $AGE_DAYS -gt ${{ env.IMAGE_WARN_AGE }} ]]; then
             echo "::warning::Base image is more than ${{ env.IMAGE_WARN_AGE }} days old. Consider updating soon."
             echo "status=warning" >> "$GITHUB_OUTPUT"
@@ -220,10 +218,10 @@ jobs:
     name: Build Execution Environment
     runs-on: ubuntu-latest
     needs: [validate-tokens, check-base-image]
-    # Runs even if validation was skipped (workflow_dispatch) so builds are not blocked
+    # Runs even if check-base-image was skipped (workflow_dispatch) so builds are not blocked
     if: |
       always() &&
-      (needs.validate-tokens.result == 'success' || needs.validate-tokens.result == 'skipped') &&
+      needs.validate-tokens.result == 'success' &&
       (needs.check-base-image.result == 'success' || needs.check-base-image.result == 'skipped')
     outputs:
       image_digest: ${{ steps.push.outputs.digest }}
@@ -242,7 +240,7 @@ jobs:
           pip install ansible-builder ansible-core
 
       - name: Configure Git credentials for private repositories
-        if: needs.validate-tokens.outputs.git_token_configured == 'true' || needs.validate-tokens.result == 'skipped'
+        if: needs.validate-tokens.outputs.git_token_configured == 'true'
         env:
           GITHUB_SCM_TOKEN: ${{ secrets.AAP_EE_BUILDER_GITHUB_TOKEN }}
           GITLAB_SCM_TOKEN: ${{ secrets.AAP_EE_BUILDER_GITLAB_TOKEN }}
@@ -272,7 +270,7 @@ jobs:
           chmod 600 ~/.git-credentials
 
       - name: Configure Automation Hub authentication
-        if: needs.validate-tokens.outputs.ah_configured == 'true' || needs.validate-tokens.result == 'skipped'
+        if: needs.validate-tokens.outputs.ah_configured == 'true'
         env:
           AH_TOKEN: ${{ secrets.ANSIBLE_GALAXY_SERVER_TOKEN }}
           AH_SERVER: ${{ vars.AUTOMATION_HUB_URL || 'console.redhat.com' }}
