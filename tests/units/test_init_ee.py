@@ -716,27 +716,103 @@ def test_ee_project_official_image_microdnf(
     assert "python_interpreter:" in ee_content
     assert "python_path: /usr/bin/python3.11" in ee_content
 
-    # Official EE images should have additional_build_files for ansible.cfg
-    assert "additional_build_files:" in ee_content
-    assert "src: ansible.cfg" in ee_content
-    assert "dest: configs" in ee_content
+    # Official EE images should NOT have additional_build_files for ansible.cfg
+    # (ansible.cfg is volume-mounted at build time, never COPY'd into a layer)
+    assert "src: ansible.cfg" not in ee_content
 
-    # Official EE images should have prepend_galaxy step for ANSIBLE_CONFIG
+    # Official EE images should have prepend_galaxy with ARG directives for tokens
     assert "prepend_galaxy:" in ee_content
-    assert "ENV ANSIBLE_CONFIG=/etc/ansible/ansible.cfg" in ee_content
-    assert "COPY _build/configs/ansible.cfg /etc/ansible/ansible.cfg" in ee_content
+    assert "ARG ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN" in ee_content
+    assert "ARG ANSIBLE_GALAXY_SERVER_PRIVATE_HUB_TOKEN" in ee_content
 
     # Official EE images should NOT have pip upgrade or the default sample tag
     assert "RUN $PYCMD -m pip install -U pip" not in ee_content
     assert "ansible_sample_ee" not in ee_content
 
-    # ansible.cfg file should be generated with Portal anchors
+    # ansible.cfg should be generated with predefined server sections
     ansible_cfg_file = tmp_path / "ee_official_image" / "ansible.cfg"
     assert ansible_cfg_file.exists()
     ansible_cfg_content = ansible_cfg_file.read_text()
     assert "[galaxy]" in ansible_cfg_content
-    assert "<!--start PAH content-->" in ansible_cfg_content
-    assert "<!--end PAH content-->" in ansible_cfg_content
+    assert "server_list = automation_hub, galaxy" in ansible_cfg_content
+    assert "[galaxy_server.automation_hub]" in ansible_cfg_content
+    assert "console.redhat.com/api/automation-hub" in ansible_cfg_content
+    assert "auth_url = https://sso.redhat.com/" in ansible_cfg_content
+    assert "[galaxy_server.galaxy]" in ansible_cfg_content
+    # private_hub should be commented out by default
+    assert "# [galaxy_server.private_hub]" in ansible_cfg_content
+    # No token values should appear in ansible.cfg (auth_url contains "token" in the path)
+    assert "token =" not in ansible_cfg_content
+    assert "token=" not in ansible_cfg_content
+
+
+def test_ee_project_official_image_with_private_hub_url(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test that private_hub_url activates the private_hub section in ansible.cfg.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_pah")
+    cli_args["base_image"] = (
+        "registry.redhat.io/ansible-automation-platform-25/ee-minimal-rhel8:latest"
+    )
+    cli_args["ee_config"] = (
+        '{"private_hub_url": "https://pah.corp.example.com/api/galaxy/content/published/"}'
+    )
+
+    Init(Config(**cli_args)).run()
+    capsys.readouterr()
+
+    ansible_cfg_file = tmp_path / "ee_pah" / "ansible.cfg"
+    assert ansible_cfg_file.exists()
+    cfg = ansible_cfg_file.read_text()
+
+    assert "server_list = automation_hub, private_hub, galaxy" in cfg
+    assert "[galaxy_server.private_hub]" in cfg
+    assert "pah.corp.example.com" in cfg
+    assert "# [galaxy_server.private_hub]" not in cfg
+    assert "auth_url = https://sso.redhat.com/" in cfg
+    assert "token =" not in cfg
+    assert "token=" not in cfg
+
+
+def test_ee_project_official_image_custom_hub_no_auth_url(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test that auth_url is omitted when automation_hub_url is not Red Hat AH.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_custom_hub")
+    cli_args["base_image"] = (
+        "registry.redhat.io/ansible-automation-platform-25/ee-minimal-rhel8:latest"
+    )
+    cli_args["ee_config"] = '{"automation_hub_url": "https://custom-ah.example.com/api/hub/"}'
+
+    Init(Config(**cli_args)).run()
+    capsys.readouterr()
+
+    ansible_cfg_file = tmp_path / "ee_custom_hub" / "ansible.cfg"
+    assert ansible_cfg_file.exists()
+    cfg = ansible_cfg_file.read_text()
+
+    assert "[galaxy_server.automation_hub]" in cfg
+    assert "custom-ah.example.com" in cfg
+    assert "auth_url" not in cfg
+    assert "sso.redhat.com" not in cfg
 
 
 def test_ee_project_official_image_no_overwrite_ansible_cfg(
@@ -1078,6 +1154,21 @@ def test_ee_config_from_dict_full() -> None:
     assert cfg.additional_build_steps == {"prepend_base": ["RUN echo hi"]}
     assert cfg.options == {"package_manager_path": "/usr/bin/dnf"}
     assert "server_list" in cfg.ansible_cfg
+    # Defaults for new URL fields
+    assert "console.redhat.com" in cfg.automation_hub_url
+    assert cfg.private_hub_url == ""
+
+
+def test_ee_config_from_dict_hub_urls() -> None:
+    """Test EEConfig.from_dict with automation_hub_url and private_hub_url."""
+    data = {
+        "automation_hub_url": "https://custom-ah.example.com/api/hub/",
+        "private_hub_url": "https://pah.corp.example.com/api/galaxy/content/published/",
+    }
+    cfg = EEConfig.from_dict(data)
+
+    assert cfg.automation_hub_url == "https://custom-ah.example.com/api/hub/"
+    assert cfg.private_hub_url == "https://pah.corp.example.com/api/galaxy/content/published/"
 
 
 def test_ee_config_from_dict_defaults() -> None:
@@ -1121,6 +1212,8 @@ def test_ee_config_to_schema_shape() -> None:
     assert "python_deps" in props
     assert "system_packages" in props
     assert "ansible_cfg" in props
+    assert "automation_hub_url" in props
+    assert "private_hub_url" in props
 
 
 def test_ee_config_schema_in_cli_schema() -> None:
