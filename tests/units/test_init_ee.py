@@ -1227,6 +1227,27 @@ def test_ee_collection_as_dict_sparse() -> None:
     assert result == {"name": "ansible.posix", "version": "1.0", "type": "galaxy"}
 
 
+def test_ee_config_from_dict_rejects_unknown_keys() -> None:
+    """Test EEConfig.from_dict rejects unknown keys."""
+    with pytest.raises(CreatorError, match=r"Unknown key.*EE config.*bogus"):
+        EEConfig.from_dict({"bogus": "value"})
+
+    with pytest.raises(CreatorError, match=r"Unknown key.*EE config.*collection_list"):
+        EEConfig.from_dict({"base_image": "quay.io/test:1", "collection_list": []})
+
+    with pytest.raises(CreatorError, match=r"Unknown key.*EE config.*base_images"):
+        EEConfig.from_dict({"base_images": "quay.io/test:1"})
+
+
+def test_ee_collection_from_dict_rejects_unknown_keys() -> None:
+    """Test EECollection.from_dict rejects unknown keys."""
+    with pytest.raises(CreatorError, match=r"Unknown key.*collection.*src"):
+        EECollection.from_dict({"name": "ansible.posix", "src": "foo"})
+
+    with pytest.raises(CreatorError, match=r"Unknown key.*collection.*extra"):
+        EECollection.from_dict({"name": "ansible.posix", "extra": "bar"})
+
+
 def test_ee_config_to_schema_shape() -> None:
     """Test EEConfig.to_schema returns expected structure."""
     schema = EEConfig.to_schema()
@@ -1326,7 +1347,7 @@ def test_ee_config_both_sources_rejected(
         subcommand="init",
         project="execution_env",
         init_path=str(tmp_path / "test-ee"),
-        ee_config='{"name": "test"}',
+        ee_config='{"ee_name": "test"}',
         ee_config_file="/some/file.yml",
     )
     with pytest.raises(CreatorError, match="Cannot specify both"):
