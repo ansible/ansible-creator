@@ -201,6 +201,8 @@ class EEConfig:
         additional_build_steps: Custom build steps keyed by phase.
         options: Build options (e.g. package_manager_path).
         ansible_cfg: Content for an ansible.cfg file.
+        automation_hub_url: Red Hat Automation Hub content URL.
+        private_hub_url: On-prem Private Automation Hub URL (enables private_hub server when set).
     """
 
     name: str = "ansible_sample_ee"
@@ -212,6 +214,8 @@ class EEConfig:
     additional_build_steps: dict[str, list[str]] = field(default_factory=dict)
     options: dict[str, Any] = field(default_factory=dict)
     ansible_cfg: str = ""
+    automation_hub_url: str = "https://console.redhat.com/api/automation-hub/content/published/"
+    private_hub_url: str = ""
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> EEConfig:
@@ -241,6 +245,11 @@ class EEConfig:
             additional_build_steps=data.get("additional_build_steps", {}),
             options=dict(data.get("options", {})),
             ansible_cfg=data.get("ansible_cfg", ""),
+            automation_hub_url=data.get(
+                "automation_hub_url",
+                "https://console.redhat.com/api/automation-hub/content/published/",
+            ),
+            private_hub_url=data.get("private_hub_url", ""),
         )
 
     @classmethod
@@ -298,6 +307,19 @@ class EEConfig:
                 "ansible_cfg": {
                     "type": "string",
                     "description": "Content for ansible.cfg file",
+                    "default": "",
+                },
+                "automation_hub_url": {
+                    "type": "string",
+                    "description": "Red Hat Automation Hub content URL",
+                    "default": "https://console.redhat.com/api/automation-hub/content/published/",
+                },
+                "private_hub_url": {
+                    "type": "string",
+                    "description": (
+                        "On-prem Private Automation Hub URL "
+                        "(enables private_hub server section in ansible.cfg when set)"
+                    ),
                     "default": "",
                 },
             },
@@ -374,6 +396,8 @@ class TemplateData:
         is_official_ee: Whether the base image is an official Red Hat EE image.
         ee_python_path: Python interpreter path for the EE (varies by AAP version).
         ee_name_is_default: Whether ee_name is the unchanged default value.
+        ee_automation_hub_url: Red Hat Automation Hub content URL.
+        ee_private_hub_url: On-prem Private Automation Hub URL.
     """
 
     resource_type: str = ""
@@ -405,3 +429,5 @@ class TemplateData:
     is_official_ee: bool = False
     ee_python_path: str = DEFAULT_PYTHON_PATH
     ee_name_is_default: bool = True
+    ee_automation_hub_url: str = "https://console.redhat.com/api/automation-hub/content/published/"
+    ee_private_hub_url: str = ""
