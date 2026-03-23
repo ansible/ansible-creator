@@ -321,7 +321,7 @@ jobs:
           EE_FILE="execution-environment.yml"
           if command -v envsubst &> /dev/null; then
             envsubst '$AAP_EE_BUILDER_GITHUB_TOKEN $AAP_EE_BUILDER_GITLAB_TOKEN $SCM_TOKEN' \
-              < execution-environment.yml > /tmp/ee-resolved.yml
+              < "execution-environment.yml" > /tmp/ee-resolved.yml
             EE_FILE="/tmp/ee-resolved.yml"
           fi
 

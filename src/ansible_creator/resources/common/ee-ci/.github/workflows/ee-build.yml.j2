@@ -162,18 +162,18 @@ jobs:
             podman login -u "${{ vars.REDHAT_REGISTRY_USERNAME }}" \
             --password-stdin registry.redhat.io
 
-      - name: Extract base image from execution-environment.yml
+      - name: Extract base image from {% endraw %}{{ ee_file_name }}{% raw %}
         id: get-image
         run: |
           # Handle both flat and nested (v3) EE spec formats
           if command -v yq &> /dev/null; then
             BASE_IMAGE=$(yq -r '.images.base_image.name // .images.base_image // empty' \
-              execution-environment.yml 2>/dev/null || echo "")
+              {% endraw %}{{ ee_file_name }}{% raw %} 2>/dev/null || echo "")
           fi
           if [[ -z "$BASE_IMAGE" ]]; then
-            BASE_IMAGE=$(grep -A2 'base_image:' execution-environment.yml | \
+            BASE_IMAGE=$(grep -A2 'base_image:' {% endraw %}{{ ee_file_name }}{% raw %} | \
               grep -oP 'name:\s*\K\S+' || \
-              grep -oP 'base_image:\s*\K\S+' execution-environment.yml || echo "")
+              grep -oP 'base_image:\s*\K\S+' {% endraw %}{{ ee_file_name }}{% raw %} || echo "")
             BASE_IMAGE=$(echo "$BASE_IMAGE" | tr -d '"' | tr -d "'" | head -1)
           fi
           echo "base_image=$BASE_IMAGE" >> "$GITHUB_OUTPUT"
@@ -318,10 +318,10 @@ jobs:
 
           # Resolve SCM token references (e.g. ${AAP_EE_BUILDER_GITHUB_TOKEN} in
           # collection URLs) into a temp copy so the workspace file stays clean.
-          EE_FILE="execution-environment.yml"
+          EE_FILE="{% endraw %}{{ ee_file_name }}{% raw %}"
           if command -v envsubst &> /dev/null; then
             envsubst '$AAP_EE_BUILDER_GITHUB_TOKEN $AAP_EE_BUILDER_GITLAB_TOKEN $SCM_TOKEN' \
-              < execution-environment.yml > /tmp/ee-resolved.yml
+              < "{% endraw %}{{ ee_file_name }}{% raw %}" > /tmp/ee-resolved.yml
             EE_FILE="/tmp/ee-resolved.yml"
           fi
 

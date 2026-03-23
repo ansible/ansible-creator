@@ -410,6 +410,7 @@ class Init:
             ee_name_is_default=ec.name == "ansible_sample_ee",
             ee_automation_hub_url=ec.automation_hub_url,
             ee_private_hub_url=ec.private_hub_url,
+            ee_file_name=ec.ee_file_name,
         )
 
         if self._project == "execution_env":
