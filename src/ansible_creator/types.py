@@ -192,7 +192,7 @@ class EEConfig:
     that consumers (e.g. the ADT server) know the payload shape.
 
     Attributes:
-        name: Name/tag for the EE image.
+        ee_name: Name/tag for the EE image.
         base_image: Base container image.
         collections: Ansible collections to include.
         python_deps: Python package dependencies.
@@ -206,7 +206,7 @@ class EEConfig:
         ee_file_name: Name of the EE definition file (default: execution-environment.yml).
     """
 
-    name: str = "ansible_sample_ee"
+    ee_name: str = "ansible_sample_ee"
     base_image: str = "quay.io/fedora/fedora:41"
     collections: tuple[EECollection, ...] = ()
     python_deps: tuple[str, ...] = ()
@@ -238,7 +238,7 @@ class EEConfig:
             for c in raw_collections
         )
         return cls(
-            name=data.get("name", "ansible_sample_ee"),
+            ee_name=data.get("ee_name", data.get("name", "ansible_sample_ee")),
             base_image=data.get("base_image", "quay.io/fedora/fedora:41"),
             collections=collections,
             python_deps=tuple(data.get("python_deps", [])),
@@ -293,7 +293,7 @@ class EEConfig:
                 "or as a YAML/JSON file via --ee-config-file)"
             ),
             "properties": {
-                "name": {
+                "ee_name": {
                     "type": "string",
                     "default": "ansible_sample_ee",
                     "description": "Name/tag for the EE image",

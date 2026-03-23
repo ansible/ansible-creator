@@ -1131,7 +1131,7 @@ def test_ee_project_git_url_edge_cases(
 def test_ee_config_from_dict_full() -> None:
     """Test EEConfig.from_dict with all supported fields."""
     data = {
-        "name": "my-ee",
+        "ee_name": "my-ee",
         "base_image": "quay.io/custom:latest",
         "collections": [{"name": "ansible.posix", "version": ">=1.0"}],
         "python_deps": ["jmespath"],
@@ -1143,7 +1143,7 @@ def test_ee_config_from_dict_full() -> None:
     }
     cfg = EEConfig.from_dict(data)
 
-    assert cfg.name == "my-ee"
+    assert cfg.ee_name == "my-ee"
     assert cfg.base_image == "quay.io/custom:latest"
     assert len(cfg.collections) == 1
     assert cfg.collections[0].name == "ansible.posix"
@@ -1205,7 +1205,7 @@ def test_ee_config_from_dict_defaults() -> None:
     """Test EEConfig.from_dict with empty dict uses defaults."""
     cfg = EEConfig.from_dict({})
 
-    assert cfg.name == "ansible_sample_ee"
+    assert cfg.ee_name == "ansible_sample_ee"
     assert cfg.base_image == "quay.io/fedora/fedora:41"
     assert not cfg.collections
     assert not cfg.python_deps
@@ -1233,7 +1233,7 @@ def test_ee_config_to_schema_shape() -> None:
 
     assert schema["type"] == "object"
     props = schema["properties"]
-    assert "name" in props
+    assert "ee_name" in props
     assert "base_image" in props
     assert "collections" in props
     assert props["collections"]["type"] == "array"
@@ -1254,7 +1254,7 @@ def test_ee_config_schema_in_cli_schema() -> None:
 
     assert ee_config_schema["type"] == "object"
     assert "properties" in ee_config_schema
-    assert "name" in ee_config_schema["properties"]
+    assert "ee_name" in ee_config_schema["properties"]
     assert "base_image" in ee_config_schema["properties"]
     assert "collections" in ee_config_schema["properties"]
 
