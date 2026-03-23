@@ -1171,6 +1171,36 @@ def test_ee_config_from_dict_hub_urls() -> None:
     assert cfg.private_hub_url == "https://pah.corp.example.com/api/galaxy/content/published/"
 
 
+def test_ee_config_from_dict_ee_file_name() -> None:
+    """Test EEConfig.from_dict with custom ee_file_name."""
+    cfg = EEConfig.from_dict({"ee_file_name": "my-ee.yml"})
+    assert cfg.ee_file_name == "my-ee.yml"
+
+    cfg_yaml = EEConfig.from_dict({"ee_file_name": "custom.yaml"})
+    assert cfg_yaml.ee_file_name == "custom.yaml"
+
+    cfg_default = EEConfig.from_dict({})
+    assert cfg_default.ee_file_name == "execution-environment.yml"
+
+
+def test_ee_config_ee_file_name_validation() -> None:
+    """Test that ee_file_name rejects paths and non-YAML extensions."""
+    with pytest.raises(ValueError, match="plain filename"):
+        EEConfig.from_dict({"ee_file_name": "../etc/evil.yml"})
+
+    with pytest.raises(ValueError, match="plain filename"):
+        EEConfig.from_dict({"ee_file_name": "sub/dir/ee.yml"})
+
+    with pytest.raises(ValueError, match="plain filename"):
+        EEConfig.from_dict({"ee_file_name": "sub\\dir\\ee.yml"})
+
+    with pytest.raises(ValueError, match=r"\.yml or \.yaml"):
+        EEConfig.from_dict({"ee_file_name": "ee-def.json"})
+
+    with pytest.raises(ValueError, match=r"\.yml or \.yaml"):
+        EEConfig.from_dict({"ee_file_name": "ee-def.txt"})
+
+
 def test_ee_config_from_dict_defaults() -> None:
     """Test EEConfig.from_dict with empty dict uses defaults."""
     cfg = EEConfig.from_dict({})
@@ -1214,6 +1244,7 @@ def test_ee_config_to_schema_shape() -> None:
     assert "ansible_cfg" in props
     assert "automation_hub_url" in props
     assert "private_hub_url" in props
+    assert "ee_file_name" in props
 
 
 def test_ee_config_schema_in_cli_schema() -> None:

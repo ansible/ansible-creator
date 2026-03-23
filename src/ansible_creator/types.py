@@ -203,6 +203,7 @@ class EEConfig:
         ansible_cfg: Content for an ansible.cfg file.
         automation_hub_url: Red Hat Automation Hub content URL.
         private_hub_url: On-prem Private Automation Hub URL (enables private_hub server when set).
+        ee_file_name: Name of the EE definition file (default: execution-environment.yml).
     """
 
     name: str = "ansible_sample_ee"
@@ -216,6 +217,7 @@ class EEConfig:
     ansible_cfg: str = ""
     automation_hub_url: str = "https://console.redhat.com/api/automation-hub/content/published/"
     private_hub_url: str = ""
+    ee_file_name: str = "execution-environment.yml"
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> EEConfig:
@@ -250,7 +252,32 @@ class EEConfig:
                 "https://console.redhat.com/api/automation-hub/content/published/",
             ),
             private_hub_url=data.get("private_hub_url", ""),
+            ee_file_name=cls._validate_ee_file_name(
+                data.get("ee_file_name", "execution-environment.yml"),
+            ),
         )
+
+    @staticmethod
+    def _validate_ee_file_name(name: str) -> str:
+        """Validate ee_file_name is a safe basename with a YAML extension.
+
+        Args:
+            name: The proposed EE definition file name.
+
+        Returns:
+            The validated file name.
+
+        Raises:
+            ValueError: If the name contains path separators or has an
+                invalid extension.
+        """
+        if "/" in name or "\\" in name or ".." in name:
+            msg = f"ee_file_name must be a plain filename, not a path: {name!r}"
+            raise ValueError(msg)
+        if not name.endswith((".yml", ".yaml")):
+            msg = f"ee_file_name must end with .yml or .yaml: {name!r}"
+            raise ValueError(msg)
+        return name
 
     @classmethod
     def to_schema(cls) -> dict[str, Any]:
@@ -321,6 +348,11 @@ class EEConfig:
                         "(enables private_hub server section in ansible.cfg when set)"
                     ),
                     "default": "",
+                },
+                "ee_file_name": {
+                    "type": "string",
+                    "description": "Name of the EE definition file",
+                    "default": "execution-environment.yml",
                 },
             },
         }
@@ -398,6 +430,7 @@ class TemplateData:
         ee_name_is_default: Whether ee_name is the unchanged default value.
         ee_automation_hub_url: Red Hat Automation Hub content URL.
         ee_private_hub_url: On-prem Private Automation Hub URL.
+        ee_file_name: Name of the EE definition file.
     """
 
     resource_type: str = ""
@@ -431,3 +464,4 @@ class TemplateData:
     ee_name_is_default: bool = True
     ee_automation_hub_url: str = "https://console.redhat.com/api/automation-hub/content/published/"
     ee_private_hub_url: str = ""
+    ee_file_name: str = "execution-environment.yml"
