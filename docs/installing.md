@@ -345,7 +345,7 @@ $ tree -la /home/user/ansible-projects/ee-project
 .
 ├── .github
 │   └── workflows
-│       └── ci.yml
+│       └── ee-build.yml
 ├── .gitignore
 ├── README.md
 └── execution-environment.yml
