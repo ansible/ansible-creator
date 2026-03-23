@@ -6,7 +6,6 @@ import dataclasses
 import json
 import shutil
 import uuid
-
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -23,7 +22,6 @@ from ansible_creator.types import (
     validate_source_url,
 )
 from ansible_creator.utils import Copier, Walker, ask_yes_no
-
 
 if TYPE_CHECKING:
     from ansible_creator.config import Config
@@ -408,6 +406,8 @@ class Init:
             is_official_ee=self._is_official_ee_image(ec.base_image),
             ee_python_path=self._get_ee_python_path(ec.base_image),
             ee_name_is_default=ec.ee_name == "ansible_sample_ee",
+            ee_registry=ec.registry,
+            ee_image_name=ec.image_name,
             ee_automation_hub_url=ec.automation_hub_url,
             ee_private_hub_url=ec.private_hub_url,
             ee_file_name=ec.ee_file_name,

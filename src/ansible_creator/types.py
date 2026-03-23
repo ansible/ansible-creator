@@ -3,14 +3,12 @@
 from __future__ import annotations
 
 import re
-
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, ClassVar
 from urllib.parse import urlparse
 
 from ansible_creator.constants import GLOBAL_TEMPLATE_VARS
 from ansible_creator.exceptions import CreatorError
-
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -203,6 +201,8 @@ class EEConfig:
         _KNOWN_KEYS: Accepted dictionary keys for from_dict validation.
         ee_name: Name/tag for the EE image.
         base_image: Base container image.
+        registry: Container registry hostname for the CI workflow (e.g. ghcr.io, quay.io).
+        image_name: Image name for the CI workflow (e.g. my-org/my-ee).
         collections: Ansible collections to include.
         python_deps: Python package dependencies.
         system_packages: System packages to install.
@@ -235,6 +235,8 @@ class EEConfig:
 
     ee_name: str = "ansible_sample_ee"
     base_image: str = "quay.io/fedora/fedora:41"
+    registry: str = "ghcr.io"
+    image_name: str = ""
     collections: tuple[EECollection, ...] = ()
     python_deps: tuple[str, ...] = ()
     system_packages: tuple[str, ...] = ()
@@ -272,9 +274,16 @@ class EEConfig:
             EECollection.from_dict(c if isinstance(c, dict) else {"name": c})
             for c in raw_collections
         )
+        registry = data.get("registry", "ghcr.io")
+        if "://" in registry:
+            msg = f"Invalid registry '{registry}'. Provide a hostname (e.g. 'ghcr.io'), not a URL."
+            raise CreatorError(msg)
+
         return cls(
             ee_name=data.get("ee_name", data.get("name", "ansible_sample_ee")),
             base_image=data.get("base_image", "quay.io/fedora/fedora:41"),
+            registry=registry,
+            image_name=data.get("image_name", ""),
             collections=collections,
             python_deps=tuple(data.get("python_deps", [])),
             system_packages=tuple(data.get("system_packages", [])),
@@ -337,6 +346,21 @@ class EEConfig:
                     "type": "string",
                     "default": "quay.io/fedora/fedora:41",
                     "description": "Base container image",
+                },
+                "registry": {
+                    "type": "string",
+                    "default": "ghcr.io",
+                    "description": (
+                        "Container registry hostname for the CI workflow (e.g. ghcr.io, quay.io)"
+                    ),
+                },
+                "image_name": {
+                    "type": "string",
+                    "default": "",
+                    "description": (
+                        "Image name for the CI workflow "
+                        "(e.g. my-org/my-ee). Defaults to github.repository"
+                    ),
                 },
                 "collections": {
                     "type": "array",
@@ -463,6 +487,8 @@ class TemplateData:
         is_official_ee: Whether the base image is an official Red Hat EE image.
         ee_python_path: Python interpreter path for the EE (varies by AAP version).
         ee_name_is_default: Whether ee_name is the unchanged default value.
+        ee_registry: Container registry hostname for the CI workflow.
+        ee_image_name: Image name for the CI workflow.
         ee_automation_hub_url: Red Hat Automation Hub content URL.
         ee_private_hub_url: On-prem Private Automation Hub URL.
         ee_file_name: Name of the EE definition file.
@@ -497,6 +523,8 @@ class TemplateData:
     is_official_ee: bool = False
     ee_python_path: str = DEFAULT_PYTHON_PATH
     ee_name_is_default: bool = True
+    ee_registry: str = "ghcr.io"
+    ee_image_name: str = ""
     ee_automation_hub_url: str = "https://console.redhat.com/api/automation-hub/content/published/"
     ee_private_hub_url: str = ""
     ee_file_name: str = "execution-environment.yml"
