@@ -408,6 +408,8 @@ class Init:
             is_official_ee=self._is_official_ee_image(ec.base_image),
             ee_python_path=self._get_ee_python_path(ec.base_image),
             ee_name_is_default=ec.name == "ansible_sample_ee",
+            ee_automation_hub_url=ec.automation_hub_url,
+            ee_private_hub_url=ec.private_hub_url,
         )
 
         if self._project == "execution_env":
@@ -479,20 +481,7 @@ class Init:
         if self._ee_config.ansible_cfg:
             ansible_cfg_content = self._ee_config.ansible_cfg
         elif self._is_official_ee_image(self._ee_config.base_image):
-            ansible_cfg_content = """\
-[galaxy]
-# Automation Hub server configuration
-# Portal will populate this section with appropriate server entries
-# <!--start PAH content-->
-# Example:
-# server_list = automation_hub
-#
-# [galaxy_server.automation_hub]
-# url = https://console.redhat.com/api/automation-hub/content/published/
-# auth_url = https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
-# token = <your_token>
-# <!--end PAH content-->
-"""
+            ansible_cfg_content = self._render_ansible_cfg()
 
         if ansible_cfg_content is None:
             return
@@ -503,3 +492,65 @@ class Init:
 
         ansible_cfg_path.write_text(ansible_cfg_content, encoding="utf-8")
         self.output.debug(msg=f"Writing to {ansible_cfg_path}")
+
+    def _render_ansible_cfg(self) -> str:
+        """Render an ansible.cfg with predefined galaxy server sections.
+
+        Tokens are never written here — they are passed via environment
+        variables (ANSIBLE_GALAXY_SERVER_<ID>_TOKEN) at build time.
+
+        Returns:
+            The rendered ansible.cfg content.
+        """
+        ec = self._ee_config
+        has_private_hub = bool(ec.private_hub_url)
+
+        server_list = ["automation_hub"]
+        if has_private_hub:
+            server_list.append("private_hub")
+        server_list.append("galaxy")
+
+        lines = [
+            "[galaxy]",
+            f"server_list = {', '.join(server_list)}",
+            "",
+            "[galaxy_server.automation_hub]",
+            f"url = {ec.automation_hub_url}",
+        ]
+
+        if "console.redhat.com" in ec.automation_hub_url:
+            lines.append(
+                "auth_url = https://sso.redhat.com/auth/realms/redhat-external"
+                "/protocol/openid-connect/token",
+            )
+
+        lines.append("")
+
+        if has_private_hub:
+            lines.extend(
+                [
+                    "[galaxy_server.private_hub]",
+                    f"url = {ec.private_hub_url}",
+                    "",
+                ]
+            )
+        else:
+            lines.extend(
+                [
+                    "# [galaxy_server.private_hub]",
+                    "# Uncomment and set your Private Automation Hub URL, or pass",
+                    "# private_hub_url via --ee-config to enable this section.",
+                    "# url = https://your-pah.example.com/api/galaxy/content/published/",
+                    "",
+                ]
+            )
+
+        lines.extend(
+            [
+                "[galaxy_server.galaxy]",
+                "url = https://galaxy.ansible.com/",
+                "",
+            ]
+        )
+
+        return "\n".join(lines)
