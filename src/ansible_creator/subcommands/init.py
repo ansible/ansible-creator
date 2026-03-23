@@ -412,8 +412,12 @@ class Init:
             ee_name_is_default=ec.ee_name == "ansible_sample_ee",
             ee_registry=ec.registry,
             ee_image_name=ec.image_name,
-            ee_automation_hub_url=ec.automation_hub_url,
-            ee_private_hub_url=ec.private_hub_url,
+            ee_galaxy_servers=[s.as_dict() for s in ec.galaxy_servers],
+            ee_galaxy_token_vars=[
+                f"ANSIBLE_GALAXY_SERVER_{s.id.upper()}_TOKEN"
+                for s in ec.galaxy_servers
+                if s.token_required
+            ],
             ee_file_name=ec.ee_file_name,
         )
 
@@ -485,7 +489,7 @@ class Init:
 
         if self._ee_config.ansible_cfg:
             ansible_cfg_content = self._ee_config.ansible_cfg
-        elif self._is_official_ee_image(self._ee_config.base_image):
+        elif self._ee_config.galaxy_servers:
             ansible_cfg_content = self._render_ansible_cfg()
 
         if ansible_cfg_content is None:
@@ -499,63 +503,29 @@ class Init:
         self.output.debug(msg=f"Writing to {ansible_cfg_path}")
 
     def _render_ansible_cfg(self) -> str:
-        """Render an ansible.cfg with predefined galaxy server sections.
+        """Render an ansible.cfg from the configured galaxy_servers list.
 
         Tokens are never written here — they are passed via environment
         variables (ANSIBLE_GALAXY_SERVER_<ID>_TOKEN) at build time.
+        A comment is emitted for each server that requires a token.
 
         Returns:
             The rendered ansible.cfg content.
         """
-        ec = self._ee_config
-        has_private_hub = bool(ec.private_hub_url)
-
-        server_list = ["automation_hub"]
-        if has_private_hub:
-            server_list.append("private_hub")
-        server_list.append("galaxy")
-
+        servers = self._ee_config.galaxy_servers
         lines = [
             "[galaxy]",
-            f"server_list = {', '.join(server_list)}",
+            f"server_list = {', '.join(s.id for s in servers)}",
             "",
-            "[galaxy_server.automation_hub]",
-            f"url = {ec.automation_hub_url}",
         ]
-
-        if "console.redhat.com" in ec.automation_hub_url:
-            lines.append(
-                "auth_url = https://sso.redhat.com/auth/realms/redhat-external"
-                "/protocol/openid-connect/token",
-            )
-
-        lines.append("")
-
-        if has_private_hub:
-            lines.extend(
-                [
-                    "[galaxy_server.private_hub]",
-                    f"url = {ec.private_hub_url}",
-                    "",
-                ]
-            )
-        else:
-            lines.extend(
-                [
-                    "# [galaxy_server.private_hub]",
-                    "# Uncomment and set your Private Automation Hub URL, or pass",
-                    "# private_hub_url via --ee-config to enable this section.",
-                    "# url = https://your-pah.example.com/api/galaxy/content/published/",
-                    "",
-                ]
-            )
-
-        lines.extend(
-            [
-                "[galaxy_server.galaxy]",
-                "url = https://galaxy.ansible.com/",
-                "",
-            ]
-        )
+        for server in servers:
+            lines.append(f"[galaxy_server.{server.id}]")
+            lines.append(f"url = {server.url}")
+            if server.auth_url:
+                lines.append(f"auth_url = {server.auth_url}")
+            if server.token_required:
+                token_var = f"ANSIBLE_GALAXY_SERVER_{server.id.upper()}_TOKEN"
+                lines.append(f"# Token: set {token_var} as a repository secret")
+            lines.append("")
 
         return "\n".join(lines)

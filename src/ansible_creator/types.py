@@ -191,6 +191,116 @@ class EECollection:
         }
 
 
+GALAXY_SERVER_ID_RE = re.compile(r"^[a-z_][a-z0-9_]*$")
+
+
+@dataclass(frozen=True)
+class GalaxyServer:
+    """A single Ansible Galaxy server entry for ansible.cfg.
+
+    Attributes:
+        id: Server identifier used in ``[galaxy_server.<id>]`` and the
+            ``ANSIBLE_GALAXY_SERVER_<ID>_TOKEN`` env-var convention.
+        url: Galaxy server content URL.
+        auth_url: SSO/OAuth token endpoint (for Red Hat SSO-backed servers).
+        token_required: Whether this server needs a token at build time.
+    """
+
+    id: str
+    url: str
+    auth_url: str = ""
+    token_required: bool = False
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> GalaxyServer:
+        """Create a validated GalaxyServer from a raw dictionary.
+
+        Args:
+            data: Dictionary with server fields.
+
+        Returns:
+            A validated GalaxyServer instance.
+
+        Raises:
+            CreatorError: If required fields are missing or values are invalid.
+        """
+        if "id" not in data:
+            msg = "Galaxy server entry must have an 'id' field"
+            raise CreatorError(msg)
+        server_id = data["id"]
+        if not GALAXY_SERVER_ID_RE.match(server_id):
+            msg = (
+                f"Invalid galaxy server id '{server_id}'. "
+                "Must be lowercase letters, numbers, and underscores."
+            )
+            raise CreatorError(msg)
+
+        if "url" not in data:
+            msg = f"Galaxy server '{server_id}' must have a 'url' field"
+            raise CreatorError(msg)
+
+        return cls(
+            id=server_id,
+            url=data["url"],
+            auth_url=data.get("auth_url", ""),
+            token_required=data.get("token_required", False),
+        )
+
+    def as_dict(self) -> dict[str, Any]:
+        """Convert to a plain dictionary for template rendering.
+
+        Includes a derived ``token_env_var`` field for convenience.
+
+        Returns:
+            Dictionary with all fields plus ``token_env_var``.
+        """
+        result: dict[str, Any] = {
+            "id": self.id,
+            "url": self.url,
+            "token_required": self.token_required,
+            "token_env_var": f"ANSIBLE_GALAXY_SERVER_{self.id.upper()}_TOKEN",
+        }
+        if self.auth_url:
+            result["auth_url"] = self.auth_url
+        return result
+
+    @classmethod
+    def to_schema(cls) -> dict[str, Any]:
+        """Return a JSON-Schema-like description of a galaxy server entry.
+
+        Returns:
+            Schema dictionary.
+        """
+        return {
+            "type": "object",
+            "required": ["id", "url"],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "description": (
+                        "Server identifier (e.g. automation_hub, private_hub, galaxy). "
+                        "Used in [galaxy_server.<id>] and "
+                        "ANSIBLE_GALAXY_SERVER_<ID>_TOKEN env var."
+                    ),
+                },
+                "url": {
+                    "type": "string",
+                    "description": "Galaxy server content URL",
+                },
+                "auth_url": {
+                    "type": "string",
+                    "default": "",
+                    "description": "SSO/OAuth token endpoint",
+                },
+                "token_required": {
+                    "type": "boolean",
+                    "default": False,
+                    "description": "Whether this server needs a token at build time",
+                },
+            },
+        }
+
+
 @dataclass(frozen=True)
 class EEConfig:
     """Canonical representation of execution environment configuration.
@@ -212,8 +322,8 @@ class EEConfig:
         additional_build_steps: Custom build steps keyed by phase.
         options: Build options (e.g. package_manager_path).
         ansible_cfg: Content for an ansible.cfg file.
-        automation_hub_url: Red Hat Automation Hub content URL.
-        private_hub_url: On-prem Private Automation Hub URL (enables private_hub server when set).
+        galaxy_servers: Galaxy server entries for ansible.cfg generation and
+            workflow token plumbing.
         ee_file_name: Name of the EE definition file (default: execution-environment.yml).
     """
 
@@ -231,8 +341,7 @@ class EEConfig:
             "additional_build_steps",
             "options",
             "ansible_cfg",
-            "automation_hub_url",
-            "private_hub_url",
+            "galaxy_servers",
             "ee_file_name",
         }
     )
@@ -248,8 +357,7 @@ class EEConfig:
     additional_build_steps: dict[str, list[str]] = field(default_factory=dict)
     options: dict[str, Any] = field(default_factory=dict)
     ansible_cfg: str = ""
-    automation_hub_url: str = "https://console.redhat.com/api/automation-hub/content/published/"
-    private_hub_url: str = ""
+    galaxy_servers: tuple[GalaxyServer, ...] = ()
     ee_file_name: str = "execution-environment.yml"
 
     @classmethod
@@ -283,6 +391,8 @@ class EEConfig:
             msg = f"Invalid registry '{registry}'. Provide a hostname (e.g. 'ghcr.io'), not a URL."
             raise CreatorError(msg)
 
+        raw_servers = data.get("galaxy_servers", [])
+        galaxy_servers = tuple(GalaxyServer.from_dict(s) for s in raw_servers)
         return cls(
             ee_name=data.get("ee_name", data.get("name", "ansible_sample_ee")),
             base_image=data.get("base_image", "quay.io/fedora/fedora:41"),
@@ -295,11 +405,7 @@ class EEConfig:
             additional_build_steps=data.get("additional_build_steps", {}),
             options=dict(data.get("options", {})),
             ansible_cfg=data.get("ansible_cfg", ""),
-            automation_hub_url=data.get(
-                "automation_hub_url",
-                "https://console.redhat.com/api/automation-hub/content/published/",
-            ),
-            private_hub_url=data.get("private_hub_url", ""),
+            galaxy_servers=galaxy_servers,
             ee_file_name=cls._validate_ee_file_name(
                 data.get("ee_file_name", "execution-environment.yml"),
             ),
@@ -399,18 +505,13 @@ class EEConfig:
                     "description": "Content for ansible.cfg file",
                     "default": "",
                 },
-                "automation_hub_url": {
-                    "type": "string",
-                    "description": "Red Hat Automation Hub content URL",
-                    "default": "https://console.redhat.com/api/automation-hub/content/published/",
-                },
-                "private_hub_url": {
-                    "type": "string",
+                "galaxy_servers": {
+                    "type": "array",
+                    "items": GalaxyServer.to_schema(),
                     "description": (
-                        "On-prem Private Automation Hub URL "
-                        "(enables private_hub server section in ansible.cfg when set)"
+                        "Galaxy server entries for ansible.cfg generation "
+                        "and workflow token plumbing"
                     ),
-                    "default": "",
                 },
                 "ee_file_name": {
                     "type": "string",
@@ -493,8 +594,9 @@ class TemplateData:
         ee_name_is_default: Whether ee_name is the unchanged default value.
         ee_registry: Container registry hostname for the CI workflow.
         ee_image_name: Image name for the CI workflow.
-        ee_automation_hub_url: Red Hat Automation Hub content URL.
-        ee_private_hub_url: On-prem Private Automation Hub URL.
+        ee_galaxy_servers: Galaxy server entries (list of dicts from GalaxyServer.as_dict()).
+        ee_galaxy_token_vars: Pre-computed list of token env var names for servers
+            with token_required=True.
         ee_file_name: Name of the EE definition file.
     """
 
@@ -529,6 +631,6 @@ class TemplateData:
     ee_name_is_default: bool = True
     ee_registry: str = "ghcr.io"
     ee_image_name: str = ""
-    ee_automation_hub_url: str = "https://console.redhat.com/api/automation-hub/content/published/"
-    ee_private_hub_url: str = ""
+    ee_galaxy_servers: Sequence[dict[str, Any]] = field(default_factory=list)
+    ee_galaxy_token_vars: Sequence[str] = field(default_factory=list)
     ee_file_name: str = "execution-environment.yml"

@@ -335,6 +335,10 @@ ansible-creator init execution_env $HOME/ansible-projects/ee-project
 This command will scaffold the new execution environment playbook project at
 `/home/user/ansible-projects/ee-project`.
 
+For a comprehensive guide covering all EE configuration options (Galaxy
+servers, collections, build steps, token security, and more), see the
+[EE Scaffolding Guide](ee_scaffolding.md).
+
 #### Generated Ansible execution environment project Structure
 
 Running the `init execution_env` command generates an Ansible execution
