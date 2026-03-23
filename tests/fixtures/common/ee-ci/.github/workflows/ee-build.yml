@@ -269,7 +269,10 @@ jobs:
             echo "::notice::Configured generic SCM credentials"
           fi
 
-          chmod 600 ~/.git-credentials
+          # Only chmod if the file was created
+          if [[ -f ~/.git-credentials ]]; then
+            chmod 600 ~/.git-credentials
+          fi
 
       - name: Configure Automation Hub authentication
         if: needs.validate-tokens.outputs.ah_configured == 'true' || needs.validate-tokens.result == 'skipped'
