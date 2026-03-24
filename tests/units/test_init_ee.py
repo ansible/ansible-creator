@@ -43,6 +43,7 @@ class ConfigDict(TypedDict, total=False):
         ee_python_deps: List of Python dependencies for execution environment.
         ee_system_packages: List of system packages for execution environment.
         ee_name: Name/tag for the execution environment image.
+        ee_file_name: Name of the EE definition file.
     """
 
     creator_version: str
@@ -61,6 +62,7 @@ class ConfigDict(TypedDict, total=False):
     ee_python_deps: list[str]
     ee_system_packages: list[str]
     ee_name: str
+    ee_file_name: str
 
 
 @pytest.fixture(name="output")
