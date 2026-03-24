@@ -18,7 +18,7 @@ from ansible_creator.exceptions import CreatorError
 from ansible_creator.output import Output
 from ansible_creator.schema import _extract_action_info, for_command
 from ansible_creator.subcommands.init import Init
-from ansible_creator.types import EECollection, EEConfig
+from ansible_creator.types import EECollection, EEConfig, GalaxyServer
 from ansible_creator.utils import TermFeatures
 from tests.defaults import FIXTURES_DIR
 
@@ -685,7 +685,6 @@ def test_ee_project_official_image_microdnf(
 
     Official EE images already have ansible-core and ansible-runner pre-installed,
     so we should not include them in the EE definition to avoid conflicts.
-    They also get ansible.cfg with Portal anchors for Automation Hub configuration.
 
     Args:
         capsys: Pytest fixture to capture stdout and stderr.
@@ -720,79 +719,100 @@ def test_ee_project_official_image_microdnf(
     assert "python_interpreter:" in ee_content
     assert "python_path: /usr/bin/python3.11" in ee_content
 
-    # Official EE images should NOT have additional_build_files for ansible.cfg
-    # (ansible.cfg is volume-mounted at build time, never COPY'd into a layer)
-    assert "src: ansible.cfg" not in ee_content
-
-    # Official EE images should have prepend_galaxy with ARG directives for tokens
-    assert "prepend_galaxy:" in ee_content
-    assert "ARG ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN" in ee_content
-    assert "ARG ANSIBLE_GALAXY_SERVER_PRIVATE_HUB_TOKEN" in ee_content
-
     # Official EE images should NOT have pip upgrade or the default sample tag
     assert "RUN $PYCMD -m pip install -U pip" not in ee_content
     assert "ansible_sample_ee" not in ee_content
 
-    # ansible.cfg should be generated with predefined server sections
+    # Without galaxy_servers, no ansible.cfg or prepend_galaxy should be generated
+    assert "prepend_galaxy:" not in ee_content
     ansible_cfg_file = tmp_path / "ee_official_image" / "ansible.cfg"
-    assert ansible_cfg_file.exists()
-    ansible_cfg_content = ansible_cfg_file.read_text()
-    assert "[galaxy]" in ansible_cfg_content
-    assert "server_list = automation_hub, galaxy" in ansible_cfg_content
-    assert "[galaxy_server.automation_hub]" in ansible_cfg_content
-    assert "console.redhat.com/api/automation-hub" in ansible_cfg_content
-    assert "auth_url = https://sso.redhat.com/" in ansible_cfg_content
-    assert "[galaxy_server.galaxy]" in ansible_cfg_content
-    # private_hub should be commented out by default
-    assert "# [galaxy_server.private_hub]" in ansible_cfg_content
-    # No token values should appear in ansible.cfg (auth_url contains "token" in the path)
-    assert "token =" not in ansible_cfg_content
-    assert "token=" not in ansible_cfg_content
+    assert not ansible_cfg_file.exists()
 
 
-def test_ee_project_official_image_with_private_hub_url(
+def test_ee_project_with_galaxy_servers(
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
     cli_args: ConfigDict,
 ) -> None:
-    """Test that private_hub_url activates the private_hub section in ansible.cfg.
+    """Test scaffolding with galaxy_servers generates ansible.cfg and token plumbing.
 
     Args:
         capsys: Pytest fixture to capture stdout and stderr.
         tmp_path: Temporary directory path.
         cli_args: Dictionary, partial Init class object.
     """
+    galaxy_config = {
+        "base_image": "registry.redhat.io/ansible-automation-platform-25/ee-minimal-rhel8:latest",
+        "galaxy_servers": [
+            {
+                "id": "automation_hub",
+                "url": "https://console.redhat.com/api/automation-hub/content/published/",
+                "auth_url": "https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token",
+                "token_required": True,
+            },
+            {
+                "id": "private_hub",
+                "url": "https://pah.corp.example.com/api/galaxy/content/published/",
+                "token_required": True,
+            },
+            {
+                "id": "galaxy",
+                "url": "https://galaxy.ansible.com/",
+            },
+        ],
+    }
+
     cli_args["project"] = "execution_env"
-    cli_args["init_path"] = str(tmp_path / "ee_pah")
-    cli_args["base_image"] = (
-        "registry.redhat.io/ansible-automation-platform-25/ee-minimal-rhel8:latest"
-    )
-    cli_args["ee_config"] = (
-        '{"private_hub_url": "https://pah.corp.example.com/api/galaxy/content/published/"}'
-    )
+    cli_args["init_path"] = str(tmp_path / "ee_galaxy")
+    cli_args["ee_config"] = json.dumps(galaxy_config)
 
     Init(Config(**cli_args)).run()
     capsys.readouterr()
 
-    ansible_cfg_file = tmp_path / "ee_pah" / "ansible.cfg"
+    # ansible.cfg should be generated from galaxy_servers
+    ansible_cfg_file = tmp_path / "ee_galaxy" / "ansible.cfg"
     assert ansible_cfg_file.exists()
     cfg = ansible_cfg_file.read_text()
 
     assert "server_list = automation_hub, private_hub, galaxy" in cfg
+    assert "[galaxy_server.automation_hub]" in cfg
+    assert "console.redhat.com/api/automation-hub" in cfg
+    assert "auth_url = https://sso.redhat.com/" in cfg
     assert "[galaxy_server.private_hub]" in cfg
     assert "pah.corp.example.com" in cfg
-    assert "# [galaxy_server.private_hub]" not in cfg
-    assert "auth_url = https://sso.redhat.com/" in cfg
+    assert "[galaxy_server.galaxy]" in cfg
+    assert "galaxy.ansible.com" in cfg
+    # Token comments for servers with token_required
+    assert "# Token: set ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN" in cfg
+    assert "# Token: set ANSIBLE_GALAXY_SERVER_PRIVATE_HUB_TOKEN" in cfg
+    # No token values should appear in ansible.cfg
     assert "token =" not in cfg
     assert "token=" not in cfg
 
+    # EE definition should have ARG directives for token servers
+    ee_file = tmp_path / "ee_galaxy" / "execution-environment.yml"
+    ee_content = ee_file.read_text()
+    assert "prepend_galaxy:" in ee_content
+    assert "ARG ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN" in ee_content
+    assert "ARG ANSIBLE_GALAXY_SERVER_PRIVATE_HUB_TOKEN" in ee_content
+    # Galaxy server (no token) should NOT have an ARG
+    assert "ARG ANSIBLE_GALAXY_SERVER_GALAXY_TOKEN" not in ee_content
 
-def test_ee_project_official_image_custom_hub_no_auth_url(
+    # Workflow should reference the token env vars
+    wf_file = tmp_path / "ee_galaxy" / ".github" / "workflows" / "ee-build.yml"
+    wf_content = wf_file.read_text()
+    assert "ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN" in wf_content
+    assert "ANSIBLE_GALAXY_SERVER_PRIVATE_HUB_TOKEN" in wf_content
+
+
+def test_ee_project_no_galaxy_servers_no_ansible_cfg(
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
     cli_args: ConfigDict,
 ) -> None:
-    """Test that auth_url is omitted when automation_hub_url is not Red Hat AH.
+    """Test that no ansible.cfg is generated when galaxy_servers is empty.
+
+    This applies even when the base image is an official Red Hat EE image.
 
     Args:
         capsys: Pytest fixture to capture stdout and stderr.
@@ -800,31 +820,27 @@ def test_ee_project_official_image_custom_hub_no_auth_url(
         cli_args: Dictionary, partial Init class object.
     """
     cli_args["project"] = "execution_env"
-    cli_args["init_path"] = str(tmp_path / "ee_custom_hub")
+    cli_args["init_path"] = str(tmp_path / "ee_no_servers")
     cli_args["base_image"] = (
         "registry.redhat.io/ansible-automation-platform-25/ee-minimal-rhel8:latest"
     )
-    cli_args["ee_config"] = '{"automation_hub_url": "https://custom-ah.example.com/api/hub/"}'
 
     Init(Config(**cli_args)).run()
     capsys.readouterr()
 
-    ansible_cfg_file = tmp_path / "ee_custom_hub" / "ansible.cfg"
-    assert ansible_cfg_file.exists()
-    cfg = ansible_cfg_file.read_text()
+    ansible_cfg_file = tmp_path / "ee_no_servers" / "ansible.cfg"
+    assert not ansible_cfg_file.exists()
 
-    assert "[galaxy_server.automation_hub]" in cfg
-    assert "custom-ah.example.com" in cfg
-    assert "auth_url" not in cfg
-    assert "sso.redhat.com" not in cfg
+    ee_content = (tmp_path / "ee_no_servers" / "execution-environment.yml").read_text()
+    assert "prepend_galaxy:" not in ee_content
 
 
-def test_ee_project_official_image_no_overwrite_ansible_cfg(
+def test_ee_project_no_overwrite_ansible_cfg(
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
     cli_args: ConfigDict,
 ) -> None:
-    """Test that --no-overwrite skips existing ansible.cfg for official EE images.
+    """Test that --no-overwrite skips existing ansible.cfg when galaxy_servers are set.
 
     Pre-plant only ``ansible.cfg`` (not the template files) so the copier
     ``has_conflicts()`` check passes, letting ``_write_optional_files()``
@@ -840,12 +856,16 @@ def test_ee_project_official_image_no_overwrite_ansible_cfg(
     custom = "# custom ansible.cfg\n"
     (project_dir / "ansible.cfg").write_text(custom, encoding="utf-8")
 
+    galaxy_config = {
+        "galaxy_servers": [
+            {"id": "galaxy", "url": "https://galaxy.ansible.com/"},
+        ],
+    }
+
     cli_args["project"] = "execution_env"
     cli_args["init_path"] = str(project_dir)
     cli_args["no_overwrite"] = True
-    cli_args["base_image"] = (
-        "registry.redhat.io/ansible-automation-platform-25/ee-minimal-rhel9:latest"
-    )
+    cli_args["ee_config"] = json.dumps(galaxy_config)
 
     Init(Config(**cli_args)).run()
     capsys.readouterr()
@@ -994,11 +1014,10 @@ def test_ee_project_non_official_image_no_microdnf(
     # Non-official images should use generic python3 path
     assert "python_path: /usr/bin/python3" in ee_content
 
-    # Non-official images should NOT have additional_build_files for ansible.cfg
+    # Without galaxy_servers, no ansible.cfg or prepend_galaxy
     assert "src: ansible.cfg" not in ee_content
     assert "prepend_galaxy:" not in ee_content
 
-    # ansible.cfg file should NOT be generated for non-official images
     ansible_cfg_file = tmp_path / "ee_fedora_image" / "ansible.cfg"
     assert not ansible_cfg_file.exists()
 
@@ -1193,21 +1212,41 @@ def test_ee_config_from_dict_full() -> None:
     assert cfg.additional_build_steps == {"prepend_base": ["RUN echo hi"]}
     assert cfg.options == {"package_manager_path": "/usr/bin/dnf"}
     assert "server_list" in cfg.ansible_cfg
-    # Defaults for new URL fields
-    assert "console.redhat.com" in cfg.automation_hub_url
-    assert cfg.private_hub_url == ""
+    assert not cfg.galaxy_servers
 
 
-def test_ee_config_from_dict_hub_urls() -> None:
-    """Test EEConfig.from_dict with automation_hub_url and private_hub_url."""
+def test_ee_config_from_dict_galaxy_servers() -> None:
+    """Test EEConfig.from_dict with galaxy_servers list."""
     data = {
-        "automation_hub_url": "https://custom-ah.example.com/api/hub/",
-        "private_hub_url": "https://pah.corp.example.com/api/galaxy/content/published/",
+        "galaxy_servers": [
+            {
+                "id": "automation_hub",
+                "url": "https://console.redhat.com/api/automation-hub/content/published/",
+                "auth_url": "https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token",
+                "token_required": True,
+            },
+            {
+                "id": "private_hub",
+                "url": "https://pah.corp.example.com/api/galaxy/content/published/",
+                "token_required": True,
+            },
+            {
+                "id": "galaxy",
+                "url": "https://galaxy.ansible.com/",
+            },
+        ],
     }
     cfg = EEConfig.from_dict(data)
 
-    assert cfg.automation_hub_url == "https://custom-ah.example.com/api/hub/"
-    assert cfg.private_hub_url == "https://pah.corp.example.com/api/galaxy/content/published/"
+    assert len(cfg.galaxy_servers) == 3  # noqa: PLR2004
+    assert cfg.galaxy_servers[0].id == "automation_hub"
+    assert "console.redhat.com" in cfg.galaxy_servers[0].url
+    assert "sso.redhat.com" in cfg.galaxy_servers[0].auth_url
+    assert cfg.galaxy_servers[0].token_required is True
+    assert cfg.galaxy_servers[1].id == "private_hub"
+    assert cfg.galaxy_servers[1].token_required is True
+    assert cfg.galaxy_servers[2].id == "galaxy"
+    assert cfg.galaxy_servers[2].token_required is False
 
 
 def test_ee_config_from_dict_registry_and_image_name() -> None:
@@ -1270,6 +1309,7 @@ def test_ee_config_from_dict_defaults() -> None:
     assert cfg.image_name == ""
     assert not cfg.collections
     assert not cfg.python_deps
+    assert not cfg.galaxy_servers
 
 
 def test_ee_collection_from_dict_invalid_name() -> None:
@@ -1326,8 +1366,8 @@ def test_ee_config_to_schema_shape() -> None:
     assert "ansible_cfg" in props
     assert "registry" in props
     assert "image_name" in props
-    assert "automation_hub_url" in props
-    assert "private_hub_url" in props
+    assert "galaxy_servers" in props
+    assert props["galaxy_servers"]["type"] == "array"
     assert "ee_file_name" in props
 
 
@@ -1415,3 +1455,97 @@ def test_ee_config_both_sources_rejected(
     )
     with pytest.raises(CreatorError, match="Cannot specify both"):
         Init(config=config)
+
+
+# ---------------------------------------------------------------------------
+# GalaxyServer dataclass tests
+# ---------------------------------------------------------------------------
+
+
+def test_galaxy_server_from_dict_full() -> None:
+    """Test GalaxyServer.from_dict with all fields."""
+    data = {
+        "id": "automation_hub",
+        "url": "https://console.redhat.com/api/automation-hub/content/published/",
+        "auth_url": "https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token",
+        "token_required": True,
+    }
+    server = GalaxyServer.from_dict(data)
+
+    assert server.id == "automation_hub"
+    assert "console.redhat.com" in server.url
+    assert "sso.redhat.com" in server.auth_url
+    assert server.token_required is True
+
+
+def test_galaxy_server_from_dict_minimal() -> None:
+    """Test GalaxyServer.from_dict with only required fields."""
+    server = GalaxyServer.from_dict({"id": "galaxy", "url": "https://galaxy.ansible.com/"})
+
+    assert server.id == "galaxy"
+    assert server.url == "https://galaxy.ansible.com/"
+    assert server.auth_url == ""
+    assert server.token_required is False
+
+
+def test_galaxy_server_from_dict_missing_id() -> None:
+    """Test GalaxyServer.from_dict rejects missing id."""
+    with pytest.raises(CreatorError, match="must have an 'id' field"):
+        GalaxyServer.from_dict({"url": "https://galaxy.ansible.com/"})
+
+
+def test_galaxy_server_from_dict_missing_url() -> None:
+    """Test GalaxyServer.from_dict rejects missing url."""
+    with pytest.raises(CreatorError, match="must have a 'url' field"):
+        GalaxyServer.from_dict({"id": "galaxy"})
+
+
+def test_galaxy_server_from_dict_invalid_id() -> None:
+    """Test GalaxyServer.from_dict rejects invalid server IDs."""
+    with pytest.raises(CreatorError, match="Invalid galaxy server id"):
+        GalaxyServer.from_dict({"id": "Bad-Id", "url": "https://example.com/"})
+
+    with pytest.raises(CreatorError, match="Invalid galaxy server id"):
+        GalaxyServer.from_dict({"id": "has.dot", "url": "https://example.com/"})
+
+
+def test_galaxy_server_as_dict() -> None:
+    """Test GalaxyServer.as_dict includes derived token_env_var."""
+    server = GalaxyServer(
+        id="automation_hub",
+        url="https://example.com/",
+        auth_url="https://sso.example.com/token",
+        token_required=True,
+    )
+    result = server.as_dict()
+
+    assert result["id"] == "automation_hub"
+    assert result["url"] == "https://example.com/"
+    assert result["auth_url"] == "https://sso.example.com/token"
+    assert result["token_required"] is True
+    expected_var = "ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN"
+    assert result["token_env_var"] == expected_var
+
+
+def test_galaxy_server_as_dict_no_auth_url() -> None:
+    """Test GalaxyServer.as_dict omits auth_url when empty."""
+    server = GalaxyServer(id="galaxy", url="https://galaxy.ansible.com/")
+    result = server.as_dict()
+
+    assert "auth_url" not in result
+    expected_var = "ANSIBLE_GALAXY_SERVER_GALAXY_TOKEN"
+    assert result["token_env_var"] == expected_var
+
+
+def test_galaxy_server_to_schema() -> None:
+    """Test GalaxyServer.to_schema returns expected structure."""
+    schema = GalaxyServer.to_schema()
+
+    assert schema["type"] == "object"
+    assert "id" in schema["required"]
+    assert "url" in schema["required"]
+    props = schema["properties"]
+    assert "id" in props
+    assert "url" in props
+    assert "auth_url" in props
+    assert "token_required" in props
