@@ -30,19 +30,33 @@
 name: Execution Environment Build
 
 on:
-  pull_request:
-    branches:
-      - main
-      - master
-    types: [opened, reopened, synchronize]
-  push:
-    branches:
-      - main
-      - master
   release:
     types: [published]
   workflow_dispatch:
     inputs:
+      ee_dir:
+        description: "Directory containing the EE files (relative to repo root)"
+        required: false
+        default: "."
+        type: string
+      ee_file_name:
+        description: "EE definition file name"
+        required: false
+        default: "{{ ee_file_name }}"
+        type: string
+{%- if ee_image_name %}
+      ee_image_name:
+        description: "Container image name"
+        required: false
+        default: "{{ ee_image_name }}"
+        type: string
+{%- else %}
+      ee_image_name:
+        description: "Container image name (defaults to repository name)"
+        required: false
+        default: ""
+        type: string
+{%- endif %}
       skip_base_image_validation:
         description: "Skip base image validation"
         required: false
@@ -54,19 +68,22 @@ permissions:
   contents: read
   packages: write
 
-{% raw %}# Prevent concurrent builds on the same branch from racing to push tags
+{% raw %}# Prevent concurrent builds on the same ref from racing to push tags
 concurrency:
   group: ee-build-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: false
 {% endraw %}
 env:
   # Container registry configuration (override via repository Variables)
   REGISTRY: {% raw %}${{ vars.EE_REGISTRY || '{% endraw %}{{ ee_registry }}{% raw %}' }}{% endraw %}
 {%- if ee_image_name %}
-  IMAGE_NAME: {% raw %}${{ vars.EE_IMAGE_NAME || '{% endraw %}{{ ee_image_name }}{% raw %}' }}{% endraw %}
+  IMAGE_NAME: {% raw %}${{ inputs.ee_image_name || vars.EE_IMAGE_NAME || '{% endraw %}{{ ee_image_name }}{% raw %}' }}{% endraw %}
 {%- else %}
-  IMAGE_NAME: {% raw %}${{ vars.EE_IMAGE_NAME || github.repository }}{% endraw %}
+  IMAGE_NAME: {% raw %}${{ inputs.ee_image_name || vars.EE_IMAGE_NAME || github.repository }}{% endraw %}
 {%- endif %}
+  # EE directory and file name (override via workflow_dispatch inputs or repository Variables)
+  EE_DIR: {% raw %}${{ inputs.ee_dir || vars.EE_DIR || '.' }}{% endraw %}
+  EE_FILE_NAME: {% raw %}${{ inputs.ee_file_name || vars.EE_FILE_NAME || '{% endraw %}{{ ee_file_name }}{% raw %}' }}{% endraw %}
   # Base image age thresholds (in days) - annotations only, never blocks the build
   IMAGE_WARN_AGE: 40
   IMAGE_FAIL_AGE: 80
@@ -148,18 +165,19 @@ env:
             podman login -u "${{ vars.REDHAT_REGISTRY_USERNAME }}" \
             --password-stdin registry.redhat.io
 
-      - name: Extract base image from {% endraw %}{{ ee_file_name }}{% raw %}
+      - name: Extract base image from ${{ env.EE_DIR }}/${{ env.EE_FILE_NAME }}
         id: get-image
         run: |
+          EE_DEF="${{ env.EE_DIR }}/${{ env.EE_FILE_NAME }}"
           # Handle both flat and nested (v3) EE spec formats
           if command -v yq &> /dev/null; then
             BASE_IMAGE=$(yq -r '.images.base_image.name // .images.base_image // empty' \
-              {% endraw %}{{ ee_file_name }}{% raw %} 2>/dev/null || echo "")
+              "$EE_DEF" 2>/dev/null || echo "")
           fi
           if [[ -z "$BASE_IMAGE" ]]; then
-            BASE_IMAGE=$(grep -A2 'base_image:' {% endraw %}{{ ee_file_name }}{% raw %} | \
+            BASE_IMAGE=$(grep -A2 'base_image:' "$EE_DEF" | \
               grep -oP 'name:\s*\K\S+' || \
-              grep -oP 'base_image:\s*\K\S+' {% endraw %}{{ ee_file_name }}{% raw %} || echo "")
+              grep -oP 'base_image:\s*\K\S+' "$EE_DEF" || echo "")
             BASE_IMAGE=$(echo "$BASE_IMAGE" | tr -d '"' | tr -d "'" | head -1)
           fi
           echo "base_image=$BASE_IMAGE" >> "$GITHUB_OUTPUT"
@@ -302,13 +320,14 @@ env:
           ANSIBLE_CONFIG: ./ansible.cfg
         run: |
           echo "::group::Creating build context"
+          echo "::notice::EE directory: ${{ env.EE_DIR }}"
 
           # Resolve SCM token references (e.g. ${AAP_EE_BUILDER_GITHUB_TOKEN} in
           # collection URLs) into a temp copy so the workspace file stays clean.
-          EE_FILE="{% endraw %}{{ ee_file_name }}{% raw %}"
+          EE_FILE="${{ env.EE_DIR }}/${{ env.EE_FILE_NAME }}"
           if command -v envsubst &> /dev/null; then
             envsubst '$AAP_EE_BUILDER_GITHUB_TOKEN $AAP_EE_BUILDER_GITLAB_TOKEN $SCM_TOKEN' \
-              < "{% endraw %}{{ ee_file_name }}{% raw %}" > /tmp/ee-resolved.yml
+              < "$EE_FILE" > /tmp/ee-resolved.yml
             EE_FILE="/tmp/ee-resolved.yml"
           fi
 
@@ -320,8 +339,8 @@ env:
           # Volume-mount ansible.cfg into the build (never enters any OCI layer).
           # Ansible reads /etc/ansible/ansible.cfg as a fallback config path.
           EXTRA_ARGS=()
-          if [[ -f ansible.cfg ]]; then
-            EXTRA_ARGS+=(--volume "$(pwd)/ansible.cfg:/etc/ansible/ansible.cfg:ro")
+          if [[ -f "${{ env.EE_DIR }}/ansible.cfg" ]]; then
+            EXTRA_ARGS+=(--volume "$(pwd)/${{ env.EE_DIR }}/ansible.cfg:/etc/ansible/ansible.cfg:ro")
           fi
 {% endraw %}
 {%- if ee_galaxy_token_vars %}
@@ -352,21 +371,11 @@ env:
 
       - name: Push image
         id: push
-        if: github.event_name != 'pull_request'
         run: |
-          # Always push with build SHA tag (needed by release job)
           buildah push --digestfile /tmp/digest \
             "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
             "docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}"
           echo "digest=$(cat /tmp/digest)" >> "$GITHUB_OUTPUT"
-
-          # Additional tags based on event type
-          if [[ "${{ github.event_name }}" == "push" ]]; then
-            buildah push "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
-              "docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
-            buildah push "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
-              "docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
-          fi
 
   # ============================================================================
   # Release Stage
@@ -452,5 +461,6 @@ env:
             echo "### Image Details" >> "$GITHUB_STEP_SUMMARY"
             echo "- Registry: \`${{ env.REGISTRY }}\`" >> "$GITHUB_STEP_SUMMARY"
             echo "- Image: \`${{ env.IMAGE_NAME }}\`" >> "$GITHUB_STEP_SUMMARY"
+            echo "- EE Directory: \`${{ env.EE_DIR }}\`" >> "$GITHUB_STEP_SUMMARY"
           fi
 {%- endraw %}
