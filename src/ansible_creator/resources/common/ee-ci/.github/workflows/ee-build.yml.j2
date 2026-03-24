@@ -1,7 +1,7 @@
 ---
 # Execution Environment Build and Publish Workflow
 # Features:
-# - Token validation before build
+# - Token configuration checks before build
 # - Support for AAP/Automation Hub authentication
 # - Support for private collection repositories (Git SCM tokens)
 # - Base image lifecycle checks
@@ -40,8 +40,8 @@ on:
     types: [published]
   workflow_dispatch:
     inputs:
-      skip_validation:
-        description: "Skip token and image validation"
+      skip_base_image_validation:
+        description: "Skip base image validation"
         required: false
         default: "false"
         type: boolean
@@ -111,43 +111,12 @@ jobs:
             echo "::notice::No Git SCM token configured, private Git repositories will not be accessible"
           fi
 
-      - name: Validate Automation Hub Token
-        if: |
-          steps.check-ah.outputs.configured == 'true' &&
-          (github.event_name != 'workflow_dispatch' || github.event.inputs.skip_validation != 'true')
-        env:
-          AH_TOKEN: ${{ secrets.ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN }}
-        run: |
-          if [[ -z "$AH_TOKEN" ]]; then
-            echo "::notice::Skipping validation — no Automation Hub token"
-            exit 0
-          fi
-
-          # Only validate against Red Hat Automation Hub (SSO-backed).
-          # Non-default automation_hub_url values (e.g. on-prem PAH) use direct
-          # token auth and cannot be validated with this endpoint.
-          echo "Validating Automation Hub token against console.redhat.com..."
-          API_URL="https://console.redhat.com/api/automation-hub/"
-
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
-            -H "Authorization: Bearer ${AH_TOKEN}" \
-            "${API_URL}" 2>/dev/null || echo "000")
-
-          if [[ "$HTTP_CODE" == "200" ]] || [[ "$HTTP_CODE" == "302" ]]; then
-            echo "::notice::Automation Hub token validation successful"
-          elif [[ "$HTTP_CODE" == "401" ]] || [[ "$HTTP_CODE" == "403" ]]; then
-            echo "::error::Automation Hub token is invalid or expired"
-            exit 1
-          else
-            echo "::warning::Could not validate token (HTTP $HTTP_CODE), proceeding anyway"
-          fi
-
   check-base-image:
     name: Check Base Image Lifecycle
     runs-on: ubuntu-latest
     if: |
       github.event_name != 'workflow_dispatch' ||
-      github.event.inputs.skip_validation != 'true'
+      github.event.inputs.skip_base_image_validation != 'true'
     outputs:
       image_age_days: ${{ steps.check-age.outputs.age_days }}
       image_status: ${{ steps.check-age.outputs.status }}
