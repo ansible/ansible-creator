@@ -34,6 +34,7 @@ PATH_REPLACERS = {
     "sample_lookup": "plugin_name",
     "sample_test": "plugin_name",
     "run": "role_name",
+    "execution-environment.yml": "ee_file_name",
 }
 
 

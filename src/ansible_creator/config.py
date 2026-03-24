@@ -46,6 +46,7 @@ class Config:
         ee_python_deps: List of Python dependencies for execution environment.
         ee_system_packages: List of system packages for execution environment.
         ee_name: Name/tag for the execution environment image.
+        ee_file_name: Name of the EE definition file.
     """
 
     creator_version: str
@@ -74,6 +75,7 @@ class Config:
     ee_python_deps: Sequence[str] = field(default_factory=list)
     ee_system_packages: Sequence[str] = field(default_factory=list)
     ee_name: str = "ansible_sample_ee"
+    ee_file_name: str = "execution-environment.yml"
 
     def __post_init__(self) -> None:
         """Post process config values."""

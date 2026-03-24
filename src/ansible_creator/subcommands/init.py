@@ -188,7 +188,7 @@ class Init:
         if config.base_image != "quay.io/fedora/fedora:41":
             overrides["base_image"] = config.base_image
         if config.ee_name != "ansible_sample_ee":
-            overrides["name"] = config.ee_name
+            overrides["ee_name"] = config.ee_name
         if config.ee_collections:
             overrides["collections"] = tuple(
                 self._parse_single_collection(c) for c in config.ee_collections
@@ -197,6 +197,8 @@ class Init:
             overrides["python_deps"] = tuple(config.ee_python_deps)
         if config.ee_system_packages:
             overrides["system_packages"] = tuple(config.ee_system_packages)
+        if config.ee_file_name != "execution-environment.yml":
+            overrides["ee_file_name"] = config.ee_file_name
 
         if overrides:
             ee_cfg = dataclasses.replace(ee_cfg, **overrides)
@@ -400,14 +402,16 @@ class Init:
             ee_collections=[c.as_dict() for c in ec.collections],
             ee_python_deps=list(ec.python_deps),
             ee_system_packages=list(ec.system_packages),
-            ee_name=ec.name,
+            ee_name=ec.ee_name,
             ee_additional_build_files=list(ec.additional_build_files),
             ee_additional_build_steps=ec.additional_build_steps,
             ee_options=ec.options,
             ee_ansible_cfg=ec.ansible_cfg,
             is_official_ee=self._is_official_ee_image(ec.base_image),
             ee_python_path=self._get_ee_python_path(ec.base_image),
-            ee_name_is_default=ec.name == "ansible_sample_ee",
+            ee_name_is_default=ec.ee_name == "ansible_sample_ee",
+            ee_registry=ec.registry,
+            ee_image_name=ec.image_name,
             ee_automation_hub_url=ec.automation_hub_url,
             ee_private_hub_url=ec.private_hub_url,
             ee_file_name=ec.ee_file_name,

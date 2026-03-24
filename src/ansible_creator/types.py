@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 from urllib.parse import urlparse
 
 from ansible_creator.constants import GLOBAL_TEMPLATE_VARS
@@ -86,11 +86,14 @@ class EECollection:
     """A single Ansible collection entry for an execution environment.
 
     Attributes:
+        _KNOWN_KEYS: Accepted dictionary keys for from_dict validation.
         name: Collection name (namespace.name) or a Git URL.
         version: Version constraint string.
         type: Collection type (galaxy, git, url, file, dir).
         source: Source URL for the collection.
     """
+
+    _KNOWN_KEYS: ClassVar[frozenset[str]] = frozenset({"name", "version", "type", "source"})
 
     name: str
     version: str = ""
@@ -110,6 +113,11 @@ class EECollection:
         Raises:
             CreatorError: If required fields are missing or values are invalid.
         """
+        unknown = set(data) - cls._KNOWN_KEYS
+        if unknown:
+            msg = f"Unknown key(s) in collection entry: {', '.join(sorted(unknown))}"
+            raise CreatorError(msg)
+
         if "name" not in data:
             msg = "Collection in config file must have a 'name' field"
             raise CreatorError(msg)
@@ -192,8 +200,11 @@ class EEConfig:
     that consumers (e.g. the ADT server) know the payload shape.
 
     Attributes:
-        name: Name/tag for the EE image.
+        _KNOWN_KEYS: Accepted dictionary keys for from_dict validation.
+        ee_name: Name/tag for the EE image.
         base_image: Base container image.
+        registry: Container registry hostname for the CI workflow (e.g. ghcr.io, quay.io).
+        image_name: Image name for the CI workflow (e.g. my-org/my-ee).
         collections: Ansible collections to include.
         python_deps: Python package dependencies.
         system_packages: System packages to install.
@@ -206,8 +217,30 @@ class EEConfig:
         ee_file_name: Name of the EE definition file (default: execution-environment.yml).
     """
 
-    name: str = "ansible_sample_ee"
+    _KNOWN_KEYS: ClassVar[frozenset[str]] = frozenset(
+        {
+            "ee_name",
+            "name",  # legacy alias for ee_name
+            "base_image",
+            "registry",
+            "image_name",
+            "collections",
+            "python_deps",
+            "system_packages",
+            "additional_build_files",
+            "additional_build_steps",
+            "options",
+            "ansible_cfg",
+            "automation_hub_url",
+            "private_hub_url",
+            "ee_file_name",
+        }
+    )
+
+    ee_name: str = "ansible_sample_ee"
     base_image: str = "quay.io/fedora/fedora:41"
+    registry: str = "ghcr.io"
+    image_name: str = ""
     collections: tuple[EECollection, ...] = ()
     python_deps: tuple[str, ...] = ()
     system_packages: tuple[str, ...] = ()
@@ -231,15 +264,30 @@ class EEConfig:
 
         Returns:
             A validated EEConfig instance.
+
+        Raises:
+            CreatorError: If unknown keys are present.
         """
+        unknown = set(data) - cls._KNOWN_KEYS
+        if unknown:
+            msg = f"Unknown key(s) in EE config: {', '.join(sorted(unknown))}"
+            raise CreatorError(msg)
+
         raw_collections = data.get("collections", [])
         collections = tuple(
             EECollection.from_dict(c if isinstance(c, dict) else {"name": c})
             for c in raw_collections
         )
+        registry = data.get("registry", "ghcr.io")
+        if "://" in registry:
+            msg = f"Invalid registry '{registry}'. Provide a hostname (e.g. 'ghcr.io'), not a URL."
+            raise CreatorError(msg)
+
         return cls(
-            name=data.get("name", "ansible_sample_ee"),
+            ee_name=data.get("ee_name", data.get("name", "ansible_sample_ee")),
             base_image=data.get("base_image", "quay.io/fedora/fedora:41"),
+            registry=registry,
+            image_name=data.get("image_name", ""),
             collections=collections,
             python_deps=tuple(data.get("python_deps", [])),
             system_packages=tuple(data.get("system_packages", [])),
@@ -293,7 +341,7 @@ class EEConfig:
                 "or as a YAML/JSON file via --ee-config-file)"
             ),
             "properties": {
-                "name": {
+                "ee_name": {
                     "type": "string",
                     "default": "ansible_sample_ee",
                     "description": "Name/tag for the EE image",
@@ -302,6 +350,21 @@ class EEConfig:
                     "type": "string",
                     "default": "quay.io/fedora/fedora:41",
                     "description": "Base container image",
+                },
+                "registry": {
+                    "type": "string",
+                    "default": "ghcr.io",
+                    "description": (
+                        "Container registry hostname for the CI workflow (e.g. ghcr.io, quay.io)"
+                    ),
+                },
+                "image_name": {
+                    "type": "string",
+                    "default": "",
+                    "description": (
+                        "Image name for the CI workflow "
+                        "(e.g. my-org/my-ee). Defaults to github.repository"
+                    ),
                 },
                 "collections": {
                     "type": "array",
@@ -428,6 +491,8 @@ class TemplateData:
         is_official_ee: Whether the base image is an official Red Hat EE image.
         ee_python_path: Python interpreter path for the EE (varies by AAP version).
         ee_name_is_default: Whether ee_name is the unchanged default value.
+        ee_registry: Container registry hostname for the CI workflow.
+        ee_image_name: Image name for the CI workflow.
         ee_automation_hub_url: Red Hat Automation Hub content URL.
         ee_private_hub_url: On-prem Private Automation Hub URL.
         ee_file_name: Name of the EE definition file.
@@ -462,6 +527,8 @@ class TemplateData:
     is_official_ee: bool = False
     ee_python_path: str = DEFAULT_PYTHON_PATH
     ee_name_is_default: bool = True
+    ee_registry: str = "ghcr.io"
+    ee_image_name: str = ""
     ee_automation_hub_url: str = "https://console.redhat.com/api/automation-hub/content/published/"
     ee_private_hub_url: str = ""
     ee_file_name: str = "execution-environment.yml"

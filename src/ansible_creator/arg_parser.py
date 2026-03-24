@@ -815,6 +815,15 @@ class Parser:
             help="Name/tag for the execution environment image. Default: ansible_sample_ee",
         )
 
+        parser.add_argument(
+            "--ee-file-name",
+            dest="ee_file_name",
+            default="execution-environment.yml",
+            type=EEConfig._validate_ee_file_name,  # noqa: SLF001
+            help="Name of the EE definition file. "
+            "Must end with .yml or .yaml. Default: execution-environment.yml",
+        )
+
         self._add_args_common(parser)
         self._add_args_init_common(parser)
 

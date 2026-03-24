@@ -43,6 +43,7 @@ class ConfigDict(TypedDict, total=False):
         ee_python_deps: List of Python dependencies for execution environment.
         ee_system_packages: List of system packages for execution environment.
         ee_name: Name/tag for the execution environment image.
+        ee_file_name: Name of the EE definition file.
     """
 
     creator_version: str
@@ -61,6 +62,7 @@ class ConfigDict(TypedDict, total=False):
     ee_python_deps: list[str]
     ee_system_packages: list[str]
     ee_name: str
+    ee_file_name: str
 
 
 @pytest.fixture(name="output")
@@ -174,6 +176,7 @@ def test_run_success_ee_project_with_params(
     cli_args["ee_python_deps"] = ["requests", "boto3"]
     cli_args["ee_system_packages"] = ["git", "openssh-clients"]
     cli_args["ee_name"] = "my-custom-ee"
+    cli_args["ee_file_name"] = "my-ee.yml"
 
     init = Init(Config(**cli_args))
     init.run()
@@ -181,8 +184,9 @@ def test_run_success_ee_project_with_params(
 
     assert r"Note: execution_env project created" in result
 
-    ee_file = tmp_path / "custom_ee_project" / "execution-environment.yml"
+    ee_file = tmp_path / "custom_ee_project" / "my-ee.yml"
     assert ee_file.exists()
+    assert not (tmp_path / "custom_ee_project" / "execution-environment.yml").exists()
 
     ee_content = ee_file.read_text()
 
@@ -916,6 +920,41 @@ def test_ee_project_official_image_fallback_python(
     assert "package_manager_path: /usr/bin/microdnf" in ee_content
 
 
+def test_ee_project_custom_registry(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test that registry and image_name are templated into the CI workflow.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_custom_registry")
+    cli_args["ee_config"] = json.dumps(
+        {
+            "registry": "quay.io",
+            "image_name": "my-org/my-ee",
+        }
+    )
+
+    init = Init(Config(**cli_args))
+    init.run()
+    result = capsys.readouterr().out
+
+    assert r"Note: execution_env project created" in result
+
+    workflow_file = tmp_path / "ee_custom_registry" / ".github" / "workflows" / "ee-build.yml"
+    workflow_content = workflow_file.read_text()
+
+    assert "vars.EE_REGISTRY || 'quay.io'" in workflow_content
+    assert "vars.EE_IMAGE_NAME || 'my-org/my-ee'" in workflow_content
+    assert "github.repository" not in workflow_content.split("IMAGE_NAME")[1].split("\n")[0]
+
+
 def test_ee_project_non_official_image_no_microdnf(
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
@@ -1131,7 +1170,7 @@ def test_ee_project_git_url_edge_cases(
 def test_ee_config_from_dict_full() -> None:
     """Test EEConfig.from_dict with all supported fields."""
     data = {
-        "name": "my-ee",
+        "ee_name": "my-ee",
         "base_image": "quay.io/custom:latest",
         "collections": [{"name": "ansible.posix", "version": ">=1.0"}],
         "python_deps": ["jmespath"],
@@ -1143,7 +1182,7 @@ def test_ee_config_from_dict_full() -> None:
     }
     cfg = EEConfig.from_dict(data)
 
-    assert cfg.name == "my-ee"
+    assert cfg.ee_name == "my-ee"
     assert cfg.base_image == "quay.io/custom:latest"
     assert len(cfg.collections) == 1
     assert cfg.collections[0].name == "ansible.posix"
@@ -1169,6 +1208,26 @@ def test_ee_config_from_dict_hub_urls() -> None:
 
     assert cfg.automation_hub_url == "https://custom-ah.example.com/api/hub/"
     assert cfg.private_hub_url == "https://pah.corp.example.com/api/galaxy/content/published/"
+
+
+def test_ee_config_from_dict_registry_and_image_name() -> None:
+    """Test EEConfig.from_dict with registry and image_name."""
+    cfg = EEConfig.from_dict({"registry": "quay.io", "image_name": "my-org/my-ee"})
+    assert cfg.registry == "quay.io"
+    assert cfg.image_name == "my-org/my-ee"
+
+    cfg_default = EEConfig.from_dict({})
+    assert cfg_default.registry == "ghcr.io"
+    assert cfg_default.image_name == ""
+
+
+def test_ee_config_from_dict_registry_rejects_url() -> None:
+    """Test EEConfig.from_dict rejects registry with URL scheme."""
+    with pytest.raises(CreatorError, match="Invalid registry"):
+        EEConfig.from_dict({"registry": "https://ghcr.io"})
+
+    with pytest.raises(CreatorError, match="Invalid registry"):
+        EEConfig.from_dict({"registry": "http://quay.io"})
 
 
 def test_ee_config_from_dict_ee_file_name() -> None:
@@ -1205,8 +1264,10 @@ def test_ee_config_from_dict_defaults() -> None:
     """Test EEConfig.from_dict with empty dict uses defaults."""
     cfg = EEConfig.from_dict({})
 
-    assert cfg.name == "ansible_sample_ee"
+    assert cfg.ee_name == "ansible_sample_ee"
     assert cfg.base_image == "quay.io/fedora/fedora:41"
+    assert cfg.registry == "ghcr.io"
+    assert cfg.image_name == ""
     assert not cfg.collections
     assert not cfg.python_deps
 
@@ -1227,13 +1288,34 @@ def test_ee_collection_as_dict_sparse() -> None:
     assert result == {"name": "ansible.posix", "version": "1.0", "type": "galaxy"}
 
 
+def test_ee_config_from_dict_rejects_unknown_keys() -> None:
+    """Test EEConfig.from_dict rejects unknown keys."""
+    with pytest.raises(CreatorError, match=r"Unknown key.*EE config.*bogus"):
+        EEConfig.from_dict({"bogus": "value"})
+
+    with pytest.raises(CreatorError, match=r"Unknown key.*EE config.*collection_list"):
+        EEConfig.from_dict({"base_image": "quay.io/test:1", "collection_list": []})
+
+    with pytest.raises(CreatorError, match=r"Unknown key.*EE config.*base_images"):
+        EEConfig.from_dict({"base_images": "quay.io/test:1"})
+
+
+def test_ee_collection_from_dict_rejects_unknown_keys() -> None:
+    """Test EECollection.from_dict rejects unknown keys."""
+    with pytest.raises(CreatorError, match=r"Unknown key.*collection.*src"):
+        EECollection.from_dict({"name": "ansible.posix", "src": "foo"})
+
+    with pytest.raises(CreatorError, match=r"Unknown key.*collection.*extra"):
+        EECollection.from_dict({"name": "ansible.posix", "extra": "bar"})
+
+
 def test_ee_config_to_schema_shape() -> None:
     """Test EEConfig.to_schema returns expected structure."""
     schema = EEConfig.to_schema()
 
     assert schema["type"] == "object"
     props = schema["properties"]
-    assert "name" in props
+    assert "ee_name" in props
     assert "base_image" in props
     assert "collections" in props
     assert props["collections"]["type"] == "array"
@@ -1242,6 +1324,8 @@ def test_ee_config_to_schema_shape() -> None:
     assert "python_deps" in props
     assert "system_packages" in props
     assert "ansible_cfg" in props
+    assert "registry" in props
+    assert "image_name" in props
     assert "automation_hub_url" in props
     assert "private_hub_url" in props
     assert "ee_file_name" in props
@@ -1254,7 +1338,7 @@ def test_ee_config_schema_in_cli_schema() -> None:
 
     assert ee_config_schema["type"] == "object"
     assert "properties" in ee_config_schema
-    assert "name" in ee_config_schema["properties"]
+    assert "ee_name" in ee_config_schema["properties"]
     assert "base_image" in ee_config_schema["properties"]
     assert "collections" in ee_config_schema["properties"]
 
@@ -1326,7 +1410,7 @@ def test_ee_config_both_sources_rejected(
         subcommand="init",
         project="execution_env",
         init_path=str(tmp_path / "test-ee"),
-        ee_config='{"name": "test"}',
+        ee_config='{"ee_name": "test"}',
         ee_config_file="/some/file.yml",
     )
     with pytest.raises(CreatorError, match="Cannot specify both"):
