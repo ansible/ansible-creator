@@ -197,6 +197,8 @@ class Init:
             overrides["python_deps"] = tuple(config.ee_python_deps)
         if config.ee_system_packages:
             overrides["system_packages"] = tuple(config.ee_system_packages)
+        if config.ee_file_name != "execution-environment.yml":
+            overrides["ee_file_name"] = config.ee_file_name
 
         if overrides:
             ee_cfg = dataclasses.replace(ee_cfg, **overrides)

@@ -43,6 +43,7 @@ class ConfigDict(TypedDict, total=False):
         ee_python_deps: List of Python dependencies for execution environment.
         ee_system_packages: List of system packages for execution environment.
         ee_name: Name/tag for the execution environment image.
+        ee_file_name: Name of the EE definition file.
     """
 
     creator_version: str
@@ -61,6 +62,7 @@ class ConfigDict(TypedDict, total=False):
     ee_python_deps: list[str]
     ee_system_packages: list[str]
     ee_name: str
+    ee_file_name: str
 
 
 @pytest.fixture(name="output")
@@ -174,6 +176,7 @@ def test_run_success_ee_project_with_params(
     cli_args["ee_python_deps"] = ["requests", "boto3"]
     cli_args["ee_system_packages"] = ["git", "openssh-clients"]
     cli_args["ee_name"] = "my-custom-ee"
+    cli_args["ee_file_name"] = "my-ee.yml"
 
     init = Init(Config(**cli_args))
     init.run()
@@ -181,8 +184,9 @@ def test_run_success_ee_project_with_params(
 
     assert r"Note: execution_env project created" in result
 
-    ee_file = tmp_path / "custom_ee_project" / "execution-environment.yml"
+    ee_file = tmp_path / "custom_ee_project" / "my-ee.yml"
     assert ee_file.exists()
+    assert not (tmp_path / "custom_ee_project" / "execution-environment.yml").exists()
 
     ee_content = ee_file.read_text()
 
