@@ -1,0 +1,62 @@
+# Next Steps
+
+Complete the following setup to enable automated EE builds.
+{%- if ee_galaxy_token_vars or ee_scm_token_vars %}
+
+## Required Secrets
+
+Configure these secrets in **Settings > Secrets and variables > Actions > New repository secret**.
+{%- if ee_galaxy_token_vars %}
+
+### Galaxy Server Tokens
+
+These tokens authenticate `ansible-galaxy collection install` during the EE build.
+
+| Secret | Purpose |
+|--------|---------|
+{%- for var in ee_galaxy_token_vars %}
+| `{{ var }}` | Galaxy server authentication token |
+{%- endfor %}
+{%- endif %}
+{%- if ee_scm_token_vars %}
+
+### SCM Tokens
+
+These tokens authenticate `git clone` for private collection repositories.
+
+| Secret | Purpose |
+|--------|---------|
+{%- for server in ee_scm_servers %}
+| `{{ server.token_env_var }}` | Git access for collections from `{{ server.hostname }}` |
+{%- endfor %}
+{%- endif %}
+{%- endif %}
+
+## Optional Secrets
+
+| Secret | Purpose |
+|--------|---------|
+| `REGISTRY_USERNAME` | Container registry username (defaults to `github.actor`) |
+| `REGISTRY_PASSWORD` | Container registry password (defaults to `GITHUB_TOKEN`) |
+| `REDHAT_REGISTRY_PASSWORD` | Red Hat registry password (for pulling base images) |
+
+## Repository Variables
+
+Configure these in **Settings > Secrets and variables > Actions > Variables**.
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `EE_REGISTRY` | `{{ ee_registry }}` | Container registry hostname |
+| `EE_IMAGE_NAME` | `<owner>/<repo>` | Image name |
+| `REDHAT_REGISTRY_USERNAME` | - | Red Hat registry username |
+
+## Verify Your Setup
+
+{% if ee_galaxy_token_vars or ee_scm_token_vars -%}
+1. Configure all required secrets listed above
+{% else -%}
+1. Review the optional secrets listed above and configure any you need
+{% endif -%}
+2. Push to a branch or open a pull request to trigger the workflow
+3. Check the workflow run in **Actions** for any authentication errors
+4. Once the build succeeds, verify the image in your container registry

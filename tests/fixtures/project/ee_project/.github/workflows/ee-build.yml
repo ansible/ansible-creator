@@ -11,9 +11,6 @@
 #   Galaxy server tokens follow the Ansible naming convention:
 #     ANSIBLE_GALAXY_SERVER_<ID>_TOKEN
 #   where <ID> matches the [galaxy_server.<id>] section in ansible.cfg.
-#   AAP_EE_BUILDER_GITHUB_TOKEN  - GitHub PAT for private collections
-#   AAP_EE_BUILDER_GITLAB_TOKEN  - GitLab PAT for private collections
-#   SCM_TOKEN                    - Generic SCM token for custom Git servers
 #   REGISTRY_USERNAME/PASSWORD   - Container registry credentials
 #   REDHAT_REGISTRY_PASSWORD     - Red Hat registry for base images
 #
@@ -21,6 +18,9 @@
 #   Galaxy server tokens are passed via Containerfile ARG directives and
 #   --build-arg, which are available during the build but do NOT persist
 #   in the final image (not in layers, metadata, or history).
+#   SCM tokens are resolved via envsubst into the build context after
+#   ansible-builder create. The multi-stage build ensures tokens only
+#   exist in intermediate stages, never in the final image.
 #   The ansible.cfg (server URLs only, no tokens) is volume-mounted into
 #   the build and also never enters any OCI layer.
 
@@ -95,21 +95,12 @@ jobs:
           echo "configured=false" >> "$GITHUB_OUTPUT"
           echo "::notice::No galaxy server tokens configured for this project"
 
-
-      - name: Check if Git SCM token is configured
+      - name: No SCM tokens required
         id: check-git-token
-        env:
-          GITHUB_SCM_TOKEN: ${{ secrets.AAP_EE_BUILDER_GITHUB_TOKEN }}
-          GITLAB_SCM_TOKEN: ${{ secrets.AAP_EE_BUILDER_GITLAB_TOKEN }}
-          GENERIC_SCM_TOKEN: ${{ secrets.SCM_TOKEN }}
         run: |
-          if [[ -n "$GITHUB_SCM_TOKEN" ]] || [[ -n "$GITLAB_SCM_TOKEN" ]] || [[ -n "$GENERIC_SCM_TOKEN" ]]; then
-            echo "configured=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::Git SCM token is configured for private collection repositories"
-          else
-            echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::No Git SCM token configured, private Git repositories will not be accessible"
-          fi
+          echo "configured=false" >> "$GITHUB_OUTPUT"
+          echo "::notice::No SCM tokens configured for this project"
+
 
   check-base-image:
     name: Check Base Image Lifecycle
@@ -225,39 +216,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install ansible-builder ansible-core
 
-      - name: Configure Git credentials for private repositories
-        if: needs.validate-tokens.outputs.git_token_configured == 'true'
-        env:
-          GITHUB_SCM_TOKEN: ${{ secrets.AAP_EE_BUILDER_GITHUB_TOKEN }}
-          GITLAB_SCM_TOKEN: ${{ secrets.AAP_EE_BUILDER_GITLAB_TOKEN }}
-          GENERIC_SCM_TOKEN: ${{ secrets.SCM_TOKEN }}
-        run: |
-          # Configure git credential helper for private repository access
-          git config --global credential.helper store
-
-          # Configure GitHub token if available
-          if [[ -n "$GITHUB_SCM_TOKEN" ]]; then
-            echo "https://x-access-token:${GITHUB_SCM_TOKEN}@github.com" >> ~/.git-credentials
-            echo "::notice::Configured GitHub credentials for private repositories"
-          fi
-
-          # Configure GitLab token if available
-          if [[ -n "$GITLAB_SCM_TOKEN" ]]; then
-            echo "https://oauth2:${GITLAB_SCM_TOKEN}@gitlab.com" >> ~/.git-credentials
-            echo "::notice::Configured GitLab credentials for private repositories"
-          fi
-
-          # Configure generic SCM token if available (for custom Git servers)
-          if [[ -n "$GENERIC_SCM_TOKEN" ]] && [[ -n "${{ vars.SCM_SERVER }}" ]]; then
-            echo "https://token:${GENERIC_SCM_TOKEN}@${{ vars.SCM_SERVER }}" >> ~/.git-credentials
-            echo "::notice::Configured generic SCM credentials"
-          fi
-
-          # Only chmod if the file was created
-          if [[ -f ~/.git-credentials ]]; then
-            chmod 600 ~/.git-credentials
-          fi
-
       - name: Login to container registry
         run: |
           echo "${{ secrets.REGISTRY_PASSWORD || secrets.GITHUB_TOKEN }}" | \
@@ -274,27 +232,15 @@ jobs:
       - name: Build execution environment
         id: build
         env:
-          # SCM tokens for private collection Git URLs
-          AAP_EE_BUILDER_GITHUB_TOKEN: ${{ secrets.AAP_EE_BUILDER_GITHUB_TOKEN }}
-          AAP_EE_BUILDER_GITLAB_TOKEN: ${{ secrets.AAP_EE_BUILDER_GITLAB_TOKEN }}
-          SCM_TOKEN: ${{ secrets.SCM_TOKEN }}
 
           # Use the repo's ansible.cfg for host-side dependency resolution
           ANSIBLE_CONFIG: ./ansible.cfg
         run: |
           echo "::group::Creating build context"
           echo "::notice::EE directory: ${{ env.EE_DIR }}"
+          ansible-builder create --file "${{ env.EE_DIR }}/${{ env.EE_FILE_NAME }}" --output-filename Containerfile
 
-          # Resolve SCM token references (e.g. ${AAP_EE_BUILDER_GITHUB_TOKEN} in
-          # collection URLs) into a temp copy so the workspace file stays clean.
-          EE_FILE="${{ env.EE_DIR }}/${{ env.EE_FILE_NAME }}"
-          if command -v envsubst &> /dev/null; then
-            envsubst '$AAP_EE_BUILDER_GITHUB_TOKEN $AAP_EE_BUILDER_GITLAB_TOKEN $SCM_TOKEN' \
-              < "$EE_FILE" > /tmp/ee-resolved.yml
-            EE_FILE="/tmp/ee-resolved.yml"
-          fi
 
-          ansible-builder create --file "$EE_FILE" --output-filename Containerfile
           echo "::endgroup::"
 
           echo "::group::Building image"
@@ -394,7 +340,7 @@ jobs:
           echo "| Provider | Configured |" >> "$GITHUB_STEP_SUMMARY"
           echo "|----------|------------|" >> "$GITHUB_STEP_SUMMARY"
           echo "| Galaxy Server Tokens | ${{ needs.validate-tokens.outputs.galaxy_tokens_configured }} |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Git SCM Token | ${{ needs.validate-tokens.outputs.git_token_configured }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| SCM Tokens | ${{ needs.validate-tokens.outputs.git_token_configured }} |" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
 
           if [[ "${{ needs.check-base-image.outputs.image_age_days }}" != "" ]]; then
