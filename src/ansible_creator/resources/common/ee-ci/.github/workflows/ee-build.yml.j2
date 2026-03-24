@@ -40,8 +40,8 @@ on:
     types: [published]
   workflow_dispatch:
     inputs:
-      skip_validation:
-        description: "Skip token and image validation"
+      skip_base_image_validation:
+        description: "Skip base image validation"
         required: false
         default: "false"
         type: boolean
@@ -116,7 +116,7 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       github.event_name != 'workflow_dispatch' ||
-      github.event.inputs.skip_validation != 'true'
+      github.event.inputs.skip_base_image_validation != 'true'
     outputs:
       image_age_days: ${{ steps.check-age.outputs.age_days }}
       image_status: ${{ steps.check-age.outputs.status }}
