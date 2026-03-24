@@ -6,6 +6,7 @@ import dataclasses
 import json
 import shutil
 import uuid
+
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -22,6 +23,7 @@ from ansible_creator.types import (
     validate_source_url,
 )
 from ansible_creator.utils import Copier, Walker, ask_yes_no
+
 
 if TYPE_CHECKING:
     from ansible_creator.config import Config

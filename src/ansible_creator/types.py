@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import re
+
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, ClassVar
 from urllib.parse import urlparse
 
 from ansible_creator.constants import GLOBAL_TEMPLATE_VARS
 from ansible_creator.exceptions import CreatorError
+
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
