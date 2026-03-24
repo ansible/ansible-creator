@@ -49,19 +49,11 @@ on:
         required: false
         default: "{{ ee_registry }}"
         type: string
-{%- if ee_image_name %}
-      ee_image_name:
-        description: "Container image name"
-        required: false
-        default: "{{ ee_image_name }}"
-        type: string
-{%- else %}
       ee_image_name:
         description: "Container image name (defaults to repository name)"
         required: false
-        default: ""
+        default: "{{ ee_image_name }}"
         type: string
-{%- endif %}
       skip_base_image_validation:
         description: "Skip base image validation"
         required: false
