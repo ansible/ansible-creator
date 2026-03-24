@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 from urllib.parse import urlparse
 
 from ansible_creator.constants import GLOBAL_TEMPLATE_VARS
@@ -86,11 +86,14 @@ class EECollection:
     """A single Ansible collection entry for an execution environment.
 
     Attributes:
+        _KNOWN_KEYS: Accepted dictionary keys for from_dict validation.
         name: Collection name (namespace.name) or a Git URL.
         version: Version constraint string.
         type: Collection type (galaxy, git, url, file, dir).
         source: Source URL for the collection.
     """
+
+    _KNOWN_KEYS: ClassVar[frozenset[str]] = frozenset({"name", "version", "type", "source"})
 
     name: str
     version: str = ""
@@ -110,6 +113,11 @@ class EECollection:
         Raises:
             CreatorError: If required fields are missing or values are invalid.
         """
+        unknown = set(data) - cls._KNOWN_KEYS
+        if unknown:
+            msg = f"Unknown key(s) in collection entry: {', '.join(sorted(unknown))}"
+            raise CreatorError(msg)
+
         if "name" not in data:
             msg = "Collection in config file must have a 'name' field"
             raise CreatorError(msg)
@@ -192,7 +200,8 @@ class EEConfig:
     that consumers (e.g. the ADT server) know the payload shape.
 
     Attributes:
-        name: Name/tag for the EE image.
+        _KNOWN_KEYS: Accepted dictionary keys for from_dict validation.
+        ee_name: Name/tag for the EE image.
         base_image: Base container image.
         collections: Ansible collections to include.
         python_deps: Python package dependencies.
@@ -206,7 +215,25 @@ class EEConfig:
         ee_file_name: Name of the EE definition file (default: execution-environment.yml).
     """
 
-    name: str = "ansible_sample_ee"
+    _KNOWN_KEYS: ClassVar[frozenset[str]] = frozenset(
+        {
+            "ee_name",
+            "name",  # legacy alias for ee_name
+            "base_image",
+            "collections",
+            "python_deps",
+            "system_packages",
+            "additional_build_files",
+            "additional_build_steps",
+            "options",
+            "ansible_cfg",
+            "automation_hub_url",
+            "private_hub_url",
+            "ee_file_name",
+        }
+    )
+
+    ee_name: str = "ansible_sample_ee"
     base_image: str = "quay.io/fedora/fedora:41"
     collections: tuple[EECollection, ...] = ()
     python_deps: tuple[str, ...] = ()
@@ -231,14 +258,22 @@ class EEConfig:
 
         Returns:
             A validated EEConfig instance.
+
+        Raises:
+            CreatorError: If unknown keys are present.
         """
+        unknown = set(data) - cls._KNOWN_KEYS
+        if unknown:
+            msg = f"Unknown key(s) in EE config: {', '.join(sorted(unknown))}"
+            raise CreatorError(msg)
+
         raw_collections = data.get("collections", [])
         collections = tuple(
             EECollection.from_dict(c if isinstance(c, dict) else {"name": c})
             for c in raw_collections
         )
         return cls(
-            name=data.get("name", "ansible_sample_ee"),
+            ee_name=data.get("ee_name", data.get("name", "ansible_sample_ee")),
             base_image=data.get("base_image", "quay.io/fedora/fedora:41"),
             collections=collections,
             python_deps=tuple(data.get("python_deps", [])),
@@ -293,7 +328,7 @@ class EEConfig:
                 "or as a YAML/JSON file via --ee-config-file)"
             ),
             "properties": {
-                "name": {
+                "ee_name": {
                     "type": "string",
                     "default": "ansible_sample_ee",
                     "description": "Name/tag for the EE image",
