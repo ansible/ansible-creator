@@ -174,6 +174,7 @@ def test_run_success_ee_project_with_params(
     cli_args["ee_python_deps"] = ["requests", "boto3"]
     cli_args["ee_system_packages"] = ["git", "openssh-clients"]
     cli_args["ee_name"] = "my-custom-ee"
+    cli_args["ee_file_name"] = "my-ee.yml"
 
     init = Init(Config(**cli_args))
     init.run()
@@ -181,8 +182,9 @@ def test_run_success_ee_project_with_params(
 
     assert r"Note: execution_env project created" in result
 
-    ee_file = tmp_path / "custom_ee_project" / "execution-environment.yml"
+    ee_file = tmp_path / "custom_ee_project" / "my-ee.yml"
     assert ee_file.exists()
+    assert not (tmp_path / "custom_ee_project" / "execution-environment.yml").exists()
 
     ee_content = ee_file.read_text()
 
