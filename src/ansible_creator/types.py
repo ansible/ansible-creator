@@ -220,6 +220,8 @@ class EEConfig:
             "ee_name",
             "name",  # legacy alias for ee_name
             "base_image",
+            "registry",
+            "image_name",
             "collections",
             "python_deps",
             "system_packages",
