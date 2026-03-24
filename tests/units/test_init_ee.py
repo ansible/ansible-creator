@@ -916,6 +916,41 @@ def test_ee_project_official_image_fallback_python(
     assert "package_manager_path: /usr/bin/microdnf" in ee_content
 
 
+def test_ee_project_custom_registry(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test that registry and image_name are templated into the CI workflow.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_custom_registry")
+    cli_args["ee_config"] = json.dumps(
+        {
+            "registry": "quay.io",
+            "image_name": "my-org/my-ee",
+        }
+    )
+
+    init = Init(Config(**cli_args))
+    init.run()
+    result = capsys.readouterr().out
+
+    assert r"Note: execution_env project created" in result
+
+    workflow_file = tmp_path / "ee_custom_registry" / ".github" / "workflows" / "ee-build.yml"
+    workflow_content = workflow_file.read_text()
+
+    assert "vars.EE_REGISTRY || 'quay.io'" in workflow_content
+    assert "vars.EE_IMAGE_NAME || 'my-org/my-ee'" in workflow_content
+    assert "github.repository" not in workflow_content.split("IMAGE_NAME")[1].split("\n")[0]
+
+
 def test_ee_project_non_official_image_no_microdnf(
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
@@ -1171,6 +1206,26 @@ def test_ee_config_from_dict_hub_urls() -> None:
     assert cfg.private_hub_url == "https://pah.corp.example.com/api/galaxy/content/published/"
 
 
+def test_ee_config_from_dict_registry_and_image_name() -> None:
+    """Test EEConfig.from_dict with registry and image_name."""
+    cfg = EEConfig.from_dict({"registry": "quay.io", "image_name": "my-org/my-ee"})
+    assert cfg.registry == "quay.io"
+    assert cfg.image_name == "my-org/my-ee"
+
+    cfg_default = EEConfig.from_dict({})
+    assert cfg_default.registry == "ghcr.io"
+    assert cfg_default.image_name == ""
+
+
+def test_ee_config_from_dict_registry_rejects_url() -> None:
+    """Test EEConfig.from_dict rejects registry with URL scheme."""
+    with pytest.raises(CreatorError, match="Invalid registry"):
+        EEConfig.from_dict({"registry": "https://ghcr.io"})
+
+    with pytest.raises(CreatorError, match="Invalid registry"):
+        EEConfig.from_dict({"registry": "http://quay.io"})
+
+
 def test_ee_config_from_dict_ee_file_name() -> None:
     """Test EEConfig.from_dict with custom ee_file_name."""
     cfg = EEConfig.from_dict({"ee_file_name": "my-ee.yml"})
@@ -1207,6 +1262,8 @@ def test_ee_config_from_dict_defaults() -> None:
 
     assert cfg.ee_name == "ansible_sample_ee"
     assert cfg.base_image == "quay.io/fedora/fedora:41"
+    assert cfg.registry == "ghcr.io"
+    assert cfg.image_name == ""
     assert not cfg.collections
     assert not cfg.python_deps
 
@@ -1263,6 +1320,8 @@ def test_ee_config_to_schema_shape() -> None:
     assert "python_deps" in props
     assert "system_packages" in props
     assert "ansible_cfg" in props
+    assert "registry" in props
+    assert "image_name" in props
     assert "automation_hub_url" in props
     assert "private_hub_url" in props
     assert "ee_file_name" in props

@@ -408,6 +408,8 @@ class Init:
             is_official_ee=self._is_official_ee_image(ec.base_image),
             ee_python_path=self._get_ee_python_path(ec.base_image),
             ee_name_is_default=ec.ee_name == "ansible_sample_ee",
+            ee_registry=ec.registry,
+            ee_image_name=ec.image_name,
             ee_automation_hub_url=ec.automation_hub_url,
             ee_private_hub_url=ec.private_hub_url,
             ee_file_name=ec.ee_file_name,
