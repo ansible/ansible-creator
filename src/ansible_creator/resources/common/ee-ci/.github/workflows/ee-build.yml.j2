@@ -44,6 +44,11 @@ on:
         required: false
         default: "{{ ee_file_name }}"
         type: string
+      ee_registry:
+        description: "Container registry"
+        required: false
+        default: "{{ ee_registry }}"
+        type: string
 {%- if ee_image_name %}
       ee_image_name:
         description: "Container image name"
@@ -75,7 +80,7 @@ concurrency:
 {% endraw %}
 env:
   # Container registry configuration (override via repository Variables)
-  REGISTRY: {% raw %}${{ vars.EE_REGISTRY || '{% endraw %}{{ ee_registry }}{% raw %}' }}{% endraw %}
+  REGISTRY: {% raw %}${{ inputs.ee_registry || vars.EE_REGISTRY || '{% endraw %}{{ ee_registry }}{% raw %}' }}{% endraw %}
 {%- if ee_image_name %}
   IMAGE_NAME: {% raw %}${{ inputs.ee_image_name || vars.EE_IMAGE_NAME || '{% endraw %}{{ ee_image_name }}{% raw %}' }}{% endraw %}
 {%- else %}

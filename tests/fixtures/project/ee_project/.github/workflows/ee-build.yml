@@ -41,6 +41,11 @@ on:
         required: false
         default: "execution-environment.yml"
         type: string
+      ee_registry:
+        description: "Container registry"
+        required: false
+        default: "ghcr.io"
+        type: string
       ee_image_name:
         description: "Container image name (defaults to repository name)"
         required: false
@@ -64,7 +69,7 @@ concurrency:
 
 env:
   # Container registry configuration (override via repository Variables)
-  REGISTRY: ${{ vars.EE_REGISTRY || 'ghcr.io' }}
+  REGISTRY: ${{ inputs.ee_registry || vars.EE_REGISTRY || 'ghcr.io' }}
   IMAGE_NAME: ${{ inputs.ee_image_name || vars.EE_IMAGE_NAME || github.repository }}
   # EE directory and file name (override via workflow_dispatch inputs or repository Variables)
   EE_DIR: ${{ inputs.ee_dir || vars.EE_DIR || '.' }}
