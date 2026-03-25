@@ -225,6 +225,17 @@ jobs:
             buildah login -u "${{ vars.REDHAT_REGISTRY_USERNAME }}" \
             --password-stdin registry.redhat.io
 
+      - name: Verify buildah version
+        run: |
+          BUILDAH_VERSION=$(buildah --version | grep -oP '\d+\.\d+\.\d+' | head -1)
+          MAJOR=$(echo "$BUILDAH_VERSION" | cut -d. -f1)
+          MINOR=$(echo "$BUILDAH_VERSION" | cut -d. -f2)
+          if [[ "$MAJOR" -lt 1 ]] || { [[ "$MAJOR" -eq 1 ]] && [[ "$MINOR" -lt 24 ]]; }; then
+            echo "::error::buildah $BUILDAH_VERSION is too old — 1.24+ required so ARG values are not leaked to image history (containers/buildah#3609)"
+            exit 1
+          fi
+          echo "::notice::buildah $BUILDAH_VERSION — ARG values will not appear in image history"
+
       - name: Build execution environment
         id: build
         env:
