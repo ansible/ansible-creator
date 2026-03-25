@@ -60,6 +60,7 @@ additional_build_files:
     dest: {{ file.dest }}
 {%- endfor %}
 {%- endif %}
+{%- if not is_official_ee or ee_galaxy_token_vars or ee_additional_build_steps %}
 
 additional_build_steps:
 {%- if ee_additional_build_steps.prepend_base is defined %}
@@ -101,6 +102,7 @@ additional_build_steps:
 {%- for step in ee_additional_build_steps.append_final %}
     - {{ step }}
 {%- endfor %}
+{%- endif %}
 {%- endif %}
 
 options:

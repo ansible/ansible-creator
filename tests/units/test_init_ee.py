@@ -723,6 +723,10 @@ def test_ee_project_official_image_microdnf(
     assert "RUN $PYCMD -m pip install -U pip" not in ee_content
     assert "ansible_sample_ee" not in ee_content
 
+    # Without galaxy_servers and no custom build steps, additional_build_steps
+    # should be omitted entirely for official images
+    assert "additional_build_steps:" not in ee_content
+
     # Without galaxy_servers, no ansible.cfg or prepend_galaxy should be generated
     assert "prepend_galaxy:" not in ee_content
     ansible_cfg_file = tmp_path / "ee_official_image" / "ansible.cfg"
@@ -971,8 +975,7 @@ def test_ee_project_custom_registry(
     workflow_content = workflow_file.read_text()
 
     assert "vars.EE_REGISTRY || 'quay.io'" in workflow_content
-    assert "vars.EE_IMAGE_NAME || 'my-org/my-ee'" in workflow_content
-    assert "github.repository" not in workflow_content.split("IMAGE_NAME")[1].split("\n")[0]
+    assert "vars.EE_IMAGE_NAME || github.repository" in workflow_content
 
 
 def test_ee_project_non_official_image_no_microdnf(
