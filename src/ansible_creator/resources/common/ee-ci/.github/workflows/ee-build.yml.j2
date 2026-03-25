@@ -1,45 +1,58 @@
 ---
 # Execution Environment Build and Publish Workflow
 # Features:
-# - Token configuration checks before build
-# - Support for AAP/Automation Hub authentication
+# - Galaxy server token configuration checks
 # - Support for private collection repositories (Git SCM tokens)
 # - Base image lifecycle checks
 # - Production release workflow with tagging
 # - Registry authentication for build and push
 #
 # Supported Secrets:
-#   ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN - Red Hat Automation Hub token
-#   ANSIBLE_GALAXY_SERVER_PRIVATE_HUB_TOKEN    - Private Automation Hub token
-#   AAP_EE_BUILDER_GITHUB_TOKEN  - GitHub PAT for private collections
-#   AAP_EE_BUILDER_GITLAB_TOKEN  - GitLab PAT for private collections
-#   SCM_TOKEN                    - Generic SCM token for custom Git servers
+#   Galaxy server tokens follow the Ansible naming convention:
+#     ANSIBLE_GALAXY_SERVER_<ID>_TOKEN
+#   where <ID> matches the [galaxy_server.<id>] section in ansible.cfg.
+{%- for var in ee_galaxy_token_vars %}
+#   {{ var }}
+{%- endfor %}
+{%- for var in ee_scm_token_vars %}
+#   {{ var }}
+{%- endfor %}
 #   REGISTRY_USERNAME/PASSWORD   - Container registry credentials
 #   REDHAT_REGISTRY_PASSWORD     - Red Hat registry for base images
 #
 # Token Security:
-#   Automation Hub tokens are passed via Containerfile ARG directives and
+#   Galaxy server tokens are passed via Containerfile ARG directives and
 #   --build-arg, which are available during the build but do NOT persist
 #   in the final image (not in layers, metadata, or history).
+#   SCM tokens are resolved via envsubst into the build context after
+#   ansible-builder create. The multi-stage build ensures tokens only
+#   exist in intermediate stages, never in the final image.
 #   The ansible.cfg (server URLs only, no tokens) is volume-mounted into
 #   the build and also never enters any OCI layer.
 
 name: Execution Environment Build
 
 on:
-  pull_request:
-    branches:
-      - main
-      - master
-    types: [opened, reopened, synchronize]
-  push:
-    branches:
-      - main
-      - master
   release:
     types: [published]
   workflow_dispatch:
     inputs:
+      ee_dir:
+        description: "Directory containing the EE files (relative to repo root)"
+        required: false
+        type: string
+      ee_file_name:
+        description: "EE definition file name"
+        required: false
+        type: string
+      ee_registry:
+        description: "Container registry"
+        required: false
+        type: string
+      ee_image_name:
+        description: "Container image name"
+        required: false
+        type: string
       skip_base_image_validation:
         description: "Skip base image validation"
         required: false
@@ -51,19 +64,18 @@ permissions:
   contents: read
   packages: write
 
-{% raw %}# Prevent concurrent builds on the same branch from racing to push tags
+{% raw %}# Prevent concurrent builds on the same ref from racing to push tags
 concurrency:
   group: ee-build-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: false
 {% endraw %}
 env:
   # Container registry configuration (override via repository Variables)
-  REGISTRY: {% raw %}${{ vars.EE_REGISTRY || '{% endraw %}{{ ee_registry }}{% raw %}' }}{% endraw %}
-{%- if ee_image_name %}
-  IMAGE_NAME: {% raw %}${{ vars.EE_IMAGE_NAME || '{% endraw %}{{ ee_image_name }}{% raw %}' }}{% endraw %}
-{%- else %}
-  IMAGE_NAME: {% raw %}${{ vars.EE_IMAGE_NAME || github.repository }}{% endraw %}
-{%- endif %}
+  REGISTRY: {% raw %}${{ inputs.ee_registry || vars.EE_REGISTRY || '{% endraw %}{{ ee_registry }}{% raw %}' }}{% endraw %}
+  IMAGE_NAME: {% raw %}${{ inputs.ee_image_name || vars.EE_IMAGE_NAME || github.repository }}{% endraw %}
+  # EE directory and file name (override via workflow_dispatch inputs or repository Variables)
+  EE_DIR: {% raw %}${{ inputs.ee_dir || vars.EE_DIR || '.' }}{% endraw %}
+  EE_FILE_NAME: {% raw %}${{ inputs.ee_file_name || vars.EE_FILE_NAME || '{% endraw %}{{ ee_file_name }}{% raw %}' }}{% endraw %}
   # Base image age thresholds (in days) - annotations only, never blocks the build
   IMAGE_WARN_AGE: 40
   IMAGE_FAIL_AGE: 80
@@ -73,48 +85,72 @@ env:
   # Validation Stage
   # ============================================================================
   validate-tokens:
-    name: Validate Tokens
+    name: Token Configuration
     runs-on: ubuntu-latest
     outputs:
-      ah_configured: ${{ steps.check-ah.outputs.configured }}
+      galaxy_tokens_configured: ${{ steps.check-galaxy.outputs.configured }}
       git_token_configured: ${{ steps.check-git-token.outputs.configured }}
     steps:
-      - name: Check if Automation Hub tokens are configured
-        id: check-ah
+{%- endraw %}
+{%- if ee_galaxy_token_vars %}
+{% raw %}      - name: Check if galaxy server tokens are configured
+        id: check-galaxy
         env:
-          AH_TOKEN: ${{ secrets.ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN }}
-          PAH_TOKEN: ${{ secrets.ANSIBLE_GALAXY_SERVER_PRIVATE_HUB_TOKEN }}
-        run: |
+{% endraw %}
+{%- for var in ee_galaxy_token_vars %}
+          {{ var }}: {% raw %}${{ secrets.{% endraw %}{{ var }}{% raw %} }}{% endraw %}
+{%- endfor %}
+{% raw %}        run: |
           CONFIGURED=false
-          if [[ -n "$AH_TOKEN" ]]; then
-            echo "::notice::Automation Hub token (ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN) is configured"
+{% endraw %}
+{%- for var in ee_galaxy_token_vars %}
+          if [[ -n "${{ var }}" ]]; then
+            echo "::notice::{{ var }} is configured"
             CONFIGURED=true
           else
-            echo "::notice::No ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN secret configured"
+            echo "::notice::No {{ var }} secret configured"
           fi
-          if [[ -n "$PAH_TOKEN" ]]; then
-            echo "::notice::Private Automation Hub token (ANSIBLE_GALAXY_SERVER_PRIVATE_HUB_TOKEN) is configured"
-            CONFIGURED=true
-          else
-            echo "::notice::No ANSIBLE_GALAXY_SERVER_PRIVATE_HUB_TOKEN secret configured"
-          fi
-          echo "configured=$CONFIGURED" >> "$GITHUB_OUTPUT"
-
-      - name: Check if Git SCM token is configured
+{%- endfor %}
+{% raw %}          echo "configured=$CONFIGURED" >> "$GITHUB_OUTPUT"
+{% endraw %}
+{%- else %}
+{% raw %}      - name: No galaxy server tokens required
+        id: check-galaxy
+        run: |
+          echo "configured=false" >> "$GITHUB_OUTPUT"
+          echo "::notice::No galaxy server tokens configured for this project"
+{% endraw %}
+{%- endif %}
+{%- if ee_scm_token_vars %}
+{% raw %}      - name: Check if SCM tokens are configured
         id: check-git-token
         env:
-          GITHUB_SCM_TOKEN: ${{ secrets.AAP_EE_BUILDER_GITHUB_TOKEN }}
-          GITLAB_SCM_TOKEN: ${{ secrets.AAP_EE_BUILDER_GITLAB_TOKEN }}
-          GENERIC_SCM_TOKEN: ${{ secrets.SCM_TOKEN }}
-        run: |
-          if [[ -n "$GITHUB_SCM_TOKEN" ]] || [[ -n "$GITLAB_SCM_TOKEN" ]] || [[ -n "$GENERIC_SCM_TOKEN" ]]; then
-            echo "configured=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::Git SCM token is configured for private collection repositories"
+{% endraw %}
+{%- for var in ee_scm_token_vars %}
+          {{ var }}: {% raw %}${{ secrets.{% endraw %}{{ var }}{% raw %} }}{% endraw %}
+{%- endfor %}
+{% raw %}        run: |
+          CONFIGURED=false
+{% endraw %}
+{%- for var in ee_scm_token_vars %}
+          if [[ -n "${{ var }}" ]]; then
+            echo "::notice::{{ var }} is configured"
+            CONFIGURED=true
           else
-            echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::No Git SCM token configured, private Git repositories will not be accessible"
+            echo "::notice::No {{ var }} secret configured"
           fi
-
+{%- endfor %}
+{% raw %}          echo "configured=$CONFIGURED" >> "$GITHUB_OUTPUT"
+{% endraw %}
+{%- else %}
+{% raw %}      - name: No SCM tokens required
+        id: check-git-token
+        run: |
+          echo "configured=false" >> "$GITHUB_OUTPUT"
+          echo "::notice::No SCM tokens configured for this project"
+{% endraw %}
+{%- endif %}
+{% raw %}
   check-base-image:
     name: Check Base Image Lifecycle
     runs-on: ubuntu-latest
@@ -135,18 +171,19 @@ env:
             podman login -u "${{ vars.REDHAT_REGISTRY_USERNAME }}" \
             --password-stdin registry.redhat.io
 
-      - name: Extract base image from {% endraw %}{{ ee_file_name }}{% raw %}
+      - name: Extract base image from ${{ env.EE_DIR }}/${{ env.EE_FILE_NAME }}
         id: get-image
         run: |
+          EE_DEF="${{ env.EE_DIR }}/${{ env.EE_FILE_NAME }}"
           # Handle both flat and nested (v3) EE spec formats
           if command -v yq &> /dev/null; then
             BASE_IMAGE=$(yq -r '.images.base_image.name // .images.base_image // empty' \
-              {% endraw %}{{ ee_file_name }}{% raw %} 2>/dev/null || echo "")
+              "$EE_DEF" 2>/dev/null || echo "")
           fi
           if [[ -z "$BASE_IMAGE" ]]; then
-            BASE_IMAGE=$(grep -A2 'base_image:' {% endraw %}{{ ee_file_name }}{% raw %} | \
+            BASE_IMAGE=$(grep -A2 'base_image:' "$EE_DEF" | \
               grep -oP 'name:\s*\K\S+' || \
-              grep -oP 'base_image:\s*\K\S+' {% endraw %}{{ ee_file_name }}{% raw %} || echo "")
+              grep -oP 'base_image:\s*\K\S+' "$EE_DEF" || echo "")
             BASE_IMAGE=$(echo "$BASE_IMAGE" | tr -d '"' | tr -d "'" | head -1)
           fi
           echo "base_image=$BASE_IMAGE" >> "$GITHUB_OUTPUT"
@@ -228,39 +265,6 @@ env:
           python -m pip install --upgrade pip
           pip install ansible-builder ansible-core
 
-      - name: Configure Git credentials for private repositories
-        if: needs.validate-tokens.outputs.git_token_configured == 'true'
-        env:
-          GITHUB_SCM_TOKEN: ${{ secrets.AAP_EE_BUILDER_GITHUB_TOKEN }}
-          GITLAB_SCM_TOKEN: ${{ secrets.AAP_EE_BUILDER_GITLAB_TOKEN }}
-          GENERIC_SCM_TOKEN: ${{ secrets.SCM_TOKEN }}
-        run: |
-          # Configure git credential helper for private repository access
-          git config --global credential.helper store
-
-          # Configure GitHub token if available
-          if [[ -n "$GITHUB_SCM_TOKEN" ]]; then
-            echo "https://x-access-token:${GITHUB_SCM_TOKEN}@github.com" >> ~/.git-credentials
-            echo "::notice::Configured GitHub credentials for private repositories"
-          fi
-
-          # Configure GitLab token if available
-          if [[ -n "$GITLAB_SCM_TOKEN" ]]; then
-            echo "https://oauth2:${GITLAB_SCM_TOKEN}@gitlab.com" >> ~/.git-credentials
-            echo "::notice::Configured GitLab credentials for private repositories"
-          fi
-
-          # Configure generic SCM token if available (for custom Git servers)
-          if [[ -n "$GENERIC_SCM_TOKEN" ]] && [[ -n "${{ vars.SCM_SERVER }}" ]]; then
-            echo "https://token:${GENERIC_SCM_TOKEN}@${{ vars.SCM_SERVER }}" >> ~/.git-credentials
-            echo "::notice::Configured generic SCM credentials"
-          fi
-
-          # Only chmod if the file was created
-          if [[ -f ~/.git-credentials ]]; then
-            chmod 600 ~/.git-credentials
-          fi
-
       - name: Login to container registry
         run: |
           echo "${{ secrets.REGISTRY_PASSWORD || secrets.GITHUB_TOKEN }}" | \
@@ -288,49 +292,65 @@ env:
       - name: Build execution environment
         id: build
         env:
-          # SCM tokens for private collection Git URLs
-          AAP_EE_BUILDER_GITHUB_TOKEN: ${{ secrets.AAP_EE_BUILDER_GITHUB_TOKEN }}
-          AAP_EE_BUILDER_GITLAB_TOKEN: ${{ secrets.AAP_EE_BUILDER_GITLAB_TOKEN }}
-          SCM_TOKEN: ${{ secrets.SCM_TOKEN }}
-          # Automation Hub / Private Automation Hub tokens (passed as build args)
-          ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN: ${{ secrets.ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN }}
-          ANSIBLE_GALAXY_SERVER_PRIVATE_HUB_TOKEN: ${{ secrets.ANSIBLE_GALAXY_SERVER_PRIVATE_HUB_TOKEN }}
-          # Use the repo's ansible.cfg for host-side dependency resolution
+{% endraw %}
+{%- for var in ee_galaxy_token_vars %}
+          {{ var }}: {% raw %}${{ secrets.{% endraw %}{{ var }}{% raw %} }}{% endraw %}
+{%- endfor %}
+{%- for var in ee_scm_token_vars %}
+          {{ var }}: {% raw %}${{ secrets.{% endraw %}{{ var }}{% raw %} }}{% endraw %}
+{%- endfor %}
+{% raw %}          # Use the repo's ansible.cfg for host-side dependency resolution
           ANSIBLE_CONFIG: ./ansible.cfg
         run: |
           echo "::group::Creating build context"
+          echo "::notice::EE directory: ${{ env.EE_DIR }}"
+          ansible-builder create --file "${{ env.EE_DIR }}/${{ env.EE_FILE_NAME }}" --output-filename Containerfile
+{% endraw %}
+{%- if ee_scm_token_vars %}
 
-          # Resolve SCM token references (e.g. ${AAP_EE_BUILDER_GITHUB_TOKEN} in
-          # collection URLs) into a temp copy so the workspace file stays clean.
-          EE_FILE="{% endraw %}{{ ee_file_name }}{% raw %}"
-          if command -v envsubst &> /dev/null; then
-            envsubst '$AAP_EE_BUILDER_GITHUB_TOKEN $AAP_EE_BUILDER_GITLAB_TOKEN $SCM_TOKEN' \
-              < "{% endraw %}{{ ee_file_name }}{% raw %}" > /tmp/ee-resolved.yml
-            EE_FILE="/tmp/ee-resolved.yml"
+          # Post-process: resolve SCM token references in the generated
+          # requirements file. Tokens are embedded in collection Git URLs
+          # (e.g. https://${TOKEN}@github.com/org/repo). The multi-stage build
+          # ensures resolved URLs only exist in intermediate stages, never in
+          # the final image.
+          if ! command -v envsubst >/dev/null 2>&1; then
+            echo "::error::envsubst not found on runner; required for SCM token substitution. Install gettext-base (or equivalent)."
+            exit 1
           fi
+          if [[ -f context/_build/requirements.yml ]]; then
+            envsubst '{% for var in ee_scm_token_vars %}${{ var }}{% if not loop.last %} {% endif %}{% endfor %}' \
+              < context/_build/requirements.yml > /tmp/req-resolved.yml
+            cp /tmp/req-resolved.yml context/_build/requirements.yml
+          else
+            echo "::error::SCM token variables are configured but context/_build/requirements.yml was not found after ansible-builder create."
+            echo "SCM token variables expected for substitution:{% for var in ee_scm_token_vars %} {{ var }}{% endfor %}"
+            exit 1
+          fi
+{%- endif %}
 
-          ansible-builder create --file "$EE_FILE" --output-filename Containerfile
-          echo "::endgroup::"
+{% raw %}          echo "::endgroup::"
 
           echo "::group::Building image"
 
           # Volume-mount ansible.cfg into the build (never enters any OCI layer).
           # Ansible reads /etc/ansible/ansible.cfg as a fallback config path.
           EXTRA_ARGS=()
-          if [[ -f ansible.cfg ]]; then
-            EXTRA_ARGS+=(--volume "$(pwd)/ansible.cfg:/etc/ansible/ansible.cfg:ro")
+          if [[ -f "${{ env.EE_DIR }}/ansible.cfg" ]]; then
+            EXTRA_ARGS+=(--volume "$(pwd)/${{ env.EE_DIR }}/ansible.cfg:/etc/ansible/ansible.cfg:ro")
           fi
+{% endraw %}
+{%- if ee_galaxy_token_vars %}
 
           # Pass non-empty tokens as build args. ARG values are available during
           # RUN instructions but do not persist in the final image.
-          if [[ -n "$ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN" ]]; then
-            EXTRA_ARGS+=(--build-arg ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN)
+{%- for var in ee_galaxy_token_vars %}
+          if [[ -n "${{ var }}" ]]; then
+            EXTRA_ARGS+=(--build-arg {{ var }})
           fi
-          if [[ -n "$ANSIBLE_GALAXY_SERVER_PRIVATE_HUB_TOKEN" ]]; then
-            EXTRA_ARGS+=(--build-arg ANSIBLE_GALAXY_SERVER_PRIVATE_HUB_TOKEN)
-          fi
+{%- endfor %}
+{%- endif %}
 
-          buildah bud "${EXTRA_ARGS[@]}" \
+{% raw %}          buildah bud "${EXTRA_ARGS[@]}" \
             --tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
             --file context/Containerfile \
             context/
@@ -347,21 +367,11 @@ env:
 
       - name: Push image
         id: push
-        if: github.event_name != 'pull_request'
         run: |
-          # Always push with build SHA tag (needed by release job)
           buildah push --digestfile /tmp/digest \
             "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
             "docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}"
           echo "digest=$(cat /tmp/digest)" >> "$GITHUB_OUTPUT"
-
-          # Additional tags based on event type
-          if [[ "${{ github.event_name }}" == "push" ]]; then
-            buildah push "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
-              "docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
-            buildah push "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
-              "docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
-          fi
 
   # ============================================================================
   # Release Stage
@@ -426,8 +436,8 @@ env:
           echo "### Authentication Status" >> "$GITHUB_STEP_SUMMARY"
           echo "| Provider | Configured |" >> "$GITHUB_STEP_SUMMARY"
           echo "|----------|------------|" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Automation Hub | ${{ needs.validate-tokens.outputs.ah_configured }} |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Git SCM Token | ${{ needs.validate-tokens.outputs.git_token_configured }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Galaxy Server Tokens | ${{ needs.validate-tokens.outputs.galaxy_tokens_configured }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| SCM Tokens | ${{ needs.validate-tokens.outputs.git_token_configured }} |" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
 
           if [[ "${{ needs.check-base-image.outputs.image_age_days }}" != "" ]]; then
@@ -447,5 +457,6 @@ env:
             echo "### Image Details" >> "$GITHUB_STEP_SUMMARY"
             echo "- Registry: \`${{ env.REGISTRY }}\`" >> "$GITHUB_STEP_SUMMARY"
             echo "- Image: \`${{ env.IMAGE_NAME }}\`" >> "$GITHUB_STEP_SUMMARY"
+            echo "- EE Directory: \`${{ env.EE_DIR }}\`" >> "$GITHUB_STEP_SUMMARY"
           fi
 {%- endraw %}

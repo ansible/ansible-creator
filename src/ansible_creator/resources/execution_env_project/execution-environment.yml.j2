@@ -60,6 +60,7 @@ additional_build_files:
     dest: {{ file.dest }}
 {%- endfor %}
 {%- endif %}
+{%- if not is_official_ee or ee_galaxy_token_vars or ee_additional_build_steps %}
 
 additional_build_steps:
 {%- if ee_additional_build_steps.prepend_base is defined %}
@@ -68,23 +69,16 @@ additional_build_steps:
     - {{ step }}
 {%- endfor %}
 {%- endif %}
-{%- if is_official_ee %}
-  # The generated GitHub Actions workflow mounts the repo's ansible.cfg into
-  # /etc/ansible/ansible.cfg at build time (via --volume) and passes tokens as
-  # --build-arg. If building outside the workflow (e.g. with ansible-builder
-  # directly), ensure ansible.cfg is available — either mount it manually or
-  # add it under additional_build_files above.
+{%- if ee_galaxy_token_vars or ee_additional_build_steps.prepend_galaxy is defined %}
   prepend_galaxy:
-    - ARG ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN
-    - ARG ANSIBLE_GALAXY_SERVER_PRIVATE_HUB_TOKEN
-{%- endif %}
-{%- if not is_official_ee and ee_additional_build_steps.prepend_galaxy is defined %}
-  prepend_galaxy:
-{%- endif %}
+{%- for var in ee_galaxy_token_vars %}
+    - ARG {{ var }}
+{%- endfor %}
 {%- if ee_additional_build_steps.prepend_galaxy is defined %}
 {%- for step in ee_additional_build_steps.prepend_galaxy %}
     - {{ step }}
 {%- endfor %}
+{%- endif %}
 {%- endif %}
 {%- if not is_official_ee or ee_additional_build_steps.append_base is defined %}
   append_base:
@@ -108,6 +102,7 @@ additional_build_steps:
 {%- for step in ee_additional_build_steps.append_final %}
     - {{ step }}
 {%- endfor %}
+{%- endif %}
 {%- endif %}
 
 options:
