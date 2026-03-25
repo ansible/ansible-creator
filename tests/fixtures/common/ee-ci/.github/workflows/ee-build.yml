@@ -34,18 +34,22 @@ on:
       ee_dir:
         description: "Directory containing the EE files (relative to repo root)"
         required: false
+        default: "."
         type: string
       ee_file_name:
         description: "EE definition file name"
         required: false
+        default: "execution-environment.yml"
         type: string
       ee_registry:
         description: "Container registry"
         required: false
+        default: "ghcr.io"
         type: string
       ee_image_name:
-        description: "Container image name"
+        description: "Container image name (defaults to repository name)"
         required: false
+        default: ""
         type: string
       skip_base_image_validation:
         description: "Skip base image validation"
