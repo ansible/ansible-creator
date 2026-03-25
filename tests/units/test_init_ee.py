@@ -18,7 +18,7 @@ from ansible_creator.exceptions import CreatorError
 from ansible_creator.output import Output
 from ansible_creator.schema import _extract_action_info, for_command
 from ansible_creator.subcommands.init import Init
-from ansible_creator.types import EECollection, EEConfig, GalaxyServer
+from ansible_creator.types import EECollection, EEConfig, GalaxyServer, ScmServer
 from ansible_creator.utils import TermFeatures
 from tests.defaults import FIXTURES_DIR
 
@@ -1313,6 +1313,7 @@ def test_ee_config_from_dict_defaults() -> None:
     assert not cfg.collections
     assert not cfg.python_deps
     assert not cfg.galaxy_servers
+    assert not cfg.scm_servers
 
 
 def test_ee_collection_from_dict_invalid_name() -> None:
@@ -1371,6 +1372,8 @@ def test_ee_config_to_schema_shape() -> None:
     assert "image_name" in props
     assert "galaxy_servers" in props
     assert props["galaxy_servers"]["type"] == "array"
+    assert "scm_servers" in props
+    assert props["scm_servers"]["type"] == "array"
     assert "ee_file_name" in props
 
 
@@ -1552,3 +1555,194 @@ def test_galaxy_server_to_schema() -> None:
     assert "url" in props
     assert "auth_url" in props
     assert "token_required" in props
+
+
+# ---------------------------------------------------------------------------
+# ScmServer dataclass tests
+# ---------------------------------------------------------------------------
+
+
+def test_scm_server_from_dict_full() -> None:
+    """Test ScmServer.from_dict with all fields."""
+    data = {
+        "id": "github_org1",
+        "hostname": "github.com",
+        "token_env_var": "GITHUB_ORG1_TOKEN",
+    }
+    server = ScmServer.from_dict(data)
+
+    assert server.id == "github_org1"
+    assert server.hostname == "github.com"
+    assert server.token_env_var == "GITHUB_ORG1_TOKEN"  # noqa: S105
+
+
+def test_scm_server_from_dict_missing_id() -> None:
+    """Test ScmServer.from_dict rejects missing id."""
+    with pytest.raises(CreatorError, match="must have an 'id' field"):
+        ScmServer.from_dict({"hostname": "github.com", "token_env_var": "TOKEN"})
+
+
+def test_scm_server_from_dict_missing_hostname() -> None:
+    """Test ScmServer.from_dict rejects missing hostname."""
+    with pytest.raises(CreatorError, match="must have a 'hostname' field"):
+        ScmServer.from_dict({"id": "github", "token_env_var": "TOKEN"})
+
+
+def test_scm_server_from_dict_missing_token_env_var() -> None:
+    """Test ScmServer.from_dict rejects missing token_env_var."""
+    with pytest.raises(CreatorError, match="must have a 'token_env_var' field"):
+        ScmServer.from_dict({"id": "github", "hostname": "github.com"})
+
+
+def test_scm_server_from_dict_invalid_id() -> None:
+    """Test ScmServer.from_dict rejects invalid server IDs."""
+    with pytest.raises(CreatorError, match="Invalid SCM server id"):
+        ScmServer.from_dict(
+            {
+                "id": "Bad-Id",
+                "hostname": "github.com",
+                "token_env_var": "TOKEN",
+            }
+        )
+
+
+def test_scm_server_from_dict_invalid_token_env_var() -> None:
+    """Test ScmServer.from_dict rejects invalid environment variable names."""
+    with pytest.raises(CreatorError, match="Invalid token_env_var"):
+        ScmServer.from_dict(
+            {
+                "id": "github",
+                "hostname": "github.com",
+                "token_env_var": "lowercase_bad",
+            }
+        )
+
+    with pytest.raises(CreatorError, match="Invalid token_env_var"):
+        ScmServer.from_dict(
+            {
+                "id": "github",
+                "hostname": "github.com",
+                "token_env_var": "HAS-DASHES",
+            }
+        )
+
+    with pytest.raises(CreatorError, match="Invalid token_env_var"):
+        ScmServer.from_dict(
+            {
+                "id": "github",
+                "hostname": "github.com",
+                "token_env_var": "123_STARTS_WITH_DIGIT",
+            }
+        )
+
+
+def test_scm_server_as_dict() -> None:
+    """Test ScmServer.as_dict returns all fields."""
+    server = ScmServer(
+        id="internal_gitlab",
+        hostname="gitlab.corp.com",
+        token_env_var="INTERNAL_GITLAB_TOKEN",  # noqa: S106
+    )
+    result = server.as_dict()
+
+    assert result["id"] == "internal_gitlab"
+    assert result["hostname"] == "gitlab.corp.com"
+    expected_var = "INTERNAL_GITLAB_TOKEN"
+    assert result["token_env_var"] == expected_var
+
+
+def test_scm_server_to_schema() -> None:
+    """Test ScmServer.to_schema returns expected structure."""
+    schema = ScmServer.to_schema()
+
+    assert schema["type"] == "object"
+    assert "id" in schema["required"]
+    assert "hostname" in schema["required"]
+    assert "token_env_var" in schema["required"]
+    props = schema["properties"]
+    assert "id" in props
+    assert "hostname" in props
+    assert "token_env_var" in props
+
+
+def test_ee_config_from_dict_scm_servers() -> None:
+    """Test EEConfig.from_dict parses scm_servers list."""
+    data = {
+        "scm_servers": [
+            {
+                "id": "github_org1",
+                "hostname": "github.com",
+                "token_env_var": "GITHUB_ORG1_TOKEN",
+            },
+            {
+                "id": "internal_gitlab",
+                "hostname": "gitlab.corp.com",
+                "token_env_var": "INTERNAL_GITLAB_TOKEN",
+            },
+        ],
+    }
+    cfg = EEConfig.from_dict(data)
+
+    assert len(cfg.scm_servers) == 2  # noqa: PLR2004
+    assert cfg.scm_servers[0].id == "github_org1"
+    assert cfg.scm_servers[0].hostname == "github.com"
+    assert cfg.scm_servers[0].token_env_var == "GITHUB_ORG1_TOKEN"  # noqa: S105
+    assert cfg.scm_servers[1].id == "internal_gitlab"
+
+
+def test_ee_project_with_scm_servers(
+    output: Output,
+    tmp_path: Path,
+) -> None:
+    """Test EE project scaffolding with scm_servers generates correct workflow.
+
+    Args:
+        output: Output instance for logging.
+        tmp_path: Temporary directory path.
+    """
+    dest = tmp_path / "scm-ee"
+    config = Config(
+        creator_version="0.0.1",
+        output=output,
+        subcommand="init",
+        project="execution_env",
+        init_path=str(dest),
+        ee_config=json.dumps(
+            {
+                "collections": [
+                    {
+                        "name": "https://${GITHUB_ORG1_TOKEN}@github.com/org1/my-collection",
+                        "type": "git",
+                    },
+                    {"name": "cisco.ios"},
+                ],
+                "scm_servers": [
+                    {
+                        "id": "github_org1",
+                        "hostname": "github.com",
+                        "token_env_var": "GITHUB_ORG1_TOKEN",
+                    },
+                ],
+            }
+        ),
+    )
+    init = Init(config=config)
+    init.run()
+
+    wf_path = dest / ".github" / "workflows" / "ee-build.yml"
+    wf_content = wf_path.read_text()
+
+    assert "GITHUB_ORG1_TOKEN" in wf_content
+    assert "envsubst" in wf_content
+    assert "command -v envsubst" in wf_content
+    assert "context/_build/requirements.yml" in wf_content
+    assert "gettext-base" in wf_content
+    assert "git-credentials" not in wf_content.lower()
+    assert "AAP_EE_BUILDER_GITHUB_TOKEN" not in wf_content
+    assert "AAP_EE_BUILDER_GITLAB_TOKEN" not in wf_content
+
+    next_steps = dest / "NEXT_STEPS.md"
+    assert next_steps.exists()
+    ns_content = next_steps.read_text()
+    assert "GITHUB_ORG1_TOKEN" in ns_content
+    assert "github.com" in ns_content
