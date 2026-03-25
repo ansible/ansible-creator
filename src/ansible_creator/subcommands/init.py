@@ -418,6 +418,8 @@ class Init:
                 for s in ec.galaxy_servers
                 if s.token_required
             ],
+            ee_scm_servers=[s.as_dict() for s in ec.scm_servers],
+            ee_scm_token_vars=[s.token_env_var for s in ec.scm_servers],
             ee_file_name=ec.ee_file_name,
         )
 

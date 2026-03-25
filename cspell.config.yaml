@@ -29,6 +29,7 @@ ignoreWords:
   - argparser
   - dellos
   - endfor
+  - envsubst
   - endif
   - invalidtype
   - microdnf
