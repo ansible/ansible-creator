@@ -659,23 +659,26 @@ class OfficialEEImage:
 # Single source of truth for official EE image detection and Python paths.
 # Ordered most-specific first so versioned patterns match before broad ones.
 # Update this tuple when new AAP versions ship with different Python versions.
+_PY312 = "/usr/bin/python3.12"
+_PY311 = "/usr/bin/python3.11"
+
 OFFICIAL_EE_IMAGES: tuple[OfficialEEImage, ...] = (
-    # AAP 2.6 uses Python 3.12
-    OfficialEEImage("ansible-automation-platform-26", "/usr/bin/python3.12"),
-    OfficialEEImage("aap-26", "/usr/bin/python3.12"),
-    # AAP 2.4/2.5 uses Python 3.11
-    OfficialEEImage("ansible-automation-platform-25", "/usr/bin/python3.11"),
-    OfficialEEImage("aap-25", "/usr/bin/python3.11"),
-    OfficialEEImage("ansible-automation-platform-24", "/usr/bin/python3.11"),
-    OfficialEEImage("aap-24", "/usr/bin/python3.11"),
+    # AAP 2.5/2.6 uses Python 3.12
+    OfficialEEImage("ansible-automation-platform-26", _PY312),
+    OfficialEEImage("aap-26", _PY312),
+    OfficialEEImage("ansible-automation-platform-25", _PY312),
+    OfficialEEImage("aap-25", _PY311),
+    # AAP 2.4 uses Python 3.11
+    OfficialEEImage("ansible-automation-platform-24", _PY311),
+    OfficialEEImage("aap-24", _PY311),
     # Broad registry prefixes (catch-all for unversioned official images)
-    OfficialEEImage("registry.redhat.io/ansible-automation-platform", "/usr/bin/python3.11"),
-    OfficialEEImage("registry.redhat.io/aap", "/usr/bin/python3.11"),
+    OfficialEEImage("registry.redhat.io/ansible-automation-platform", _PY312),
+    OfficialEEImage("registry.redhat.io/aap", _PY311),
     # Named official EE images
-    OfficialEEImage("ee-minimal-rhel", "/usr/bin/python3.11"),
-    OfficialEEImage("ee-supported-rhel", "/usr/bin/python3.11"),
-    OfficialEEImage("ee-29-rhel", "/usr/bin/python3.11"),
-    OfficialEEImage("ee-dellos", "/usr/bin/python3.11"),
+    OfficialEEImage("ee-minimal-rhel", _PY311),
+    OfficialEEImage("ee-supported-rhel", _PY311),
+    OfficialEEImage("ee-29-rhel", _PY311),
+    OfficialEEImage("ee-dellos", _PY311),
 )
 
 DEFAULT_PYTHON_PATH = "/usr/bin/python3"
