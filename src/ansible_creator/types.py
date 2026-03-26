@@ -664,12 +664,12 @@ OFFICIAL_EE_IMAGES: tuple[OfficialEEImage, ...] = (
     OfficialEEImage("ansible-automation-platform-26", "/usr/bin/python3.12"),
     OfficialEEImage("aap-26", "/usr/bin/python3.12"),
     # AAP 2.4/2.5 uses Python 3.11
-    OfficialEEImage("ansible-automation-platform-25", "/usr/bin/python3.11"),
+    OfficialEEImage("ansible-automation-platform-25", "/usr/bin/python3.12"),
     OfficialEEImage("aap-25", "/usr/bin/python3.11"),
     OfficialEEImage("ansible-automation-platform-24", "/usr/bin/python3.11"),
     OfficialEEImage("aap-24", "/usr/bin/python3.11"),
     # Broad registry prefixes (catch-all for unversioned official images)
-    OfficialEEImage("registry.redhat.io/ansible-automation-platform", "/usr/bin/python3.11"),
+    OfficialEEImage("registry.redhat.io/ansible-automation-platform", "/usr/bin/python3.12"),
     OfficialEEImage("registry.redhat.io/aap", "/usr/bin/python3.11"),
     # Named official EE images
     OfficialEEImage("ee-minimal-rhel", "/usr/bin/python3.11"),

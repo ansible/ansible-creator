@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import argparse
 import json
-
 from filecmp import dircmp
 from pathlib import Path
 from typing import TypedDict
@@ -717,7 +716,7 @@ def test_ee_project_official_image_microdnf(
 
     # Should have python_interpreter with python3.11 for official EE images
     assert "python_interpreter:" in ee_content
-    assert "python_path: /usr/bin/python3.11" in ee_content
+    assert "python_path: /usr/bin/python3.12" in ee_content
 
     # Official EE images should NOT have pip upgrade or the default sample tag
     assert "RUN $PYCMD -m pip install -U pip" not in ee_content
