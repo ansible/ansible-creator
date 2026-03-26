@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import argparse
 import json
+
 from filecmp import dircmp
 from pathlib import Path
 from typing import TypedDict
