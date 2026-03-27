@@ -978,6 +978,36 @@ def test_ee_project_custom_registry(
     assert "vars.EE_IMAGE_NAME || github.repository" in workflow_content
 
 
+def test_ee_project_registry_tls_verify_disabled(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test that --no-registry-tls-verify produces 'false' in the CI workflow.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_tls_verify")
+    cli_args["registry_tls_verify"] = False
+
+    init = Init(Config(**cli_args))
+    init.run()
+    result = capsys.readouterr().out
+
+    assert r"Note: execution_env project created" in result
+
+    workflow_file = tmp_path / "ee_tls_verify" / ".github" / "workflows" / "ee-build.yml"
+    workflow_content = workflow_file.read_text()
+
+    assert "EE_REGISTRY_TLS_VERIFY || 'false'" in workflow_content
+    assert 'default: "false"' in workflow_content
+    assert "--tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }}" in workflow_content
+
+
 def test_ee_project_non_official_image_no_microdnf(
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,

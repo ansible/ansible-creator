@@ -47,6 +47,7 @@ class Config:
         ee_system_packages: List of system packages for execution environment.
         ee_name: Name/tag for the execution environment image.
         ee_file_name: Name of the EE definition file.
+        registry_tls_verify: Whether to verify TLS for container registry operations.
     """
 
     creator_version: str
@@ -76,6 +77,7 @@ class Config:
     ee_system_packages: Sequence[str] = field(default_factory=list)
     ee_name: str = "ansible_sample_ee"
     ee_file_name: str = "execution-environment.yml"
+    registry_tls_verify: bool = True
 
     def __post_init__(self) -> None:
         """Post process config values."""

@@ -824,6 +824,15 @@ class Parser:
             "Must end with .yml or .yaml. Default: execution-environment.yml",
         )
 
+        parser.add_argument(
+            "--registry-tls-verify",
+            dest="registry_tls_verify",
+            action=argparse.BooleanOptionalAction,
+            default=True,
+            help="Verify TLS certificates when accessing container registries "
+            "(login, pull, push). Use --no-registry-tls-verify to disable.",
+        )
+
         self._add_args_common(parser)
         self._add_args_init_common(parser)
 
