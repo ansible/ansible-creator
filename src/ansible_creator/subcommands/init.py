@@ -199,8 +199,8 @@ class Init:
             overrides["system_packages"] = tuple(config.ee_system_packages)
         if config.ee_file_name != "execution-environment.yml":
             overrides["ee_file_name"] = config.ee_file_name
-        if not config.registry_tls_verify:
-            overrides["registry_tls_verify"] = False
+        if config.registry_tls_verify is not None:
+            overrides["registry_tls_verify"] = config.registry_tls_verify
 
         if overrides:
             ee_cfg = dataclasses.replace(ee_cfg, **overrides)

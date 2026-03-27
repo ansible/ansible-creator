@@ -422,7 +422,7 @@ class EEConfig:
         base_image: Base container image.
         registry: Container registry hostname for the CI workflow (e.g. ghcr.io, quay.io).
         registry_tls_verify: Whether to verify TLS certificates when accessing
-            container registries (login, pull, push).
+            container registries (login, pull, push, and image builds).
         image_name: Image name for the CI workflow (e.g. my-org/my-ee).
         collections: Ansible collections to include.
         python_deps: Python package dependencies.
@@ -587,7 +587,7 @@ class EEConfig:
                     "default": True,
                     "description": (
                         "Whether to verify TLS certificates when accessing "
-                        "container registries (login, pull, push)"
+                        "container registries (login, pull, push, and image builds)"
                     ),
                 },
                 "image_name": {
@@ -730,7 +730,8 @@ class TemplateData:
         ee_python_path: Python interpreter path for the EE (varies by AAP version).
         ee_name_is_default: Whether ee_name is the unchanged default value.
         ee_registry: Container registry hostname for the CI workflow.
-        ee_registry_tls_verify: Whether to verify TLS for container registry operations.
+        ee_registry_tls_verify: Whether to verify TLS for container registry operations
+            (login, pull, push, and image builds).
         ee_image_name: Image name for the CI workflow.
         ee_galaxy_servers: Galaxy server entries (list of dicts from GalaxyServer.as_dict()).
         ee_galaxy_token_vars: Pre-computed list of token env var names for servers

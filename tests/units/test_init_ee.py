@@ -44,6 +44,7 @@ class ConfigDict(TypedDict, total=False):
         ee_system_packages: List of system packages for execution environment.
         ee_name: Name/tag for the execution environment image.
         ee_file_name: Name of the EE definition file.
+        registry_tls_verify: Whether to verify TLS for container registries.
     """
 
     creator_version: str
@@ -63,6 +64,7 @@ class ConfigDict(TypedDict, total=False):
     ee_system_packages: list[str]
     ee_name: str
     ee_file_name: str
+    registry_tls_verify: bool | None
 
 
 @pytest.fixture(name="output")
@@ -1006,6 +1008,71 @@ def test_ee_project_registry_tls_verify_disabled(
     assert "EE_REGISTRY_TLS_VERIFY || 'false'" in workflow_content
     assert 'default: "false"' in workflow_content
     assert "--tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }}" in workflow_content
+
+
+def test_ee_project_registry_tls_verify_explicit_true_overrides_config(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test --registry-tls-verify overrides an EE config that sets it to false.
+
+    When the EE config file sets registry_tls_verify: false but the user
+    explicitly passes --registry-tls-verify, the CLI flag must win.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_tls_override")
+    cli_args["ee_config"] = json.dumps({"registry_tls_verify": False})
+    cli_args["registry_tls_verify"] = True
+
+    init = Init(Config(**cli_args))
+    init.run()
+    result = capsys.readouterr().out
+
+    assert r"Note: execution_env project created" in result
+
+    workflow_file = tmp_path / "ee_tls_override" / ".github" / "workflows" / "ee-build.yml"
+    workflow_content = workflow_file.read_text()
+
+    assert "EE_REGISTRY_TLS_VERIFY || 'true'" in workflow_content
+    assert 'default: "true"' in workflow_content
+
+
+def test_ee_project_registry_tls_verify_none_preserves_config(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test that omitting the CLI flag preserves the EE config file value.
+
+    When the user does not pass --registry-tls-verify or --no-registry-tls-verify,
+    config.registry_tls_verify is None and the EE config file value is kept.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_tls_none")
+    cli_args["ee_config"] = json.dumps({"registry_tls_verify": False})
+
+    init = Init(Config(**cli_args))
+    init.run()
+    result = capsys.readouterr().out
+
+    assert r"Note: execution_env project created" in result
+
+    workflow_file = tmp_path / "ee_tls_none" / ".github" / "workflows" / "ee-build.yml"
+    workflow_content = workflow_file.read_text()
+
+    assert "EE_REGISTRY_TLS_VERIFY || 'false'" in workflow_content
+    assert 'default: "false"' in workflow_content
 
 
 def test_ee_project_non_official_image_no_microdnf(
