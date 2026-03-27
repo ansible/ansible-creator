@@ -51,6 +51,11 @@ on:
         required: false
         default: ""
         type: string
+      registry_tls_verify:
+        description: "Verify TLS certificates for container registries (true/false)"
+        required: false
+        default: "true"
+        type: string
       skip_base_image_validation:
         description: "Skip base image validation"
         required: false
@@ -71,6 +76,7 @@ env:
   # Container registry configuration (override via repository Variables)
   REGISTRY: ${{ inputs.ee_registry || vars.EE_REGISTRY || 'ghcr.io' }}
   IMAGE_NAME: ${{ inputs.ee_image_name || vars.EE_IMAGE_NAME || github.repository }}
+  EE_REGISTRY_TLS_VERIFY: ${{ inputs.registry_tls_verify || vars.EE_REGISTRY_TLS_VERIFY || 'true' }}
   # EE directory and file name (override via workflow_dispatch inputs or repository Variables)
   EE_DIR: ${{ inputs.ee_dir || vars.EE_DIR || '.' }}
   EE_FILE_NAME: ${{ inputs.ee_file_name || vars.EE_FILE_NAME || 'execution-environment.yml' }}
@@ -119,7 +125,8 @@ jobs:
         if: vars.REDHAT_REGISTRY_USERNAME != ''
         run: |
           echo "${{ secrets.REDHAT_REGISTRY_PASSWORD }}" | \
-            podman login -u "${{ vars.REDHAT_REGISTRY_USERNAME }}" \
+            podman login --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
+            -u "${{ vars.REDHAT_REGISTRY_USERNAME }}" \
             --password-stdin registry.redhat.io
 
       - name: Extract base image from ${{ env.EE_DIR }}/${{ env.EE_FILE_NAME }}
@@ -153,7 +160,7 @@ jobs:
           fi
 
           # Pull the image to inspect it
-          if ! podman pull "$BASE_IMAGE" 2>/dev/null; then
+          if ! podman pull --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} "$BASE_IMAGE" 2>/dev/null; then
             echo "::warning::Could not pull base image, skipping age check"
             echo "age_days=0" >> "$GITHUB_OUTPUT"
             echo "status=unknown" >> "$GITHUB_OUTPUT"
@@ -219,14 +226,16 @@ jobs:
       - name: Login to container registry
         run: |
           echo "${{ secrets.REGISTRY_PASSWORD || secrets.GITHUB_TOKEN }}" | \
-            buildah login -u "${{ secrets.REGISTRY_USERNAME || github.actor }}" \
+            buildah login --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
+            -u "${{ secrets.REGISTRY_USERNAME || github.actor }}" \
             --password-stdin "${{ env.REGISTRY }}"
 
       - name: Login to Red Hat registry (for base images)
         if: vars.REDHAT_REGISTRY_USERNAME != ''
         run: |
           echo "${{ secrets.REDHAT_REGISTRY_PASSWORD }}" | \
-            buildah login -u "${{ vars.REDHAT_REGISTRY_USERNAME }}" \
+            buildah login --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
+            -u "${{ vars.REDHAT_REGISTRY_USERNAME }}" \
             --password-stdin registry.redhat.io
 
       - name: Verify buildah version
@@ -264,7 +273,8 @@ jobs:
           fi
 
 
-          buildah bud "${EXTRA_ARGS[@]}" \
+          buildah bud --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
+            "${EXTRA_ARGS[@]}" \
             --tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
             --file context/Containerfile \
             context/
@@ -282,7 +292,8 @@ jobs:
       - name: Push image
         id: push
         run: |
-          buildah push --digestfile /tmp/digest \
+          buildah push --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
+            --digestfile /tmp/digest \
             "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
             "docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}"
           echo "digest=$(cat /tmp/digest)" >> "$GITHUB_OUTPUT"
@@ -299,7 +310,8 @@ jobs:
       - name: Login to container registry
         run: |
           echo "${{ secrets.REGISTRY_PASSWORD || secrets.GITHUB_TOKEN }}" | \
-            buildah login -u "${{ secrets.REGISTRY_USERNAME || github.actor }}" \
+            buildah login --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
+            -u "${{ secrets.REGISTRY_USERNAME || github.actor }}" \
             --password-stdin "${{ env.REGISTRY }}"
 
       - name: Tag and push release
@@ -307,21 +319,25 @@ jobs:
           VERSION: ${{ github.event.release.tag_name }}
         run: |
           # Pull the image built from this commit (pushed in build job)
-          buildah pull "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}"
+          buildah pull --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
+            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}"
 
           # Backup previous production tag if it exists
-          if buildah pull "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:prd" 2>/dev/null; then
+          if buildah pull --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
+            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:prd" 2>/dev/null; then
             echo "::notice::Backing up previous production image to 'previous' tag"
             buildah tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:prd" \
               "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:previous"
-            buildah push "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:previous"
+            buildah push --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
+              "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:previous"
           fi
 
           # Tag and push version, latest, and production
           for TAG in "${VERSION}" "latest" "prd"; do
             buildah tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
               "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG}"
-            buildah push "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG}"
+            buildah push --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
+              "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG}"
           done
 
           echo "::notice::Released version ${VERSION}"

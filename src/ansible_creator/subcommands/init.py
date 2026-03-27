@@ -199,6 +199,8 @@ class Init:
             overrides["system_packages"] = tuple(config.ee_system_packages)
         if config.ee_file_name != "execution-environment.yml":
             overrides["ee_file_name"] = config.ee_file_name
+        if config.registry_tls_verify is not None:
+            overrides["registry_tls_verify"] = config.registry_tls_verify
 
         if overrides:
             ee_cfg = dataclasses.replace(ee_cfg, **overrides)
@@ -411,6 +413,7 @@ class Init:
             ee_python_path=self._get_ee_python_path(ec.base_image),
             ee_name_is_default=ec.ee_name == "ansible_sample_ee",
             ee_registry=ec.registry,
+            ee_registry_tls_verify=ec.registry_tls_verify,
             ee_image_name=ec.image_name,
             ee_galaxy_servers=[s.as_dict() for s in ec.galaxy_servers],
             ee_galaxy_token_vars=[
