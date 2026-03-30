@@ -56,6 +56,10 @@ on:
         required: false
         default: "true"
         type: string
+      image_build_tag:
+        description: "Custom image tag for the build (defaults to build-<commit SHA>)"
+        required: false
+        type: string
       skip_base_image_validation:
         description: "Skip base image validation"
         required: false
@@ -67,9 +71,12 @@ permissions:
   contents: read
   packages: write
 
-# Prevent concurrent builds on the same ref from racing to push tags
+# Prevent concurrent builds from racing to push the same image tag.
+# A static custom tag (e.g. vars.IMAGE_BUILD_TAG=test) dispatched on
+# different refs would otherwise land in separate groups yet push to
+# the same registry tag. Including the resolved tag serialises them.
 concurrency:
-  group: ee-build-${{ github.ref }}
+  group: ee-build-${{ github.ref }}-${{ inputs.image_build_tag || vars.IMAGE_BUILD_TAG || format('build-{0}', github.sha) }}
   cancel-in-progress: false
 
 env:
@@ -80,6 +87,8 @@ env:
   # EE directory and file name (override via workflow_dispatch inputs or repository Variables)
   EE_DIR: ${{ inputs.ee_dir || vars.EE_DIR || '.' }}
   EE_FILE_NAME: ${{ inputs.ee_file_name || vars.EE_FILE_NAME || 'execution-environment.yml' }}
+  # Image build tag (override via workflow_dispatch input or repository Variable)
+  IMAGE_BUILD_TAG: ${{ inputs.image_build_tag || vars.IMAGE_BUILD_TAG || format('build-{0}', github.sha) }}
   # Base image age thresholds (in days) - annotations only, never blocks the build
   IMAGE_WARN_AGE: 40
   IMAGE_FAIL_AGE: 80
@@ -107,6 +116,28 @@ jobs:
           echo "configured=false" >> "$GITHUB_OUTPUT"
           echo "::notice::No SCM tokens configured for this project"
 
+
+  validate-image-tag:
+    name: Validate Image Tag
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check IMAGE_BUILD_TAG conforms to OCI tag spec
+        run: |
+          TAG="${{ env.IMAGE_BUILD_TAG }}"
+          if [[ -z "$TAG" ]]; then
+            echo "::error::IMAGE_BUILD_TAG is empty"
+            exit 1
+          fi
+          if [[ ${#TAG} -gt 128 ]]; then
+            echo "::error::IMAGE_BUILD_TAG '${TAG}' exceeds 128 characters (OCI tag limit)"
+            exit 1
+          fi
+          if ! [[ "$TAG" =~ ^[a-zA-Z0-9][a-zA-Z0-9._-]*$ ]]; then
+            echo "::error::IMAGE_BUILD_TAG '${TAG}' contains invalid characters."
+            echo "::error::Tags must start with [a-zA-Z0-9] and contain only [a-zA-Z0-9._-]"
+            exit 1
+          fi
+          echo "::notice::Image tag '${TAG}' is valid"
 
   check-base-image:
     name: Check Base Image Lifecycle
@@ -201,11 +232,12 @@ jobs:
   build:
     name: Build Execution Environment
     runs-on: ubuntu-latest
-    needs: [validate-tokens, check-base-image]
+    needs: [validate-tokens, validate-image-tag, check-base-image]
     # Runs even if check-base-image was skipped (workflow_dispatch) so builds are not blocked
     if: |
       always() &&
       needs.validate-tokens.result == 'success' &&
+      needs.validate-image-tag.result == 'success' &&
       (needs.check-base-image.result == 'success' || needs.check-base-image.result == 'skipped')
     outputs:
       image_digest: ${{ steps.push.outputs.digest }}
@@ -275,7 +307,7 @@ jobs:
 
           buildah bud --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
             "${EXTRA_ARGS[@]}" \
-            --tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
+            --tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_BUILD_TAG }}" \
             --file context/Containerfile \
             context/
           echo "::endgroup::"
@@ -283,9 +315,9 @@ jobs:
       - name: Test execution environment
         run: |
           echo "::group::Testing EE"
-          podman run --rm "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
+          podman run --rm "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_BUILD_TAG }}" \
             ansible --version
-          podman run --rm "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
+          podman run --rm "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_BUILD_TAG }}" \
             ansible-galaxy collection list
           echo "::endgroup::"
 
@@ -294,8 +326,8 @@ jobs:
         run: |
           buildah push --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
             --digestfile /tmp/digest \
-            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
-            "docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}"
+            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_BUILD_TAG }}" \
+            "docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_BUILD_TAG }}"
           echo "digest=$(cat /tmp/digest)" >> "$GITHUB_OUTPUT"
 
   # ============================================================================
@@ -320,7 +352,7 @@ jobs:
         run: |
           # Pull the image built from this commit (pushed in build job)
           buildah pull --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
-            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}"
+            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_BUILD_TAG }}"
 
           # Backup previous production tag if it exists
           if buildah pull --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
@@ -334,7 +366,7 @@ jobs:
 
           # Tag and push version, latest, and production
           for TAG in "${VERSION}" "latest" "prd"; do
-            buildah tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
+            buildah tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_BUILD_TAG }}" \
               "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG}"
             buildah push --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
               "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG}"
@@ -348,7 +380,7 @@ jobs:
   summary:
     name: Build Summary
     runs-on: ubuntu-latest
-    needs: [validate-tokens, check-base-image, build]
+    needs: [validate-tokens, validate-image-tag, check-base-image, build]
     if: always()
     steps:
       - name: Generate summary
@@ -360,6 +392,7 @@ jobs:
           echo "| Check | Status |" >> "$GITHUB_STEP_SUMMARY"
           echo "|-------|--------|" >> "$GITHUB_STEP_SUMMARY"
           echo "| Token Validation | ${{ needs.validate-tokens.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Image Tag Validation | ${{ needs.validate-image-tag.result }} |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Base Image Check | ${{ needs.check-base-image.result }} |" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
 
