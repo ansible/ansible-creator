@@ -77,9 +77,12 @@ permissions:
   contents: read
   packages: write
 
-{% raw %}# Prevent concurrent builds on the same ref from racing to push tags
+{% raw %}# Prevent concurrent builds from racing to push the same image tag.
+# A static custom tag (e.g. vars.IMAGE_BUILD_TAG=test) dispatched on
+# different refs would otherwise land in separate groups yet push to
+# the same registry tag. Including the resolved tag serialises them.
 concurrency:
-  group: ee-build-${{ github.ref }}
+  group: ee-build-${{ github.ref }}-${{ inputs.image_build_tag || vars.IMAGE_BUILD_TAG || format('build-{0}', github.sha) }}
   cancel-in-progress: false
 {% endraw %}
 env:
@@ -167,6 +170,28 @@ env:
 {% endraw %}
 {%- endif %}
 {% raw %}
+  validate-image-tag:
+    name: Validate Image Tag
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check IMAGE_BUILD_TAG conforms to OCI tag spec
+        run: |
+          TAG="${{ env.IMAGE_BUILD_TAG }}"
+          if [[ -z "$TAG" ]]; then
+            echo "::error::IMAGE_BUILD_TAG is empty"
+            exit 1
+          fi
+          if [[ ${#TAG} -gt 128 ]]; then
+            echo "::error::IMAGE_BUILD_TAG '${TAG}' exceeds 128 characters (OCI tag limit)"
+            exit 1
+          fi
+          if ! [[ "$TAG" =~ ^[a-zA-Z0-9][a-zA-Z0-9._-]*$ ]]; then
+            echo "::error::IMAGE_BUILD_TAG '${TAG}' contains invalid characters."
+            echo "::error::Tags must start with [a-zA-Z0-9] and contain only [a-zA-Z0-9._-]"
+            exit 1
+          fi
+          echo "::notice::Image tag '${TAG}' is valid"
+
   check-base-image:
     name: Check Base Image Lifecycle
     runs-on: ubuntu-latest
@@ -260,11 +285,12 @@ env:
   build:
     name: Build Execution Environment
     runs-on: ubuntu-latest
-    needs: [validate-tokens, check-base-image]
+    needs: [validate-tokens, validate-image-tag, check-base-image]
     # Runs even if check-base-image was skipped (workflow_dispatch) so builds are not blocked
     if: |
       always() &&
       needs.validate-tokens.result == 'success' &&
+      needs.validate-image-tag.result == 'success' &&
       (needs.check-base-image.result == 'success' || needs.check-base-image.result == 'skipped')
     outputs:
       image_digest: ${{ steps.push.outputs.digest }}
@@ -444,7 +470,7 @@ env:
   summary:
     name: Build Summary
     runs-on: ubuntu-latest
-    needs: [validate-tokens, check-base-image, build]
+    needs: [validate-tokens, validate-image-tag, check-base-image, build]
     if: always()
     steps:
       - name: Generate summary
@@ -456,6 +482,7 @@ env:
           echo "| Check | Status |" >> "$GITHUB_STEP_SUMMARY"
           echo "|-------|--------|" >> "$GITHUB_STEP_SUMMARY"
           echo "| Token Validation | ${{ needs.validate-tokens.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Image Tag Validation | ${{ needs.validate-image-tag.result }} |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Base Image Check | ${{ needs.check-base-image.result }} |" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
 
