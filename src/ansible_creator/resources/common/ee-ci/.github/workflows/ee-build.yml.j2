@@ -62,6 +62,10 @@ on:
         required: false
         default: "{{ ee_registry_tls_verify | lower }}"
         type: string
+      image_build_tag:
+        description: "Custom image tag for the build (defaults to build-<commit SHA>)"
+        required: false
+        type: string
       skip_base_image_validation:
         description: "Skip base image validation"
         required: false
@@ -86,6 +90,8 @@ env:
   # EE directory and file name (override via workflow_dispatch inputs or repository Variables)
   EE_DIR: {% raw %}${{ inputs.ee_dir || vars.EE_DIR || '.' }}{% endraw %}
   EE_FILE_NAME: {% raw %}${{ inputs.ee_file_name || vars.EE_FILE_NAME || '{% endraw %}{{ ee_file_name }}{% raw %}' }}{% endraw %}
+  # Image build tag (override via workflow_dispatch input or repository Variable)
+  IMAGE_BUILD_TAG: {% raw %}${{ inputs.image_build_tag || vars.IMAGE_BUILD_TAG || format('build-{0}', github.sha) }}{% endraw %}
   # Base image age thresholds (in days) - annotations only, never blocks the build
   IMAGE_WARN_AGE: 40
   IMAGE_FAIL_AGE: 80
@@ -365,7 +371,7 @@ env:
 
 {% raw %}          buildah bud --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
             "${EXTRA_ARGS[@]}" \
-            --tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
+            --tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_BUILD_TAG }}" \
             --file context/Containerfile \
             context/
           echo "::endgroup::"
@@ -373,9 +379,9 @@ env:
       - name: Test execution environment
         run: |
           echo "::group::Testing EE"
-          podman run --rm "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
+          podman run --rm "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_BUILD_TAG }}" \
             ansible --version
-          podman run --rm "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
+          podman run --rm "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_BUILD_TAG }}" \
             ansible-galaxy collection list
           echo "::endgroup::"
 
@@ -384,8 +390,8 @@ env:
         run: |
           buildah push --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
             --digestfile /tmp/digest \
-            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
-            "docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}"
+            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_BUILD_TAG }}" \
+            "docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_BUILD_TAG }}"
           echo "digest=$(cat /tmp/digest)" >> "$GITHUB_OUTPUT"
 
   # ============================================================================
@@ -410,7 +416,7 @@ env:
         run: |
           # Pull the image built from this commit (pushed in build job)
           buildah pull --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
-            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}"
+            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_BUILD_TAG }}"
 
           # Backup previous production tag if it exists
           if buildah pull --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
@@ -424,7 +430,7 @@ env:
 
           # Tag and push version, latest, and production
           for TAG in "${VERSION}" "latest" "prd"; do
-            buildah tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-${{ github.sha }}" \
+            buildah tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_BUILD_TAG }}" \
               "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG}"
             buildah push --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
               "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG}"
