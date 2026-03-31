@@ -310,10 +310,17 @@ env:
 
       - name: Login to container registry
         run: |
-          echo "${{ secrets.REGISTRY_PASSWORD || secrets.GITHUB_TOKEN }}" | \
-            buildah login --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
-            -u "${{ secrets.REGISTRY_USERNAME || github.actor }}" \
-            --password-stdin "${{ env.REGISTRY }}"
+          if [[ "${{ env.REGISTRY }}" == "ghcr.io" ]]; then
+            echo "${{ secrets.GITHUB_TOKEN }}" | \
+              buildah login --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
+              -u "${{ github.actor }}" \
+              --password-stdin "${{ env.REGISTRY }}"
+          else
+            echo "${{ secrets.REGISTRY_PASSWORD }}" | \
+              buildah login --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
+              -u "${{ secrets.REGISTRY_USERNAME }}" \
+              --password-stdin "${{ env.REGISTRY }}"
+          fi
 
       - name: Login to Red Hat registry (for base images)
         if: vars.REDHAT_REGISTRY_USERNAME != ''
@@ -431,10 +438,17 @@ env:
     steps:
       - name: Login to container registry
         run: |
-          echo "${{ secrets.REGISTRY_PASSWORD || secrets.GITHUB_TOKEN }}" | \
-            buildah login --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
-            -u "${{ secrets.REGISTRY_USERNAME || github.actor }}" \
-            --password-stdin "${{ env.REGISTRY }}"
+          if [[ "${{ env.REGISTRY }}" == "ghcr.io" ]]; then
+            echo "${{ secrets.GITHUB_TOKEN }}" | \
+              buildah login --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
+              -u "${{ github.actor }}" \
+              --password-stdin "${{ env.REGISTRY }}"
+          else
+            echo "${{ secrets.REGISTRY_PASSWORD }}" | \
+              buildah login --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
+              -u "${{ secrets.REGISTRY_USERNAME }}" \
+              --password-stdin "${{ env.REGISTRY }}"
+          fi
 
       - name: Tag and push release
         env:
