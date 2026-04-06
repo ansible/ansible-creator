@@ -17,7 +17,7 @@
 {%- for var in ee_scm_token_vars %}
 #   {{ var }}
 {%- endfor %}
-#   REGISTRY_USERNAME/PASSWORD   - Container registry credentials
+#   REGISTRY_USERNAME, REGISTRY_PASSWORD   - Container registry credentials
 #   REDHAT_REGISTRY_PASSWORD     - Red Hat registry for base images
 #
 # Token Security:
@@ -318,7 +318,7 @@ env:
           else
             echo "${{ secrets.REGISTRY_PASSWORD }}" | \
               buildah login --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
-              -u "${{ secrets.REGISTRY_USERNAME }}" \
+              -u "${{ vars.REGISTRY_USERNAME }}" \
               --password-stdin "${{ env.REGISTRY }}"
           fi
 
@@ -446,7 +446,7 @@ env:
           else
             echo "${{ secrets.REGISTRY_PASSWORD }}" | \
               buildah login --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
-              -u "${{ secrets.REGISTRY_USERNAME }}" \
+              -u "${{ vars.REGISTRY_USERNAME }}" \
               --password-stdin "${{ env.REGISTRY }}"
           fi
 
