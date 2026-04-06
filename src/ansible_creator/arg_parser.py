@@ -440,7 +440,10 @@ class Parser:
         """
         parser = subparser.add_parser(
             "ee-ci",
-            help="Add a GitHub Action CI workflow for building execution environments.",
+            help=(
+                "Add a CI workflow for building execution environments "
+                "(GitHub Actions or GitLab CI)."
+            ),
         )
 
         parser.add_argument(
@@ -450,6 +453,14 @@ class Parser:
             nargs="?",
             help="The destination directory for the EE CI workflow. "
             "The default is the current working directory.",
+        )
+
+        parser.add_argument(
+            "--scm-provider",
+            dest="scm_provider",
+            default="github",
+            choices=["github", "gitlab"],
+            help="SCM provider to generate CI for. Default: github",
         )
 
         self._add_overwrite(parser)
@@ -833,6 +844,15 @@ class Parser:
             "(login, pull, push, and image builds). "
             "Use --no-registry-tls-verify to disable. "
             "Overrides the value from --ee-config/--ee-config-file when set explicitly.",
+        )
+
+        parser.add_argument(
+            "--scm-provider",
+            dest="scm_provider",
+            default="github",
+            choices=["github", "gitlab"],
+            help="SCM provider for the scaffolded EE CI files (GitHub Actions or GitLab CI). "
+            "Default: github",
         )
 
         self._add_args_common(parser)
