@@ -6,7 +6,6 @@ Complete the following setup to enable automated EE builds.
 
 | Secret | Purpose |
 |--------|---------|
-| `REGISTRY_USERNAME` | Container registry username (defaults to `github.actor`) |
 | `REGISTRY_PASSWORD` | Container registry password (defaults to `GITHUB_TOKEN`) |
 | `REDHAT_REGISTRY_PASSWORD` | Red Hat registry password (for pulling base images) |
 
@@ -16,6 +15,7 @@ Configure these in **Settings > Secrets and variables > Actions > Variables**.
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
+| `REGISTRY_USERNAME` | `github.actor` | Username for the container registry where the built image will be pushed (defaults to `github.actor`) |
 | `EE_REGISTRY` | `ghcr.io` | Container registry hostname |
 | `EE_IMAGE_NAME` | `<owner>/<repo>` | Image name |
 | `REDHAT_REGISTRY_USERNAME` | - | Red Hat registry username |
