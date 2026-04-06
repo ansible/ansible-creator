@@ -64,6 +64,7 @@ class ConfigDict(TypedDict):
     image: str
     role_name: str
     skip_collection_check: bool
+    scm_provider: str
 
 
 @pytest.fixture(name="cli_args")
@@ -423,7 +424,13 @@ def test_run_success_add_ee_ci_gitlab(
     tmp_path: Path,
     cli_args: ConfigDict,
 ) -> None:
-    """Test Add.run() scaffolds GitLab CI for EE when ``scm_provider`` is gitlab."""
+    """Test Add.run() scaffolds GitLab CI for EE when ``scm_provider`` is gitlab.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Add class object.
+    """
     cli_args["resource_type"] = "ee-ci"
     cli_args["scm_provider"] = "gitlab"
     add = Add(Config(**cli_args))

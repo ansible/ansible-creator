@@ -163,7 +163,13 @@ def test_run_success_ee_project_gitlab(
     tmp_path: Path,
     cli_args: ConfigDict,
 ) -> None:
-    """Init scaffolds GitLab CI when ``scm_provider`` is gitlab."""
+    """Init scaffolds GitLab CI when ``scm_provider`` is gitlab.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
     cli_args["project"] = "execution_env"
     cli_args["init_path"] = str(tmp_path / "gitlab_ee")
     cli_args["scm_provider"] = "gitlab"
@@ -1884,7 +1890,12 @@ def test_ee_project_with_scm_servers_gitlab(
     output: Output,
     tmp_path: Path,
 ) -> None:
-    """EE project with scm_servers and GitLab CI includes envsubst (no git-credentials)."""
+    """EE project with scm_servers and GitLab CI includes envsubst (no git-credentials).
+
+    Args:
+        output: Output object for logging.
+        tmp_path: Temporary directory path.
+    """
     dest = tmp_path / "scm-ee-gl"
     config = Config(
         creator_version="0.0.1",

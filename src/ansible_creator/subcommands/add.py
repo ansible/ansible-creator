@@ -238,16 +238,38 @@ class Add:
 
     @staticmethod
     def _is_github_path(dest: DestinationFile) -> bool:
-        """Return True if the destination is under ``.github/``."""
+        """Return True if the destination is under ``.github/``.
+
+        Args:
+            dest: A walker destination file entry.
+
+        Returns:
+            ``True`` if ``dest`` lies under a ``.github`` directory.
+        """
         return ".github" in dest.dest.parts
 
     @staticmethod
     def _is_gitlab_path(dest: DestinationFile) -> bool:
-        """Return True if the destination is the GitLab CI file."""
+        """Return True if the destination is the GitLab CI file.
+
+        Args:
+            dest: A walker destination file entry.
+
+        Returns:
+            ``True`` if the destination basename is ``.gitlab-ci.yml``.
+        """
         return dest.dest.name == ".gitlab-ci.yml"
 
     def _filter_scm_paths(self, paths: FileList) -> FileList:
-        """Keep only CI files for the selected SCM provider (ee-ci resource)."""
+        """Keep only CI files for the selected SCM provider (ee-ci resource).
+
+        Args:
+            paths: Collected paths from the ee-ci resource walker.
+
+        Returns:
+            ``paths`` with GitHub-only or GitLab-only entries removed according
+            to ``self._scm_provider``.
+        """
         filtered = FileList()
         for path in paths:
             if self._scm_provider == "github" and self._is_gitlab_path(path):
