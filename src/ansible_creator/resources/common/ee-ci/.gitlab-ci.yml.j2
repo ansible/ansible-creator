@@ -6,6 +6,10 @@
 # - Base image lifecycle checks (informational)
 # - Production release workflow with tagging
 # - Registry authentication for build and push
+# - Single Podman auth file (REGISTRY_AUTHFILE) for login, build, and push —
+#   avoids push failures on some registries when blob-exists checks need auth
+# - IMAGE_NAME lowercased before tag/push — many OCI registries require
+#   lowercase repository paths (override IMAGE_NAME in CI/CD variables if needed)
 #
 # Required CI/CD Variables (Settings > CI/CD > Variables) — use the same names
 # as in the GitHub Actions workflow secrets where applicable:
@@ -51,6 +55,8 @@ default:
   image: quay.io/podman/stable
 
 variables:
+  # REGISTRY / IMAGE_NAME come from EE scaffold (--ee-config registry / image_name).
+  # Build and release jobs normalize IMAGE_NAME to lowercase for OCI tags.
   REGISTRY: "{{ ee_registry }}"
 {%- if ee_image_name %}
   IMAGE_NAME: "{{ ee_image_name }}"
@@ -215,10 +221,17 @@ build:
         exit 1
       fi
       echo "NOTICE: podman $PODMAN_VERSION — ARG values will not appear in image history"
+    - |
+      export IMAGE_NAME="$(printf '%s' "$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')"
+      echo "IMAGE_NAME (OCI-normalized): ${IMAGE_NAME}"
   script:
     - |
+      REGISTRY_AUTHFILE="${CI_PROJECT_DIR}/.containers-auth.json"
+      export REGISTRY_AUTHFILE
+      rm -f "$REGISTRY_AUTHFILE"
       echo "${REGISTRY_PASSWORD:-$CI_REGISTRY_PASSWORD}" | \
         podman login --tls-verify="$EE_REGISTRY_TLS_VERIFY" \
+        --authfile "$REGISTRY_AUTHFILE" \
         -u "${REGISTRY_USERNAME:-$CI_REGISTRY_USER}" \
         --password-stdin "$REGISTRY"
 
@@ -226,6 +239,7 @@ build:
       if [ -n "$REDHAT_REGISTRY_USERNAME" ]; then
         echo "$REDHAT_REGISTRY_PASSWORD" | \
           podman login --tls-verify="$EE_REGISTRY_TLS_VERIFY" \
+          --authfile "$REGISTRY_AUTHFILE" \
           -u "$REDHAT_REGISTRY_USERNAME" \
           --password-stdin registry.redhat.io
       fi
@@ -269,7 +283,8 @@ build:
 {%- endif %}
 
       # shellcheck disable=SC2086
-      podman build --tls-verify="$EE_REGISTRY_TLS_VERIFY" $EXTRA_ARGS \
+      podman build --tls-verify="$EE_REGISTRY_TLS_VERIFY" \
+        --authfile "$REGISTRY_AUTHFILE" $EXTRA_ARGS \
         --tag "${REGISTRY}/${IMAGE_NAME}:build-${CI_COMMIT_SHA}" \
         --file context/Containerfile \
         context/
@@ -284,9 +299,10 @@ build:
       echo -e "\e[0Ksection_end:$(date +%s):test_ee\r\e[0K"
 
     - |
-      podman push --tls-verify="$EE_REGISTRY_TLS_VERIFY" --digestfile /tmp/digest \
-        "${REGISTRY}/${IMAGE_NAME}:build-${CI_COMMIT_SHA}" \
-        "docker://${REGISTRY}/${IMAGE_NAME}:build-${CI_COMMIT_SHA}"
+      podman push --tls-verify="$EE_REGISTRY_TLS_VERIFY" \
+        --authfile "$REGISTRY_AUTHFILE" \
+        --digestfile /tmp/digest \
+        "${REGISTRY}/${IMAGE_NAME}:build-${CI_COMMIT_SHA}"
       echo "IMAGE_DIGEST=$(cat /tmp/digest)" >> build.env
   artifacts:
     reports:
@@ -304,23 +320,31 @@ release:
   rules:
     - if: $CI_COMMIT_TAG
   script:
+    - export IMAGE_NAME="$(printf '%s' "$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')"
     - |
+      REGISTRY_AUTHFILE="${CI_PROJECT_DIR}/.containers-auth.json"
+      export REGISTRY_AUTHFILE
+      rm -f "$REGISTRY_AUTHFILE"
       echo "${REGISTRY_PASSWORD:-$CI_REGISTRY_PASSWORD}" | \
         podman login --tls-verify="$EE_REGISTRY_TLS_VERIFY" \
+        --authfile "$REGISTRY_AUTHFILE" \
         -u "${REGISTRY_USERNAME:-$CI_REGISTRY_USER}" \
         --password-stdin "$REGISTRY"
 
     - |
       VERSION="$CI_COMMIT_TAG"
       podman pull --tls-verify="$EE_REGISTRY_TLS_VERIFY" \
+        --authfile "$REGISTRY_AUTHFILE" \
         "${REGISTRY}/${IMAGE_NAME}:build-${CI_COMMIT_SHA}"
 
       if podman pull --tls-verify="$EE_REGISTRY_TLS_VERIFY" \
+        --authfile "$REGISTRY_AUTHFILE" \
         "${REGISTRY}/${IMAGE_NAME}:prd" 2>/dev/null; then
         echo "Backing up previous production image to 'previous' tag"
         podman tag "${REGISTRY}/${IMAGE_NAME}:prd" \
           "${REGISTRY}/${IMAGE_NAME}:previous"
         podman push --tls-verify="$EE_REGISTRY_TLS_VERIFY" \
+          --authfile "$REGISTRY_AUTHFILE" \
           "${REGISTRY}/${IMAGE_NAME}:previous"
       fi
 
@@ -328,6 +352,7 @@ release:
         podman tag "${REGISTRY}/${IMAGE_NAME}:build-${CI_COMMIT_SHA}" \
           "${REGISTRY}/${IMAGE_NAME}:${TAG}"
         podman push --tls-verify="$EE_REGISTRY_TLS_VERIFY" \
+          --authfile "$REGISTRY_AUTHFILE" \
           "${REGISTRY}/${IMAGE_NAME}:${TAG}"
       done
 
@@ -351,6 +376,7 @@ summary:
       optional: true
   script:
     - |
+      IMAGE_NAME="$(printf '%s' "$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')"
       {
         echo "## Execution Environment Build Summary"
         echo ""

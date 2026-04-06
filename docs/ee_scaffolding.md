@@ -475,6 +475,12 @@ some runners). The template expects a **podman**-capable image (e.g.
 `quay.io/podman/stable`) and **podman 4+** so build `ARG`s are not stored
 in image history.
 
+The pipeline uses a single `REGISTRY_AUTHFILE` under the project directory
+for `podman login`, `podman build`, and `podman push`, so registries that
+require authentication on layer/blob checks (e.g. Quay.io) succeed.
+`IMAGE_NAME` is lowercased before tagging and pushing because many OCI
+registries reject mixed-case repository paths.
+
 ### Token security
 
 - **Galaxy server tokens** are passed as `--build-arg` values.  With
