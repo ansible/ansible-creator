@@ -125,7 +125,7 @@ one `[galaxy_server.<id>]` section:
 | `url` | yes | Galaxy server content URL |
 | `auth_url` | no | SSO/OAuth token endpoint (e.g. Red Hat SSO) |
 | `token_required` | no | When `true`, the workflow wires up the corresponding repository secret |
-| `validate_certs` | no | hen `false`, writes `validate_certs = false` for that server in `ansible.cfg` (private CA / lab only; prefer trusting the CA in the EE image) |
+| `validate_certs` | no | When `false`, writes `validate_certs = false` for that server in `ansible.cfg` (private CA / lab only; prefer trusting the CA in the EE image) |
 
 When `galaxy_servers` is provided, ansible-creator generates an `ansible.cfg`
 with the server list and a comment for each server that requires a token:
