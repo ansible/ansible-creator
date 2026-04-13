@@ -603,6 +603,8 @@ class Init:
             lines.append(f"url = {server.url}")
             if server.auth_url:
                 lines.append(f"auth_url = {server.auth_url}")
+            if not server.validate_certs:
+                lines.append("validate_certs = false")
             if server.token_required:
                 token_var = f"ANSIBLE_GALAXY_SERVER_{server.id.upper()}_TOKEN"
                 lines.append(f"# Token: set {token_var} as a repository secret")
