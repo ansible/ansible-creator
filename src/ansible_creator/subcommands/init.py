@@ -475,7 +475,6 @@ class Init:
             ee_scm_servers=[s.as_dict() for s in ec.scm_servers],
             ee_scm_token_vars=[s.token_env_var for s in ec.scm_servers],
             ee_file_name=ec.ee_file_name,
-            scm_provider=self._scm_provider,
             ee_build_arg_defaults=dict(ec.build_arg_defaults),
         )
 
