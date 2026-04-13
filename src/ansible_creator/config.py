@@ -47,6 +47,7 @@ class Config:
         ee_system_packages: List of system packages for execution environment.
         ee_name: Name/tag for the execution environment image.
         ee_file_name: Name of the EE definition file.
+        ee_build_arg_defaults: EE build ARG defaults as KEY=VALUE strings (from CLI).
         registry_tls_verify: Whether to verify TLS for container registry operations
             (login, pull, push, and image builds). None means the user did not
             explicitly set this flag, so the EE config file value is preserved.
@@ -80,6 +81,7 @@ class Config:
     ee_system_packages: Sequence[str] = field(default_factory=list)
     ee_name: str = "ansible_sample_ee"
     ee_file_name: str = "execution-environment.yml"
+    ee_build_arg_defaults: Sequence[str] = field(default_factory=list)
     registry_tls_verify: bool | None = None
     scm_provider: str = "github"
 

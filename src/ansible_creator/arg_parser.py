@@ -836,6 +836,16 @@ class Parser:
         )
 
         parser.add_argument(
+            "--ee-build-arg-default",
+            dest="ee_build_arg_defaults",
+            action="append",
+            default=[],
+            metavar="KEY=VALUE",
+            help="Default build ARG for the EE image (repeatable). "
+            "Example: --ee-build-arg-default ANSIBLE_GALAXY_CLI_COLLECTION_OPTS=--pre",
+        )
+
+        parser.add_argument(
             "--registry-tls-verify",
             dest="registry_tls_verify",
             action=argparse.BooleanOptionalAction,

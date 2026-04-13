@@ -430,6 +430,8 @@ class EEConfig:
         additional_build_files: Extra files for the build context.
         additional_build_steps: Custom build steps keyed by phase.
         options: Build options (e.g. package_manager_path).
+        build_arg_defaults: Default ARG values for the container build (e.g.
+            ANSIBLE_GALAXY_CLI_COLLECTION_OPTS).
         ansible_cfg: Content for an ansible.cfg file.
         galaxy_servers: Galaxy server entries for ansible.cfg generation and
             workflow token plumbing.
@@ -451,6 +453,7 @@ class EEConfig:
             "additional_build_files",
             "additional_build_steps",
             "options",
+            "build_arg_defaults",
             "ansible_cfg",
             "galaxy_servers",
             "scm_servers",
@@ -469,6 +472,7 @@ class EEConfig:
     additional_build_files: tuple[dict[str, str], ...] = ()
     additional_build_steps: dict[str, list[str]] = field(default_factory=dict)
     options: dict[str, Any] = field(default_factory=dict)
+    build_arg_defaults: dict[str, str] = field(default_factory=dict)
     ansible_cfg: str = ""
     galaxy_servers: tuple[GalaxyServer, ...] = ()
     scm_servers: tuple[ScmServer, ...] = ()
@@ -500,6 +504,16 @@ class EEConfig:
             EECollection.from_dict(c if isinstance(c, dict) else {"name": c})
             for c in raw_collections
         )
+        raw_build_args = data.get("build_arg_defaults", {})
+        if not isinstance(raw_build_args, dict):
+            msg = "build_arg_defaults must be a mapping of string keys to string values"
+            raise CreatorError(msg)
+        build_arg_defaults: dict[str, str] = {}
+        for bk, bv in raw_build_args.items():
+            if not isinstance(bk, str) or not isinstance(bv, str):
+                msg = "build_arg_defaults must be a mapping of string keys to string values"
+                raise CreatorError(msg)
+            build_arg_defaults[bk] = bv
         registry = data.get("registry", "ghcr.io")
         if "://" in registry:
             msg = f"Invalid registry '{registry}'. Provide a hostname (e.g. 'ghcr.io'), not a URL."
@@ -521,6 +535,7 @@ class EEConfig:
             additional_build_files=tuple(data.get("additional_build_files", [])),
             additional_build_steps=data.get("additional_build_steps", {}),
             options=dict(data.get("options", {})),
+            build_arg_defaults=build_arg_defaults,
             ansible_cfg=data.get("ansible_cfg", ""),
             galaxy_servers=galaxy_servers,
             scm_servers=scm_servers,
@@ -626,6 +641,14 @@ class EEConfig:
                     "type": "object",
                     "description": "Build options (e.g. package_manager_path)",
                 },
+                "build_arg_defaults": {
+                    "type": "object",
+                    "description": (
+                        "Default ARG values for the EE image build "
+                        "(e.g. ANSIBLE_GALAXY_CLI_COLLECTION_OPTS)"
+                    ),
+                    "additionalProperties": {"type": "string"},
+                },
                 "ansible_cfg": {
                     "type": "string",
                     "description": "Content for ansible.cfg file",
@@ -725,6 +748,7 @@ class TemplateData:
         ee_additional_build_steps: Dict with prepend_base, append_base, prepend_final,
             append_final steps.
         ee_options: Dict of EE build options (e.g., package_manager_path).
+        ee_build_arg_defaults: Default ARG values for the EE container build.
         ee_ansible_cfg: Content for ansible.cfg file (for Automation Hub auth).
         is_official_ee: Whether the base image is an official Red Hat EE image.
         ee_python_path: Python interpreter path for the EE (varies by AAP version).
@@ -767,6 +791,7 @@ class TemplateData:
     ee_additional_build_files: Sequence[dict[str, str]] = field(default_factory=list)
     ee_additional_build_steps: dict[str, list[str]] = field(default_factory=dict)
     ee_options: dict[str, Any] = field(default_factory=dict)
+    ee_build_arg_defaults: dict[str, str] = field(default_factory=dict)
     ee_ansible_cfg: str = ""
     is_official_ee: bool = False
     ee_python_path: str = DEFAULT_PYTHON_PATH
