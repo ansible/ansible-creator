@@ -140,7 +140,8 @@ one `[galaxy_server.<id>]` section:
     {
       "id": "private_hub",
       "url": "https://pah.corp.example.com/api/galaxy/content/published/",
-      "token_required": true
+      "token_required": true,
+      "validate_certs": false
     },
     {
       "id": "galaxy",
@@ -156,6 +157,7 @@ one `[galaxy_server.<id>]` section:
 | `url` | yes | Galaxy server content URL |
 | `auth_url` | no | SSO/OAuth token endpoint (e.g. Red Hat SSO) |
 | `token_required` | no | When `true`, the workflow wires up the corresponding repository secret |
+| `validate_certs` | no | When `false`, writes `validate_certs = false` for that server in `ansible.cfg` (private CA / lab only; prefer trusting the CA in the EE image) |
 
 When `galaxy_servers` is provided, ansible-creator generates an `ansible.cfg`
 with the server list and a comment for each server that requires a token:
@@ -171,6 +173,7 @@ auth_url = https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-co
 
 [galaxy_server.private_hub]
 url = https://pah.corp.example.com/api/galaxy/content/published/
+validate_certs = false
 # Token: set ANSIBLE_GALAXY_SERVER_PRIVATE_HUB_TOKEN as a repository secret
 
 [galaxy_server.galaxy]
