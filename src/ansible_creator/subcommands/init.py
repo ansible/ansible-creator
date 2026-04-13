@@ -26,6 +26,8 @@ from ansible_creator.utils import Copier, Walker, ask_yes_no
 
 
 if TYPE_CHECKING:
+    from collections.abc import Callable, Sequence
+
     from ansible_creator.config import Config
     from ansible_creator.output import Output
 
@@ -183,25 +185,7 @@ class Init:
         """
         ee_cfg = self._resolve_ee_config(config)
 
-        # CLI flags override values from config JSON/file.
-        overrides: dict[str, Any] = {}
-        if config.base_image != "quay.io/fedora/fedora:41":
-            overrides["base_image"] = config.base_image
-        if config.ee_name != "ansible_sample_ee":
-            overrides["ee_name"] = config.ee_name
-        if config.ee_collections:
-            overrides["collections"] = tuple(
-                self._parse_single_collection(c) for c in config.ee_collections
-            )
-        if config.ee_python_deps:
-            overrides["python_deps"] = tuple(config.ee_python_deps)
-        if config.ee_system_packages:
-            overrides["system_packages"] = tuple(config.ee_system_packages)
-        if config.ee_file_name != "execution-environment.yml":
-            overrides["ee_file_name"] = config.ee_file_name
-        if config.registry_tls_verify is not None:
-            overrides["registry_tls_verify"] = config.registry_tls_verify
-
+        overrides = Init._ee_cli_flag_overrides(config, ee_cfg, self._parse_single_collection)
         if overrides:
             ee_cfg = dataclasses.replace(ee_cfg, **overrides)
 
@@ -213,6 +197,73 @@ class Init:
             ee_cfg = dataclasses.replace(ee_cfg, options=updated_opts)
 
         return ee_cfg
+
+    @staticmethod
+    def _ee_cli_flag_overrides(
+        config: Config,
+        ee_cfg: EEConfig,
+        parse_collection: Callable[[str], EECollection],
+    ) -> dict[str, Any]:
+        """Build field overrides from CLI flags (relative to JSON/file EE config).
+
+        Args:
+            config: Application configuration.
+            ee_cfg: EE configuration from ``--ee-config`` / file before CLI overlay.
+            parse_collection: ``Init._parse_single_collection`` bound method.
+
+        Returns:
+            Mapping suitable for ``dataclasses.replace(ee_cfg, **overrides)``.
+        """
+        overrides: dict[str, Any] = {}
+        if config.base_image != "quay.io/fedora/fedora:41":
+            overrides["base_image"] = config.base_image
+        if config.ee_name != "ansible_sample_ee":
+            overrides["ee_name"] = config.ee_name
+        if config.ee_collections:
+            overrides["collections"] = tuple(parse_collection(c) for c in config.ee_collections)
+        if config.ee_python_deps:
+            overrides["python_deps"] = tuple(config.ee_python_deps)
+        if config.ee_system_packages:
+            overrides["system_packages"] = tuple(config.ee_system_packages)
+        if config.ee_file_name != "execution-environment.yml":
+            overrides["ee_file_name"] = config.ee_file_name
+        if config.registry_tls_verify is not None:
+            overrides["registry_tls_verify"] = config.registry_tls_verify
+        if config.ee_build_arg_defaults:
+            merged_args = dict(ee_cfg.build_arg_defaults)
+            merged_args.update(Init._parse_cli_build_arg_defaults(config.ee_build_arg_defaults))
+            overrides["build_arg_defaults"] = merged_args
+        return overrides
+
+    @staticmethod
+    def _parse_cli_build_arg_defaults(items: Sequence[str]) -> dict[str, str]:
+        """Parse ``--ee-build-arg-default`` values into a name/value mapping.
+
+        Args:
+            items: Raw ``KEY=VALUE`` strings from the CLI.
+
+        Returns:
+            Mapping of build ARG name to default value.
+
+        Raises:
+            CreatorError: If any entry is not of the form ``KEY=VALUE``.
+        """
+        result: dict[str, str] = {}
+        for raw in items:
+            if "=" not in raw:
+                msg = (
+                    f"Invalid --ee-build-arg-default {raw!r}: expected KEY=VALUE "
+                    "(e.g. ANSIBLE_GALAXY_CLI_COLLECTION_OPTS=--pre)"
+                )
+                raise CreatorError(msg)
+            key, _, value = raw.partition("=")
+            key = key.strip()
+            value = value.strip()
+            if not key:
+                msg = f"Invalid --ee-build-arg-default {raw!r}: empty key"
+                raise CreatorError(msg)
+            result[key] = value
+        return result
 
     @staticmethod
     def _resolve_ee_config(config: Config) -> EEConfig:
@@ -424,6 +475,8 @@ class Init:
             ee_scm_servers=[s.as_dict() for s in ec.scm_servers],
             ee_scm_token_vars=[s.token_env_var for s in ec.scm_servers],
             ee_file_name=ec.ee_file_name,
+            scm_provider=self._scm_provider,
+            ee_build_arg_defaults=dict(ec.build_arg_defaults),
         )
 
         if self._project == "execution_env":
