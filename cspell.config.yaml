@@ -28,6 +28,7 @@ ignoreWords:
   - adoc
   - argparser
   - dellos
+  - dictsort
   - endfor
   - envsubst
   - endif

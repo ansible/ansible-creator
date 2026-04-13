@@ -44,6 +44,7 @@ class ConfigDict(TypedDict, total=False):
         ee_system_packages: List of system packages for execution environment.
         ee_name: Name/tag for the execution environment image.
         ee_file_name: Name of the EE definition file.
+        ee_build_arg_defaults: EE build ARG defaults as KEY=VALUE strings (CLI).
         registry_tls_verify: Whether to verify TLS for container registries.
     """
 
@@ -64,6 +65,7 @@ class ConfigDict(TypedDict, total=False):
     ee_system_packages: list[str]
     ee_name: str
     ee_file_name: str
+    ee_build_arg_defaults: list[str]
     registry_tls_verify: bool | None
 
 
@@ -273,6 +275,24 @@ def test_ee_project_build_arg_defaults_cli_invalid(
     cli_args["ee_build_arg_defaults"] = ["not-key-value"]
 
     with pytest.raises(CreatorError, match="Invalid --ee-build-arg-default"):
+        Init(Config(**cli_args))
+
+
+def test_ee_project_build_arg_defaults_cli_empty_key(
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test Init rejects KEY=VALUE when KEY is empty (e.g. ``=value``).
+
+    Args:
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_empty_key")
+    cli_args["ee_build_arg_defaults"] = ["=only-a-value"]
+
+    with pytest.raises(CreatorError, match="empty key"):
         Init(Config(**cli_args))
 
 
@@ -1529,7 +1549,7 @@ def test_ee_config_from_dict_defaults() -> None:
     assert not cfg.python_deps
     assert not cfg.galaxy_servers
     assert not cfg.scm_servers
-    assert cfg.build_arg_defaults == {}
+    assert not cfg.build_arg_defaults
 
 
 def test_ee_config_from_dict_build_arg_defaults_invalid() -> None:
