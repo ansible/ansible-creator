@@ -126,6 +126,29 @@ def has_differences(dcmp: dircmp[str], errors: list[str]) -> list[str]:
     return errors
 
 
+def _galaxy_server_ini_section(ansible_cfg: str, server_id: str) -> str:
+    """Return the body of a ``[galaxy_server.<server_id>]`` INI section.
+
+    The slice starts immediately after the header line and ends before the next
+    ``[`` at the beginning of a line (next section) or EOF.
+
+    Args:
+        ansible_cfg: Full ``ansible.cfg`` file contents.
+        server_id: Galaxy server id matching the section name.
+
+    Returns:
+        Text after ``[galaxy_server.<server_id>]`` through the line before the
+        next section header.
+    """
+    header = f"[galaxy_server.{server_id}]"
+    start = ansible_cfg.index(header) + len(header)
+    tail = ansible_cfg[start:]
+    next_idx = tail.find("\n[")
+    if next_idx == -1:
+        return tail
+    return tail[:next_idx]
+
+
 def test_run_success_ee_project(
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
@@ -842,6 +865,7 @@ def test_ee_project_with_galaxy_servers(
                 "id": "private_hub",
                 "url": "https://pah.corp.example.com/api/galaxy/content/published/",
                 "token_required": True,
+                "validate_certs": False,
             },
             {
                 "id": "galaxy",
@@ -868,6 +892,12 @@ def test_ee_project_with_galaxy_servers(
     assert "auth_url = https://sso.redhat.com/" in cfg
     assert "[galaxy_server.private_hub]" in cfg
     assert "pah.corp.example.com" in cfg
+    private_hub_section = _galaxy_server_ini_section(cfg, "private_hub")
+    assert "validate_certs = false" in private_hub_section
+    assert private_hub_section.count("validate_certs = false") == 1
+    assert "validate_certs = false" not in _galaxy_server_ini_section(cfg, "automation_hub")
+    assert "validate_certs = false" not in _galaxy_server_ini_section(cfg, "galaxy")
+    assert cfg.count("validate_certs = false") == 1
     assert "[galaxy_server.galaxy]" in cfg
     assert "galaxy.ansible.com" in cfg
     # Token comments for servers with token_required
@@ -1413,6 +1443,7 @@ def test_ee_config_from_dict_galaxy_servers() -> None:
                 "id": "private_hub",
                 "url": "https://pah.corp.example.com/api/galaxy/content/published/",
                 "token_required": True,
+                "validate_certs": False,
             },
             {
                 "id": "galaxy",
@@ -1427,10 +1458,13 @@ def test_ee_config_from_dict_galaxy_servers() -> None:
     assert "console.redhat.com" in cfg.galaxy_servers[0].url
     assert "sso.redhat.com" in cfg.galaxy_servers[0].auth_url
     assert cfg.galaxy_servers[0].token_required is True
+    assert cfg.galaxy_servers[0].validate_certs is True
     assert cfg.galaxy_servers[1].id == "private_hub"
     assert cfg.galaxy_servers[1].token_required is True
+    assert cfg.galaxy_servers[1].validate_certs is False
     assert cfg.galaxy_servers[2].id == "galaxy"
     assert cfg.galaxy_servers[2].token_required is False
+    assert cfg.galaxy_servers[2].validate_certs is True
 
 
 def test_ee_config_from_dict_registry_and_image_name() -> None:
@@ -1674,6 +1708,20 @@ def test_galaxy_server_from_dict_full() -> None:
     assert "console.redhat.com" in server.url
     assert "sso.redhat.com" in server.auth_url
     assert server.token_required is True
+    assert server.validate_certs is True
+
+
+def test_galaxy_server_from_dict_validate_certs_false() -> None:
+    """Test GalaxyServer.from_dict with validate_certs false."""
+    server = GalaxyServer.from_dict(
+        {
+            "id": "internal_hub",
+            "url": "https://10.0.0.1/api/galaxy/content/published/",
+            "validate_certs": False,
+        },
+    )
+    assert server.id == "internal_hub"
+    assert server.validate_certs is False
 
 
 def test_galaxy_server_from_dict_minimal() -> None:
@@ -1684,6 +1732,7 @@ def test_galaxy_server_from_dict_minimal() -> None:
     assert server.url == "https://galaxy.ansible.com/"
     assert server.auth_url == ""
     assert server.token_required is False
+    assert server.validate_certs is True
 
 
 def test_galaxy_server_from_dict_missing_id() -> None:
@@ -1714,6 +1763,7 @@ def test_galaxy_server_as_dict() -> None:
         url="https://example.com/",
         auth_url="https://sso.example.com/token",
         token_required=True,
+        validate_certs=True,
     )
     result = server.as_dict()
 
@@ -1721,6 +1771,7 @@ def test_galaxy_server_as_dict() -> None:
     assert result["url"] == "https://example.com/"
     assert result["auth_url"] == "https://sso.example.com/token"
     assert result["token_required"] is True
+    assert result["validate_certs"] is True
     expected_var = "ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN"
     assert result["token_env_var"] == expected_var
 
@@ -1731,6 +1782,7 @@ def test_galaxy_server_as_dict_no_auth_url() -> None:
     result = server.as_dict()
 
     assert "auth_url" not in result
+    assert result["validate_certs"] is True
     expected_var = "ANSIBLE_GALAXY_SERVER_GALAXY_TOKEN"
     assert result["token_env_var"] == expected_var
 
@@ -1747,6 +1799,7 @@ def test_galaxy_server_to_schema() -> None:
     assert "url" in props
     assert "auth_url" in props
     assert "token_required" in props
+    assert "validate_certs" in props
 
 
 # ---------------------------------------------------------------------------

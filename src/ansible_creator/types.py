@@ -205,12 +205,17 @@ class GalaxyServer:
         url: Galaxy server content URL.
         auth_url: SSO/OAuth token endpoint (for Red Hat SSO-backed servers).
         token_required: Whether this server needs a token at build time.
+        validate_certs: Whether to verify TLS certificates for this Galaxy/AH server.
+            When ``False``, ``validate_certs = false`` is written to ``ansible.cfg``
+            for that ``[galaxy_server.<id>]`` section (e.g. private hubs with a
+            CA not present in the EE image).
     """
 
     id: str
     url: str
     auth_url: str = ""
     token_required: bool = False
+    validate_certs: bool = True
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> GalaxyServer:
@@ -245,6 +250,7 @@ class GalaxyServer:
             url=data["url"],
             auth_url=data.get("auth_url", ""),
             token_required=data.get("token_required", False),
+            validate_certs=data.get("validate_certs", True),
         )
 
     def as_dict(self) -> dict[str, Any]:
@@ -259,6 +265,7 @@ class GalaxyServer:
             "id": self.id,
             "url": self.url,
             "token_required": self.token_required,
+            "validate_certs": self.validate_certs,
             "token_env_var": f"ANSIBLE_GALAXY_SERVER_{self.id.upper()}_TOKEN",
         }
         if self.auth_url:
@@ -297,6 +304,15 @@ class GalaxyServer:
                     "type": "boolean",
                     "default": False,
                     "description": "Whether this server needs a token at build time",
+                },
+                "validate_certs": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": (
+                        "Whether to verify TLS for this Galaxy/AH server. "
+                        "Set to false for Automation hubs with private CAs when the EE image "
+                        "does not trust that CA."
+                    ),
                 },
             },
         }
