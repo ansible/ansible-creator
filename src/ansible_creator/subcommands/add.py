@@ -13,7 +13,7 @@ from ansible_creator.constants import GLOBAL_TEMPLATE_VARS
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.templar import Templar
 from ansible_creator.types import TemplateData
-from ansible_creator.utils import Copier, DestinationFile, FileList, Walker, ask_yes_no
+from ansible_creator.utils import Copier, FileList, Walker, ask_yes_no, filter_ee_ci_paths_for_scm
 
 
 if TYPE_CHECKING:
@@ -204,7 +204,7 @@ class Add:
         paths = walker.collect_paths()
 
         if self._resource_type == "ee-ci":
-            paths = self._filter_scm_paths(paths)
+            paths = filter_ee_ci_paths_for_scm(paths, self._scm_provider)
 
         copier = Copier(output=self.output)
 
@@ -235,49 +235,6 @@ class Add:
                 raise CreatorError(msg)
 
         self.output.note(f"Resource added to {self._add_path}")
-
-    @staticmethod
-    def _is_github_path(dest: DestinationFile) -> bool:
-        """Return True if the destination is under ``.github/``.
-
-        Args:
-            dest: A walker destination file entry.
-
-        Returns:
-            ``True`` if ``dest`` lies under a ``.github`` directory.
-        """
-        return ".github" in dest.dest.parts
-
-    @staticmethod
-    def _is_gitlab_path(dest: DestinationFile) -> bool:
-        """Return True if the destination is the GitLab CI file.
-
-        Args:
-            dest: A walker destination file entry.
-
-        Returns:
-            ``True`` if the destination basename is ``.gitlab-ci.yml``.
-        """
-        return dest.dest.name == ".gitlab-ci.yml"
-
-    def _filter_scm_paths(self, paths: FileList) -> FileList:
-        """Keep only CI files for the selected SCM provider (ee-ci resource).
-
-        Args:
-            paths: Collected paths from the ee-ci resource walker.
-
-        Returns:
-            ``paths`` with GitHub-only or GitLab-only entries removed according
-            to ``self._scm_provider``.
-        """
-        filtered = FileList()
-        for path in paths:
-            if self._scm_provider == "github" and self._is_gitlab_path(path):
-                continue
-            if self._scm_provider == "gitlab" and self._is_github_path(path):
-                continue
-            filtered.append(path)
-        return filtered
 
     def _plugin_scaffold(self, plugin_path: Path) -> None:
         """Scaffold the specified plugin file based on the plugin type.

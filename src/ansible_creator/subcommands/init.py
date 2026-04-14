@@ -22,7 +22,7 @@ from ansible_creator.types import (
     validate_collection_type,
     validate_source_url,
 )
-from ansible_creator.utils import Copier, FileList, Walker, ask_yes_no
+from ansible_creator.utils import Copier, Walker, ask_yes_no, filter_ee_ci_paths_for_scm
 
 
 if TYPE_CHECKING:
@@ -447,7 +447,7 @@ class Init:
         paths = walker.collect_paths()
 
         if self._project == "execution_env":
-            paths = self._filter_scm_paths(paths)
+            paths = filter_ee_ci_paths_for_scm(paths, self._scm_provider)
 
         copier = Copier(
             output=self.output,
@@ -483,24 +483,6 @@ class Init:
                 raise CreatorError(msg)
 
         self.output.note(f"{self._project} project created at {self._init_path}")
-
-    def _filter_scm_paths(self, paths: FileList) -> FileList:
-        """Keep only CI files for the selected SCM provider (EE projects).
-
-        Args:
-            paths: Collected destination paths from the walker.
-
-        Returns:
-            Paths for either GitHub Actions or GitLab CI, not both.
-        """
-        filtered = FileList()
-        for path in paths:
-            if self._scm_provider == "github" and path.dest.name == ".gitlab-ci.yml":
-                continue
-            if self._scm_provider == "gitlab" and ".github" in path.dest.parts:
-                continue
-            filtered.append(path)
-        return filtered
 
     def _write_optional_files(self) -> None:
         """Write optional files based on configuration.

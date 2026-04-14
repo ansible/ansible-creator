@@ -180,6 +180,52 @@ class FileList(list[DestinationFile]):
         return any(path.conflict for path in self)
 
 
+def is_github_ci_path(entry: DestinationFile) -> bool:
+    """Return True if the destination is under a ``.github`` directory.
+
+    Used when filtering ee-ci scaffold paths for GitHub Actions vs GitLab CI.
+
+    Args:
+        entry: A walker destination file entry.
+
+    Returns:
+        True if ``entry`` lies under a ``.github`` directory.
+    """
+    return ".github" in entry.dest.parts
+
+
+def is_gitlab_ci_path(entry: DestinationFile) -> bool:
+    """Return True if the destination is the GitLab CI file.
+
+    Args:
+        entry: A walker destination file entry.
+
+    Returns:
+        True if the destination basename is ``.gitlab-ci.yml``.
+    """
+    return entry.dest.name == ".gitlab-ci.yml"
+
+
+def filter_ee_ci_paths_for_scm(paths: FileList, scm_provider: str) -> FileList:
+    """Keep only CI files for the selected SCM provider (ee-ci resource).
+
+    Args:
+        paths: Collected paths from the ee-ci resource walker.
+        scm_provider: ``github`` or ``gitlab``.
+
+    Returns:
+        ``paths`` with GitHub-only or GitLab-only entries removed accordingly.
+    """
+    filtered = FileList()
+    for path in paths:
+        if scm_provider == "github" and is_gitlab_ci_path(path):
+            continue
+        if scm_provider == "gitlab" and is_github_ci_path(path):
+            continue
+        filtered.append(path)
+    return filtered
+
+
 @dataclass
 class Walker:
     """Configuration for the Walker class.
