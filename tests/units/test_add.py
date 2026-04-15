@@ -47,6 +47,7 @@ class ConfigDict(TypedDict):
         image: The image to be used while scaffolding devcontainer.
         role_name: The name of role to be used while scaffolding.
         skip_collection_check: Whether to skip collection path validation.
+        scm_provider: SCM provider for EE CI (github or gitlab).
     """
 
     creator_version: str
@@ -63,6 +64,7 @@ class ConfigDict(TypedDict):
     image: str
     role_name: str
     skip_collection_check: bool
+    scm_provider: str
 
 
 @pytest.fixture(name="cli_args")
@@ -91,6 +93,7 @@ def fixture_cli_args(tmp_path: Path, output: Output) -> ConfigDict:
         "image": "",
         "role_name": "",
         "skip_collection_check": False,
+        "scm_provider": "github",
     }
 
 
@@ -361,7 +364,7 @@ def test_run_success_add_ee_ci(
     cli_args: ConfigDict,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Test Add.run() for adding an EE CI GitHub Action workflow.
+    """Test Add.run() for adding an EE CI workflow (default: GitHub Actions).
 
     Successfully adds EE CI workflow to path.
 
@@ -380,6 +383,8 @@ def test_run_success_add_ee_ci(
     add.run()
     result = capsys.readouterr().out
     assert "Note: Resource added to" in result
+
+    assert not (tmp_path / ".gitlab-ci.yml").exists()
 
     # Verify the generated ee-ci files match the expected structure
     expected_ci = tmp_path / ".github" / "workflows"
@@ -412,6 +417,32 @@ def test_run_success_add_ee_ci(
     result = capsys.readouterr().out
     assert "already exists" in result, result
     assert "Note: Resource added to" in result
+
+
+def test_run_success_add_ee_ci_gitlab(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test Add.run() scaffolds GitLab CI for EE when ``scm_provider`` is gitlab.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Add class object.
+    """
+    cli_args["resource_type"] = "ee-ci"
+    cli_args["scm_provider"] = "gitlab"
+    add = Add(Config(**cli_args))
+    add.run()
+    result = capsys.readouterr().out
+    assert "Note: Resource added to" in result
+
+    assert not (tmp_path / ".github").exists()
+    expected_gitlab_ci = tmp_path / ".gitlab-ci.yml"
+    effective_gitlab_ci = FIXTURES_DIR / "common" / "ee-ci" / ".gitlab-ci.yml"
+    assert expected_gitlab_ci.exists()
+    assert cmp(expected_gitlab_ci, effective_gitlab_ci, shallow=False)
 
 
 def test_run_success_add_devcontainer(

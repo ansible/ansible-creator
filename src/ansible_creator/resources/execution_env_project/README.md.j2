@@ -4,6 +4,17 @@ This is a sample execution environment project to build and publish your EE.
 
 ## Directory Structure
 
+{%- if scm_provider == "gitlab" %}
+
+```shell
+├── .gitlab-ci.yml          # GitLab CI/CD pipeline for building and publishing
+├── .gitignore
+├── README.md
+└── {{ ee_file_name }}
+```
+
+{%- else %}
+
 ```shell
 ├── .github
 │   └── workflows
@@ -13,9 +24,17 @@ This is a sample execution environment project to build and publish your EE.
 └── {{ ee_file_name }}
 ```
 
+{%- endif %}
+
 ## CI/CD Workflow Features
 
+{%- if scm_provider == "gitlab" %}
+
+The included GitLab CI pipeline (`.gitlab-ci.yml`) provides:
+{%- else %}
+
 The included GitHub Actions workflow (`ee-build.yml`) provides:
+{%- endif %}
 
 ### Token Validation
 
@@ -43,6 +62,32 @@ The included GitHub Actions workflow (`ee-build.yml`) provides:
 
 ## Required Secrets and Variables
 
+{%- if scm_provider == "gitlab" %}
+
+### CI/CD Variables (Settings > CI/CD > Variables)
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+{%- for var in ee_galaxy_token_vars %}
+| `{{ var }}` | Yes | Galaxy server authentication token |
+{%- endfor %}
+{%- for server in ee_scm_servers %}
+| `{{ server.token_env_var }}` | Yes | Git access token for {{ server.hostname }} |
+{%- endfor %}
+| `REGISTRY_USERNAME` | No | Container registry username (defaults to `CI_REGISTRY_USER`) |
+| `REGISTRY_PASSWORD` | No | Container registry password (defaults to `CI_REGISTRY_PASSWORD`) |
+| `REDHAT_REGISTRY_PASSWORD` | No | Red Hat registry password (for pulling base images) |
+
+### Additional CI/CD Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `EE_REGISTRY` | `{{ ee_registry }}` | Container registry hostname |
+| `EE_IMAGE_NAME` | `$CI_PROJECT_PATH` | Image name / path in the registry |
+| `REDHAT_REGISTRY_USERNAME` | - | Red Hat registry username |
+
+{%- else %}
+
 ### Secrets (Repository Settings > Secrets)
 
 | Secret | Required | Description |
@@ -64,6 +109,8 @@ The included GitHub Actions workflow (`ee-build.yml`) provides:
 | `EE_REGISTRY` | `{{ ee_registry }}` | Container registry hostname |
 | `EE_IMAGE_NAME` | `<owner>/<repo>` | Image name (GHCR requires the `owner/repo` namespace) |
 | `REDHAT_REGISTRY_USERNAME` | - | Red Hat registry username |
+
+{%- endif %}
 {%- if ee_galaxy_token_vars or ee_scm_token_vars %}
 
 See `NEXT_STEPS.md` for a complete setup checklist.
@@ -86,9 +133,18 @@ podman build -t my-ee:latest context/
 
 ### Triggering CI/CD
 
+{%- if scm_provider == "gitlab" %}
+
+- **Tag push**, **manual pipeline** (Run pipeline), **API**, or **pipeline trigger**: runs build and push
+- **Tag pipeline**: release job tags the image with the Git tag, `latest`, and `prd`
+
+{%- else %}
+
 - **Pull Request**: Builds and tests the EE (no push to registry)
 - **Push to main**: Builds, tests, and pushes with `latest` and commit SHA tags
 - **Release**: Tags image with version number and `prd` tag
+
+{%- endif %}
 
 ## Customization
 

@@ -1,6 +1,67 @@
 # Next Steps
 
 Complete the following setup to enable automated EE builds.
+
+{%- if scm_provider == "gitlab" %}
+{%- if ee_galaxy_token_vars or ee_scm_token_vars %}
+
+## Required CI/CD variables
+
+Configure these under **Settings > CI/CD > Variables** (mask sensitive values).
+{%- if ee_galaxy_token_vars %}
+
+### Galaxy server tokens
+
+These tokens authenticate `ansible-galaxy collection install` during the EE build.
+
+| Variable | Purpose |
+|----------|---------|
+{%- for var in ee_galaxy_token_vars %}
+| `{{ var }}` | Galaxy server authentication token |
+{%- endfor %}
+{%- endif %}
+{%- if ee_scm_token_vars %}
+
+### SCM tokens
+
+These tokens substitute into private collection Git URLs during the build (`envsubst` on `context/_build/requirements.yml`).
+
+| Variable | Purpose |
+|----------|---------|
+{%- for server in ee_scm_servers %}
+| `{{ server.token_env_var }}` | Git access for collections from `{{ server.hostname }}` |
+{%- endfor %}
+{%- endif %}
+{%- endif %}
+
+## Optional CI/CD variables
+
+| Variable | Purpose |
+|----------|---------|
+| `REGISTRY_USERNAME` | Container registry username (defaults to `CI_REGISTRY_USER`) |
+| `REGISTRY_PASSWORD` | Container registry password (defaults to `CI_REGISTRY_PASSWORD`) |
+| `REDHAT_REGISTRY_PASSWORD` | Red Hat registry password (for pulling base images) |
+
+## Additional CI/CD variables
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `EE_REGISTRY` | `{{ ee_registry }}` | Container registry hostname |
+| `EE_IMAGE_NAME` | (see `.gitlab-ci.yml`) | Image name in the registry |
+| `REDHAT_REGISTRY_USERNAME` | - | Red Hat registry username |
+
+## Verify your setup
+
+{% if ee_galaxy_token_vars or ee_scm_token_vars -%}
+1. Configure all required variables listed above
+{% else -%}
+1. Review the optional variables listed above and configure any you need
+{% endif -%}
+2. Run a pipeline (for example **CI/CD > Pipelines > Run pipeline**) or push a tag
+3. Open the pipeline job logs for any authentication errors
+4. Once the build succeeds, verify the image in your container registry
+
+{%- else %}
 {%- if ee_galaxy_token_vars or ee_scm_token_vars %}
 
 ## Required Secrets
@@ -60,3 +121,5 @@ Configure these in **Settings > Secrets and variables > Actions > Variables**.
 2. Push to a branch or open a pull request to trigger the workflow
 3. Check the workflow run in **Actions** for any authentication errors
 4. Once the build succeeds, verify the image in your container registry
+
+{%- endif %}

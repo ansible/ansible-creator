@@ -1,0 +1,413 @@
+---
+# Execution Environment Build and Publish Pipeline (GitLab CI/CD)
+# Features:
+# - Galaxy server token configuration checks
+# - Support for private collection repositories (SCM tokens via envsubst)
+# - Base image lifecycle checks (informational)
+# - Production release workflow with tagging
+# - Registry authentication for build and push
+# - Single Podman auth file (REGISTRY_AUTHFILE) for login, build, and push —
+#   avoids push failures on some registries when blob-exists checks need auth
+# - IMAGE_NAME lowercased before tag/push — many OCI registries require
+#   lowercase repository paths (override IMAGE_NAME in CI/CD variables if needed)
+#
+# Required CI/CD Variables (Settings > CI/CD > Variables) — use the same names
+# as in the GitHub Actions workflow secrets where applicable:
+#   Galaxy server tokens:
+#     ANSIBLE_GALAXY_SERVER_<ID>_TOKEN
+#   (matches [galaxy_server.<id>] in ansible.cfg)
+{%- for var in ee_galaxy_token_vars %}
+#   {{ var }}
+{%- endfor %}
+{%- for var in ee_scm_token_vars %}
+#   {{ var }}
+{%- endfor %}
+#   REGISTRY_USERNAME / REGISTRY_PASSWORD — container registry (optional; GitLab
+#     Container Registry uses CI_REGISTRY_USER / CI_REGISTRY_PASSWORD when unset)
+#   REDHAT_REGISTRY_USERNAME / REDHAT_REGISTRY_PASSWORD — Red Hat registry
+#
+# Token security: Galaxy tokens are passed as Containerfile build ARG values
+# during the build only. ansible.cfg (URLs only) is volume-mounted and never
+# stored in an image layer. SCM tokens are applied via envsubst to
+# context/_build/requirements.yml after ansible-builder create (same model as
+# GitHub Actions). Mark sensitive variables as masked/protected in GitLab.
+#
+# Runner requirements: podman (e.g. quay.io/podman/stable) with an executor that
+# supports privileged builds or fuse. For VFS storage drivers set
+# STORAGE_DRIVER=vfs in CI/CD variables.
+
+stages:
+  - validate
+  - check
+  - build
+  - release
+  - summary
+
+# Pipeline runs on tag pushes, manual web triggers, API triggers, or upstream triggers.
+workflow:
+  rules:
+    - if: $CI_COMMIT_TAG
+    - if: $CI_PIPELINE_SOURCE == "web"
+    - if: $CI_PIPELINE_SOURCE == "api"
+    - if: $CI_PIPELINE_SOURCE == "trigger"
+
+default:
+  image: quay.io/podman/stable
+
+variables:
+  # REGISTRY / IMAGE_NAME come from EE scaffold (--ee-config registry / image_name).
+  # Build and release jobs normalize IMAGE_NAME to lowercase for OCI tags.
+  REGISTRY: "{{ ee_registry }}"
+{%- if ee_image_name %}
+  IMAGE_NAME: "{{ ee_image_name }}"
+{%- else %}
+  IMAGE_NAME: "$CI_PROJECT_PATH"
+{%- endif %}
+  EE_DIR: "."
+  EE_FILE_NAME: "{{ ee_file_name }}"
+  EE_REGISTRY_TLS_VERIFY: "{{ ee_registry_tls_verify | lower }}"
+  IMAGE_WARN_AGE: "40"
+  IMAGE_FAIL_AGE: "80"
+  SKIP_BASE_IMAGE_VALIDATION: "false"
+
+# ============================================================================
+# Validation
+# ============================================================================
+validate-tokens:
+  stage: validate
+  image: alpine:latest
+  script:
+    - |
+      : > validate.env
+      GALAXY_CONFIGURED=false
+{%- if ee_galaxy_token_vars %}
+{%- for var in ee_galaxy_token_vars %}
+      if [ -n "${{ var }}" ]; then
+        echo "{{ var }} is configured"
+        GALAXY_CONFIGURED=true
+      else
+        echo "No {{ var }} variable configured"
+      fi
+{%- endfor %}
+{%- else %}
+      echo "No galaxy server tokens configured for this project"
+{%- endif %}
+      echo "GALAXY_TOKENS_CONFIGURED=$GALAXY_CONFIGURED" >> validate.env
+    - |
+      GIT_CONFIGURED=false
+{%- if ee_scm_token_vars %}
+{%- for var in ee_scm_token_vars %}
+      if [ -n "${{ var }}" ]; then
+        echo "{{ var }} is configured"
+        GIT_CONFIGURED=true
+      else
+        echo "No {{ var }} variable configured"
+      fi
+{%- endfor %}
+{%- else %}
+      echo "No SCM tokens configured for this project"
+{%- endif %}
+      echo "GIT_TOKEN_CONFIGURED=$GIT_CONFIGURED" >> validate.env
+  artifacts:
+    reports:
+      dotenv: validate.env
+
+check-base-image:
+  stage: check
+  allow_failure: true
+  rules:
+    - if: $SKIP_BASE_IMAGE_VALIDATION == "true"
+      when: never
+    - when: on_success
+  script:
+    - |
+      if [ -n "$REDHAT_REGISTRY_USERNAME" ]; then
+        echo "$REDHAT_REGISTRY_PASSWORD" | \
+          podman login --tls-verify="$EE_REGISTRY_TLS_VERIFY" \
+          -u "$REDHAT_REGISTRY_USERNAME" \
+          --password-stdin registry.redhat.io
+      fi
+    - |
+      EE_DEF="${EE_DIR}/${EE_FILE_NAME}"
+      BASE_IMAGE=""
+      if command -v yq &> /dev/null; then
+        BASE_IMAGE=$(yq -r '.images.base_image.name // .images.base_image // empty' \
+          "$EE_DEF" 2>/dev/null || echo "")
+      fi
+      if [ -z "$BASE_IMAGE" ]; then
+        BASE_IMAGE=$(grep -A2 'base_image:' "$EE_DEF" | \
+          grep -oP 'name:\s*\K\S+' || \
+          grep -oP 'base_image:\s*\K\S+' "$EE_DEF" || echo "")
+        BASE_IMAGE=$(echo "$BASE_IMAGE" | tr -d '"' | tr -d "'" | head -1)
+      fi
+      echo "Base image: $BASE_IMAGE"
+    - |
+      if [ -z "$BASE_IMAGE" ]; then
+        echo "WARNING: Could not determine base image, skipping age check"
+        echo "IMAGE_AGE_DAYS=0" >> check.env
+        echo "IMAGE_STATUS=unknown" >> check.env
+        exit 0
+      fi
+
+      if ! podman pull --tls-verify="$EE_REGISTRY_TLS_VERIFY" "$BASE_IMAGE" 2>/dev/null; then
+        echo "WARNING: Could not pull base image, skipping age check"
+        echo "IMAGE_AGE_DAYS=0" >> check.env
+        echo "IMAGE_STATUS=unknown" >> check.env
+        exit 0
+      fi
+
+      CREATED=$(podman inspect "$BASE_IMAGE" \
+        --format '{% raw %}{{.Created}}{% endraw %}' 2>/dev/null || echo "")
+      if [ -z "$CREATED" ]; then
+        echo "WARNING: Could not determine image creation date"
+        echo "IMAGE_AGE_DAYS=0" >> check.env
+        echo "IMAGE_STATUS=unknown" >> check.env
+        exit 0
+      fi
+
+      CREATED_EPOCH=$(date -d "$CREATED" +%s 2>/dev/null || echo "0")
+      CURRENT_EPOCH=$(date +%s)
+      AGE_DAYS=$(( (CURRENT_EPOCH - CREATED_EPOCH) / 86400 ))
+
+      echo "Base image is $AGE_DAYS days old"
+      echo "IMAGE_AGE_DAYS=$AGE_DAYS" >> check.env
+
+      if [ "$AGE_DAYS" -gt "$IMAGE_FAIL_AGE" ]; then
+        echo "WARNING: Base image is more than $IMAGE_FAIL_AGE days old. Consider updating."
+        echo "IMAGE_STATUS=stale" >> check.env
+      elif [ "$AGE_DAYS" -gt "$IMAGE_WARN_AGE" ]; then
+        echo "WARNING: Base image is more than $IMAGE_WARN_AGE days old. Consider updating soon."
+        echo "IMAGE_STATUS=warning" >> check.env
+      else
+        echo "IMAGE_STATUS=ok" >> check.env
+      fi
+  artifacts:
+    reports:
+      dotenv: check.env
+
+# ============================================================================
+# Build
+# ============================================================================
+build:
+  stage: build
+  resource_group: ee-build-$CI_COMMIT_REF_NAME
+  needs:
+    - job: validate-tokens
+      artifacts: true
+    - job: check-base-image
+      artifacts: true
+      optional: true
+  before_script:
+    - |
+      echo -e "\e[0Ksection_start:$(date +%s):setup_python[collapsed=true]\r\e[0KSetup Python and ansible-builder"
+      if ! command -v python3 &> /dev/null; then
+        if command -v dnf &> /dev/null; then
+          dnf install -y python3 python3-pip
+        elif command -v apt-get &> /dev/null; then
+          apt-get update && apt-get install -y python3 python3-pip
+        fi
+      fi
+      python3 -m pip install --upgrade pip
+      pip3 install ansible-builder ansible-core
+      echo -e "\e[0Ksection_end:$(date +%s):setup_python\r\e[0K"
+    - |
+      PODMAN_VERSION=$(podman version -f '{% raw %}{{.Client.Version}}{% endraw %}' 2>/dev/null | head -1)
+      if [ -z "$PODMAN_VERSION" ]; then
+        PODMAN_VERSION=$(podman --version | grep -oP '\d+\.\d+\.\d+' | head -1)
+      fi
+      MAJOR=$(echo "$PODMAN_VERSION" | cut -d. -f1)
+      if [ "$MAJOR" -lt 4 ]; then
+        echo "ERROR: podman $PODMAN_VERSION is too old — 4.0+ required so ARG values are not leaked to image history"
+        exit 1
+      fi
+      echo "NOTICE: podman $PODMAN_VERSION — ARG values will not appear in image history"
+    - |
+      export IMAGE_NAME="$(printf '%s' "$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')"
+      echo "IMAGE_NAME (OCI-normalized): ${IMAGE_NAME}"
+  script:
+    - |
+      REGISTRY_AUTHFILE="${CI_PROJECT_DIR}/.containers-auth.json"
+      export REGISTRY_AUTHFILE
+      rm -f "$REGISTRY_AUTHFILE"
+      echo "${REGISTRY_PASSWORD:-$CI_REGISTRY_PASSWORD}" | \
+        podman login --tls-verify="$EE_REGISTRY_TLS_VERIFY" \
+        --authfile "$REGISTRY_AUTHFILE" \
+        -u "${REGISTRY_USERNAME:-$CI_REGISTRY_USER}" \
+        --password-stdin "$REGISTRY"
+
+    - |
+      if [ -n "$REDHAT_REGISTRY_USERNAME" ]; then
+        echo "$REDHAT_REGISTRY_PASSWORD" | \
+          podman login --tls-verify="$EE_REGISTRY_TLS_VERIFY" \
+          --authfile "$REGISTRY_AUTHFILE" \
+          -u "$REDHAT_REGISTRY_USERNAME" \
+          --password-stdin registry.redhat.io
+      fi
+
+    - |
+      echo -e "\e[0Ksection_start:$(date +%s):create_context\r\e[0KCreating build context"
+      echo "EE directory: ${EE_DIR}"
+      export ANSIBLE_CONFIG=./ansible.cfg
+
+      ansible-builder create --file "${EE_DIR}/${EE_FILE_NAME}" --output-filename Containerfile
+{%- if ee_scm_token_vars %}
+
+      if ! command -v envsubst >/dev/null 2>&1; then
+        echo "ERROR: envsubst not found; required for SCM token substitution. Install gettext (or gettext-base)."
+        exit 1
+      fi
+      if [ -f context/_build/requirements.yml ]; then
+        envsubst '{% for var in ee_scm_token_vars %}${{ var }}{% if not loop.last %} {% endif %}{% endfor %}' \
+          < context/_build/requirements.yml > /tmp/req-resolved.yml
+        cp /tmp/req-resolved.yml context/_build/requirements.yml
+      else
+        echo "ERROR: SCM token variables are configured but context/_build/requirements.yml was not found after ansible-builder create."
+        exit 1
+      fi
+{%- endif %}
+      echo -e "\e[0Ksection_end:$(date +%s):create_context\r\e[0K"
+
+    - |
+      echo -e "\e[0Ksection_start:$(date +%s):build_image\r\e[0KBuilding image"
+      EXTRA_ARGS=""
+      if [ -f "${EE_DIR}/ansible.cfg" ]; then
+        EXTRA_ARGS="$EXTRA_ARGS --volume $(pwd)/${EE_DIR}/ansible.cfg:/etc/ansible/ansible.cfg:ro"
+      fi
+{%- if ee_galaxy_token_vars %}
+
+{%- for var in ee_galaxy_token_vars %}
+      if [ -n "${{ var }}" ]; then
+        EXTRA_ARGS="$EXTRA_ARGS --build-arg {{ var }}"
+      fi
+{%- endfor %}
+{%- endif %}
+
+      # shellcheck disable=SC2086
+      podman build --tls-verify="$EE_REGISTRY_TLS_VERIFY" \
+        --authfile "$REGISTRY_AUTHFILE" $EXTRA_ARGS \
+        --tag "${REGISTRY}/${IMAGE_NAME}:build-${CI_COMMIT_SHA}" \
+        --file context/Containerfile \
+        context/
+      echo -e "\e[0Ksection_end:$(date +%s):build_image\r\e[0K"
+
+    - |
+      echo -e "\e[0Ksection_start:$(date +%s):test_ee\r\e[0KTesting EE"
+      podman run --rm "${REGISTRY}/${IMAGE_NAME}:build-${CI_COMMIT_SHA}" \
+        ansible --version
+      podman run --rm "${REGISTRY}/${IMAGE_NAME}:build-${CI_COMMIT_SHA}" \
+        ansible-galaxy collection list || true
+      echo -e "\e[0Ksection_end:$(date +%s):test_ee\r\e[0K"
+
+    - |
+      podman push --tls-verify="$EE_REGISTRY_TLS_VERIFY" \
+        --authfile "$REGISTRY_AUTHFILE" \
+        --digestfile /tmp/digest \
+        "${REGISTRY}/${IMAGE_NAME}:build-${CI_COMMIT_SHA}"
+      echo "IMAGE_DIGEST=$(cat /tmp/digest)" >> build.env
+  artifacts:
+    reports:
+      dotenv: build.env
+
+# ============================================================================
+# Release (tags only)
+# ============================================================================
+release:
+  stage: release
+  resource_group: ee-build-$CI_COMMIT_REF_NAME
+  needs:
+    - job: build
+      artifacts: true
+  rules:
+    - if: $CI_COMMIT_TAG
+  script:
+    - export IMAGE_NAME="$(printf '%s' "$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')"
+    - |
+      REGISTRY_AUTHFILE="${CI_PROJECT_DIR}/.containers-auth.json"
+      export REGISTRY_AUTHFILE
+      rm -f "$REGISTRY_AUTHFILE"
+      echo "${REGISTRY_PASSWORD:-$CI_REGISTRY_PASSWORD}" | \
+        podman login --tls-verify="$EE_REGISTRY_TLS_VERIFY" \
+        --authfile "$REGISTRY_AUTHFILE" \
+        -u "${REGISTRY_USERNAME:-$CI_REGISTRY_USER}" \
+        --password-stdin "$REGISTRY"
+
+    - |
+      VERSION="$CI_COMMIT_TAG"
+      podman pull --tls-verify="$EE_REGISTRY_TLS_VERIFY" \
+        --authfile "$REGISTRY_AUTHFILE" \
+        "${REGISTRY}/${IMAGE_NAME}:build-${CI_COMMIT_SHA}"
+
+      if podman pull --tls-verify="$EE_REGISTRY_TLS_VERIFY" \
+        --authfile "$REGISTRY_AUTHFILE" \
+        "${REGISTRY}/${IMAGE_NAME}:prd" 2>/dev/null; then
+        echo "Backing up previous production image to 'previous' tag"
+        podman tag "${REGISTRY}/${IMAGE_NAME}:prd" \
+          "${REGISTRY}/${IMAGE_NAME}:previous"
+        podman push --tls-verify="$EE_REGISTRY_TLS_VERIFY" \
+          --authfile "$REGISTRY_AUTHFILE" \
+          "${REGISTRY}/${IMAGE_NAME}:previous"
+      fi
+
+      for TAG in "$VERSION" "latest" "prd"; do
+        podman tag "${REGISTRY}/${IMAGE_NAME}:build-${CI_COMMIT_SHA}" \
+          "${REGISTRY}/${IMAGE_NAME}:${TAG}"
+        podman push --tls-verify="$EE_REGISTRY_TLS_VERIFY" \
+          --authfile "$REGISTRY_AUTHFILE" \
+          "${REGISTRY}/${IMAGE_NAME}:${TAG}"
+      done
+
+      echo "Released version ${VERSION}"
+
+# ============================================================================
+# Summary
+# ============================================================================
+summary:
+  stage: summary
+  image: alpine:latest
+  when: always
+  needs:
+    - job: validate-tokens
+      artifacts: true
+    - job: check-base-image
+      artifacts: true
+      optional: true
+    - job: build
+      artifacts: true
+      optional: true
+  script:
+    - |
+      IMAGE_NAME="$(printf '%s' "$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')"
+      {
+        echo "## Execution Environment Build Summary"
+        echo ""
+        echo "### Pipeline"
+        echo "- Pipeline: ${CI_PIPELINE_URL}"
+        echo "- Ref: ${CI_COMMIT_REF_NAME}"
+        echo "- Commit: ${CI_COMMIT_SHORT_SHA}"
+        echo ""
+        echo "### Authentication Status"
+        echo "| Provider | Configured |"
+        echo "|----------|------------|"
+        echo "| Galaxy Server Tokens | ${GALAXY_TOKENS_CONFIGURED:-unknown} |"
+        echo "| SCM Tokens | ${GIT_TOKEN_CONFIGURED:-unknown} |"
+        echo ""
+
+        if [ -n "$IMAGE_AGE_DAYS" ] && [ "$IMAGE_AGE_DAYS" != "0" ]; then
+          echo "### Base Image Status"
+          echo "- Age: ${IMAGE_AGE_DAYS} days"
+          echo "- Status: ${IMAGE_STATUS:-unknown}"
+          echo ""
+        fi
+
+        echo "### Image Details"
+        echo "- Registry: \`${REGISTRY}\`"
+        echo "- Image: \`${IMAGE_NAME}\`"
+        echo "- EE Directory: \`${EE_DIR}\`"
+        if [ -n "$IMAGE_DIGEST" ]; then
+          echo "- Digest: \`${IMAGE_DIGEST}\`"
+        fi
+      } | tee summary.md
+  artifacts:
+    paths:
+      - summary.md
+    when: always

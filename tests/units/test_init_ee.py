@@ -46,6 +46,7 @@ class ConfigDict(TypedDict, total=False):
         ee_file_name: Name of the EE definition file.
         ee_build_arg_defaults: EE build ARG defaults as KEY=VALUE strings (CLI).
         registry_tls_verify: Whether to verify TLS for container registries.
+        scm_provider: SCM provider for EE CI (github or gitlab).
     """
 
     creator_version: str
@@ -67,6 +68,7 @@ class ConfigDict(TypedDict, total=False):
     ee_file_name: str
     ee_build_arg_defaults: list[str]
     registry_tls_verify: bool | None
+    scm_provider: str
 
 
 @pytest.fixture(name="output")
@@ -107,6 +109,7 @@ def fixture_cli_args(tmp_path: Path, output: Output) -> ConfigDict:
         "force": False,
         "overwrite": False,
         "no_overwrite": False,
+        "scm_provider": "github",
     }
 
 
@@ -177,6 +180,36 @@ def test_run_success_ee_project(
         str(FIXTURES_DIR / "project" / "ee_project"),
     )
     diff = has_differences(dcmp=cmp, errors=[])
+    assert not diff, diff
+
+
+def test_run_success_ee_project_gitlab(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Init scaffolds GitLab CI when ``scm_provider`` is gitlab.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "gitlab_ee")
+    cli_args["scm_provider"] = "gitlab"
+    init = Init(Config(**cli_args))
+    init.run()
+    result = capsys.readouterr().out
+    assert r"Note: execution_env project created" in result
+
+    assert not (tmp_path / "gitlab_ee" / ".github").exists()
+
+    cmp_result = dircmp(
+        str(tmp_path / "gitlab_ee"),
+        str(FIXTURES_DIR / "project" / "ee_project_gitlab"),
+    )
+    diff = has_differences(dcmp=cmp_result, errors=[])
     assert not diff, diff
 
 
@@ -1635,6 +1668,14 @@ def test_ee_config_schema_in_cli_schema() -> None:
     assert "collections" in ee_config_schema["properties"]
 
 
+def test_init_execution_env_scm_provider_schema() -> None:
+    """CLI schema lists scm_provider for init execution_env."""
+    schema = for_command("init", "execution_env")
+    scm = schema["parameters"]["properties"]["scm_provider"]
+    assert scm["enum"] == ["github", "gitlab"]
+    assert scm["default"] == "github"
+
+
 def test_extract_action_info_schema_class_no_option_strings() -> None:
     """Test _extract_action_info with schema_class but no option_strings."""
     action = argparse.Action(option_strings=[], dest="ee_config")
@@ -2011,3 +2052,56 @@ def test_ee_project_with_scm_servers(
     ns_content = next_steps.read_text()
     assert "GITHUB_ORG1_TOKEN" in ns_content
     assert "github.com" in ns_content
+
+
+def test_ee_project_with_scm_servers_gitlab(
+    output: Output,
+    tmp_path: Path,
+) -> None:
+    """EE project with scm_servers and GitLab CI includes envsubst (no git-credentials).
+
+    Args:
+        output: Output object for logging.
+        tmp_path: Temporary directory path.
+    """
+    dest = tmp_path / "scm-ee-gl"
+    config = Config(
+        creator_version="0.0.1",
+        output=output,
+        subcommand="init",
+        project="execution_env",
+        init_path=str(dest),
+        scm_provider="gitlab",
+        ee_config=json.dumps(
+            {
+                "collections": [
+                    {
+                        "name": "https://${GITHUB_ORG1_TOKEN}@github.com/org1/my-collection",
+                        "type": "git",
+                    },
+                    {"name": "cisco.ios"},
+                ],
+                "scm_servers": [
+                    {
+                        "id": "github_org1",
+                        "hostname": "github.com",
+                        "token_env_var": "GITHUB_ORG1_TOKEN",
+                    },
+                ],
+            }
+        ),
+    )
+    Init(config=config).run()
+
+    gl = dest / ".gitlab-ci.yml"
+    assert gl.exists()
+    wf_content = gl.read_text()
+    assert "GITHUB_ORG1_TOKEN" in wf_content
+    assert "envsubst" in wf_content
+    assert "context/_build/requirements.yml" in wf_content
+    assert "git-credentials" not in wf_content.lower()
+
+    next_steps = dest / "NEXT_STEPS.md"
+    ns = next_steps.read_text()
+    assert "CI/CD" in ns
+    assert "Actions" not in ns

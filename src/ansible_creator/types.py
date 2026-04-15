@@ -779,6 +779,7 @@ class TemplateData:
         ee_scm_servers: SCM server entries (list of dicts from ScmServer.as_dict()).
         ee_scm_token_vars: Pre-computed list of token env var names from scm_servers.
         ee_file_name: Name of the EE definition file.
+        scm_provider: SCM provider for documentation templates (github or gitlab).
     """
 
     resource_type: str = ""
@@ -819,3 +820,4 @@ class TemplateData:
     ee_scm_servers: Sequence[dict[str, Any]] = field(default_factory=list)
     ee_scm_token_vars: Sequence[str] = field(default_factory=list)
     ee_file_name: str = "execution-environment.yml"
+    scm_provider: str = "github"
