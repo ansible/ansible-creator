@@ -3,8 +3,8 @@
 
 The `ansible-creator init execution_env` command scaffolds a complete
 Execution Environment (EE) project, including the EE definition file, a
-GitHub Actions CI/CD workflow, and optional configuration for Ansible Galaxy
-servers.
+CI/CD workflow for **GitHub Actions** (default) or **GitLab CI**, and optional
+configuration for Ansible Galaxy servers.
 
 ## Quick start
 
@@ -12,7 +12,7 @@ servers.
 ansible-creator init execution_env my-ee-project
 ```
 
-This produces:
+This produces a GitHub Actions–based project:
 
 ```text
 my-ee-project/
@@ -22,6 +22,38 @@ my-ee-project/
 ├── .gitignore
 ├── README.md
 └── execution-environment.yml
+```
+
+### GitLab instead of GitHub
+
+Use `--scm-provider gitlab` to scaffold `.gitlab-ci.yml` instead of
+`.github/workflows/ee-build.yml`:
+
+```console
+ansible-creator init execution_env --scm-provider gitlab my-ee-gitlab
+```
+
+```text
+my-ee-gitlab/
+├── .gitlab-ci.yml
+├── .gitignore
+├── README.md
+└── execution-environment.yml
+```
+
+Galaxy and SCM tokens use the **same variable names** as in the GitHub
+workflow (`ANSIBLE_GALAXY_SERVER_<ID>_TOKEN`, plus each
+`scm_servers[*].token_env_var`). Configure them under **Settings →
+CI/CD → Variables** (mark secrets as masked/protected). For pushes to
+GitLab Container Registry you can rely on the predefined
+`CI_REGISTRY_USER` / `CI_REGISTRY_PASSWORD`, or set
+`REGISTRY_USERNAME` / `REGISTRY_PASSWORD` for another registry. See
+[GitLab CI pipeline](#gitlab-ci-pipeline-gitlab-ciyml).
+
+You can add the same CI files to an existing directory with:
+
+```console
+ansible-creator add resource ee-ci --scm-provider gitlab /path/to/project
 ```
 
 ## Configuration
@@ -153,12 +185,13 @@ If `galaxy_servers` is empty and no `ansible_cfg` is provided, no
 
 #### Token workflow integration
 
-For each server with `token_required: true`, the scaffolded
-`ee-build.yml` workflow:
+For each server with `token_required: true`, the scaffolded workflow
+(GitHub Actions `ee-build.yml` or GitLab `.gitlab-ci.yml`):
 
 1. Checks whether the corresponding `ANSIBLE_GALAXY_SERVER_<ID>_TOKEN`
-   secret is configured.
-2. Passes the token as a `--build-arg` to `buildah bud`.
+   is configured (repository **secret** on GitHub, **CI/CD variable** on
+   GitLab).
+2. Passes the token as a `--build-arg` to `podman build` / `buildah bud`.
 3. Declares a matching `ARG` directive in the EE definition's
    `prepend_galaxy` section.
 
@@ -191,7 +224,7 @@ SCM provider or organization:
 |-------|----------|-------------|
 | `id` | yes | Identifier (lowercase letters, numbers, underscores) |
 | `hostname` | yes | Git server hostname (e.g. `github.com`) |
-| `token_env_var` | yes | Environment variable name for the token. Must start with an uppercase letter and contain only uppercase letters, digits, and underscores (e.g. `GITHUB_ORG1_TOKEN`). This name is used as the GitHub Actions secret name. |
+| `token_env_var` | yes | Environment variable name for the token. Must start with an uppercase letter and contain only uppercase letters, digits, and underscores (e.g. `GITHUB_ORG1_TOKEN`). This name is used as the GitHub Actions secret name or the GitLab CI/CD variable name. |
 
 #### Collection URL naming convention
 
@@ -222,8 +255,9 @@ In the example above, `${GITHUB_ORG1_TOKEN}` in the collection URL
 matches the `token_env_var` of the `github_org1` SCM server entry.
 The workflow will:
 
-1. Expect a GitHub Actions secret named `GITHUB_ORG1_TOKEN`
-2. Validate the secret is configured before building
+1. Expect a GitHub Actions secret or GitLab CI/CD variable named
+   `GITHUB_ORG1_TOKEN`
+2. Validate it is configured before building
 3. Resolve `${GITHUB_ORG1_TOKEN}` in the generated requirements file
    via `envsubst`
 
@@ -343,18 +377,50 @@ This creates:
   `ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN` secret and passes it as
   a build arg.
 
+The same `--ee-config` with `--scm-provider gitlab` swaps the last item
+for `.gitlab-ci.yml` (and omits `.github/workflows/`):
+
+```console
+ansible-creator init execution_env \
+  --scm-provider gitlab \
+  --ee-config '{
+    "name": "ee-network",
+    "base_image": "registry.redhat.io/ansible-automation-platform-25/ee-minimal-rhel8:latest",
+    "collections": [
+      {"name": "cisco.ios"},
+      {"name": "ansible.netcommon"}
+    ],
+    "galaxy_servers": [
+      {
+        "id": "automation_hub",
+        "url": "https://console.redhat.com/api/automation-hub/content/published/",
+        "auth_url": "https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token",
+        "token_required": true
+      },
+      {
+        "id": "galaxy",
+        "url": "https://galaxy.ansible.com/"
+      }
+    ]
+  }' \
+  my-ee-gitlab
+```
+
 ## CI/CD workflow
 
-The scaffolded `ee-build.yml` workflow builds and publishes the EE image.
+Scaffolded pipelines build and publish the EE image using **podman** (GitLab)
+or **buildah** (GitHub), with the same token and `envsubst` model.
 
-### Triggers
+### GitHub Actions (`ee-build.yml`)
+
+#### Triggers
 
 - **Pull requests** to `main`/`master` — build only (no push).
 - **Push** to `main`/`master` — build, push with `latest` and SHA tags.
 - **Release** — tag with the release version and `prd`.
 - **Manual** (`workflow_dispatch`) — with optional skip-validation toggle.
 
-### Required secrets
+#### Required secrets
 
 Galaxy server tokens follow the Ansible naming convention:
 
@@ -376,11 +442,53 @@ Additional secrets:
 | `REGISTRY_USERNAME` / `REGISTRY_PASSWORD` | Container registry credentials |
 | `REDHAT_REGISTRY_PASSWORD` | Red Hat registry authentication for base images |
 
+### GitLab CI pipeline (`.gitlab-ci.yml`)
+
+#### Triggers
+
+The pipeline runs when:
+
+- A **Git tag** is pushed, or
+- The pipeline is started from the **web UI**, **API**, or an **upstream trigger**.
+
+(There is no default “every push to `main`” rule; adjust `workflow: rules`
+in `.gitlab-ci.yml` if you want branch pipelines.)
+
+#### Required CI/CD variables
+
+Use the **same names** as GitHub secrets. Galaxy tokens:
+
+```text
+ANSIBLE_GALAXY_SERVER_<ID>_TOKEN
+```
+
+Set each under **Settings → CI/CD → Variables**. SCM `token_env_var`
+values from `scm_servers` are listed in the header comments of
+`.gitlab-ci.yml`.
+
+Registry-related variables:
+
+| Variable | Purpose |
+|----------|---------|
+| `REGISTRY_USERNAME` / `REGISTRY_PASSWORD` | Push target registry. If unset, the job uses `CI_REGISTRY_USER` / `CI_REGISTRY_PASSWORD` (GitLab Container Registry). |
+| `REDHAT_REGISTRY_USERNAME` / `REDHAT_REGISTRY_PASSWORD` | Login to `registry.redhat.io` for Red Hat base images |
+
+Optional: `SKIP_BASE_IMAGE_VALIDATION`, `STORAGE_DRIVER` (e.g. `vfs` for
+some runners). The template expects a **podman**-capable image (e.g.
+`quay.io/podman/stable`) and **podman 4+** so build `ARG`s are not stored
+in image history.
+
+The pipeline uses a single `REGISTRY_AUTHFILE` under the project directory
+for `podman login`, `podman build`, and `podman push`, so registries that
+require authentication on layer/blob checks (e.g. Quay.io) succeed.
+`IMAGE_NAME` is lowercased before tagging and pushing because many OCI
+registries reject mixed-case repository paths.
+
 ### Token security
 
 - **Galaxy server tokens** are passed as `--build-arg` values.  With
-  `buildah >= 1.24`, `ARG` values do not appear in image history or
-  metadata.
+  `buildah >= 1.24` / **podman 4+**, `ARG` values do not appear in image
+  history or metadata.
 - **SCM tokens** are resolved via `envsubst` into the build context
   after `ansible-builder create`.  The multi-stage build ensures tokens
   only exist in intermediate stages, never in the final image.

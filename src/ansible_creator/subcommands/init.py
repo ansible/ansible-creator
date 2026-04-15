@@ -22,7 +22,7 @@ from ansible_creator.types import (
     validate_collection_type,
     validate_source_url,
 )
-from ansible_creator.utils import Copier, Walker, ask_yes_no
+from ansible_creator.utils import Copier, Walker, ask_yes_no, filter_ee_ci_paths_for_scm
 
 
 if TYPE_CHECKING:
@@ -67,6 +67,7 @@ class Init:
         self._templar = Templar()
         self.output: Output = config.output
         self._role_name: str = config.role_name
+        self._scm_provider: str = config.scm_provider
 
         # Build the canonical EEConfig from JSON, file, or defaults, then
         # layer CLI flag overrides on top.
@@ -424,6 +425,7 @@ class Init:
             ee_scm_servers=[s.as_dict() for s in ec.scm_servers],
             ee_scm_token_vars=[s.token_env_var for s in ec.scm_servers],
             ee_file_name=ec.ee_file_name,
+            scm_provider=self._scm_provider,
         )
 
         if self._project == "execution_env":
@@ -443,6 +445,9 @@ class Init:
             template_data=template_data,
         )
         paths = walker.collect_paths()
+
+        if self._project == "execution_env":
+            paths = filter_ee_ci_paths_for_scm(paths, self._scm_provider)
 
         copier = Copier(
             output=self.output,

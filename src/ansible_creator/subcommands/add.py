@@ -13,7 +13,7 @@ from ansible_creator.constants import GLOBAL_TEMPLATE_VARS
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.templar import Templar
 from ansible_creator.types import TemplateData
-from ansible_creator.utils import Copier, FileList, Walker, ask_yes_no
+from ansible_creator.utils import Copier, FileList, Walker, ask_yes_no, filter_ee_ci_paths_for_scm
 
 
 if TYPE_CHECKING:
@@ -52,6 +52,7 @@ class Add:
         self._collection_name: str = config.collection_name or ""
 
         self._skip_collection_check = config.skip_collection_check
+        self._scm_provider: str = config.scm_provider
 
     @property
     def _plugin_type_output(self) -> str:
@@ -201,6 +202,10 @@ class Add:
             templar=self.templar,
         )
         paths = walker.collect_paths()
+
+        if self._resource_type == "ee-ci":
+            paths = filter_ee_ci_paths_for_scm(paths, self._scm_provider)
+
         copier = Copier(output=self.output)
 
         if self._no_overwrite and paths.has_conflicts():
