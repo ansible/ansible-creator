@@ -44,6 +44,7 @@ class ConfigDict(TypedDict, total=False):
         ee_system_packages: List of system packages for execution environment.
         ee_name: Name/tag for the execution environment image.
         ee_file_name: Name of the EE definition file.
+        ee_build_arg_defaults: EE build ARG defaults as KEY=VALUE strings (CLI).
         registry_tls_verify: Whether to verify TLS for container registries.
         scm_provider: SCM provider for EE CI (github or gitlab).
     """
@@ -65,6 +66,7 @@ class ConfigDict(TypedDict, total=False):
     ee_system_packages: list[str]
     ee_name: str
     ee_file_name: str
+    ee_build_arg_defaults: list[str]
     registry_tls_verify: bool | None
     scm_provider: str
 
@@ -260,6 +262,106 @@ def test_run_success_ee_project_with_params(
     assert "git" in ee_content
     assert "openssh-clients" in ee_content
     assert "my-custom-ee" in ee_content
+
+
+def test_run_success_ee_project_with_build_arg_defaults_cli(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test Init.run() writes build_arg_defaults from CLI.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_pre")
+    cli_args["ee_build_arg_defaults"] = ["ANSIBLE_GALAXY_CLI_COLLECTION_OPTS=--pre"]
+
+    init = Init(Config(**cli_args))
+    init.run()
+    result = capsys.readouterr().out
+
+    assert r"Note: execution_env project created" in result
+
+    ee_file = tmp_path / "ee_pre" / "execution-environment.yml"
+    ee_content = ee_file.read_text()
+    assert "build_arg_defaults:" in ee_content
+    assert "ANSIBLE_GALAXY_CLI_COLLECTION_OPTS" in ee_content
+    assert "--pre" in ee_content
+
+
+def test_ee_project_build_arg_defaults_cli_invalid(
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test Init rejects malformed ee_build_arg_defaults entries.
+
+    Args:
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_bad_arg")
+    cli_args["ee_build_arg_defaults"] = ["not-key-value"]
+
+    with pytest.raises(CreatorError, match="Invalid --ee-build-arg-default"):
+        Init(Config(**cli_args))
+
+
+def test_ee_project_build_arg_defaults_cli_empty_key(
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test Init rejects KEY=VALUE when KEY is empty (e.g. ``=value``).
+
+    Args:
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_empty_key")
+    cli_args["ee_build_arg_defaults"] = ["=only-a-value"]
+
+    with pytest.raises(CreatorError, match="empty key"):
+        Init(Config(**cli_args))
+
+
+def test_ee_project_build_arg_defaults_merge_config_and_cli(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """CLI build_arg_defaults overlay values from --ee-config.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "ee_merge")
+    cli_args["ee_config"] = json.dumps(
+        {
+            "build_arg_defaults": {
+                "ANSIBLE_GALAXY_CLI_COLLECTION_OPTS": "--stable",
+                "OTHER_ARG": "x",
+            },
+        },
+    )
+    cli_args["ee_build_arg_defaults"] = ["ANSIBLE_GALAXY_CLI_COLLECTION_OPTS=--pre"]
+
+    init = Init(Config(**cli_args))
+    init.run()
+    assert r"Note: execution_env project created" in capsys.readouterr().out
+
+    ee_content = (tmp_path / "ee_merge" / "execution-environment.yml").read_text()
+    assert "--pre" in ee_content
+    assert "OTHER_ARG" in ee_content
+    assert "x" in ee_content
+    assert "--stable" not in ee_content
 
 
 def test_ee_project_invalid_collection_name(
@@ -1361,6 +1463,7 @@ def test_ee_config_from_dict_full() -> None:
         "additional_build_steps": {"prepend_base": ["RUN echo hi"]},
         "options": {"package_manager_path": "/usr/bin/dnf"},
         "ansible_cfg": "[galaxy]\nserver_list = hub\n",
+        "build_arg_defaults": {"ANSIBLE_GALAXY_CLI_COLLECTION_OPTS": "--pre"},
     }
     cfg = EEConfig.from_dict(data)
 
@@ -1374,6 +1477,7 @@ def test_ee_config_from_dict_full() -> None:
     assert cfg.additional_build_files == ({"src": "a.cfg", "dest": "configs"},)
     assert cfg.additional_build_steps == {"prepend_base": ["RUN echo hi"]}
     assert cfg.options == {"package_manager_path": "/usr/bin/dnf"}
+    assert cfg.build_arg_defaults == {"ANSIBLE_GALAXY_CLI_COLLECTION_OPTS": "--pre"}
     assert "server_list" in cfg.ansible_cfg
     assert not cfg.galaxy_servers
 
@@ -1478,6 +1582,16 @@ def test_ee_config_from_dict_defaults() -> None:
     assert not cfg.python_deps
     assert not cfg.galaxy_servers
     assert not cfg.scm_servers
+    assert not cfg.build_arg_defaults
+
+
+def test_ee_config_from_dict_build_arg_defaults_invalid() -> None:
+    """Test EEConfig.from_dict rejects non-string build_arg_defaults values."""
+    with pytest.raises(CreatorError, match="build_arg_defaults"):
+        EEConfig.from_dict({"build_arg_defaults": "not-a-mapping"})
+
+    with pytest.raises(CreatorError, match="build_arg_defaults"):
+        EEConfig.from_dict({"build_arg_defaults": {"FOO": 1}})
 
 
 def test_ee_collection_from_dict_invalid_name() -> None:
@@ -1539,6 +1653,7 @@ def test_ee_config_to_schema_shape() -> None:
     assert "scm_servers" in props
     assert props["scm_servers"]["type"] == "array"
     assert "ee_file_name" in props
+    assert "build_arg_defaults" in props
 
 
 def test_ee_config_schema_in_cli_schema() -> None:

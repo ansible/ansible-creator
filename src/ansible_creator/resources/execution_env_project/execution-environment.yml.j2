@@ -4,6 +4,13 @@ version: 3
 images:
   base_image:
     name: {{ ee_base_image }}
+{%- if ee_build_arg_defaults %}
+
+build_arg_defaults:
+{%- for key, val in ee_build_arg_defaults | dictsort %}
+  {{ key }}: {{ val | json }}
+{%- endfor %}
+{%- endif %}
 
 dependencies:
 {%- if not is_official_ee %}
