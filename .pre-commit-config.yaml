@@ -18,7 +18,7 @@ repos:
       - id: check-useless-excludes
         priority: 0
   - repo: https://github.com/ansible/actions
-    rev: v1.1.1
+    rev: v1.1.2
     hooks:
       - id: toml
         priority: 0
@@ -39,7 +39,7 @@ repos:
       - id: pydoclint
         priority: 1
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.11.3
+    rev: 0.11.7
     hooks:
       - id: uv-sync
       - id: uv-lock
@@ -49,7 +49,7 @@ repos:
         args: ["--upgrade"]
         stages: [manual]
   - repo: https://github.com/biomejs/pre-commit
-    rev: "v2.4.10"
+    rev: "v2.4.13"
     hooks:
       - id: biome-check
         name: biome
