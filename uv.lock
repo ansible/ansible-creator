@@ -20,7 +20,7 @@ dependencies = [
     { name = "ansible-core", version = "2.17.14", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "ansible-core", version = "2.19.9", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.11.*'" },
     { name = "ansible-core", version = "2.20.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' and python_full_version < '3.14'" },
-    { name = "ansible-core", version = "2.21.0b3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.14'" },
+    { name = "ansible-core", version = "2.21.0rc1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.14'" },
     { name = "jsonschema" },
     { name = "packaging" },
     { name = "pyyaml" },
@@ -90,7 +90,7 @@ wheels = [
 
 [[package]]
 name = "ansible-core"
-version = "2.21.0b3"
+version = "2.21.0rc1"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.15'",
@@ -103,9 +103,9 @@ dependencies = [
     { name = "pyyaml", marker = "python_full_version >= '3.14'" },
     { name = "resolvelib", version = "1.2.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.14'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d6/10/aae8550b9af9212d791e467eae445399082714c41cc854b54ee192e81fe0/ansible_core-2.21.0b3.tar.gz", hash = "sha256:944b8bd88e7acfae95a52d7ee3cb317b968a1faff6eaa98476e51561bcae419d", size = 3389071, upload-time = "2026-04-21T16:45:29.453Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d9/d4/3a9a968a8bf2abe318b87d1ca6a1dcd64b89521608d501cd967c939089cc/ansible_core-2.21.0rc1.tar.gz", hash = "sha256:360a1542584ba2e78357732a6cd49bcb3ae994805837cd39201569debbe398dc", size = 3391801, upload-time = "2026-04-28T19:09:16.957Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a6/52/27b28520f0efded0bbb21de93a0f0a2d26330d218067aa447bbd2d1cfa3c/ansible_core-2.21.0b3-py3-none-any.whl", hash = "sha256:0cb4ba67d2f7c290085e1f4643d9b1518e9108d6495828ba476f364546d150f2", size = 2443663, upload-time = "2026-04-21T16:45:27.229Z" },
+    { url = "https://files.pythonhosted.org/packages/bd/aa/498bad7f38b0c24a443d015c9eff868c0b2e5dabed3cfb71f1851a74f7ad/ansible_core-2.21.0rc1-py3-none-any.whl", hash = "sha256:b0ad315fda47fec9c16e955965b83bbebf01d0e24254d63dd9343f83f90af910", size = 2444030, upload-time = "2026-04-28T19:09:14.826Z" },
 ]
 
 [[package]]
@@ -191,7 +191,7 @@ dependencies = [
     { name = "ansible-core", version = "2.17.14", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "ansible-core", version = "2.19.9", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.11.*'" },
     { name = "ansible-core", version = "2.20.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' and python_full_version < '3.14'" },
-    { name = "ansible-core", version = "2.21.0b3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.14'" },
+    { name = "ansible-core", version = "2.21.0rc1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.14'" },
     { name = "black" },
     { name = "cffi" },
     { name = "cryptography" },
@@ -342,7 +342,7 @@ wheels = [
 
 [[package]]
 name = "build"
-version = "1.4.4"
+version = "1.5.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "colorama", marker = "os_name == 'nt'" },
@@ -351,18 +351,18 @@ dependencies = [
     { name = "pyproject-hooks" },
     { name = "tomli", marker = "python_full_version < '3.11'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/02/ec/bf5ae0a7e5ab57abe8aabdd0759c971883895d1a20c49ae99f8146840c3c/build-1.4.4.tar.gz", hash = "sha256:f832ae053061f3fb524af812dc94b8b84bac6880cd587630e3b5d91a6a9c1703", size = 89220, upload-time = "2026-04-22T20:53:44.807Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/78/e0/df5e171f685f82f37b12e1f208064e24244911079d7b767447d1af7e0d70/build-1.5.0.tar.gz", hash = "sha256:302c22c3ba2a0fd5f3911918651341ebb3896176cbdec15bd421f80b1afc7647", size = 89796, upload-time = "2026-04-30T03:18:25.17Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fa/88/6764e7a109dd84294850741501145da90d13cdeac9d4e614929464a37420/build-1.4.4-py3-none-any.whl", hash = "sha256:8c3f48a6090b39edec1a273d2d57949aaf13723b01e02f9d518396887519f64d", size = 25921, upload-time = "2026-04-22T20:53:43.251Z" },
+    { url = "https://files.pythonhosted.org/packages/0d/fe/6bea5c9162869c5beba5d9c8abbed835ec85bf1ec1fba05a3822325c45f3/build-1.5.0-py3-none-any.whl", hash = "sha256:13f3eecb844759ab66efec90ca17639bbf14dc06cb2fdf37a9010322d9c50a6f", size = 26018, upload-time = "2026-04-30T03:18:23.644Z" },
 ]
 
 [[package]]
 name = "cachetools"
-version = "7.0.6"
+version = "7.1.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/76/7b/1755ed2c6bfabd1d98b37ae73152f8dcf94aa40fee119d163c19ed484704/cachetools-7.0.6.tar.gz", hash = "sha256:e5d524d36d65703a87243a26ff08ad84f73352adbeafb1cde81e207b456aaf24", size = 37526, upload-time = "2026-04-20T19:02:23.289Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ff/e2/85f227594656000ff4d8adadae91a21f536d4a84c6c716a86bd6685874be/cachetools-7.1.1.tar.gz", hash = "sha256:27bdf856d68fd3c71c26c01b5edc312124ed427524d1ddb31aa2b7746fe20d4b", size = 40202, upload-time = "2026-05-03T20:00:29.391Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fe/c4/cf76242a5da1410917107ff14551764aa405a5fd10cd10cf9a5ca8fa77f4/cachetools-7.0.6-py3-none-any.whl", hash = "sha256:4e94956cfdd3086f12042cdd29318f5ced3893014f7d0d059bf3ead3f85b7f8b", size = 13976, upload-time = "2026-04-20T19:02:21.187Z" },
+    { url = "https://files.pythonhosted.org/packages/bf/0f/f897abe4ea0a8c408ae65c8c83bffab4936ad65d6032d4fb4cd35bbdc3ee/cachetools-7.1.1-py3-none-any.whl", hash = "sha256:0335cd7a0952d2b22327441fb0628139e234c565559eeb91a8a4ac7551c5353d", size = 16775, upload-time = "2026-05-03T20:00:27.857Z" },
 ]
 
 [[package]]
@@ -2602,24 +2602,24 @@ wheels = [
 
 [[package]]
 name = "tombi"
-version = "0.9.25"
+version = "0.10.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/3c/7e/ed3355f8495467942d95901fa2f95f81dcc5100d1adf33b3636aa066950b/tombi-0.9.25.tar.gz", hash = "sha256:757a3cf80c71b453548399304d706b0d6b5bb64215642659ec46b6373d98f27c", size = 663742, upload-time = "2026-04-27T15:40:57.17Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/38/fe/4e2e5b38d72c168dee1cb0a47482917453955e6fb850f578586c38d06592/tombi-0.10.2.tar.gz", hash = "sha256:2ea2a447543490a645b9e7da52ab93f3d5f849f20329ae10423c64da68400a2d", size = 676685, upload-time = "2026-05-02T16:35:41.315Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/5b/ab/7fdd6f711f6e7c1c7d9be51ec736898b56e56849f85557c4cd47d4bbded8/tombi-0.9.25-py3-none-macosx_10_12_x86_64.whl", hash = "sha256:d365a1d11aa7e457259e9b01e97c19e2aff86f2c28c642f9cd46174b998519f5", size = 10168408, upload-time = "2026-04-27T15:40:44.284Z" },
-    { url = "https://files.pythonhosted.org/packages/b7/3b/a5b88efadcec646b43a7329083da607efc56de0079566361442ae4236293/tombi-0.9.25-py3-none-macosx_11_0_arm64.whl", hash = "sha256:70350f2d5ef43eaeb5a81f7717220aca140118c4d6c23bed385eb1c2f58d763f", size = 9857394, upload-time = "2026-04-27T15:40:42.043Z" },
-    { url = "https://files.pythonhosted.org/packages/a1/86/7c6d2ebcbff97c9dbfa0d50d3127ceec2fb9cf0fb27190f850bcdc442beb/tombi-0.9.25-py3-none-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:a03b7a89eb123b5d59ac55831ae0f2262f47e839913477071548aba5d09759ea", size = 10160314, upload-time = "2026-04-27T15:40:31.18Z" },
-    { url = "https://files.pythonhosted.org/packages/d1/9b/0ce78068777dadc7ec19b134e2025a30fff99d439e44a62fc1cbdbea9439/tombi-0.9.25-py3-none-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:7e2b8a17f01d08c871f2a1554c9024513609e6ac36cdc0c9bd76cf48349deb9b", size = 11433637, upload-time = "2026-04-27T15:40:37.994Z" },
-    { url = "https://files.pythonhosted.org/packages/0d/5e/8cb696dd6ac1edb38617bcdd9f8b1fe5fa7f60944a515ccac0690bc93498/tombi-0.9.25-py3-none-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:44744cc65256ad1a8076c37c7243abbb4d383e5d074d39854efed0c9b592dba1", size = 11501253, upload-time = "2026-04-27T15:40:33.448Z" },
-    { url = "https://files.pythonhosted.org/packages/ea/67/ddcc633dbb5d53e514f9d4f0f8f0963b12cba9eb2429979d607dd9138bdd/tombi-0.9.25-py3-none-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:dafa6b66c15b4988fbe5173be39fdf70eb148c9105a2efe3d1f134a748acad87", size = 10192358, upload-time = "2026-04-27T15:40:35.466Z" },
-    { url = "https://files.pythonhosted.org/packages/d2/98/d33d257dbd8e3e376ea3feadbb2936a3c5f641ad5f1bcfb155c66deac176/tombi-0.9.25-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:4300ee2ec16695866cdd254ccd3d92a43c4533b9ccca23cab7bb1c53bb710119", size = 10605694, upload-time = "2026-04-27T15:40:40.021Z" },
-    { url = "https://files.pythonhosted.org/packages/4c/35/75a31c1a2f0a6f798cb8a55e60661e55e96b503328c3576f12b29f01714b/tombi-0.9.25-py3-none-manylinux_2_28_aarch64.whl", hash = "sha256:4e0a4f37511ae3a13eebf1af9bca776998e45338d0c688ead783ecbc25b9dbf8", size = 10401904, upload-time = "2026-04-27T15:40:28.535Z" },
-    { url = "https://files.pythonhosted.org/packages/47/70/00004bf959f2b1a7d8dc8746fb25dbf2e849f1dc14bc0d4fab1b02029f49/tombi-0.9.25-py3-none-musllinux_1_2_aarch64.whl", hash = "sha256:75297fdd5a50f7902b82e1d58dfe404e915f366f9232268ddb2ade6d86ceb530", size = 10437454, upload-time = "2026-04-27T15:40:48.372Z" },
-    { url = "https://files.pythonhosted.org/packages/8d/a5/67cd7119f03823575ed188175783e9b0c1f519076a2cdf12e3873256605d/tombi-0.9.25-py3-none-musllinux_1_2_armv7l.whl", hash = "sha256:1ea70389a0b42a5b5e1976f85acb0ca5a5248d50bab6b92aace830886cff469a", size = 10209009, upload-time = "2026-04-27T15:40:50.72Z" },
-    { url = "https://files.pythonhosted.org/packages/07/08/f716ea6baf84b1389876aa3f61f86d2feafa04b8174da1c1bbb76ae1ad63/tombi-0.9.25-py3-none-musllinux_1_2_i686.whl", hash = "sha256:90e558c628693d8f5feba2f8491128ec5c68b9d30f4e748c5b3bd0daa3c2782c", size = 10850251, upload-time = "2026-04-27T15:40:52.787Z" },
-    { url = "https://files.pythonhosted.org/packages/7d/21/bcdbf978d4217ce22b94e64bb5400b81a187258b13d34c4d7e07e7eb983e/tombi-0.9.25-py3-none-musllinux_1_2_x86_64.whl", hash = "sha256:2d1bb574e46895f8ab5f28927fa195a06c34883f50f1f2d83c0d674b74fda634", size = 10851888, upload-time = "2026-04-27T15:40:55.043Z" },
-    { url = "https://files.pythonhosted.org/packages/e8/e7/dddeeed6251cd287d7db166f8653c4a6d9bb1e34571edc15895e9c9cdfee/tombi-0.9.25-py3-none-win32.whl", hash = "sha256:133f194ef5c41caf1ce46e538481a81968a73f50bac72fa4fbc710f6c75f7feb", size = 8236226, upload-time = "2026-04-27T15:41:01.353Z" },
-    { url = "https://files.pythonhosted.org/packages/ff/9b/68275bfdbd49986aacd09e13cc8db3674d929353377e2f89c914358fd627/tombi-0.9.25-py3-none-win_amd64.whl", hash = "sha256:851336888e9e1c7fbf240ec01cbe2a26f32962154c1427c01c4929823ce5fd5e", size = 9583633, upload-time = "2026-04-27T15:40:58.803Z" },
+    { url = "https://files.pythonhosted.org/packages/b1/51/60e08241c0635d7650896cfc60a2b7badb906a652d86e0e17a7d70a4708d/tombi-0.10.2-py3-none-macosx_10_12_x86_64.whl", hash = "sha256:84d6fe2446362b43cf23baf35ad527675792fc32e2becc257e399ce2d76e1474", size = 10226969, upload-time = "2026-05-02T16:35:32.053Z" },
+    { url = "https://files.pythonhosted.org/packages/ab/06/7b3913d63558e38c10fa20cff45b9caced0aa393ba9e8e6474e047c52c49/tombi-0.10.2-py3-none-macosx_11_0_arm64.whl", hash = "sha256:636d3aa4b9b252cf3fb688ab234bd5b3fe9210c7d06000682f9f5005b1499b45", size = 9919320, upload-time = "2026-05-02T16:35:30.154Z" },
+    { url = "https://files.pythonhosted.org/packages/42/52/e1efbfa30ccaaadc544ef0c93596292d80dbe5af4dcaf891fb86c50a5b7c/tombi-0.10.2-py3-none-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:4d21580793ebb4fa6f0c56e2ceef98d78803226e1fdd5b313ed74886633c2c52", size = 10220916, upload-time = "2026-05-02T16:35:20.578Z" },
+    { url = "https://files.pythonhosted.org/packages/a1/b4/b01deadf9699790aeb04849ffb33a2fb2273caa8736b3117d55c67beb45a/tombi-0.10.2-py3-none-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:14683fab7b180eb321671ecb56dda08c6a351b58c90246b202c0905836299f9f", size = 11502924, upload-time = "2026-05-02T16:35:26.398Z" },
+    { url = "https://files.pythonhosted.org/packages/9e/a5/a146816c00a48f4d48ec01de23de999f74107331f5413acc6af6ca086062/tombi-0.10.2-py3-none-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:ef619540f25740be825f338af892666d56b4a958eb63521db3862d82c808c6a9", size = 11578589, upload-time = "2026-05-02T16:35:22.643Z" },
+    { url = "https://files.pythonhosted.org/packages/20/92/96c69860d3f2f895c57122cbfe12607148cc1cf8c9e19eb813afe62da056/tombi-0.10.2-py3-none-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:b6497b13c58661cbe777d5da013ce6426209e983814399d587e49f8eaaeed440", size = 10256418, upload-time = "2026-05-02T16:35:24.506Z" },
+    { url = "https://files.pythonhosted.org/packages/e0/89/8c4f73180a3ef5aae17fb7e4991ef7c3399b0b97fc0860a02c8f13594382/tombi-0.10.2-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:43a16901bda53034375e0e6a07338fb2a7bfcc452bda40fe2d9207f4812b5ba0", size = 10674424, upload-time = "2026-05-02T16:35:28.206Z" },
+    { url = "https://files.pythonhosted.org/packages/d5/9c/0cb18db4deec2ee644a3944648ad8cc7a2fd12babbf8daaa1bca0b88076a/tombi-0.10.2-py3-none-manylinux_2_28_aarch64.whl", hash = "sha256:55ce506068994b250223c6d156e66d525305efb1a22d995e2f5c143de82f8f8a", size = 10480978, upload-time = "2026-05-02T16:35:18.51Z" },
+    { url = "https://files.pythonhosted.org/packages/95/b7/e14bfb75cfbbe1c9261517fe626eb1c915a2dc37f71c7820cf1e6b770e10/tombi-0.10.2-py3-none-musllinux_1_2_aarch64.whl", hash = "sha256:9ba5ed7109a1158e28acac8643e32cb99b9e08837811ecb4167daf75de7f9054", size = 10506895, upload-time = "2026-05-02T16:35:33.741Z" },
+    { url = "https://files.pythonhosted.org/packages/6b/53/81a91ae79649b074e69594ce781b6926356b15e164041e297144196f0fcd/tombi-0.10.2-py3-none-musllinux_1_2_armv7l.whl", hash = "sha256:e1c0ba39a9a73af910c1505077e77a6fdc708005636e16b924bae83c5a044640", size = 10275608, upload-time = "2026-05-02T16:35:35.407Z" },
+    { url = "https://files.pythonhosted.org/packages/55/6b/17f416b8edcaf5fc5bde8168a2124296f59decc1e71ba1531042fd7866c7/tombi-0.10.2-py3-none-musllinux_1_2_i686.whl", hash = "sha256:dd08c9c3254ccf6f20322c6f864da12df600b68efff5928e43b22db000d01cd4", size = 10920338, upload-time = "2026-05-02T16:35:37.498Z" },
+    { url = "https://files.pythonhosted.org/packages/c2/23/f1fb80df104a87e1fdd0ebdf603b176e352f5f0f6a365660631fb0d67383/tombi-0.10.2-py3-none-musllinux_1_2_x86_64.whl", hash = "sha256:7fb2dc5252e01c7f5b58538518115e7e13d8c3ea3dea3652738f932a72beab73", size = 10926243, upload-time = "2026-05-02T16:35:39.37Z" },
+    { url = "https://files.pythonhosted.org/packages/1c/1a/075a4e2c1df8e93cbdee4e36fe6cc5e885110bc0f4ea17147048fd190b29/tombi-0.10.2-py3-none-win32.whl", hash = "sha256:f6fbe4c8f4e3e77bd920571a638805dbe323f2e390ee697c884b592c7799e367", size = 8291789, upload-time = "2026-05-02T16:35:44.403Z" },
+    { url = "https://files.pythonhosted.org/packages/f0/d7/e725a19c9c32590e160999879ee62e5c2ef8e1b14f0667c60335ddfc1e9a/tombi-0.10.2-py3-none-win_amd64.whl", hash = "sha256:495804fabdeac8a7ae6126acee617d3a395a3e92b5e26f63da7790d0a0e44970", size = 9610774, upload-time = "2026-05-02T16:35:42.554Z" },
 ]
 
 [[package]]
@@ -2696,7 +2696,7 @@ wheels = [
 
 [[package]]
 name = "tox"
-version = "4.53.0"
+version = "4.53.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cachetools" },
@@ -2712,9 +2712,9 @@ dependencies = [
     { name = "typing-extensions", marker = "python_full_version < '3.11'" },
     { name = "virtualenv" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/04/01/d87a00063fa670ce4c48a9706b615a95ddf2c9ef5558d43af6071f166fd4/tox-4.53.0.tar.gz", hash = "sha256:62c780e42f87d34ee60f2ea20342156253794fdcbd6885fd797d98ee05009f22", size = 274048, upload-time = "2026-04-14T13:44:13.782Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a0/d7/a8e0f889eb6872740e2f013a93a8f9c6c23c3f02fe0911bbd91673615636/tox-4.53.1.tar.gz", hash = "sha256:7be9805ed4a34242510c7acc9a7e3a01a35942e08f31f8bd69067c3a37130afc", size = 276809, upload-time = "2026-05-02T08:34:41.655Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/16/03/02e2a03f3756cfb66e7e1bac41b06953f12cec75ddb961d56695d4d43dc4/tox-4.53.0-py3-none-any.whl", hash = "sha256:cc4e716d18c4889aa179d785175c438fa60c35deef20ce689ec288d8fb656096", size = 212164, upload-time = "2026-04-14T13:44:11.997Z" },
+    { url = "https://files.pythonhosted.org/packages/0a/a7/5719188f4ace9445b0fb139290e2abce14cc19e6a5bd616e72dad085ebe8/tox-4.53.1-py3-none-any.whl", hash = "sha256:4a9948607e976a337c22d64a1b4fafd486125e82f00ab6ce32fa6cacc23f48b1", size = 213827, upload-time = "2026-05-02T08:34:39.786Z" },
 ]
 
 [[package]]
