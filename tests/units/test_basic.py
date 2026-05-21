@@ -54,6 +54,8 @@ def test_configuration_class(output: Output) -> None:
                 "no_overwrite": False,
                 "overwrite": False,
                 "project": "collection",  # default value
+                "include": ["all"],
+                "exclude": [],
             },
         ),
         (
@@ -79,6 +81,8 @@ def test_configuration_class(output: Output) -> None:
                 "no_overwrite": False,
                 "overwrite": False,
                 "project": "playbook",
+                "include": ["all"],
+                "exclude": [],
             },
         ),
         (
@@ -109,6 +113,8 @@ def test_configuration_class(output: Output) -> None:
                 "no_overwrite": False,
                 "overwrite": False,
                 "project": "collection",  # default value
+                "include": ["all"],
+                "exclude": [],
             },
         ),
         (
@@ -141,6 +147,8 @@ def test_configuration_class(output: Output) -> None:
                 "no_overwrite": False,
                 "overwrite": False,
                 "project": "playbook",
+                "include": ["all"],
+                "exclude": [],
             },
         ),
         (
@@ -166,6 +174,8 @@ def test_configuration_class(output: Output) -> None:
                 "log_level": "notset",
                 "no_ansi": False,
                 "verbose": 0,
+                "include": ["all"],
+                "exclude": [],
             },
         ),
         (
@@ -191,6 +201,8 @@ def test_configuration_class(output: Output) -> None:
                 "log_level": "notset",
                 "no_ansi": False,
                 "verbose": 0,
+                "include": ["all"],
+                "exclude": [],
             },
         ),
     ),

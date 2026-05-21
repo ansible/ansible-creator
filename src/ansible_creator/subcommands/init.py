@@ -8,7 +8,7 @@ import shutil
 import uuid
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
 import yaml
 
@@ -39,6 +39,7 @@ class Init:
 
     Attributes:
         common_resources: List of common resources to copy.
+        _BUNDLE_NAME_TO_RESOURCE: Mapping of short bundle names to internal resource identifiers.
     """
 
     common_resources: tuple[str, ...] = (
@@ -48,6 +49,15 @@ class Init:
         "common.vscode",
         "common.ai",
     )
+
+    _BUNDLE_NAME_TO_RESOURCE: ClassVar[dict[str, str]] = {
+        "devcontainer": "common.devcontainer",
+        "devfile": "common.devfile",
+        "gitignore": "common.gitignore",
+        "vscode": "common.vscode",
+        "ai": "common.ai",
+        "role": "common.role",
+    }
 
     def __init__(
         self,
@@ -70,6 +80,8 @@ class Init:
         self.output: Output = config.output
         self._role_name: str = config.role_name
         self._scm_provider: str = config.scm_provider
+        self._include: list[str] = list(config.include)
+        self._exclude: list[str] = list(config.exclude)
 
         # Build the canonical EEConfig from JSON, file, or defaults, then
         # layer CLI flag overrides on top.
@@ -434,6 +446,57 @@ class Init:
 
         return EECollection(name=col, type="git")
 
+    def _resolve_common_resources(self) -> tuple[str, ...]:
+        """Resolve which common resource bundles to include based on --include/--exclude.
+
+        For collection projects, ``common.role`` is available as a bundle.
+        For playbook projects, ``role`` is silently ignored.
+
+        Returns:
+            Tuple of internal resource names (e.g. ``("common.devcontainer", ...)``).
+        """
+        base = list(self.common_resources)
+        if self._project == "collection":
+            base.append("common.role")
+
+        if "all" not in self._include:
+            requested: set[str] = set()
+            for name in self._include:
+                self._apply_bundle(name, base, requested)
+            return tuple(r for r in base if r in requested)
+
+        if self._exclude:
+            excluded: set[str] = set()
+            for name in self._exclude:
+                self._apply_bundle(name, base, excluded)
+            return tuple(r for r in base if r not in excluded)
+
+        return tuple(base)
+
+    def _apply_bundle(
+        self,
+        name: str,
+        base: list[str],
+        target: set[str],
+    ) -> None:
+        """Resolve a single bundle name and add it to the target set.
+
+        Emits a warning when ``role`` is used on a non-collection project.
+
+        Args:
+            name: Short bundle name (e.g. ``"devcontainer"``).
+            base: The current list of available common resources.
+            target: The set to add the resolved resource to.
+        """
+        if name == "role" and self._project != "collection":
+            self.output.warning(
+                msg="The 'role' bundle is only applicable to collection projects, ignoring.",
+            )
+            return
+        resource = self._BUNDLE_NAME_TO_RESOURCE.get(name)
+        if resource and resource in base:  # pragma: no cover
+            target.add(resource)
+
     def _scaffold(self) -> None:
         """Scaffold an ansible project.
 
@@ -482,11 +545,9 @@ class Init:
 
         if self._project == "execution_env":
             resources = (f"{self._project}_project", "common.ee-ci")
-        elif self._project == "collection":
-            self.common_resources = (*self.common_resources, "common.role")
-            resources = (f"{self._project}_project", *self.common_resources)
         else:
-            resources = (f"{self._project}_project", *self.common_resources)
+            resolved = self._resolve_common_resources()
+            resources = (f"{self._project}_project", *resolved)
 
         walker = Walker(
             resources=resources,

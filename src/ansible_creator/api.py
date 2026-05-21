@@ -368,6 +368,8 @@ class V1:
             for item in value:
                 tokens.extend([flag, str(item)])
             return tokens
+        if action.nargs in ("+", "*") and isinstance(value, list):
+            return [flag, *(str(item) for item in value)]
         if isinstance(value, (dict, list)):
             return [flag, json.dumps(value)]
         return [flag, str(value)]

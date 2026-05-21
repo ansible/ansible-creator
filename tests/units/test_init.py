@@ -450,3 +450,230 @@ def test_name_in_devfile_playbook(
     assert unique_name.startswith("foo.bar-")
     uuid_part = unique_name.rsplit("-", maxsplit=1)[-1]  # Extract the UUID part
     assert len(uuid_part) == UUID_LENGTH, "UUID part length mismatch"
+
+
+class TestResolveCommonResources:
+    """Tests for Init._resolve_common_resources().
+
+    Attributes:
+        ALL_COMMON: All common resource bundles (without role).
+        ALL_COMMON_WITH_ROLE: All common resource bundles including role.
+    """
+
+    ALL_COMMON = (
+        "common.devcontainer",
+        "common.devfile",
+        "common.gitignore",
+        "common.vscode",
+        "common.ai",
+    )
+
+    ALL_COMMON_WITH_ROLE = (*ALL_COMMON, "common.role")
+
+    @staticmethod
+    def _make_init(
+        tmp_path: Path,
+        output: Output,
+        *,
+        project: str = "collection",
+        include: list[str] | None = None,
+        exclude: list[str] | None = None,
+    ) -> Init:
+        """Create an Init instance with the given include/exclude settings.
+
+        Args:
+            tmp_path: Temporary directory path.
+            output: Output class object.
+            project: Project type.
+            include: Resource bundles to include.
+            exclude: Resource bundles to exclude.
+
+        Returns:
+            Init: Init class object.
+        """
+        kwargs: dict[str, object] = {
+            "creator_version": "0.0.1",
+            "output": output,
+            "subcommand": "init",
+            "collection": "testns.testcol",
+            "init_path": str(tmp_path / "test_path"),
+            "project": project,
+        }
+        if include is not None:
+            kwargs["include"] = include
+        if exclude is not None:
+            kwargs["exclude"] = exclude
+        return Init(Config(**kwargs))  # type: ignore[arg-type]
+
+    def test_default_all_collection(self, tmp_path: Path, output: Output) -> None:
+        """Default include=all for collection includes all bundles plus role.
+
+        Args:
+            tmp_path: Temporary directory path.
+            output: Output class object.
+        """
+        init = self._make_init(tmp_path, output)
+        result = init._resolve_common_resources()
+        assert result == self.ALL_COMMON_WITH_ROLE
+
+    def test_default_all_playbook(self, tmp_path: Path, output: Output) -> None:
+        """Default include=all for playbook includes all bundles without role.
+
+        Args:
+            tmp_path: Temporary directory path.
+            output: Output class object.
+        """
+        init = self._make_init(tmp_path, output, project="playbook")
+        result = init._resolve_common_resources()
+        assert result == self.ALL_COMMON
+
+    def test_include_specific_bundles(self, tmp_path: Path, output: Output) -> None:
+        """Include only specific bundles.
+
+        Args:
+            tmp_path: Temporary directory path.
+            output: Output class object.
+        """
+        init = self._make_init(
+            tmp_path,
+            output,
+            project="collection",
+            include=["devcontainer", "vscode"],
+        )
+        result = init._resolve_common_resources()
+        assert result == ("common.devcontainer", "common.vscode")
+
+    def test_include_role_for_collection(self, tmp_path: Path, output: Output) -> None:
+        """Include role bundle for collection project.
+
+        Args:
+            tmp_path: Temporary directory path.
+            output: Output class object.
+        """
+        init = self._make_init(
+            tmp_path,
+            output,
+            project="collection",
+            include=["role", "gitignore"],
+        )
+        result = init._resolve_common_resources()
+        assert result == ("common.gitignore", "common.role")
+
+    def test_include_role_for_playbook_warns(
+        self,
+        tmp_path: Path,
+        output: Output,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        """Include role for playbook emits warning and ignores it.
+
+        Args:
+            tmp_path: Temporary directory path.
+            output: Output class object.
+            capsys: Pytest fixture to capture stdout and stderr.
+        """
+        init = self._make_init(
+            tmp_path,
+            output,
+            project="playbook",
+            include=["role", "gitignore"],
+        )
+        result = init._resolve_common_resources()
+        assert result == ("common.gitignore",)
+        captured = capsys.readouterr().out
+        assert "role" in captured.lower()
+
+    def test_exclude_specific_bundles(self, tmp_path: Path, output: Output) -> None:
+        """Exclude specific bundles from the default set.
+
+        Args:
+            tmp_path: Temporary directory path.
+            output: Output class object.
+        """
+        init = self._make_init(
+            tmp_path,
+            output,
+            project="collection",
+            exclude=["ai", "devfile"],
+        )
+        result = init._resolve_common_resources()
+        expected = ("common.devcontainer", "common.gitignore", "common.vscode", "common.role")
+        assert result == expected
+
+    def test_exclude_role_from_collection(self, tmp_path: Path, output: Output) -> None:
+        """Exclude role from collection project.
+
+        Args:
+            tmp_path: Temporary directory path.
+            output: Output class object.
+        """
+        init = self._make_init(
+            tmp_path,
+            output,
+            project="collection",
+            exclude=["role"],
+        )
+        result = init._resolve_common_resources()
+        assert result == self.ALL_COMMON
+
+    def test_exclude_all_bundles(self, tmp_path: Path, output: Output) -> None:
+        """Excluding all bundles returns an empty tuple.
+
+        Args:
+            tmp_path: Temporary directory path.
+            output: Output class object.
+        """
+        init = self._make_init(
+            tmp_path,
+            output,
+            project="collection",
+            exclude=["devcontainer", "devfile", "gitignore", "vscode", "ai", "role"],
+        )
+        result = init._resolve_common_resources()
+        assert not result
+
+    def test_exclude_role_for_playbook_warns(
+        self,
+        tmp_path: Path,
+        output: Output,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        """Exclude role for playbook emits warning and ignores it.
+
+        Args:
+            tmp_path: Temporary directory path.
+            output: Output class object.
+            capsys: Pytest fixture to capture stdout and stderr.
+        """
+        init = self._make_init(
+            tmp_path,
+            output,
+            project="playbook",
+            exclude=["role", "ai"],
+        )
+        result = init._resolve_common_resources()
+        expected = (
+            "common.devcontainer",
+            "common.devfile",
+            "common.gitignore",
+            "common.vscode",
+        )
+        assert result == expected
+        captured = capsys.readouterr().out
+        assert "role" in captured.lower()
+
+    def test_include_only_gitignore(self, tmp_path: Path, output: Output) -> None:
+        """Include only gitignore.
+
+        Args:
+            tmp_path: Temporary directory path.
+            output: Output class object.
+        """
+        init = self._make_init(
+            tmp_path,
+            output,
+            project="playbook",
+            include=["gitignore"],
+        )
+        result = init._resolve_common_resources()
+        assert result == ("common.gitignore",)
