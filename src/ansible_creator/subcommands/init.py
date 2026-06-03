@@ -450,7 +450,7 @@ class Init:
         """Resolve which common resource bundles to include based on --include/--exclude.
 
         For collection projects, ``common.role`` is available as a bundle.
-        For playbook projects, ``role`` is silently ignored.
+        For playbook projects, ``role`` emits a warning and is ignored.
 
         Returns:
             Tuple of internal resource names (e.g. ``("common.devcontainer", ...)``).

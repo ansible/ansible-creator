@@ -975,6 +975,25 @@ def test_build_command_nargs_plus_expands_list(creator_api: V1) -> None:
     assert argv[idx + 2] == "vscode"
 
 
+def test_build_command_nargs_plus_accepts_tuple(creator_api: V1) -> None:
+    """Test that nargs='+' options also accept tuples.
+
+    API consumers may pass tuples instead of lists for immutable sequences.
+
+    Args:
+        creator_api: V1 API instance.
+    """
+    argv = creator_api.build_command(
+        "init",
+        "collection",
+        collection="ns.col",
+        include=("gitignore", "ai"),
+    )
+    idx = argv.index("--include")
+    assert argv[idx + 1] == "gitignore"
+    assert argv[idx + 2] == "ai"
+
+
 def test_run_init_collection_with_include(creator_api: V1, tmp_path: Path) -> None:
     """Test scaffolding a collection with --include via API.
 
