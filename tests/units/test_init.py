@@ -460,13 +460,7 @@ class TestResolveCommonResources:
         ALL_COMMON_WITH_ROLE: All common resource bundles including role.
     """
 
-    ALL_COMMON = (
-        "common.devcontainer",
-        "common.devfile",
-        "common.gitignore",
-        "common.vscode",
-        "common.ai",
-    )
+    ALL_COMMON = Init.common_resources
 
     ALL_COMMON_WITH_ROLE = (*ALL_COMMON, "common.role")
 

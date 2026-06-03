@@ -8,10 +8,11 @@ import shutil
 import uuid
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, ClassVar
+from typing import TYPE_CHECKING, Any
 
 import yaml
 
+from ansible_creator.bundles import get_init_bundle_names
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.templar import Templar
 from ansible_creator.types import (
@@ -38,26 +39,12 @@ class Init:
     """Class representing ansible-creator init subcommand.
 
     Attributes:
-        common_resources: List of common resources to copy.
-        _BUNDLE_NAME_TO_RESOURCE: Mapping of short bundle names to internal resource identifiers.
+        common_resources: Default common resource bundles (dynamically discovered).
     """
 
-    common_resources: tuple[str, ...] = (
-        "common.devcontainer",
-        "common.devfile",
-        "common.gitignore",
-        "common.vscode",
-        "common.ai",
+    common_resources: tuple[str, ...] = tuple(
+        f"common.{name}" for name in get_init_bundle_names() if name != "role"
     )
-
-    _BUNDLE_NAME_TO_RESOURCE: ClassVar[dict[str, str]] = {
-        "devcontainer": "common.devcontainer",
-        "devfile": "common.devfile",
-        "gitignore": "common.gitignore",
-        "vscode": "common.vscode",
-        "ai": "common.ai",
-        "role": "common.role",
-    }
 
     def __init__(
         self,
@@ -493,8 +480,8 @@ class Init:
                 msg="The 'role' bundle is only applicable to collection projects, ignoring.",
             )
             return
-        resource = self._BUNDLE_NAME_TO_RESOURCE.get(name)
-        if resource and resource in base:  # pragma: no cover
+        resource = f"common.{name}"
+        if resource in base:  # pragma: no cover
             target.add(resource)
 
     def _scaffold(self) -> None:

@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, TypeAlias
 
+from ansible_creator.bundles import get_init_bundle_names
 from ansible_creator.output import Level, Msg
 
 from ._arg_parser_custom import CustomArgumentParser
@@ -36,12 +37,7 @@ if TYPE_CHECKING:
 
 
 class Parser:
-    """A parser for the command line arguments.
-
-    Attributes:
-        RESOURCE_BUNDLE_CHOICES: Valid bundle names for --include (with "all").
-        RESOURCE_BUNDLE_CHOICES_NO_ALL: Valid bundle names for --exclude (no "all").
-    """
+    """A parser for the command line arguments."""
 
     def __init__(self) -> None:
         """Initialize the parser."""
@@ -573,41 +569,24 @@ class Parser:
         self._add_overwrite(parser)
         self._add_args_plugin_common(parser)
 
-    RESOURCE_BUNDLE_CHOICES: tuple[str, ...] = (
-        "all",
-        "devcontainer",
-        "devfile",
-        "gitignore",
-        "vscode",
-        "ai",
-        "role",
-    )
-
-    RESOURCE_BUNDLE_CHOICES_NO_ALL: tuple[str, ...] = (
-        "devcontainer",
-        "devfile",
-        "gitignore",
-        "vscode",
-        "ai",
-        "role",
-    )
-
     def _add_include_exclude(self, parser: argparse.ArgumentParser) -> None:
         """Add mutually exclusive --include/--exclude arguments to the parser.
 
         Args:
             parser: The parser to add include/exclude options to
         """
+        bundle_names = get_init_bundle_names()
+        include_choices = ("all", *bundle_names)
         group = parser.add_mutually_exclusive_group()
         group.add_argument(
             "--include",
             nargs="+",
             default=["all"],
             dest="include",
-            choices=self.RESOURCE_BUNDLE_CHOICES,
+            choices=include_choices,
             metavar="BUNDLE",
             help="Resource bundles to include. "
-            f"Choices: {', '.join(self.RESOURCE_BUNDLE_CHOICES)}. "
+            f"Choices: {', '.join(include_choices)}. "
             "Default: all (include everything).",
         )
         group.add_argument(
@@ -615,10 +594,9 @@ class Parser:
             nargs="+",
             default=[],
             dest="exclude",
-            choices=self.RESOURCE_BUNDLE_CHOICES_NO_ALL,
+            choices=bundle_names,
             metavar="BUNDLE",
-            help="Resource bundles to exclude. "
-            f"Choices: {', '.join(self.RESOURCE_BUNDLE_CHOICES_NO_ALL)}.",
+            help=f"Resource bundles to exclude. Choices: {', '.join(bundle_names)}.",
         )
 
     def _add_overwrite(self, parser: argparse.ArgumentParser) -> None:
