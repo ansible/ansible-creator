@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, TypeAlias
 
+from ansible_creator.bundles import get_init_bundle_names
 from ansible_creator.output import Level, Msg
 
 from ._arg_parser_custom import CustomArgumentParser
@@ -568,6 +569,36 @@ class Parser:
         self._add_overwrite(parser)
         self._add_args_plugin_common(parser)
 
+    def _add_include_exclude(self, parser: argparse.ArgumentParser) -> None:
+        """Add mutually exclusive --include/--exclude arguments to the parser.
+
+        Args:
+            parser: The parser to add include/exclude options to
+        """
+        bundle_names = get_init_bundle_names()
+        include_choices = ("all", *bundle_names)
+        group = parser.add_mutually_exclusive_group()
+        group.add_argument(
+            "--include",
+            nargs="+",
+            default=["all"],
+            dest="include",
+            choices=include_choices,
+            metavar="BUNDLE",
+            help="Resource bundles to include. "
+            f"Choices: {', '.join(include_choices)}. "
+            "Default: all (include everything).",
+        )
+        group.add_argument(
+            "--exclude",
+            nargs="+",
+            default=[],
+            dest="exclude",
+            choices=bundle_names,
+            metavar="BUNDLE",
+            help=f"Resource bundles to exclude. Choices: {', '.join(bundle_names)}.",
+        )
+
     def _add_overwrite(self, parser: argparse.ArgumentParser) -> None:
         """Add overwrite and no-overwrite arguments to the parser.
 
@@ -651,6 +682,7 @@ class Parser:
 
         self._add_args_common(parser)
         self._add_args_init_common(parser)
+        self._add_include_exclude(parser)
 
     def _init_playbook(self, subparser: SubParser[argparse.ArgumentParser]) -> None:
         """Initialize an Ansible playbook.
@@ -681,6 +713,7 @@ class Parser:
         )
         self._add_args_common(parser)
         self._add_args_init_common(parser)
+        self._add_include_exclude(parser)
 
     def _init_ee_project(self, subparser: SubParser[argparse.ArgumentParser]) -> None:
         """Initialize an EE project.

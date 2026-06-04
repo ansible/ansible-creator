@@ -52,6 +52,8 @@ class Config:
             (login, pull, push, and image builds). None means the user did not
             explicitly set this flag, so the EE config file value is preserved.
         scm_provider: SCM provider for EE CI scaffolding (github or gitlab).
+        include: Resource bundles to include during init (default: all).
+        exclude: Resource bundles to exclude during init.
     """
 
     creator_version: str
@@ -84,6 +86,8 @@ class Config:
     ee_build_arg_defaults: Sequence[str] = field(default_factory=list)
     registry_tls_verify: bool | None = None
     scm_provider: str = "github"
+    include: Sequence[str] = field(default_factory=lambda: ["all"])
+    exclude: Sequence[str] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         """Post process config values."""

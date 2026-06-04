@@ -1,5 +1,7 @@
 """Unit tests for the ansible-creator V1 API."""
 
+# pylint: disable=too-many-lines
+
 from __future__ import annotations
 
 import argparse
@@ -950,3 +952,87 @@ def test_schema_extract_array_type() -> None:
     info = _extract_action_info(action)
     assert info["type"] == "array"
     assert info["items"] == {"type": "string"}
+
+
+def test_build_command_nargs_plus_expands_list(creator_api: V1) -> None:
+    """Test that nargs='+' options expand a list into flag + items.
+
+    The ``--include`` argument uses ``nargs="+"``, so
+    ``include=["devcontainer", "vscode"]`` should produce
+    ``["--include", "devcontainer", "vscode"]``.
+
+    Args:
+        creator_api: V1 API instance.
+    """
+    argv = creator_api.build_command(
+        "init",
+        "collection",
+        collection="ns.col",
+        include=["devcontainer", "vscode"],
+    )
+    idx = argv.index("--include")
+    assert argv[idx + 1] == "devcontainer"
+    assert argv[idx + 2] == "vscode"
+
+
+def test_build_command_nargs_plus_accepts_tuple(creator_api: V1) -> None:
+    """Test that nargs='+' options also accept tuples.
+
+    API consumers may pass tuples instead of lists for immutable sequences.
+
+    Args:
+        creator_api: V1 API instance.
+    """
+    argv = creator_api.build_command(
+        "init",
+        "collection",
+        collection="ns.col",
+        include=("gitignore", "ai"),
+    )
+    idx = argv.index("--include")
+    assert argv[idx + 1] == "gitignore"
+    assert argv[idx + 2] == "ai"
+
+
+def test_run_init_collection_with_include(creator_api: V1, tmp_path: Path) -> None:
+    """Test scaffolding a collection with --include via API.
+
+    Args:
+        creator_api: V1 API instance.
+        tmp_path: Temporary directory path.
+    """
+    target = tmp_path / "include_api"
+    target.mkdir()
+    result = creator_api.run(
+        "init",
+        "collection",
+        collection="testns.testcol",
+        init_path=str(target),
+        include=["gitignore"],
+    )
+    assert result.status == "success", result.message
+    assert (target / ".gitignore").exists()
+    assert not (target / ".devcontainer").exists()
+    assert not (target / "AGENTS.md").exists()
+
+
+def test_run_init_collection_with_exclude(creator_api: V1, tmp_path: Path) -> None:
+    """Test scaffolding a collection with --exclude via API.
+
+    Args:
+        creator_api: V1 API instance.
+        tmp_path: Temporary directory path.
+    """
+    target = tmp_path / "exclude_api"
+    target.mkdir()
+    result = creator_api.run(
+        "init",
+        "collection",
+        collection="testns.testcol",
+        init_path=str(target),
+        exclude=["ai", "devfile"],
+    )
+    assert result.status == "success", result.message
+    assert (target / ".gitignore").exists()
+    assert not (target / "AGENTS.md").exists()
+    assert not (target / "devfile.yaml").exists()

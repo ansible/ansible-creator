@@ -30,6 +30,7 @@ import argparse
 import json
 import tempfile
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field, fields
 from importlib import import_module
 from pathlib import Path
@@ -368,6 +369,12 @@ class V1:
             for item in value:
                 tokens.extend([flag, str(item)])
             return tokens
+        if (
+            action.nargs in ("+", "*")
+            and isinstance(value, Sequence)
+            and not isinstance(value, str)
+        ):
+            return [flag, *(str(item) for item in value)]
         if isinstance(value, (dict, list)):
             return [flag, json.dumps(value)]
         return [flag, str(value)]

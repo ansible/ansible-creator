@@ -147,3 +147,128 @@ def test_run_init_ee(cli: CliRunCallable, tmp_path: Path) -> None:
 
     # check stdout
     assert r"Note: execution_env project created at" in result.stdout
+
+
+def test_run_init_collection_include(cli: CliRunCallable, tmp_path: Path) -> None:
+    """Test init collection with --include to cherry-pick bundles.
+
+    Args:
+        cli: cli_run function.
+        tmp_path: Temporary path.
+    """
+    dest = tmp_path / "include_test"
+    result = cli(
+        f"{CREATOR_BIN} init collection testns.testcol {dest} --include gitignore",
+    )
+    assert result.returncode == 0
+    assert r"Note: collection project created at" in result.stdout
+
+    assert (dest / ".gitignore").exists(), ".gitignore should be created"
+    assert not (dest / ".devcontainer").exists(), ".devcontainer should not be created"
+    assert not (dest / "devfile.yaml").exists(), "devfile.yaml should not be created"
+    assert not (dest / ".vscode").exists(), ".vscode should not be created"
+    assert not (dest / "AGENTS.md").exists(), "AGENTS.md should not be created"
+    assert not (dest / "roles").exists(), "roles/ should not be created"
+
+    assert (dest / "galaxy.yml").exists(), "core project files should always be created"
+
+
+def test_run_init_collection_exclude(cli: CliRunCallable, tmp_path: Path) -> None:
+    """Test init collection with --exclude to remove specific bundles.
+
+    Args:
+        cli: cli_run function.
+        tmp_path: Temporary path.
+    """
+    dest = tmp_path / "exclude_test"
+    result = cli(
+        f"{CREATOR_BIN} init collection testns.testcol {dest} --exclude ai devfile role",
+    )
+    assert result.returncode == 0
+    assert r"Note: collection project created at" in result.stdout
+
+    assert (dest / ".gitignore").exists(), ".gitignore should be created"
+    assert (dest / ".devcontainer").exists(), ".devcontainer should be created"
+    assert (dest / ".vscode").exists(), ".vscode should be created"
+    assert not (dest / "AGENTS.md").exists(), "AGENTS.md should not be created (excluded)"
+    assert not (dest / "devfile.yaml").exists(), "devfile.yaml should not be created (excluded)"
+    assert not (dest / "roles").exists(), "roles/ should not be created (excluded)"
+
+    assert (dest / "galaxy.yml").exists(), "core project files should always be created"
+
+
+def test_run_init_playbook_include(cli: CliRunCallable, tmp_path: Path) -> None:
+    """Test init playbook with --include to cherry-pick bundles.
+
+    Args:
+        cli: cli_run function.
+        tmp_path: Temporary path.
+    """
+    dest = tmp_path / "playbook_include"
+    result = cli(
+        f"{CREATOR_BIN} init playbook testns.testcol {dest} --include devcontainer vscode",
+    )
+    assert result.returncode == 0
+    assert r"Note: playbook project created at" in result.stdout
+
+    assert (dest / ".devcontainer").exists(), ".devcontainer should be created"
+    assert (dest / ".vscode").exists(), ".vscode should be created"
+    assert not (dest / ".gitignore").exists(), ".gitignore should not be created"
+    assert not (dest / "devfile.yaml").exists(), "devfile.yaml should not be created"
+    assert not (dest / "AGENTS.md").exists(), "AGENTS.md should not be created"
+
+    assert (dest / "site.yml").exists(), "core project files should always be created"
+
+
+def test_run_init_collection_include_all(cli: CliRunCallable, tmp_path: Path) -> None:
+    """Test init collection with --include all (default behavior).
+
+    Args:
+        cli: cli_run function.
+        tmp_path: Temporary path.
+    """
+    dest = tmp_path / "include_all_test"
+    result = cli(
+        f"{CREATOR_BIN} init collection testns.testcol {dest} --include all",
+    )
+    assert result.returncode == 0
+
+    assert (dest / ".gitignore").exists()
+    assert (dest / ".devcontainer").exists()
+    assert (dest / "devfile.yaml").exists()
+    assert (dest / ".vscode").exists()
+    assert (dest / "AGENTS.md").exists()
+    assert (dest / "roles").exists()
+
+
+def test_run_init_include_exclude_mutually_exclusive(
+    cli: CliRunCallable,
+    tmp_path: Path,
+) -> None:
+    """Test that --include and --exclude cannot be used together.
+
+    Args:
+        cli: cli_run function.
+        tmp_path: Temporary path.
+    """
+    dest = tmp_path / "mutex_test"
+    result = cli(
+        f"{CREATOR_BIN} init collection testns.testcol {dest} --include gitignore --exclude ai",
+    )
+    assert result.returncode != 0
+    assert "not allowed with argument" in result.stderr
+
+
+def test_run_init_invalid_bundle_name(cli: CliRunCallable, tmp_path: Path) -> None:
+    """Test that invalid bundle names are rejected.
+
+    Args:
+        cli: cli_run function.
+        tmp_path: Temporary path.
+    """
+    dest = tmp_path / "invalid_test"
+    result = cli(
+        f"{CREATOR_BIN} init collection testns.testcol {dest} --include bogus",
+    )
+    assert result.returncode != 0
+    assert "invalid choice" in result.stderr
