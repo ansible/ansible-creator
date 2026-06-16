@@ -1971,6 +1971,51 @@ def test_scm_server_to_schema() -> None:
     assert "token_env_var" in props
 
 
+def test_scm_server_to_schema_validation_metadata() -> None:
+    """Test ScmServer.to_schema includes validation constraints."""
+    schema = ScmServer.to_schema()
+    props = schema["properties"]
+    assert props["id"]["pattern"] == r"^[a-z_][a-z0-9_]*$"
+    assert props["id"]["minLength"] == 1
+    assert props["hostname"]["minLength"] == 1
+    assert props["token_env_var"]["pattern"] == r"^[A-Z][A-Z0-9_]*$"
+    assert props["token_env_var"]["minLength"] == 1
+
+
+def test_galaxy_server_to_schema_validation_metadata() -> None:
+    """Test GalaxyServer.to_schema includes validation constraints."""
+    schema = GalaxyServer.to_schema()
+    props = schema["properties"]
+    assert props["id"]["pattern"] == r"^[a-z_][a-z0-9_]*$"
+    assert props["id"]["minLength"] == 1
+    assert props["url"]["format"] == "url"
+    assert props["url"]["minLength"] == 1
+    assert props["auth_url"]["format"] == "url"
+
+
+def test_ee_collection_to_schema_validation_metadata() -> None:
+    """Test EECollection.to_schema includes validation constraints."""
+    schema = EECollection.to_schema()
+    props = schema["properties"]
+    assert props["name"]["minLength"] == 1
+    assert props["source"]["format"] == "url"
+
+
+def test_ee_config_to_schema_validation_metadata() -> None:
+    """Test EEConfig.to_schema includes validation constraints."""
+    schema = EEConfig.to_schema()
+    props = schema["properties"]
+    assert props["ee_name"]["minLength"] == 1
+    assert props["base_image"]["minLength"] == 1
+    assert props["registry"]["minLength"] == 1
+    assert props["collections"]["minItems"] == 0
+    assert props["python_deps"]["items"]["minLength"] == 1
+    assert props["system_packages"]["items"]["minLength"] == 1
+    assert props["ee_file_name"]["pattern"] == r"^[^/\\]*\.(yml|yaml)$"
+    expected_ee_file_min_len = 5
+    assert props["ee_file_name"]["minLength"] == expected_ee_file_min_len
+
+
 def test_ee_config_from_dict_scm_servers() -> None:
     """Test EEConfig.from_dict parses scm_servers list."""
     data = {

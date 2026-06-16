@@ -1036,3 +1036,96 @@ def test_run_init_collection_with_exclude(creator_api: V1, tmp_path: Path) -> No
     assert (target / ".gitignore").exists()
     assert not (target / "AGENTS.md").exists()
     assert not (target / "devfile.yaml").exists()
+
+
+def test_schema_extract_count_action_type() -> None:
+    """Test _extract_action_info handles action='count' as integer type."""
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-v", "--verbose", action="count", default=0, help="Verbosity")
+    action = next(a for a in parser._actions if a.dest == "verbose")
+    info = _extract_action_info(action)
+    assert info["type"] == "integer"
+
+
+def test_schema_extract_boolean_optional_action() -> None:
+    """Test _extract_action_info handles BooleanOptionalAction as boolean type."""
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--flag",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="A flag",
+    )
+    action = next(a for a in parser._actions if a.dest == "flag")
+    info = _extract_action_info(action)
+    assert info["type"] == "boolean"
+
+
+def test_schema_extract_schema_metadata() -> None:
+    """Test _extract_action_info merges schema_metadata into output."""
+    parser = argparse.ArgumentParser()
+    expected_min_length = 3
+    act = parser.add_argument("--name", help="A name")
+    act.schema_metadata = {  # type: ignore[attr-defined]
+        "minLength": expected_min_length,
+        "pattern": "^[a-z]+$",
+        "format": "fqcn",
+    }
+    action = next(a for a in parser._actions if a.dest == "name")
+    info = _extract_action_info(action)
+    assert info["minLength"] == expected_min_length
+    assert info["pattern"] == "^[a-z]+$"
+    assert info["format"] == "fqcn"
+    assert info["type"] == "string"
+
+
+def test_schema_validation_metadata_on_collection() -> None:
+    """Test that collection parameter includes validation metadata."""
+    from ansible_creator.schema import for_command  # noqa: PLC0415
+
+    schema = for_command("init", "collection")
+    props = schema["parameters"]["properties"]
+    assert "collection" in props
+    col = props["collection"]
+    assert "pattern" in col
+    assert "minLength" in col
+    assert col["format"] == "fqcn"
+    expected_min_length = 7
+    assert col["minLength"] == expected_min_length
+
+
+def test_schema_validation_metadata_on_verbosity() -> None:
+    """Test that verbose parameter includes integer type and min/max."""
+    from ansible_creator.schema import for_command  # noqa: PLC0415
+
+    schema = for_command("init", "collection")
+    props = schema["parameters"]["properties"]
+    assert "verbose" in props
+    verbose = props["verbose"]
+    assert verbose["type"] == "integer"
+    assert verbose["minimum"] == 0
+    expected_max = 3
+    assert verbose["maximum"] == expected_max
+
+
+def test_schema_validation_metadata_on_ee_file_name() -> None:
+    """Test that ee_file_name parameter includes pattern and minLength."""
+    from ansible_creator.schema import for_command  # noqa: PLC0415
+
+    schema = for_command("init", "execution_env")
+    props = schema["parameters"]["properties"]
+    assert "ee_file_name" in props
+    ee_fn = props["ee_file_name"]
+    assert "pattern" in ee_fn
+    expected_min_length = 5
+    assert ee_fn["minLength"] == expected_min_length
+
+
+def test_schema_validation_metadata_on_registry_tls_verify() -> None:
+    """Test that registry_tls_verify is detected as boolean type."""
+    from ansible_creator.schema import for_command  # noqa: PLC0415
+
+    schema = for_command("init", "execution_env")
+    props = schema["parameters"]["properties"]
+    assert "registry_tls_verify" in props
+    assert props["registry_tls_verify"]["type"] == "boolean"

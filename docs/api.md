@@ -191,11 +191,18 @@ Each node in the schema tree follows this structure:
     "type": "object",
     "properties": {
       "param_name": {
-        "type": "string|boolean|int|array",
+        "type": "string|boolean|integer|int|array",
         "description": "Parameter help text",
         "default": "default-value",
         "aliases": ["--flag", "-f"],
-        "enum": ["choice1", "choice2"]
+        "enum": ["choice1", "choice2"],
+        "minLength": 2,
+        "pattern": "^[a-z]+$",
+        "format": "fqcn",
+        "minimum": 0,
+        "maximum": 5,
+        "minItems": 0,
+        "items": { "type": "string" }
       }
     },
     "required": ["param_name"]
@@ -209,9 +216,23 @@ Each node in the schema tree follows this structure:
 **Parameter types** are inferred from the argparse actions:
 
 - `"string"` — default for most arguments
-- `"boolean"` — for store-true / store-false flags
+- `"boolean"` — for store-true / store-false flags and `BooleanOptionalAction`
+- `"integer"` — for count actions (e.g. verbosity)
 - `"int"` / `"float"` — when a type converter is specified
 - `"array"` — for nargs `+` or `*`
+
+**Validation keywords** are optional fields that provide standard JSON Schema
+constraints.  Consumers can use them for client-side validation; fields that are
+absent carry no constraint.  All keywords are standard JSON Schema:
+
+| Keyword               | Applies to | Purpose                                  |
+| --------------------- | ---------- | ---------------------------------------- |
+| `minLength`/`maxLength` | string   | Minimum / maximum character count        |
+| `pattern`             | string     | Regex for format validation              |
+| `format`              | string     | Semantic hint (`path`, `url`, `fqcn`)    |
+| `minimum`/`maximum`   | integer    | Numeric range                            |
+| `minItems`/`maxItems` | array      | Array length constraints                 |
+| `items`               | array      | Schema for individual array elements     |
 
 **Routing parameters** (`subcommand`, `project`, `type`, `resource_type`,
 `plugin_type`) are excluded from the schema — they are implicit in the command
