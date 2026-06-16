@@ -87,23 +87,26 @@ class CustomArgumentParser(argparse.ArgumentParser):
         if sys.version_info < (3, 14):  # pragma: no cover py>=3.14
             self.formatter_class = CustomHelpFormatter
 
-    def add_argument(  # type: ignore[override]
+    def add_argument(
         self,
         *args: Any,  # noqa: ANN401
         **kwargs: Any,  # noqa: ANN401
-    ) -> None:
+    ) -> argparse.Action:
         """Add an argument.
 
         Args:
             *args: The arguments
             **kwargs: The keyword arguments
+
+        Returns:
+            The created argparse Action.
         """
         if sys.version_info < (3, 14):  # pragma: no cover py>=3.14
             if "choices" in kwargs:  # pragma: no cover py>=3.14
                 kwargs["help"] += f" (choices: {', '.join(kwargs['choices'])})"
             if "default" in kwargs and kwargs["default"] != "==SUPPRESS==":
                 kwargs["help"] += f" (default: {kwargs['default']})"
-        super().add_argument(*args, **kwargs)
+        return super().add_argument(*args, **kwargs)
 
     def add_argument_group(
         self,

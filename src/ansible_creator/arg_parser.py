@@ -189,13 +189,14 @@ class Parser:
             help="Disable the use of ANSI codes for terminal color.",
         )
 
-        parser.add_argument(
+        log_file_action = parser.add_argument(
             "--lf",
             "--log-file <file>",
             dest="log_file",
             default=str(Path.cwd() / "ansible-creator.log"),
             help="Log file to write to.",
         )
+        log_file_action.schema_metadata = {"format": "path"}  # type: ignore[attr-defined]
 
         parser.add_argument(
             "--ll",
@@ -223,7 +224,7 @@ class Parser:
             help="Output messages as JSON",
         )
 
-        parser.add_argument(
+        verbose_action = parser.add_argument(
             "-v",
             "--verbosity",
             dest="verbose",
@@ -231,6 +232,7 @@ class Parser:
             default=0,
             help="Give more Cli output. Option is additive, and can be used up to 3 times.",
         )
+        verbose_action.schema_metadata = {"minimum": 0, "maximum": 3}  # type: ignore[attr-defined]
 
     def _add_args_init_common(self, parser: argparse.ArgumentParser) -> None:
         """Add common init arguments to the parser.
@@ -665,12 +667,17 @@ class Parser:
             "collection",
             help="Create a new Ansible collection project.",
         )
-        parser.add_argument(
+        collection_action = parser.add_argument(
             "collection",
             help="The collection name in the format '<namespace>.<name>'.",
             metavar="collection-name",
             type=self._valid_collection_name,
         )
+        collection_action.schema_metadata = {  # type: ignore[attr-defined]
+            "pattern": r"^(?!_)[a-z0-9_]+\.(?!_)[a-z0-9_]+$",
+            "minLength": (MIN_COLLECTION_NAME_LEN + 1) * 2 + 1,
+            "format": "fqcn",
+        }
         parser.add_argument(
             "init_path",
             default="./",
@@ -695,13 +702,18 @@ class Parser:
             help="Create a new Ansible playbook project.",
         )
 
-        parser.add_argument(
+        collection_action = parser.add_argument(
             "collection",
             help="The name for the playbook adjacent collection in the format"
             " '<namespace>.<name>'.",
             metavar="collection-name",
             type=self._valid_collection_name,
         )
+        collection_action.schema_metadata = {  # type: ignore[attr-defined]
+            "pattern": r"^(?!_)[a-z0-9_]+\.(?!_)[a-z0-9_]+$",
+            "minLength": (MIN_COLLECTION_NAME_LEN + 1) * 2 + 1,
+            "format": "fqcn",
+        }
 
         parser.add_argument(
             "init_path",
@@ -743,22 +755,26 @@ class Parser:
             'Example: --ee-config \'{"base_image": "...", "collections": [...]}\'',
         )
         ee_config_action.schema_class = EEConfig  # type: ignore[attr-defined]
-        ee_config_group.add_argument(
+        ee_config_file_action = ee_config_group.add_argument(
             "--ee-config-file",
             dest="ee_config_file",
             metavar="FILE",
             help="Path to a JSON/YAML config file containing EE parameters. "
             "See documentation for the expected schema.",
         )
+        ee_config_file_action.schema_metadata = {"format": "path"}  # type: ignore[attr-defined]
 
-        parser.add_argument(
+        base_image_action = parser.add_argument(
             "--ee-base-image",
             dest="base_image",
             default="quay.io/fedora/fedora:41",
             help="Base image for the execution environment. Default: quay.io/fedora/fedora:41",
         )
+        base_image_action.schema_metadata = {  # type: ignore[attr-defined]
+            "minLength": 1,
+        }
 
-        parser.add_argument(
+        ee_collections_action = parser.add_argument(
             "--ee-collections",
             dest="ee_collections",
             action="append",
@@ -769,6 +785,10 @@ class Parser:
             "Example: --ee-collections ansible.posix --ee-collections 'ansible.utils:>=1.0.0' "
             "--ee-collections 'my.collection:1.0.0:galaxy:https://galaxy.ansible.com'",
         )
+        ee_collections_action.schema_metadata = {  # type: ignore[attr-defined]
+            "items": {"type": "string", "minLength": 1},
+            "minItems": 0,
+        }
 
         parser.add_argument(
             "--ee-python-deps",
@@ -790,13 +810,14 @@ class Parser:
             "Example: --ee-system-packages openssh-clients --ee-system-packages sshpass",
         )
 
-        parser.add_argument(
+        ee_name_action = parser.add_argument(
             "--ee-name",
             default="ansible_sample_ee",
             help="Name/tag for the execution environment image. Default: ansible_sample_ee",
         )
+        ee_name_action.schema_metadata = {"minLength": 1}  # type: ignore[attr-defined]
 
-        parser.add_argument(
+        ee_file_name_action = parser.add_argument(
             "--ee-file-name",
             dest="ee_file_name",
             default="execution-environment.yml",
@@ -804,6 +825,10 @@ class Parser:
             help="Name of the EE definition file. "
             "Must end with .yml or .yaml. Default: execution-environment.yml",
         )
+        ee_file_name_action.schema_metadata = {  # type: ignore[attr-defined]
+            "pattern": r"^[^/\\]*\.(yml|yaml)$",
+            "minLength": 5,
+        }
 
         parser.add_argument(
             "--ee-build-arg-default",

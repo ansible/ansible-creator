@@ -169,6 +169,7 @@ class EECollection:
                 "name": {
                     "type": "string",
                     "description": "Collection name (namespace.name) or Git URL",
+                    "minLength": 1,
                 },
                 "version": {
                     "type": "string",
@@ -184,6 +185,7 @@ class EECollection:
                 "source": {
                     "type": "string",
                     "description": "Collection source URL",
+                    "format": "url",
                     "default": "",
                 },
             },
@@ -290,15 +292,20 @@ class GalaxyServer:
                         "Used in [galaxy_server.<id>] and "
                         "ANSIBLE_GALAXY_SERVER_<ID>_TOKEN env var."
                     ),
+                    "pattern": r"^[a-z_][a-z0-9_]*$",
+                    "minLength": 1,
                 },
                 "url": {
                     "type": "string",
                     "description": "Galaxy server content URL",
+                    "format": "url",
+                    "minLength": 1,
                 },
                 "auth_url": {
                     "type": "string",
                     "default": "",
                     "description": "SSO/OAuth token endpoint",
+                    "format": "url",
                 },
                 "token_required": {
                     "type": "boolean",
@@ -407,10 +414,13 @@ class ScmServer:
                         "Server identifier (e.g. github_org1, internal_gitlab). "
                         "Must be lowercase letters, numbers, and underscores."
                     ),
+                    "pattern": r"^[a-z_][a-z0-9_]*$",
+                    "minLength": 1,
                 },
                 "hostname": {
                     "type": "string",
                     "description": "Git server hostname (e.g. github.com)",
+                    "minLength": 1,
                 },
                 "token_env_var": {
                     "type": "string",
@@ -419,6 +429,8 @@ class ScmServer:
                         "Must be uppercase (e.g. GITHUB_ORG1_TOKEN). "
                         "This name is used as the GitHub Actions secret name."
                     ),
+                    "pattern": r"^[A-Z][A-Z0-9_]*$",
+                    "minLength": 1,
                 },
             },
         }
@@ -600,11 +612,13 @@ class EEConfig:
                     "type": "string",
                     "default": "ansible_sample_ee",
                     "description": "Name/tag for the EE image",
+                    "minLength": 1,
                 },
                 "base_image": {
                     "type": "string",
                     "default": "quay.io/fedora/fedora:41",
                     "description": "Base container image",
+                    "minLength": 1,
                 },
                 "registry": {
                     "type": "string",
@@ -612,6 +626,7 @@ class EEConfig:
                     "description": (
                         "Container registry hostname for the CI workflow (e.g. ghcr.io, quay.io)"
                     ),
+                    "minLength": 1,
                 },
                 "registry_tls_verify": {
                     "type": "boolean",
@@ -633,16 +648,19 @@ class EEConfig:
                     "type": "array",
                     "items": EECollection.to_schema(),
                     "description": "Ansible collections to include",
+                    "minItems": 0,
                 },
                 "python_deps": {
                     "type": "array",
-                    "items": {"type": "string"},
+                    "items": {"type": "string", "minLength": 1},
                     "description": "Python package dependencies",
+                    "minItems": 0,
                 },
                 "system_packages": {
                     "type": "array",
-                    "items": {"type": "string"},
+                    "items": {"type": "string", "minLength": 1},
                     "description": "System packages to install",
+                    "minItems": 0,
                 },
                 "additional_build_files": {
                     "type": "array",
@@ -677,6 +695,7 @@ class EEConfig:
                         "Galaxy server entries for ansible.cfg generation "
                         "and workflow token plumbing"
                     ),
+                    "minItems": 0,
                 },
                 "scm_servers": {
                     "type": "array",
@@ -685,11 +704,14 @@ class EEConfig:
                         "SCM server entries for private Git collection "
                         "repositories and workflow token plumbing"
                     ),
+                    "minItems": 0,
                 },
                 "ee_file_name": {
                     "type": "string",
                     "description": "Name of the EE definition file",
                     "default": "execution-environment.yml",
+                    "pattern": r"^[^/\\]*\.(yml|yaml)$",
+                    "minLength": 5,
                 },
             },
         }

@@ -128,15 +128,17 @@ def _extract_action_info(action: argparse.Action) -> dict[str, Any]:
     the full ``EEConfig.to_schema()`` structure so that consumers (e.g.
     the ADT server) know the expected JSON shape.
 
+    If the action carries a ``schema_metadata`` dict attribute, its
+    entries (standard JSON Schema validation keywords such as
+    ``minLength``, ``pattern``, ``minimum``, ``format``, etc.) are merged
+    into the output.
+
     Args:
         action: The argparse action to extract info from.
 
     Returns:
         Dictionary with parameter type, description, and other metadata.
     """
-    # If the argparse action carries a schema_class attribute (a dataclass
-    # with a to_schema() classmethod), use it to expose the structured
-    # payload shape instead of a flat "type: string".
     schema_cls = getattr(action, "schema_class", None)
     if schema_cls is not None:
         structured: dict[str, Any] = schema_cls.to_schema()
@@ -149,37 +151,58 @@ def _extract_action_info(action: argparse.Action) -> dict[str, Any]:
         "description": _clean_help_text(action.help or ""),
     }
 
-    # Determine type
+    info.update(_infer_type(action))
+
+    if action.default is not None and action.default != argparse.SUPPRESS:
+        info["default"] = action.default
+
+    if action.option_strings:
+        info["aliases"] = list(action.option_strings)
+
+    schema_metadata: dict[str, Any] | None = getattr(action, "schema_metadata", None)
+    if schema_metadata:
+        info.update(schema_metadata)
+
+    return info
+
+
+def _infer_type(action: argparse.Action) -> dict[str, Any]:
+    """Infer JSON Schema type information from an argparse action.
+
+    Args:
+        action: The argparse action to inspect.
+
+    Returns:
+        Dictionary with ``type`` and optionally ``enum`` or ``items``.
+    """
     if action.choices:
-        info["type"] = "string"
-        info["enum"] = list(action.choices)
-    elif isinstance(action, (argparse._StoreTrueAction, argparse._StoreFalseAction)):  # noqa: SLF001
-        info["type"] = "boolean"
-    elif action.type:
+        return {"type": "string", "enum": list(action.choices)}
+
+    if isinstance(
+        action,
+        (
+            argparse._StoreTrueAction,  # noqa: SLF001
+            argparse._StoreFalseAction,  # noqa: SLF001
+            argparse.BooleanOptionalAction,
+        ),
+    ):
+        return {"type": "boolean"}
+
+    if isinstance(action, argparse._CountAction):  # noqa: SLF001
+        return {"type": "integer"}
+
+    if action.type:
         type_name = getattr(action.type, "__name__", str(action.type))
-        if type_name in ("int", "float"):
-            info["type"] = type_name
-        else:
-            info["type"] = "string"
-    elif (
+        return {"type": type_name if type_name in ("int", "float") else "string"}
+
+    if (
         isinstance(action, argparse._AppendAction)  # noqa: SLF001
         or action.nargs in ("+", "*")
         or (isinstance(action.nargs, int) and action.nargs > 1)
     ):
-        info["type"] = "array"
-        info["items"] = {"type": "string"}
-    else:
-        info["type"] = "string"
+        return {"type": "array", "items": {"type": "string"}}
 
-    # Add default if present and not suppressed
-    if action.default is not None and action.default != argparse.SUPPRESS:
-        info["default"] = action.default
-
-    # Add aliases (option strings)
-    if action.option_strings:
-        info["aliases"] = list(action.option_strings)
-
-    return info
+    return {"type": "string"}
 
 
 def _is_required(action: argparse.Action) -> bool:
