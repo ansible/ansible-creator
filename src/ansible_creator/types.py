@@ -292,7 +292,7 @@ class GalaxyServer:
                         "Used in [galaxy_server.<id>] and "
                         "ANSIBLE_GALAXY_SERVER_<ID>_TOKEN env var."
                     ),
-                    "pattern": r"^[a-z_][a-z0-9_]*$",
+                    "pattern": GALAXY_SERVER_ID_RE.pattern,
                     "minLength": 1,
                 },
                 "url": {
@@ -414,7 +414,7 @@ class ScmServer:
                         "Server identifier (e.g. github_org1, internal_gitlab). "
                         "Must be lowercase letters, numbers, and underscores."
                     ),
-                    "pattern": r"^[a-z_][a-z0-9_]*$",
+                    "pattern": GALAXY_SERVER_ID_RE.pattern,
                     "minLength": 1,
                 },
                 "hostname": {
@@ -429,7 +429,7 @@ class ScmServer:
                         "Must be uppercase (e.g. GITHUB_ORG1_TOKEN). "
                         "This name is used as the GitHub Actions secret name."
                     ),
-                    "pattern": r"^[A-Z][A-Z0-9_]*$",
+                    "pattern": ENV_VAR_RE.pattern,
                     "minLength": 1,
                 },
             },
