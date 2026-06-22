@@ -253,8 +253,14 @@ build:
 {%- if ee_scm_token_vars %}
 
       if ! command -v envsubst >/dev/null 2>&1; then
-        echo "ERROR: envsubst not found; required for SCM token substitution. Install gettext (or gettext-base)."
-        exit 1
+        if command -v dnf &> /dev/null; then
+          dnf install -y gettext
+        elif command -v apt-get &> /dev/null; then
+          apt-get update && apt-get install -y gettext-base
+        else
+          echo "ERROR: envsubst not found; required for SCM token substitution. Install gettext (or gettext-base)."
+          exit 1
+        fi
       fi
       if [ -f context/_build/requirements.yml ]; then
         envsubst '{% for var in ee_scm_token_vars %}${{ var }}{% if not loop.last %} {% endif %}{% endfor %}' \
