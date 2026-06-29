@@ -66,6 +66,7 @@ variables:
   EE_DIR: "."
   EE_FILE_NAME: "{{ ee_file_name }}"
   EE_REGISTRY_TLS_VERIFY: "{{ ee_registry_tls_verify | lower }}"
+  IMAGE_BUILD_TAG: "build-${CI_COMMIT_SHA}"
   IMAGE_WARN_AGE: "40"
   IMAGE_FAIL_AGE: "80"
   SKIP_BASE_IMAGE_VALIDATION: "false"
@@ -291,16 +292,16 @@ build:
       # shellcheck disable=SC2086
       podman build --tls-verify="$EE_REGISTRY_TLS_VERIFY" \
         --authfile "$REGISTRY_AUTHFILE" $EXTRA_ARGS \
-        --tag "${REGISTRY}/${IMAGE_NAME}:build-${CI_COMMIT_SHA}" \
+        --tag "${REGISTRY}/${IMAGE_NAME}:${IMAGE_BUILD_TAG}" \
         --file context/Containerfile \
         context/
       echo -e "\e[0Ksection_end:$(date +%s):build_image\r\e[0K"
 
     - |
       echo -e "\e[0Ksection_start:$(date +%s):test_ee\r\e[0KTesting EE"
-      podman run --rm "${REGISTRY}/${IMAGE_NAME}:build-${CI_COMMIT_SHA}" \
+      podman run --rm "${REGISTRY}/${IMAGE_NAME}:${IMAGE_BUILD_TAG}" \
         ansible --version
-      podman run --rm "${REGISTRY}/${IMAGE_NAME}:build-${CI_COMMIT_SHA}" \
+      podman run --rm "${REGISTRY}/${IMAGE_NAME}:${IMAGE_BUILD_TAG}" \
         ansible-galaxy collection list || true
       echo -e "\e[0Ksection_end:$(date +%s):test_ee\r\e[0K"
 
@@ -308,7 +309,7 @@ build:
       podman push --tls-verify="$EE_REGISTRY_TLS_VERIFY" \
         --authfile "$REGISTRY_AUTHFILE" \
         --digestfile /tmp/digest \
-        "${REGISTRY}/${IMAGE_NAME}:build-${CI_COMMIT_SHA}"
+        "${REGISTRY}/${IMAGE_NAME}:${IMAGE_BUILD_TAG}"
       echo "IMAGE_DIGEST=$(cat /tmp/digest)" >> build.env
   artifacts:
     reports:
@@ -341,7 +342,7 @@ release:
       VERSION="$CI_COMMIT_TAG"
       podman pull --tls-verify="$EE_REGISTRY_TLS_VERIFY" \
         --authfile "$REGISTRY_AUTHFILE" \
-        "${REGISTRY}/${IMAGE_NAME}:build-${CI_COMMIT_SHA}"
+        "${REGISTRY}/${IMAGE_NAME}:${IMAGE_BUILD_TAG}"
 
       if podman pull --tls-verify="$EE_REGISTRY_TLS_VERIFY" \
         --authfile "$REGISTRY_AUTHFILE" \
@@ -355,7 +356,7 @@ release:
       fi
 
       for TAG in "$VERSION" "latest" "prd"; do
-        podman tag "${REGISTRY}/${IMAGE_NAME}:build-${CI_COMMIT_SHA}" \
+        podman tag "${REGISTRY}/${IMAGE_NAME}:${IMAGE_BUILD_TAG}" \
           "${REGISTRY}/${IMAGE_NAME}:${TAG}"
         podman push --tls-verify="$EE_REGISTRY_TLS_VERIFY" \
           --authfile "$REGISTRY_AUTHFILE" \
@@ -408,6 +409,7 @@ summary:
         echo "### Image Details"
         echo "- Registry: \`${REGISTRY}\`"
         echo "- Image: \`${IMAGE_NAME}\`"
+        echo "- Tag: \`${IMAGE_BUILD_TAG}\`"
         echo "- EE Directory: \`${EE_DIR}\`"
         if [ -n "$IMAGE_DIGEST" ]; then
           echo "- Digest: \`${IMAGE_DIGEST}\`"
