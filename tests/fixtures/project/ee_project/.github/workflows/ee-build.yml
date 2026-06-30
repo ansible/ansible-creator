@@ -51,12 +51,12 @@ on:
         required: false
         default: ""
         type: string
-      registry_tls_verify:
+      ee_registry_tls_verify:
         description: "Verify TLS certificates for container registries (true/false)"
         required: false
         default: "true"
         type: string
-      image_build_tag:
+      ee_image_build_tag:
         description: "Custom image tag for the build (defaults to build-<commit SHA>)"
         required: false
         type: string
@@ -72,23 +72,23 @@ permissions:
   packages: write
 
 # Prevent concurrent builds from racing to push the same image tag.
-# A static custom tag (e.g. vars.IMAGE_BUILD_TAG=test) dispatched on
+# A static custom tag (e.g. vars.EE_IMAGE_BUILD_TAG=test) dispatched on
 # different refs would otherwise land in separate groups yet push to
 # the same registry tag. Including the resolved tag serialises them.
 concurrency:
-  group: ee-build-${{ github.ref }}-${{ inputs.image_build_tag || vars.IMAGE_BUILD_TAG || format('build-{0}', github.sha) }}
+  group: ee-build-${{ github.ref }}-${{ inputs.ee_image_build_tag || vars.EE_IMAGE_BUILD_TAG || format('build-{0}', github.sha) }}
   cancel-in-progress: false
 
 env:
   # Container registry configuration (override via repository Variables)
-  REGISTRY: ${{ inputs.ee_registry || vars.EE_REGISTRY || 'ghcr.io' }}
-  IMAGE_NAME: ${{ inputs.ee_image_name || vars.EE_IMAGE_NAME || github.repository }}
-  EE_REGISTRY_TLS_VERIFY: ${{ inputs.registry_tls_verify || vars.EE_REGISTRY_TLS_VERIFY || 'true' }}
+  EE_REGISTRY: ${{ inputs.ee_registry || vars.EE_REGISTRY || 'ghcr.io' }}
+  EE_IMAGE_NAME: ${{ inputs.ee_image_name || vars.EE_IMAGE_NAME || github.repository }}
+  EE_REGISTRY_TLS_VERIFY: ${{ inputs.ee_registry_tls_verify || vars.EE_REGISTRY_TLS_VERIFY || 'true' }}
   # EE directory and file name (override via workflow_dispatch inputs or repository Variables)
   EE_DIR: ${{ inputs.ee_dir || vars.EE_DIR || '.' }}
   EE_FILE_NAME: ${{ inputs.ee_file_name || vars.EE_FILE_NAME || 'execution-environment.yml' }}
   # Image build tag (override via workflow_dispatch input or repository Variable)
-  IMAGE_BUILD_TAG: ${{ inputs.image_build_tag || vars.IMAGE_BUILD_TAG || format('build-{0}', github.sha) }}
+  EE_IMAGE_BUILD_TAG: ${{ inputs.ee_image_build_tag || vars.EE_IMAGE_BUILD_TAG || format('build-{0}', github.sha) }}
   # Base image age thresholds (in days) - annotations only, never blocks the build
   IMAGE_WARN_AGE: 40
   IMAGE_FAIL_AGE: 80
@@ -121,19 +121,19 @@ jobs:
     name: Validate Image Tag
     runs-on: ubuntu-latest
     steps:
-      - name: Check IMAGE_BUILD_TAG conforms to OCI tag spec
+      - name: Check EE_IMAGE_BUILD_TAG conforms to OCI tag spec
         run: |
-          TAG="${{ env.IMAGE_BUILD_TAG }}"
+          TAG="${{ env.EE_IMAGE_BUILD_TAG }}"
           if [[ -z "$TAG" ]]; then
-            echo "::error::IMAGE_BUILD_TAG is empty"
+            echo "::error::EE_IMAGE_BUILD_TAG is empty"
             exit 1
           fi
           if [[ ${#TAG} -gt 128 ]]; then
-            echo "::error::IMAGE_BUILD_TAG '${TAG}' exceeds 128 characters (OCI tag limit)"
+            echo "::error::EE_IMAGE_BUILD_TAG '${TAG}' exceeds 128 characters (OCI tag limit)"
             exit 1
           fi
           if ! [[ "$TAG" =~ ^[a-zA-Z0-9][a-zA-Z0-9._-]*$ ]]; then
-            echo "::error::IMAGE_BUILD_TAG '${TAG}' contains invalid characters."
+            echo "::error::EE_IMAGE_BUILD_TAG '${TAG}' contains invalid characters."
             echo "::error::Tags must start with [a-zA-Z0-9] and contain only [a-zA-Z0-9._-]"
             exit 1
           fi
@@ -257,16 +257,16 @@ jobs:
 
       - name: Login to container registry
         run: |
-          if [[ "${{ env.REGISTRY }}" == "ghcr.io" ]]; then
+          if [[ "${{ env.EE_REGISTRY }}" == "ghcr.io" ]]; then
             echo "${{ secrets.GITHUB_TOKEN }}" | \
               buildah login --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
               -u "${{ github.actor }}" \
-              --password-stdin "${{ env.REGISTRY }}"
+              --password-stdin "${{ env.EE_REGISTRY }}"
           else
             echo "${{ secrets.REGISTRY_PASSWORD }}" | \
               buildah login --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
               -u "${{ vars.REGISTRY_USERNAME }}" \
-              --password-stdin "${{ env.REGISTRY }}"
+              --password-stdin "${{ env.EE_REGISTRY }}"
           fi
 
       - name: Login to Red Hat registry (for base images)
@@ -314,7 +314,7 @@ jobs:
 
           buildah bud --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
             "${EXTRA_ARGS[@]}" \
-            --tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_BUILD_TAG }}" \
+            --tag "${{ env.EE_REGISTRY }}/${{ env.EE_IMAGE_NAME }}:${{ env.EE_IMAGE_BUILD_TAG }}" \
             --file context/Containerfile \
             context/
           echo "::endgroup::"
@@ -322,9 +322,9 @@ jobs:
       - name: Test execution environment
         run: |
           echo "::group::Testing EE"
-          podman run --rm "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_BUILD_TAG }}" \
+          podman run --rm "${{ env.EE_REGISTRY }}/${{ env.EE_IMAGE_NAME }}:${{ env.EE_IMAGE_BUILD_TAG }}" \
             ansible --version
-          podman run --rm "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_BUILD_TAG }}" \
+          podman run --rm "${{ env.EE_REGISTRY }}/${{ env.EE_IMAGE_NAME }}:${{ env.EE_IMAGE_BUILD_TAG }}" \
             ansible-galaxy collection list || true
           echo "::endgroup::"
 
@@ -333,8 +333,8 @@ jobs:
         run: |
           buildah push --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
             --digestfile /tmp/digest \
-            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_BUILD_TAG }}" \
-            "docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_BUILD_TAG }}"
+            "${{ env.EE_REGISTRY }}/${{ env.EE_IMAGE_NAME }}:${{ env.EE_IMAGE_BUILD_TAG }}" \
+            "docker://${{ env.EE_REGISTRY }}/${{ env.EE_IMAGE_NAME }}:${{ env.EE_IMAGE_BUILD_TAG }}"
           echo "digest=$(cat /tmp/digest)" >> "$GITHUB_OUTPUT"
 
   # ============================================================================
@@ -348,16 +348,16 @@ jobs:
     steps:
       - name: Login to container registry
         run: |
-          if [[ "${{ env.REGISTRY }}" == "ghcr.io" ]]; then
+          if [[ "${{ env.EE_REGISTRY }}" == "ghcr.io" ]]; then
             echo "${{ secrets.GITHUB_TOKEN }}" | \
               buildah login --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
               -u "${{ github.actor }}" \
-              --password-stdin "${{ env.REGISTRY }}"
+              --password-stdin "${{ env.EE_REGISTRY }}"
           else
             echo "${{ secrets.REGISTRY_PASSWORD }}" | \
               buildah login --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
               -u "${{ vars.REGISTRY_USERNAME }}" \
-              --password-stdin "${{ env.REGISTRY }}"
+              --password-stdin "${{ env.EE_REGISTRY }}"
           fi
 
       - name: Tag and push release
@@ -366,24 +366,24 @@ jobs:
         run: |
           # Pull the image built from this commit (pushed in build job)
           buildah pull --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
-            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_BUILD_TAG }}"
+            "${{ env.EE_REGISTRY }}/${{ env.EE_IMAGE_NAME }}:${{ env.EE_IMAGE_BUILD_TAG }}"
 
           # Backup previous production tag if it exists
           if buildah pull --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
-            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:prd" 2>/dev/null; then
+            "${{ env.EE_REGISTRY }}/${{ env.EE_IMAGE_NAME }}:prd" 2>/dev/null; then
             echo "::notice::Backing up previous production image to 'previous' tag"
-            buildah tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:prd" \
-              "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:previous"
+            buildah tag "${{ env.EE_REGISTRY }}/${{ env.EE_IMAGE_NAME }}:prd" \
+              "${{ env.EE_REGISTRY }}/${{ env.EE_IMAGE_NAME }}:previous"
             buildah push --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
-              "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:previous"
+              "${{ env.EE_REGISTRY }}/${{ env.EE_IMAGE_NAME }}:previous"
           fi
 
           # Tag and push version, latest, and production
           for TAG in "${VERSION}" "latest" "prd"; do
-            buildah tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_BUILD_TAG }}" \
-              "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG}"
+            buildah tag "${{ env.EE_REGISTRY }}/${{ env.EE_IMAGE_NAME }}:${{ env.EE_IMAGE_BUILD_TAG }}" \
+              "${{ env.EE_REGISTRY }}/${{ env.EE_IMAGE_NAME }}:${TAG}"
             buildah push --tls-verify=${{ env.EE_REGISTRY_TLS_VERIFY }} \
-              "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG}"
+              "${{ env.EE_REGISTRY }}/${{ env.EE_IMAGE_NAME }}:${TAG}"
           done
 
           echo "::notice::Released version ${VERSION}"
@@ -432,7 +432,7 @@ jobs:
           if [[ "${{ needs.build.result }}" == "success" ]]; then
             echo "" >> "$GITHUB_STEP_SUMMARY"
             echo "### Image Details" >> "$GITHUB_STEP_SUMMARY"
-            echo "- Registry: \`${{ env.REGISTRY }}\`" >> "$GITHUB_STEP_SUMMARY"
-            echo "- Image: \`${{ env.IMAGE_NAME }}\`" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Registry: \`${{ env.EE_REGISTRY }}\`" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Image: \`${{ env.EE_IMAGE_NAME }}\`" >> "$GITHUB_STEP_SUMMARY"
             echo "- EE Directory: \`${{ env.EE_DIR }}\`" >> "$GITHUB_STEP_SUMMARY"
           fi
