@@ -8,8 +8,8 @@
 # - Registry authentication for build and push
 # - Single Podman auth file (REGISTRY_AUTHFILE) for login, build, and push —
 #   avoids push failures on some registries when blob-exists checks need auth
-# - IMAGE_NAME lowercased before tag/push — many OCI registries require
-#   lowercase repository paths (override IMAGE_NAME in CI/CD variables if needed)
+# - EE_IMAGE_NAME lowercased before tag/push — many OCI registries require
+#   lowercase repository paths (override EE_IMAGE_NAME in CI/CD variables if needed)
 #
 # Required CI/CD Variables (Settings > CI/CD > Variables) — use the same names
 # as in the GitHub Actions workflow secrets where applicable:
@@ -49,14 +49,14 @@ default:
   image: quay.io/podman/stable
 
 variables:
-  # REGISTRY / IMAGE_NAME come from EE scaffold (--ee-config registry / image_name).
-  # Build and release jobs normalize IMAGE_NAME to lowercase for OCI tags.
-  REGISTRY: "ghcr.io"
-  IMAGE_NAME: "$CI_PROJECT_PATH"
+  # EE_REGISTRY / EE_IMAGE_NAME come from EE scaffold (--ee-config registry / image_name).
+  # Build and release jobs normalize EE_IMAGE_NAME to lowercase for OCI tags.
+  EE_REGISTRY: "ghcr.io"
+  EE_IMAGE_NAME: "$CI_PROJECT_PATH"
   EE_DIR: "."
   EE_FILE_NAME: "execution-environment.yml"
   EE_REGISTRY_TLS_VERIFY: "true"
-  IMAGE_BUILD_TAG: "build-${CI_COMMIT_SHA}"
+  EE_IMAGE_BUILD_TAG: "build-${CI_COMMIT_SHA}"
   IMAGE_WARN_AGE: "40"
   IMAGE_FAIL_AGE: "80"
   SKIP_BASE_IMAGE_VALIDATION: "false"
@@ -191,8 +191,8 @@ build:
       fi
       echo "NOTICE: podman $PODMAN_VERSION — ARG values will not appear in image history"
     - |
-      export IMAGE_NAME="$(printf '%s' "$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')"
-      echo "IMAGE_NAME (OCI-normalized): ${IMAGE_NAME}"
+      export EE_IMAGE_NAME="$(printf '%s' "$EE_IMAGE_NAME" | tr '[:upper:]' '[:lower:]')"
+      echo "EE_IMAGE_NAME (OCI-normalized): ${EE_IMAGE_NAME}"
   script:
     - |
       REGISTRY_AUTHFILE="${CI_PROJECT_DIR}/.containers-auth.json"
@@ -202,7 +202,7 @@ build:
         podman login --tls-verify="$EE_REGISTRY_TLS_VERIFY" \
         --authfile "$REGISTRY_AUTHFILE" \
         -u "${REGISTRY_USERNAME:-$CI_REGISTRY_USER}" \
-        --password-stdin "$REGISTRY"
+        --password-stdin "$EE_REGISTRY"
 
     - |
       if [ -n "$REDHAT_REGISTRY_USERNAME" ]; then
@@ -231,16 +231,16 @@ build:
       # shellcheck disable=SC2086
       podman build --tls-verify="$EE_REGISTRY_TLS_VERIFY" \
         --authfile "$REGISTRY_AUTHFILE" $EXTRA_ARGS \
-        --tag "${REGISTRY}/${IMAGE_NAME}:${IMAGE_BUILD_TAG}" \
+        --tag "${EE_REGISTRY}/${EE_IMAGE_NAME}:${EE_IMAGE_BUILD_TAG}" \
         --file context/Containerfile \
         context/
       echo -e "\e[0Ksection_end:$(date +%s):build_image\r\e[0K"
 
     - |
       echo -e "\e[0Ksection_start:$(date +%s):test_ee\r\e[0KTesting EE"
-      podman run --rm "${REGISTRY}/${IMAGE_NAME}:${IMAGE_BUILD_TAG}" \
+      podman run --rm "${EE_REGISTRY}/${EE_IMAGE_NAME}:${EE_IMAGE_BUILD_TAG}" \
         ansible --version
-      podman run --rm "${REGISTRY}/${IMAGE_NAME}:${IMAGE_BUILD_TAG}" \
+      podman run --rm "${EE_REGISTRY}/${EE_IMAGE_NAME}:${EE_IMAGE_BUILD_TAG}" \
         ansible-galaxy collection list || true
       echo -e "\e[0Ksection_end:$(date +%s):test_ee\r\e[0K"
 
@@ -248,7 +248,7 @@ build:
       podman push --tls-verify="$EE_REGISTRY_TLS_VERIFY" \
         --authfile "$REGISTRY_AUTHFILE" \
         --digestfile /tmp/digest \
-        "${REGISTRY}/${IMAGE_NAME}:${IMAGE_BUILD_TAG}"
+        "${EE_REGISTRY}/${EE_IMAGE_NAME}:${EE_IMAGE_BUILD_TAG}"
       echo "IMAGE_DIGEST=$(cat /tmp/digest)" >> build.env
   artifacts:
     reports:
@@ -266,7 +266,7 @@ release:
   rules:
     - if: $CI_COMMIT_TAG
   script:
-    - export IMAGE_NAME="$(printf '%s' "$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')"
+    - export EE_IMAGE_NAME="$(printf '%s' "$EE_IMAGE_NAME" | tr '[:upper:]' '[:lower:]')"
     - |
       REGISTRY_AUTHFILE="${CI_PROJECT_DIR}/.containers-auth.json"
       export REGISTRY_AUTHFILE
@@ -275,31 +275,31 @@ release:
         podman login --tls-verify="$EE_REGISTRY_TLS_VERIFY" \
         --authfile "$REGISTRY_AUTHFILE" \
         -u "${REGISTRY_USERNAME:-$CI_REGISTRY_USER}" \
-        --password-stdin "$REGISTRY"
+        --password-stdin "$EE_REGISTRY"
 
     - |
       VERSION="$CI_COMMIT_TAG"
       podman pull --tls-verify="$EE_REGISTRY_TLS_VERIFY" \
         --authfile "$REGISTRY_AUTHFILE" \
-        "${REGISTRY}/${IMAGE_NAME}:${IMAGE_BUILD_TAG}"
+        "${EE_REGISTRY}/${EE_IMAGE_NAME}:${EE_IMAGE_BUILD_TAG}"
 
       if podman pull --tls-verify="$EE_REGISTRY_TLS_VERIFY" \
         --authfile "$REGISTRY_AUTHFILE" \
-        "${REGISTRY}/${IMAGE_NAME}:prd" 2>/dev/null; then
+        "${EE_REGISTRY}/${EE_IMAGE_NAME}:prd" 2>/dev/null; then
         echo "Backing up previous production image to 'previous' tag"
-        podman tag "${REGISTRY}/${IMAGE_NAME}:prd" \
-          "${REGISTRY}/${IMAGE_NAME}:previous"
+        podman tag "${EE_REGISTRY}/${EE_IMAGE_NAME}:prd" \
+          "${EE_REGISTRY}/${EE_IMAGE_NAME}:previous"
         podman push --tls-verify="$EE_REGISTRY_TLS_VERIFY" \
           --authfile "$REGISTRY_AUTHFILE" \
-          "${REGISTRY}/${IMAGE_NAME}:previous"
+          "${EE_REGISTRY}/${EE_IMAGE_NAME}:previous"
       fi
 
       for TAG in "$VERSION" "latest" "prd"; do
-        podman tag "${REGISTRY}/${IMAGE_NAME}:${IMAGE_BUILD_TAG}" \
-          "${REGISTRY}/${IMAGE_NAME}:${TAG}"
+        podman tag "${EE_REGISTRY}/${EE_IMAGE_NAME}:${EE_IMAGE_BUILD_TAG}" \
+          "${EE_REGISTRY}/${EE_IMAGE_NAME}:${TAG}"
         podman push --tls-verify="$EE_REGISTRY_TLS_VERIFY" \
           --authfile "$REGISTRY_AUTHFILE" \
-          "${REGISTRY}/${IMAGE_NAME}:${TAG}"
+          "${EE_REGISTRY}/${EE_IMAGE_NAME}:${TAG}"
       done
 
       echo "Released version ${VERSION}"
@@ -322,7 +322,7 @@ summary:
       optional: true
   script:
     - |
-      IMAGE_NAME="$(printf '%s' "$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')"
+      EE_IMAGE_NAME="$(printf '%s' "$EE_IMAGE_NAME" | tr '[:upper:]' '[:lower:]')"
       {
         echo "## Execution Environment Build Summary"
         echo ""
@@ -346,9 +346,9 @@ summary:
         fi
 
         echo "### Image Details"
-        echo "- Registry: \`${REGISTRY}\`"
-        echo "- Image: \`${IMAGE_NAME}\`"
-        echo "- Tag: \`${IMAGE_BUILD_TAG}\`"
+        echo "- Registry: \`${EE_REGISTRY}\`"
+        echo "- Image: \`${EE_IMAGE_NAME}\`"
+        echo "- Tag: \`${EE_IMAGE_BUILD_TAG}\`"
         echo "- EE Directory: \`${EE_DIR}\`"
         if [ -n "$IMAGE_DIGEST" ]; then
           echo "- Digest: \`${IMAGE_DIGEST}\`"
