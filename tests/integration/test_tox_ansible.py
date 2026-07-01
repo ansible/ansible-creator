@@ -22,11 +22,7 @@ if TYPE_CHECKING:
 TOX_BIN = Path(sys.executable).parent / "tox"
 
 
-@pytest.fixture
-def _scaffolded_collection(
-    cli: CliRunCallable,
-    tmp_path: Path,
-) -> Path:
+def _scaffold(cli: CliRunCallable, tmp_path: Path) -> Path:
     """Scaffold a fresh collection into a temporary directory.
 
     Args:
@@ -44,18 +40,19 @@ def _scaffolded_collection(
 
 @pytest.mark.slow
 def test_tox_ansible_sanity(
-    _scaffolded_collection: Path,
     cli: CliRunCallable,
+    tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Run tox-ansible sanity checks on a scaffolded collection.
 
     Args:
-        _scaffolded_collection: Path to the scaffolded collection.
         cli: CLI callable.
+        tmp_path: Temporary path.
         monkeypatch: Monkeypatch fixture.
     """
-    monkeypatch.chdir(_scaffolded_collection)
+    collection_path = _scaffold(cli, tmp_path)
+    monkeypatch.chdir(collection_path)
 
     result = cli(
         f"{TOX_BIN} l --ansible -c tox-ansible.ini",
@@ -88,18 +85,19 @@ def test_tox_ansible_sanity(
 
 @pytest.mark.slow
 def test_tox_ansible_galaxy(
-    _scaffolded_collection: Path,
     cli: CliRunCallable,
+    tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Run tox-ansible galaxy-importer on a scaffolded collection.
 
     Args:
-        _scaffolded_collection: Path to the scaffolded collection.
         cli: CLI callable.
+        tmp_path: Temporary path.
         monkeypatch: Monkeypatch fixture.
     """
-    monkeypatch.chdir(_scaffolded_collection)
+    collection_path = _scaffold(cli, tmp_path)
+    monkeypatch.chdir(collection_path)
 
     result = cli(
         f"{TOX_BIN} --ansible -c tox-ansible.ini -e galaxy",
