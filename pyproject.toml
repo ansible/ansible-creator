@@ -51,6 +51,7 @@ dev = [
   "pytest-plus>=0.8.1",
   "pytest-xdist>=3.8.0",
   "tox>=4.30.1",
+  "tox-ansible>=26.6.0",
   "uv>=0.8.15",
 ]
 docs = ["mkdocs-ansible>=24.3.0"]
@@ -367,6 +368,7 @@ fail-on = ["useless-suppression"]
 addopts = "-v -ra --showlocals --durations=10"
 cache_dir = "./.cache/.pytest"
 junit_family = "xunit2"  # see https://docs.codecov.com/docs/test-analytics
+markers = ["slow: marks tests as slow (deselect with '-m \"not slow\"')"]
 norecursedirs = "tests/fixtures"
 testpaths = "tests"
 tmp_path_retention_policy = "failed"
