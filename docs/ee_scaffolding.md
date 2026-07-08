@@ -481,7 +481,7 @@ in image history.
 The pipeline uses a single `REGISTRY_AUTHFILE` under the project directory
 for `podman login`, `podman build`, and `podman push`, so registries that
 require authentication on layer/blob checks (e.g. Quay.io) succeed.
-`IMAGE_NAME` is lowercased before tagging and pushing because many OCI
+`EE_IMAGE_NAME` is lowercased before tagging and pushing because many OCI
 registries reject mixed-case repository paths.
 
 ### Token security
