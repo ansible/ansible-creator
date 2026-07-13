@@ -767,6 +767,8 @@ class TemplateData:
         plugin_type: The type of plugin to be scaffolded.
         plugin_name: The name of the plugin to be scaffolded.
         role_name: The name of the role to be scaffolded.
+        scenario_name: Molecule scenario name (migrate molecule).
+        target_name: Integration target name (migrate molecule).
         additions: A dictionary containing additional data to add to the gitignore.
         collection_name: The name of the collection.
         creator_version: The version of the creator.
@@ -802,8 +804,6 @@ class TemplateData:
         ee_scm_token_vars: Pre-computed list of token env var names from scm_servers.
         ee_file_name: Name of the EE definition file.
         scm_provider: SCM provider for documentation templates (github or gitlab).
-        scenario_name: Molecule scenario name (migrate molecule).
-        target_name: Integration target name (migrate molecule).
     """
 
     resource_type: str = ""

@@ -5,7 +5,6 @@ from __future__ import annotations
 import shutil
 
 from importlib import resources as impl_resources
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 from ansible_creator.exceptions import CreatorError
@@ -15,6 +14,8 @@ from ansible_creator.utils import ask_yes_no, expand_path
 
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from ansible_creator.config import Config
     from ansible_creator.output import Output
 
@@ -45,7 +46,11 @@ class Migrate:
         self._resource_root = impl_resources.files(RESOURCE_PACKAGE)
 
     def run(self) -> None:
-        """Start the migration."""
+        """Start the migration.
+
+        Raises:
+            CreatorError: If the migrate type is unsupported or migration fails.
+        """
         if self._migrate_type != "molecule":
             msg = f"Unsupported migrate type: {self._migrate_type!r}. Choose from: molecule"
             raise CreatorError(msg)
@@ -85,7 +90,11 @@ class Migrate:
             raise CreatorError(msg)
 
     def _migrate_molecule(self) -> None:
-        """Migrate ansible-test integration targets into Molecule scenarios."""
+        """Migrate ansible-test integration targets into Molecule scenarios.
+
+        Raises:
+            CreatorError: If arguments are invalid or no role-shaped targets migrate.
+        """
         if self._migrate_all and self._target_name:
             msg = "Specify either a target name or --all, not both."
             raise CreatorError(msg)
@@ -247,11 +256,7 @@ class Migrate:
         )
 
         skill_dest = (
-            self._collection_path
-            / ".agents"
-            / "skills"
-            / "molecule-migrate-finalize"
-            / "SKILL.md"
+            self._collection_path / ".agents" / "skills" / "molecule-migrate-finalize" / "SKILL.md"
         )
         skill_dest.parent.mkdir(parents=True, exist_ok=True)
         skill_content = (self._resource_root / "SKILL.md").read_text(encoding="utf-8")

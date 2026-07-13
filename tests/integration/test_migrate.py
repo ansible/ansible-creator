@@ -2,18 +2,24 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 from tests.defaults import CREATOR_BIN
 
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from tests.conftest import CliRunCallable
 
 
 def test_migrate_molecule_cli(cli: CliRunCallable, tmp_path: Path) -> None:
-    """Migrate a role-shaped integration target via the CLI."""
+    """Migrate a role-shaped integration target via the CLI.
+
+    Args:
+        cli: cli_run function.
+        tmp_path: Temporary directory path.
+    """
     collection = tmp_path / "ns" / "col"
     targets = collection / "tests" / "integration" / "targets" / "sample"
     tasks = targets / "tasks"
@@ -42,7 +48,12 @@ def test_migrate_molecule_cli(cli: CliRunCallable, tmp_path: Path) -> None:
 
 
 def test_migrate_molecule_cli_all_and_keep(cli: CliRunCallable, tmp_path: Path) -> None:
-    """Migrate all role-shaped targets while keeping ansible-test trees."""
+    """Migrate all role-shaped targets while keeping ansible-test trees.
+
+    Args:
+        cli: cli_run function.
+        tmp_path: Temporary directory path.
+    """
     collection = tmp_path / "ns" / "col"
     targets = collection / "tests" / "integration" / "targets"
     for name in ("one", "two"):

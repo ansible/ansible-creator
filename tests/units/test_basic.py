@@ -211,7 +211,7 @@ def test_configuration_class(output: Output) -> None:
                 "migrate",
                 "molecule",
                 "alpha",
-                "--path=/tmp/col",
+                "--path=/test/col",
                 "--keep-targets",
                 "--overwrite",
                 "--lf=test.log",
@@ -222,7 +222,7 @@ def test_configuration_class(output: Output) -> None:
                 "target_name": "alpha",
                 "migrate_all": False,
                 "keep_targets": True,
-                "path": "/tmp/col",
+                "path": "/test/col",
                 "no_overwrite": False,
                 "overwrite": True,
                 "json": False,
@@ -239,7 +239,7 @@ def test_configuration_class(output: Output) -> None:
                 "migrate",
                 "molecule",
                 "--all",
-                "--path=/tmp/col",
+                "--path=/test/col",
                 "--lf=test.log",
             ],
             {
@@ -248,7 +248,7 @@ def test_configuration_class(output: Output) -> None:
                 "target_name": "",
                 "migrate_all": True,
                 "keep_targets": False,
-                "path": "/tmp/col",
+                "path": "/test/col",
                 "no_overwrite": False,
                 "overwrite": False,
                 "json": False,
@@ -280,7 +280,11 @@ def test_cli_parser(
 
 
 def test_cli_migrate_missing_type(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Require migrate-type when invoking migrate with no subcommand."""
+    """Require migrate-type when invoking migrate with no subcommand.
+
+    Args:
+        monkeypatch: Pytest monkeypatch fixture.
+    """
     monkeypatch.setattr("sys.argv", ["ansible-creator", "migrate"])
     cli = Cli()
     assert cli.exit_code != 0

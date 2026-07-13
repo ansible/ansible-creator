@@ -14,6 +14,7 @@ from ansible_creator.bundles import get_init_bundle_names
 from ansible_creator.output import Level, Msg
 
 from ._arg_parser_custom import CustomArgumentParser
+from ._arg_parser_migrate import MigrateParserMixin
 
 
 try:
@@ -36,7 +37,7 @@ if TYPE_CHECKING:
     SubParser: TypeAlias = argparse._SubParsersAction  # noqa: SLF001
 
 
-class Parser:
+class Parser(MigrateParserMixin):
     """A parser for the command line arguments."""
 
     def __init__(self) -> None:
@@ -661,77 +662,6 @@ class Parser:
         self._init_collection(subparser=subparser)
         self._init_playbook(subparser=subparser)
         self._init_ee_project(subparser=subparser)
-
-    def _migrate(self, subparser: SubParser[argparse.ArgumentParser]) -> None:
-        """Migrate existing Ansible content into newer layouts.
-
-        Args:
-            subparser: The subparser to add migrate to
-        """
-        parser = subparser.add_parser(
-            "migrate",
-            help="Migrate existing Ansible content into newer layouts.",
-        )
-        self.migrate_parser = parser
-        migrate_sub = parser.add_subparsers(
-            dest="migrate_type",
-            metavar="migrate-type",
-            required=False,
-        )
-        self._migrate_molecule(subparser=migrate_sub)
-
-    def _migrate_molecule(self, subparser: SubParser[argparse.ArgumentParser]) -> None:
-        """Migrate ansible-test integration targets into Molecule scenarios.
-
-        Args:
-            subparser: The subparser to add molecule migrate to
-        """
-        parser = subparser.add_parser(
-            "molecule",
-            help=(
-                "Move ansible-test integration targets under "
-                "extensions/molecule/ as real Molecule scenarios."
-            ),
-        )
-        parser.add_argument(
-            "target_name",
-            nargs="?",
-            default="",
-            help=(
-                "Integration target name under tests/integration/targets/. "
-                "Omit when using --all."
-            ),
-        )
-        parser.add_argument(
-            "--path",
-            "-p",
-            default="./",
-            dest="path",
-            metavar="path",
-            help=(
-                "The path to the Ansible collection. The default is the "
-                "current working directory."
-            ),
-        )
-        parser.add_argument(
-            "--all",
-            dest="migrate_all",
-            default=False,
-            action="store_true",
-            help="Migrate all role-shaped integration targets.",
-        )
-        parser.add_argument(
-            "--keep-targets",
-            dest="keep_targets",
-            default=False,
-            action="store_true",
-            help=(
-                "Copy targets into scenarios instead of moving them "
-                "(keeps ansible-test paths for hybrid use)."
-            ),
-        )
-        self._add_overwrite(parser)
-        self._add_args_common(parser)
 
     def _schema(self, subparser: SubParser[argparse.ArgumentParser]) -> None:
         """Output CLI schema as JSON.

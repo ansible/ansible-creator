@@ -128,7 +128,7 @@ A playbook project orchestrates landscapes and types via one or more playbooks, 
 - [ ] Increase reliability and reduce costs through testing
 - [ ] Test playbooks in non-production environments first
 - [ ] Validate changes before deploying to production
-    - [ ] Use `molecule` or similar tools for role testing
+  - [ ] Use `molecule` or similar tools for role testing
 - [ ] Test against multiple platforms when supporting diverse environments
 - [ ] Automate testing as part of CI/CD pipeline
 
