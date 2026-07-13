@@ -39,3 +39,31 @@ def test_migrate_molecule_cli(cli: CliRunCallable, tmp_path: Path) -> None:
     assert (collection / ".agents" / "skills" / "molecule-migrate-finalize" / "SKILL.md").is_file()
     assert "platforms:" not in (scenario / "molecule.yml").read_text()
     assert "name: content" in (scenario / "converge.yml").read_text()
+
+
+def test_migrate_molecule_cli_all_and_keep(cli: CliRunCallable, tmp_path: Path) -> None:
+    """Migrate all role-shaped targets while keeping ansible-test trees."""
+    collection = tmp_path / "ns" / "col"
+    targets = collection / "tests" / "integration" / "targets"
+    for name in ("one", "two"):
+        tasks = targets / name / "tasks"
+        tasks.mkdir(parents=True)
+        (tasks / "main.yml").write_text("---\n- ansible.builtin.debug:\n    msg: ok\n")
+    scripty = targets / "scripty"
+    scripty.mkdir(parents=True)
+    (scripty / "runme.sh").write_text("#!/bin/sh\necho hi\n")
+    (collection / "galaxy.yml").write_text("namespace: ns\nname: col\nversion: 0.1.0\n")
+
+    result = cli(
+        f"{CREATOR_BIN} migrate molecule --all --keep-targets --path {collection}",
+        env={"NO_COLOR": "1"},
+    )
+    assert result.returncode == 0, result.stderr + result.stdout
+    assert (targets / "one").is_dir()
+    assert (targets / "two").is_dir()
+    assert (targets / "scripty").is_dir()
+    molecule_root = collection / "extensions" / "molecule"
+    assert (molecule_root / "one" / "roles" / "content" / "tasks" / "main.yml").is_file()
+    assert (molecule_root / "two" / "roles" / "content" / "tasks" / "main.yml").is_file()
+    assert not (molecule_root / "scripty").exists()
+    assert "ansible_connection: local" in (molecule_root / "inventory.yml").read_text()

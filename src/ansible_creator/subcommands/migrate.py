@@ -192,8 +192,8 @@ class Migrate:
                     )
                     raise CreatorError(msg)
 
-            if scenario_dir.exists():
-                shutil.rmtree(scenario_dir)
+            # Conflicts imply scenario_dir already exists (children cannot exist without it).
+            shutil.rmtree(scenario_dir)
 
         scenario_dir.mkdir(parents=True, exist_ok=True)
         content_dir.parent.mkdir(parents=True, exist_ok=True)
