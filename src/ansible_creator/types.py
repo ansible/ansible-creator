@@ -802,12 +802,16 @@ class TemplateData:
         ee_scm_token_vars: Pre-computed list of token env var names from scm_servers.
         ee_file_name: Name of the EE definition file.
         scm_provider: SCM provider for documentation templates (github or gitlab).
+        scenario_name: Molecule scenario name (migrate molecule).
+        target_name: Integration target name (migrate molecule).
     """
 
     resource_type: str = ""
     plugin_type: str = ""
     plugin_name: str = ""
     role_name: str = ""
+    scenario_name: str = ""
+    target_name: str = ""
     additions: dict[str, dict[str, dict[str, str | bool]]] = field(default_factory=dict)
     collection_name: str = ""
     creator_version: str = ""

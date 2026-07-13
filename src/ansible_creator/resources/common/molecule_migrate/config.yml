@@ -1,0 +1,12 @@
+---
+# Shared ansible-native config for migrated scenarios.
+# ADE/tox installs the collection; prerun would fight that.
+prerun: false
+ansible:
+  executor:
+    args:
+      ansible_playbook:
+        - --inventory=${MOLECULE_SCENARIO_DIRECTORY}/../inventory.yml
+scenario:
+  test_sequence:
+    - converge

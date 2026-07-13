@@ -13,6 +13,7 @@ This document provides comprehensive guidelines for AI agents working with Ansib
   - [Starting Approach](#starting-approach)
   - [Testing and Validation](#testing-and-validation)
     - [Testing Strategies](#testing-strategies)
+    - [Migrating ansible-test integration targets to Molecule](#migrating-ansible-test-integration-targets-to-molecule)
     - [Smoke Testing](#smoke-testing)
 - [Coding Standards](#coding-standards)
   - [Formatting](#formatting)
@@ -127,9 +128,39 @@ A playbook project orchestrates landscapes and types via one or more playbooks, 
 - [ ] Increase reliability and reduce costs through testing
 - [ ] Test playbooks in non-production environments first
 - [ ] Validate changes before deploying to production
-- [ ] Use `molecule` or similar tools for role testing
+    - [ ] Use `molecule` or similar tools for role testing
 - [ ] Test against multiple platforms when supporting diverse environments
 - [ ] Automate testing as part of CI/CD pipeline
+
+#### Migrating ansible-test integration targets to Molecule
+
+Use `ansible-creator migrate molecule` to move role-shaped
+`tests/integration/targets/<name>/` trees into real on-disk scenarios:
+
+```text
+ansible-creator migrate molecule <target> [--path PATH]
+ansible-creator migrate molecule --all [--path PATH]
+```
+
+Default behavior **moves** the target into:
+
+```text
+extensions/molecule/
+  config.yml                # ansible-native shared config
+  inventory.yml             # localhost / ansible_connection: local
+  <target>/
+    molecule.yml            # thin; overrides only if needed
+    converge.yml            # include_role name: content
+    roles/content/          # former target role tree
+```
+
+After migration:
+
+1. Follow `extensions/molecule/MIGRATE_NEXT_STEPS.md`
+2. Use `.agents/skills/molecule-migrate-finalize/SKILL.md` for agent-assisted finalization
+3. Review shared inventory, drop obsolete `aliases`, run `molecule test -s <target>`, update CI
+
+Use `--keep-targets` only when you must retain ansible-test paths temporarily (hybrid). Prefer completing the move rather than leaving dual trees forever.
 
 #### Smoke Testing
 

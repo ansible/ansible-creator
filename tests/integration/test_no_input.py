@@ -26,6 +26,8 @@ if TYPE_CHECKING:
         pytest.param("add plugin --help", "", id="add-plugin-help"),
         pytest.param("init", "Missing required argument 'project-type'.", id="init"),
         pytest.param("init --help", "", id="init-help"),
+        pytest.param("migrate", "Missing required argument 'migrate-type'.", id="migrate"),
+        pytest.param("migrate --help", "", id="migrate-help"),
     ),
 )
 def test_run_no_input(cli: CliRunCallable, args: str, error_msg: str) -> None:

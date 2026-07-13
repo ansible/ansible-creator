@@ -1,0 +1,6 @@
+---
+# Shared inventory for ansible-native migrated scenarios (localhost / connection local).
+all:
+  hosts:
+    localhost:
+      ansible_connection: local

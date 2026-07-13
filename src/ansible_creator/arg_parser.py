@@ -47,6 +47,7 @@ class Parser:
         self.add_parser: argparse.ArgumentParser | None = None
         self.add_resource_parser: argparse.ArgumentParser | None = None
         self.add_plugin_parser: argparse.ArgumentParser | None = None
+        self.migrate_parser: argparse.ArgumentParser | None = None
         self.exit_code: int = 0
 
     def build_parser(self) -> CustomArgumentParser:
@@ -71,6 +72,7 @@ class Parser:
         )
         self._add(subparser=subparser)  # type: ignore[arg-type]
         self._init(subparser=subparser)  # type: ignore[arg-type]
+        self._migrate(subparser=subparser)  # type: ignore[arg-type]
         self._schema(subparser=subparser)  # type: ignore[arg-type]
         return parser
 
@@ -149,6 +151,21 @@ class Parser:
                     prefix=Level.ERROR,
                     message="Missing required argument 'plugin-type'.\n"
                     "Choose from: action, filter, lookup, module, test",
+                )
+            )
+            self.exit_code = os.EX_USAGE
+
+        # Show help for 'ansible-creator migrate' without arguments
+        if (
+            self.args.subcommand == "migrate"
+            and getattr(self.args, "migrate_type", None) is None
+            and self.migrate_parser
+        ):
+            self.migrate_parser.print_help(sys.stderr)
+            self.pending_logs.append(
+                Msg(
+                    prefix=Level.ERROR,
+                    message="Missing required argument 'migrate-type'.\nChoose from: molecule",
                 )
             )
             self.exit_code = os.EX_USAGE
@@ -644,6 +661,77 @@ class Parser:
         self._init_collection(subparser=subparser)
         self._init_playbook(subparser=subparser)
         self._init_ee_project(subparser=subparser)
+
+    def _migrate(self, subparser: SubParser[argparse.ArgumentParser]) -> None:
+        """Migrate existing Ansible content into newer layouts.
+
+        Args:
+            subparser: The subparser to add migrate to
+        """
+        parser = subparser.add_parser(
+            "migrate",
+            help="Migrate existing Ansible content into newer layouts.",
+        )
+        self.migrate_parser = parser
+        migrate_sub = parser.add_subparsers(
+            dest="migrate_type",
+            metavar="migrate-type",
+            required=False,
+        )
+        self._migrate_molecule(subparser=migrate_sub)
+
+    def _migrate_molecule(self, subparser: SubParser[argparse.ArgumentParser]) -> None:
+        """Migrate ansible-test integration targets into Molecule scenarios.
+
+        Args:
+            subparser: The subparser to add molecule migrate to
+        """
+        parser = subparser.add_parser(
+            "molecule",
+            help=(
+                "Move ansible-test integration targets under "
+                "extensions/molecule/ as real Molecule scenarios."
+            ),
+        )
+        parser.add_argument(
+            "target_name",
+            nargs="?",
+            default="",
+            help=(
+                "Integration target name under tests/integration/targets/. "
+                "Omit when using --all."
+            ),
+        )
+        parser.add_argument(
+            "--path",
+            "-p",
+            default="./",
+            dest="path",
+            metavar="path",
+            help=(
+                "The path to the Ansible collection. The default is the "
+                "current working directory."
+            ),
+        )
+        parser.add_argument(
+            "--all",
+            dest="migrate_all",
+            default=False,
+            action="store_true",
+            help="Migrate all role-shaped integration targets.",
+        )
+        parser.add_argument(
+            "--keep-targets",
+            dest="keep_targets",
+            default=False,
+            action="store_true",
+            help=(
+                "Copy targets into scenarios instead of moving them "
+                "(keeps ansible-test paths for hybrid use)."
+            ),
+        )
+        self._add_overwrite(parser)
+        self._add_args_common(parser)
 
     def _schema(self, subparser: SubParser[argparse.ArgumentParser]) -> None:
         """Output CLI schema as JSON.

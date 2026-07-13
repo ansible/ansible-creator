@@ -18,6 +18,7 @@ _INIT_EXCLUDED_BUNDLES: frozenset[str] = frozenset(
         "ee-ci",
         "execution-environment",
         "play-argspec",
+        "molecule_migrate",
     },
 )
 
