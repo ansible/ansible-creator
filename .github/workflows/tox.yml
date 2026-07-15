@@ -15,7 +15,6 @@ on:
   schedule:
     - cron: "0 0 * * *"
   workflow_call:
-
 # Caller must grant at least the permissions required by team-devtools tox.yml.
 # Narrower scopes (e.g. contents: read only) cause reusable workflow startup_failure.
 permissions:

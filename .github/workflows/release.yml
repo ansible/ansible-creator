@@ -4,7 +4,6 @@ name: release
 on:
   release:
     types: [published]
-
 permissions:
   contents: read # checkout source for the build
   id-token: write # PyPI trusted publishing (OIDC)
