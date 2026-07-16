@@ -4,12 +4,14 @@ name: release
 on:
   release:
     types: [published]
+permissions:
+  contents: read # checkout source for the build
+  id-token: write # PyPI trusted publishing (OIDC)
+
 jobs:
   release:
     environment: release
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
 
     env:
       FORCE_COLOR: 1
