@@ -27,9 +27,12 @@ myuser
 netcommon
 notesdir
 prek
+prerun
 pydoclint
 rulebook
 rulebooks
+runme
+scripty
 sshpass
 sysargs
 testcol

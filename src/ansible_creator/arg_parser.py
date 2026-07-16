@@ -14,6 +14,7 @@ from ansible_creator.bundles import get_init_bundle_names
 from ansible_creator.output import Level, Msg
 
 from ._arg_parser_custom import CustomArgumentParser
+from ._arg_parser_migrate import MigrateParserMixin
 
 
 try:
@@ -36,7 +37,7 @@ if TYPE_CHECKING:
     SubParser: TypeAlias = argparse._SubParsersAction  # noqa: SLF001
 
 
-class Parser:
+class Parser(MigrateParserMixin):
     """A parser for the command line arguments."""
 
     def __init__(self) -> None:
@@ -47,6 +48,7 @@ class Parser:
         self.add_parser: argparse.ArgumentParser | None = None
         self.add_resource_parser: argparse.ArgumentParser | None = None
         self.add_plugin_parser: argparse.ArgumentParser | None = None
+        self.migrate_parser: argparse.ArgumentParser | None = None
         self.exit_code: int = 0
 
     def build_parser(self) -> CustomArgumentParser:
@@ -71,6 +73,7 @@ class Parser:
         )
         self._add(subparser=subparser)  # type: ignore[arg-type]
         self._init(subparser=subparser)  # type: ignore[arg-type]
+        self._migrate(subparser=subparser)  # type: ignore[arg-type]
         self._schema(subparser=subparser)  # type: ignore[arg-type]
         return parser
 
@@ -149,6 +152,21 @@ class Parser:
                     prefix=Level.ERROR,
                     message="Missing required argument 'plugin-type'.\n"
                     "Choose from: action, filter, lookup, module, test",
+                )
+            )
+            self.exit_code = os.EX_USAGE
+
+        # Show help for 'ansible-creator migrate' without arguments
+        if (
+            self.args.subcommand == "migrate"
+            and getattr(self.args, "migrate_type", None) is None
+            and self.migrate_parser
+        ):
+            self.migrate_parser.print_help(sys.stderr)
+            self.pending_logs.append(
+                Msg(
+                    prefix=Level.ERROR,
+                    message="Missing required argument 'migrate-type'.\nChoose from: molecule",
                 )
             )
             self.exit_code = os.EX_USAGE

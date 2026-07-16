@@ -205,6 +205,60 @@ def test_configuration_class(output: Output) -> None:
                 "exclude": [],
             },
         ),
+        (
+            [
+                "ansible-creator",
+                "migrate",
+                "molecule",
+                "alpha",
+                "--path=/test/col",
+                "--keep-targets",
+                "--overwrite",
+                "--lf=test.log",
+            ],
+            {
+                "subcommand": "migrate",
+                "migrate_type": "molecule",
+                "target_name": "alpha",
+                "migrate_all": False,
+                "keep_targets": True,
+                "path": "/test/col",
+                "no_overwrite": False,
+                "overwrite": True,
+                "json": False,
+                "log_append": "true",
+                "log_file": "test.log",
+                "log_level": "notset",
+                "no_ansi": False,
+                "verbose": 0,
+            },
+        ),
+        (
+            [
+                "ansible-creator",
+                "migrate",
+                "molecule",
+                "--all",
+                "--path=/test/col",
+                "--lf=test.log",
+            ],
+            {
+                "subcommand": "migrate",
+                "migrate_type": "molecule",
+                "target_name": "",
+                "migrate_all": True,
+                "keep_targets": False,
+                "path": "/test/col",
+                "no_overwrite": False,
+                "overwrite": False,
+                "json": False,
+                "log_append": "true",
+                "log_file": "test.log",
+                "log_level": "notset",
+                "no_ansi": False,
+                "verbose": 0,
+            },
+        ),
     ),
 )
 def test_cli_parser(
@@ -223,6 +277,18 @@ def test_cli_parser(
     monkeypatch.setattr("sys.argv", sysargs)
     parsed_args = Cli().args
     assert parsed_args == expected
+
+
+def test_cli_migrate_missing_type(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Require migrate-type when invoking migrate with no subcommand.
+
+    Args:
+        monkeypatch: Pytest monkeypatch fixture.
+    """
+    monkeypatch.setattr("sys.argv", ["ansible-creator", "migrate"])
+    cli = Cli()
+    assert cli.exit_code != 0
+    assert any("migrate-type" in msg.message for msg in cli.pending_logs)
 
 
 def test_missing_j2(monkeypatch: pytest.MonkeyPatch) -> None:

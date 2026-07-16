@@ -1,0 +1,9 @@
+---
+# Purpose: run the migrated ansible-test integration target as a Molecule scenario.
+- name: Converge
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Include migrated integration target
+      ansible.builtin.include_role:
+        name: content

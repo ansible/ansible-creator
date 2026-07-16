@@ -185,9 +185,9 @@ class V1:
         args = vars(namespace)
         output, messages = self._build_output(args, kwargs)
 
-        # Determine the output path -- only init/add need a workspace dir
+        # Determine the output path -- init/add/migrate need a workspace dir
         subcommand = command_path[0]
-        needs_workspace = subcommand in ("init", "add")
+        needs_workspace = subcommand in ("init", "add", "migrate")
         output_dir: Path | None = None
 
         if needs_workspace:
@@ -443,6 +443,6 @@ class V1:
         """
         if subcommand == "init" and "init_path" in kwargs:
             return str(kwargs["init_path"])
-        if subcommand == "add" and "path" in kwargs:
+        if subcommand in ("add", "migrate") and "path" in kwargs:
             return str(kwargs["path"])
         return None
