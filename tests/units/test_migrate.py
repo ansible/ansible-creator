@@ -137,13 +137,16 @@ def test_migrate_single_target_moves(collection_path: Path, output: Output) -> N
     ).is_file()
     assert (collection_path / "extensions" / "molecule" / "config.yml").is_file()
     assert (collection_path / "extensions" / "molecule" / "inventory.yml").is_file()
-    assert (
-        "prerun: false" in (collection_path / "extensions" / "molecule" / "config.yml").read_text()
-    )
+    config_text = (collection_path / "extensions" / "molecule" / "config.yml").read_text()
+    assert "prerun: false" in config_text
+    assert "shared_state: true" in config_text
     assert (
         "ansible_connection: local"
         in (collection_path / "extensions" / "molecule" / "inventory.yml").read_text()
     )
+    default_mol = collection_path / "extensions" / "molecule" / "default" / "molecule.yml"
+    assert default_mol.is_file()
+    assert "create" in default_mol.read_text()
     molecule_yml = (scenario / "molecule.yml").read_text()
     assert "platforms:" not in molecule_yml
     assert "provisioner:" not in molecule_yml
@@ -514,3 +517,84 @@ def test_migrate_skill_unchanged_is_left_alone(collection_path: Path, output: Ou
 
     Migrate(_migrate_config(output, collection_path, target_name="beta", keep_targets=True)).run()
     assert skill.read_text() == original
+
+
+def test_migrate_detects_cross_dependencies(tmp_path: Path, output: Output) -> None:
+    """Detect cross-target role references in meta/main.yml.
+
+    Args:
+        tmp_path: Temporary directory path.
+        output: Output class object.
+    """
+    collection = tmp_path / "ns" / "col"
+    collection.mkdir(parents=True)
+    (collection / "galaxy.yml").write_text("namespace: ns\nname: col\nversion: 1.0.0\n")
+    targets = collection / "tests" / "integration" / "targets"
+    targets.mkdir(parents=True)
+    _write_role_target(targets, "setup_db")
+    target_app = _write_role_target(targets, "app")
+    meta = target_app / "meta"
+    meta.mkdir()
+    (meta / "main.yml").write_text("---\ndependencies:\n  - role: setup_db\n")
+
+    Migrate(_migrate_config(output, collection, migrate_all=True)).run()
+
+    next_steps = collection / "extensions" / "molecule" / "MIGRATE_NEXT_STEPS.md"
+    content = next_steps.read_text()
+    assert "setup_db" in content
+    assert "Cross-target role dependencies" in content
+
+
+def test_migrate_no_cross_dependencies(collection_path: Path, output: Output) -> None:
+    """No cross-dependency section when targets are independent.
+
+    Args:
+        collection_path: Seeded collection path.
+        output: Output class object.
+    """
+    Migrate(_migrate_config(output, collection_path, migrate_all=True)).run()
+
+    next_steps = collection_path / "extensions" / "molecule" / "MIGRATE_NEXT_STEPS.md"
+    content = next_steps.read_text()
+    assert "Cross-target role dependencies" not in content
+
+
+def test_migrate_next_steps_respects_no_overwrite(
+    collection_path: Path,
+    output: Output,
+) -> None:
+    """Keep existing MIGRATE_NEXT_STEPS.md when --no-overwrite is set.
+
+    Args:
+        collection_path: Seeded collection path.
+        output: Output class object.
+    """
+    Migrate(_migrate_config(output, collection_path, target_name="alpha", keep_targets=True)).run()
+    next_steps = collection_path / "extensions" / "molecule" / "MIGRATE_NEXT_STEPS.md"
+    next_steps.write_text("# my custom notes\n")
+
+    Migrate(
+        _migrate_config(
+            output,
+            collection_path,
+            target_name="beta",
+            keep_targets=True,
+            no_overwrite=True,
+        ),
+    ).run()
+    assert next_steps.read_text() == "# my custom notes\n"
+
+
+def test_migrate_default_scenario_preserved(collection_path: Path, output: Output) -> None:
+    """Do not overwrite an existing default scenario on later runs.
+
+    Args:
+        collection_path: Seeded collection path.
+        output: Output class object.
+    """
+    Migrate(_migrate_config(output, collection_path, target_name="alpha", keep_targets=True)).run()
+    default_mol = collection_path / "extensions" / "molecule" / "default" / "molecule.yml"
+    default_mol.write_text("# custom default\n")
+
+    Migrate(_migrate_config(output, collection_path, target_name="beta", keep_targets=True)).run()
+    assert default_mol.read_text() == "# custom default\n"

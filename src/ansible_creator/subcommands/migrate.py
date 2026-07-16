@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import shutil
 
 from importlib import resources as impl_resources
@@ -21,6 +22,8 @@ if TYPE_CHECKING:
 
 RESOURCE_PACKAGE = "ansible_creator.resources.common.molecule_migrate"
 TASK_MAIN_NAMES = ("tasks/main.yml", "tasks/main.yaml")
+META_MAIN_NAMES = ("meta/main.yml", "meta/main.yaml")
+_ROLE_REF_RE = re.compile(r"role:\s*(\S+)")
 
 
 class Migrate:
@@ -136,7 +139,8 @@ class Migrate:
             msg = "No role-shaped integration targets were migrated."
             raise CreatorError(msg)
 
-        self._write_guidance_artifacts(migrated)
+        dep_map = self._scan_cross_dependencies(migrated)
+        self._write_guidance_artifacts(migrated, dep_map)
         self._ensure_shared_config()
         action = "copied" if self._keep_targets else "moved"
         self.output.note(
@@ -149,6 +153,14 @@ class Migrate:
         )
         if skipped:
             self.output.warning(msg=f"Skipped non-role targets: {', '.join(skipped)}")
+        if dep_map:
+            self.output.warning(
+                msg=(
+                    "Cross-target role dependencies detected. These require human or "
+                    "agent analysis to map into Molecule's shared-state lifecycle model. "
+                    "See MIGRATE_NEXT_STEPS.md for details."
+                ),
+            )
 
     @staticmethod
     def _is_role_shaped(target_dir: Path) -> bool:
@@ -236,24 +248,86 @@ class Migrate:
         template = (self._resource_root / filename).read_text(encoding="utf-8")
         return self.templar.render_from_content(template=template, data=data)
 
-    def _write_guidance_artifacts(self, migrated: list[str]) -> None:
+    def _scan_cross_dependencies(
+        self,
+        migrated: list[str],
+    ) -> dict[str, list[str]]:
+        """Scan migrated scenarios for cross-target role dependencies.
+
+        Looks at ``meta/main.yml`` in each migrated target's content role
+        for ``role:`` references that name other targets.  These cannot be
+        resolved automatically — they require human or agent analysis to
+        map into Molecule's shared-state lifecycle.
+
+        Args:
+            migrated: Names of targets that were migrated.
+
+        Returns:
+            Mapping of target name to list of referenced role names found
+            in its ``meta/main.yml``.  Empty when no cross-refs detected.
+        """
+        molecule_root = self._collection_path / "extensions" / "molecule"
+        migrated_set = set(migrated)
+        dep_map: dict[str, list[str]] = {}
+
+        for name in migrated:
+            content_dir = molecule_root / name / "roles" / "content"
+            for meta_name in META_MAIN_NAMES:
+                meta_file = content_dir / meta_name
+                if not meta_file.is_file():
+                    continue
+                text = meta_file.read_text(encoding="utf-8")
+                refs = [
+                    m.group(1)
+                    for m in _ROLE_REF_RE.finditer(text)
+                    if m.group(1) in migrated_set and m.group(1) != name
+                ]
+                if refs:
+                    dep_map[name] = refs
+                    self.output.warning(
+                        msg=(
+                            f"Target {name!r} references role(s) {refs} via meta/main.yml. "
+                            "These cross-target dependencies need analysis — see "
+                            "MIGRATE_NEXT_STEPS.md and the molecule-migrate-finalize skill."
+                        ),
+                    )
+        return dep_map
+
+    def _write_guidance_artifacts(
+        self,
+        migrated: list[str],
+        dep_map: dict[str, list[str]],
+    ) -> None:
         """Write next-steps checklist and agent skill into the collection.
 
         Args:
             migrated: Names of targets migrated in this run.
+            dep_map: Cross-target dependency map from _scan_cross_dependencies.
         """
         molecule_root = self._collection_path / "extensions" / "molecule"
         molecule_root.mkdir(parents=True, exist_ok=True)
 
         next_steps = molecule_root / "MIGRATE_NEXT_STEPS.md"
+        dep_lines = ""
+        if dep_map:
+            dep_lines = "\n".join(
+                f"- **{target}** depends on: {', '.join(deps)}"
+                for target, deps in sorted(dep_map.items())
+            )
         template_data = TemplateData(
             scenario_name=", ".join(migrated),
             target_name=", ".join(migrated),
+            cross_dependencies=dep_lines,
         )
-        next_steps.write_text(
-            self._render_template("MIGRATE_NEXT_STEPS.md.j2", template_data),
-            encoding="utf-8",
-        )
+        new_content = self._render_template("MIGRATE_NEXT_STEPS.md.j2", template_data)
+        if not next_steps.exists():
+            next_steps.write_text(new_content, encoding="utf-8")
+        elif self._no_overwrite:
+            self.output.warning(
+                msg=f"Skipped updating {next_steps} because --no-overwrite was set.",
+            )
+        else:
+            next_steps.write_text(new_content, encoding="utf-8")
 
         skill_dest = (
             self._collection_path / ".agents" / "skills" / "molecule-migrate-finalize" / "SKILL.md"
@@ -269,7 +343,7 @@ class Migrate:
                 skill_dest.write_text(skill_content, encoding="utf-8")
 
     def _ensure_shared_config(self) -> None:
-        """Write shared ansible-native config + inventory once if missing."""
+        """Write shared config, inventory, and default scenario if missing."""
         molecule_root = self._collection_path / "extensions" / "molecule"
         molecule_root.mkdir(parents=True, exist_ok=True)
         for filename in ("config.yml", "inventory.yml"):
@@ -278,5 +352,13 @@ class Migrate:
                 continue
             dest.write_text(
                 (self._resource_root / filename).read_text(encoding="utf-8"),
+                encoding="utf-8",
+            )
+        default_dir = molecule_root / "default"
+        default_mol = default_dir / "molecule.yml"
+        if not default_mol.exists():
+            default_dir.mkdir(parents=True, exist_ok=True)
+            default_mol.write_text(
+                (self._resource_root / "default_molecule.yml").read_text(encoding="utf-8"),
                 encoding="utf-8",
             )

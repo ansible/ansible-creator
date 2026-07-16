@@ -769,6 +769,7 @@ class TemplateData:
         role_name: The name of the role to be scaffolded.
         scenario_name: Molecule scenario name (migrate molecule).
         target_name: Integration target name (migrate molecule).
+        cross_dependencies: Pre-rendered cross-target dependency lines for MIGRATE_NEXT_STEPS.
         additions: A dictionary containing additional data to add to the gitignore.
         collection_name: The name of the collection.
         creator_version: The version of the creator.
@@ -812,6 +813,7 @@ class TemplateData:
     role_name: str = ""
     scenario_name: str = ""
     target_name: str = ""
+    cross_dependencies: str = ""
     additions: dict[str, dict[str, dict[str, str | bool]]] = field(default_factory=dict)
     collection_name: str = ""
     creator_version: str = ""

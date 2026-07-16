@@ -1,7 +1,7 @@
 ---
 # Molecule migration next steps
 
-ansible-creator migrated these integration targets into Molecule scenarios:
+ansible-creator just migrated these integration targets into Molecule scenarios:
 
 {{ target_name }}
 
@@ -13,16 +13,34 @@ Each scenario lives at `extensions/molecule/<target>/` with:
 
 Shared across scenarios:
 
-- `extensions/molecule/config.yml` — ansible-native executor + `test_sequence`
+- `extensions/molecule/config.yml` — ansible-native executor, `shared_state: true`, `test_sequence`
 - `extensions/molecule/inventory.yml` — localhost with `ansible_connection: local`
+- `extensions/molecule/default/molecule.yml` — lifecycle manager (create/destroy)
+{% if cross_dependencies %}
+
+## Cross-target role dependencies detected
+
+The following targets reference other targets via `meta/main.yml` dependencies.
+These cannot be resolved automatically — they need analysis to determine whether
+the dependency is **shared infrastructure** (belongs in `default/prepare.yml`)
+or **per-scenario preparation** (belongs in the scenario's own `prepare.yml`).
+
+{{ cross_dependencies }}
+
+Use the `molecule-migrate-finalize` agent skill or review the Molecule
+shared-state documentation to restructure these into proper Molecule lifecycle
+phases: <https://docs.ansible.com/projects/molecule/getting-started-collections/>
+{% endif %}
 
 ## Finalize checklist
 
-1. Confirm shared inventory matches how the old targets ran (localhost vs containers). Override per scenario only when needed.
-2. Remove obsolete ansible-test metadata under `roles/content/` (`aliases`, setup-only `meta`) when it no longer applies.
-3. Run `molecule test -s <target>` for each migrated scenario (collection root; ADE/venv as usual).
-4. Update CI (tox-ansible / GitHub Actions) so migrated targets run via Molecule, not ansible-test integration.
-5. Remove empty `tests/integration/targets/` leftovers; decide whether to keep or drop `tests/integration/test_integration.py` / pytest-ansible bridges.
-6. Commit the scenario tree and delete any hybrid stubs you no longer need.
+1. **Analyze cross-target dependencies.** If any targets depend on setup roles (listed above or in `meta/main.yml`), decide how to map them into Molecule's lifecycle. Setup roles that create shared infrastructure belong in `default/prepare.yml`. Per-scenario prep belongs in each scenario's `prepare.yml`.
+2. **Split converge from verify.** ansible-test targets typically mix state application and assertions in `tasks/main.yml`. Molecule separates these into distinct lifecycle phases. Review each `roles/content/tasks/main.yml` for `assert` / `fail_when` / `stat` + check-mode tasks that validate outcomes. Move those into a `verify.yml` playbook at the scenario root so you can re-run `molecule verify` without re-converging — this is faster for iterative development and aligns with Molecule's intended workflow.
+3. Confirm shared inventory matches how the old targets ran (localhost vs containers). Override per scenario only when needed.
+4. Remove obsolete ansible-test metadata under `roles/content/` (`aliases`, setup-only `meta`) when it no longer applies.
+5. Run `molecule test -s <target>` for each migrated scenario (collection root; ADE/venv as usual).
+6. Update CI (tox-ansible / GitHub Actions) so migrated targets run via Molecule, not ansible-test integration.
+7. Remove empty `tests/integration/targets/` leftovers; decide whether to keep or drop `tests/integration/test_integration.py` / pytest-ansible bridges.
+8. Commit the scenario tree and delete any hybrid stubs you no longer need.
 
 Agent assist: open `.agents/skills/molecule-migrate-finalize/SKILL.md` (or ask your coding agent to follow that skill).

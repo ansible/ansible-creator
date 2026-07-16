@@ -1,0 +1,10 @@
+---
+# Lifecycle manager for shared-state testing.
+# The default scenario owns create/destroy for all scenarios.
+# Add create.yml / destroy.yml / prepare.yml here when migrated targets
+# need shared infrastructure or setup roles.
+# See: https://docs.ansible.com/projects/molecule/getting-started-collections/
+scenario:
+  test_sequence:
+    - create
+    - destroy
