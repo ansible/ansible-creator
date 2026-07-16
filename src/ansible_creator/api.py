@@ -136,7 +136,7 @@ class V1:
         _, argv = self._build_argv(command_path, kwargs)
         return argv
 
-    def run(self, *command_path: str, **kwargs: Any) -> CreatorResult:  # noqa: C901,ANN401
+    def run(self, *command_path: str, **kwargs: Any) -> CreatorResult:  # noqa: ANN401
         """Execute an ansible-creator command dynamically.
 
         Constructs an argv list from the command path and kwargs, feeds it
@@ -185,28 +185,8 @@ class V1:
         args = vars(namespace)
         output, messages = self._build_output(args, kwargs)
 
-        # Determine the output path -- only init/add need a workspace dir
         subcommand = command_path[0]
-        needs_workspace = subcommand in ("init", "add")
-        output_dir: Path | None = None
-
-        if needs_workspace:
-            explicit_path = self._get_explicit_path(subcommand, kwargs)
-            if explicit_path is not None:
-                output_dir = Path(explicit_path)
-            else:
-                output_dir = Path(tempfile.mkdtemp(prefix="ansible-creator-"))
-
-            # Point the config at the actual output directory -- the
-            # leaf parser may not have the path argument so argparse can miss it.
-            if subcommand == "init":
-                args["init_path"] = str(output_dir)
-            else:
-                args["path"] = str(output_dir)
-
-            # For add commands targeting a bare directory, skip collection check
-            if subcommand == "add":
-                args.setdefault("skip_collection_check", True)
+        output_dir = self._resolve_output_dir(subcommand, args, kwargs)
 
         # Build Config from the remaining args (same as Cli.run)
         args["creator_version"] = __version__
@@ -242,6 +222,32 @@ class V1:
             logs=messages,
             message=message,
         )
+
+    def _resolve_output_dir(
+        self,
+        subcommand: str,
+        args: dict[str, Any],
+        kwargs: dict[str, Any],
+    ) -> Path | None:
+        """Determine the output directory for init/add commands."""
+        if subcommand not in ("init", "add"):
+            return None
+
+        explicit_path = self._get_explicit_path(subcommand, kwargs)
+        if explicit_path is not None:
+            output_dir = Path(explicit_path)
+        else:
+            output_dir = Path(tempfile.mkdtemp(prefix="ansible-creator-"))
+
+        if subcommand == "init":
+            args["init_path"] = str(output_dir)
+        else:
+            args["path"] = str(output_dir)
+
+        if subcommand == "add":
+            args.setdefault("skip_collection_check", True)
+
+        return output_dir
 
     def _build_output(
         self,

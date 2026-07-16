@@ -13,7 +13,18 @@ from ansible_creator.constants import GLOBAL_TEMPLATE_VARS
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.templar import Templar
 from ansible_creator.types import TemplateData
-from ansible_creator.utils import Copier, FileList, Walker, ask_yes_no, filter_ee_ci_paths_for_scm
+from ansible_creator.utils import (
+    Copier,
+    DestinationFile,
+    FileList,
+    Walker,
+    ask_yes_no,
+    filter_ee_ci_paths_for_scm,
+)
+
+
+GALAXY_YML = "galaxy.yml"
+ANSIBLE_UTILS = "ansible.utils"
 
 
 if TYPE_CHECKING:
@@ -96,7 +107,7 @@ class Add:
         if self._skip_collection_check:
             return
 
-        galaxy_file_path = self._add_path / "galaxy.yml"
+        galaxy_file_path = self._add_path / GALAXY_YML
         if not Path.is_file(galaxy_file_path):  # pragma: no cover
             msg = (
                 f"The path {self._add_path} is not a valid Ansible collection path. "
@@ -116,7 +127,7 @@ class Add:
 
     def update_galaxy_dependency(self) -> None:
         """Update galaxy.yml file with the required dependency."""
-        galaxy_file = self._add_path / "galaxy.yml"
+        galaxy_file = self._add_path / GALAXY_YML
 
         # Load the galaxy.yml file
         with galaxy_file.open("r", encoding="utf-8") as file:
@@ -124,11 +135,11 @@ class Add:
 
         # Ensure the dependencies key exists
         if "dependencies" not in data:
-            data["dependencies"] = {"ansible.utils": "*"}
+            data["dependencies"] = {ANSIBLE_UTILS: "*"}
 
         # Empty dependencies key or dependencies key without ansible.utils
-        elif not data["dependencies"] or "ansible.utils" not in data["dependencies"]:
-            data["dependencies"]["ansible.utils"] = "*"
+        elif not data["dependencies"] or ANSIBLE_UTILS not in data["dependencies"]:
+            data["dependencies"][ANSIBLE_UTILS] = "*"
 
         # Save the updated YAML back to the file
         with galaxy_file.open("w", encoding="utf-8") as file:
@@ -142,7 +153,7 @@ class Add:
                           Defaults are ('your-collection-namespace', 'your-collection-name')
                           if the file is missing or keys are absent.
         """
-        galaxy_file = self._add_path / "galaxy.yml"
+        galaxy_file = self._add_path / GALAXY_YML
 
         # Load the galaxy.yml file
         with galaxy_file.open("r", encoding="utf-8") as file:
@@ -253,21 +264,9 @@ class Add:
             template_data = self._get_plugin_template_data()
             self._perform_action_plugin_scaffold(template_data, plugin_path)
 
-        elif self._plugin_type == "filter":
+        elif self._plugin_type in ("filter", "lookup", "modules", "test"):
             template_data = self._get_plugin_template_data()
-            self._perform_filter_plugin_scaffold(template_data, plugin_path)
-
-        elif self._plugin_type == "lookup":
-            template_data = self._get_plugin_template_data()
-            self._perform_lookup_plugin_scaffold(template_data, plugin_path)
-
-        elif self._plugin_type == "modules":
-            template_data = self._get_plugin_template_data()
-            self._perform_module_plugin_scaffold(template_data, plugin_path)
-
-        elif self._plugin_type == "test":
-            template_data = self._get_plugin_template_data()
-            self._perform_test_plugin_scaffold(template_data, plugin_path)
+            self._perform_single_plugin_scaffold(template_data, plugin_path)
 
         else:
             msg = f"Unsupported plugin type: {self._plugin_type}"
@@ -287,31 +286,7 @@ class Add:
         final_plugin_path = [plugin_path, module_path]
         self._perform_plugin_scaffold(resources, template_data, final_plugin_path)
 
-    def _perform_filter_plugin_scaffold(
-        self,
-        template_data: TemplateData,
-        plugin_path: Path,
-    ) -> None:
-        resources = (f"collection_project.plugins.{self._plugin_type}",)
-        self._perform_plugin_scaffold(resources, template_data, plugin_path)
-
-    def _perform_lookup_plugin_scaffold(
-        self,
-        template_data: TemplateData,
-        plugin_path: Path,
-    ) -> None:
-        resources = (f"collection_project.plugins.{self._plugin_type}",)
-        self._perform_plugin_scaffold(resources, template_data, plugin_path)
-
-    def _perform_module_plugin_scaffold(
-        self,
-        template_data: TemplateData,
-        plugin_path: Path,
-    ) -> None:
-        resources = (f"collection_project.plugins.{self._plugin_type}",)
-        self._perform_plugin_scaffold(resources, template_data, plugin_path)
-
-    def _perform_test_plugin_scaffold(
+    def _perform_single_plugin_scaffold(
         self,
         template_data: TemplateData,
         plugin_path: Path,
@@ -484,18 +459,18 @@ class Add:
             return paths
 
         filtered_paths = FileList()
+        plugin_file = f"{self._plugin_name}.py"
         for path in paths:
-            if path.dest.name == f"{self._plugin_name}.py":
-                # For action plugins, include both action and module doc templates
-                if self._plugin_type == "action":
-                    if (
-                        "modules" in str(path.source) and "sample_action.py.j2" in str(path.source)
-                    ) or "action" in str(path.source):
-                        filtered_paths.append(path)
-                # For module plugins, only include the module template
-                elif self._plugin_type == "modules":  # noqa: SIM102 # pragma: no cover
-                    if "modules" in str(path.source) and "sample_module.py.j2" in str(path.source):
-                        filtered_paths.append(path)
-            else:
+            if path.dest.name != plugin_file or self._should_include_plugin_path(path):
                 filtered_paths.append(path)
         return filtered_paths
+
+    def _should_include_plugin_path(self, path: DestinationFile) -> bool:
+        source_str = str(path.source)
+        if self._plugin_type == "action":
+            return (
+                "modules" in source_str and "sample_action.py.j2" in source_str
+            ) or "action" in source_str
+        if self._plugin_type == "modules":  # pragma: no cover
+            return "modules" in source_str and "sample_module.py.j2" in source_str
+        return False
