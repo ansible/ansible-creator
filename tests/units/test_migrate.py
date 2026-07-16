@@ -545,6 +545,56 @@ def test_migrate_detects_cross_dependencies(tmp_path: Path, output: Output) -> N
     assert "Cross-target role dependencies" in content
 
 
+def test_migrate_detects_cross_dependencies_yaml_ext(tmp_path: Path, output: Output) -> None:
+    """Detect cross-target role references in meta/main.yaml (alternate extension).
+
+    Args:
+        tmp_path: Temporary directory path.
+        output: Output class object.
+    """
+    collection = tmp_path / "ns" / "col"
+    collection.mkdir(parents=True)
+    (collection / "galaxy.yml").write_text("namespace: ns\nname: col\nversion: 1.0.0\n")
+    targets = collection / "tests" / "integration" / "targets"
+    targets.mkdir(parents=True)
+    _write_role_target(targets, "setup_net")
+    target_app = _write_role_target(targets, "router")
+    meta = target_app / "meta"
+    meta.mkdir()
+    (meta / "main.yaml").write_text("---\ndependencies:\n  - role: setup_net\n")
+
+    Migrate(_migrate_config(output, collection, migrate_all=True)).run()
+
+    next_steps = collection / "extensions" / "molecule" / "MIGRATE_NEXT_STEPS.md"
+    content = next_steps.read_text()
+    assert "setup_net" in content
+    assert "Cross-target role dependencies" in content
+
+
+def test_migrate_meta_without_cross_refs(tmp_path: Path, output: Output) -> None:
+    """Meta file with only external (non-migrated) role refs produces no cross-dep section.
+
+    Args:
+        tmp_path: Temporary directory path.
+        output: Output class object.
+    """
+    collection = tmp_path / "ns" / "col"
+    collection.mkdir(parents=True)
+    (collection / "galaxy.yml").write_text("namespace: ns\nname: col\nversion: 1.0.0\n")
+    targets = collection / "tests" / "integration" / "targets"
+    targets.mkdir(parents=True)
+    target = _write_role_target(targets, "my_role")
+    meta = target / "meta"
+    meta.mkdir()
+    (meta / "main.yml").write_text("---\ndependencies:\n  - role: some_external_role\n")
+
+    Migrate(_migrate_config(output, collection, target_name="my_role")).run()
+
+    next_steps = collection / "extensions" / "molecule" / "MIGRATE_NEXT_STEPS.md"
+    content = next_steps.read_text()
+    assert "Cross-target role dependencies" not in content
+
+
 def test_migrate_no_cross_dependencies(collection_path: Path, output: Output) -> None:
     """No cross-dependency section when targets are independent.
 

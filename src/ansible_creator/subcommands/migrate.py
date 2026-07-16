@@ -139,6 +139,19 @@ class Migrate:
             msg = "No role-shaped integration targets were migrated."
             raise CreatorError(msg)
 
+        self._finalize_migration(migrated, skipped)
+
+    def _finalize_migration(
+        self,
+        migrated: list[str],
+        skipped: list[str],
+    ) -> None:
+        """Generate guidance artifacts and report migration results.
+
+        Args:
+            migrated: Names of targets successfully migrated.
+            skipped: Names of targets that were skipped.
+        """
         dep_map = self._scan_cross_dependencies(migrated)
         self._write_guidance_artifacts(migrated, dep_map)
         self._ensure_shared_config()
@@ -291,6 +304,7 @@ class Migrate:
                             "MIGRATE_NEXT_STEPS.md and the molecule-migrate-finalize skill."
                         ),
                     )
+                    break
         return dep_map
 
     def _write_guidance_artifacts(
