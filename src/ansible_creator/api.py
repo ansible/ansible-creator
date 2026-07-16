@@ -229,7 +229,16 @@ class V1:
         args: dict[str, Any],
         kwargs: dict[str, Any],
     ) -> Path | None:
-        """Determine the output directory for init/add commands."""
+        """Determine the output directory for init/add commands.
+
+        Args:
+            subcommand: The subcommand name (e.g. "init", "add").
+            args: Mutable dict of parsed arguments.
+            kwargs: Original caller kwargs.
+
+        Returns:
+            The resolved output directory path, or None if not needed.
+        """
         if subcommand not in ("init", "add"):
             return None
 
