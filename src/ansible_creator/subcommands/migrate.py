@@ -120,6 +120,9 @@ class Migrate:
 
         for name in candidates:
             source = targets_dir / name
+            if not source.resolve().is_relative_to(targets_dir.resolve()):
+                msg = f"Target name {name!r} resolves outside {targets_dir}."
+                raise CreatorError(msg)
             if not source.is_dir():
                 msg = f"Integration target not found: {source}"
                 raise CreatorError(msg)

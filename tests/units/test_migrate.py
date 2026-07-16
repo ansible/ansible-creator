@@ -230,6 +230,17 @@ def test_migrate_missing_target(collection_path: Path, output: Output) -> None:
         Migrate(_migrate_config(output, collection_path, target_name="missing")).run()
 
 
+def test_migrate_rejects_path_traversal(collection_path: Path, output: Output) -> None:
+    """Reject target names that escape the targets directory.
+
+    Args:
+        collection_path: Seeded collection path.
+        output: Output class object.
+    """
+    with pytest.raises(CreatorError, match="resolves outside"):
+        Migrate(_migrate_config(output, collection_path, target_name="../../etc")).run()
+
+
 def test_migrate_no_overwrite(collection_path: Path, output: Output) -> None:
     """Fail when scenario paths exist and --no-overwrite is set.
 

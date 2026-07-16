@@ -10,4 +10,5 @@ ansible:
 scenario:
   test_sequence:
     - converge
+    - verify
 shared_state: true

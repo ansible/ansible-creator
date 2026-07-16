@@ -39,8 +39,8 @@ Reference: <https://docs.ansible.com/projects/molecule/getting-started-collectio
      config), fold it into `default/prepare.yml`.
    - If the dependency is *scenario-specific preparation* (test data, fixture setup),
      add a `prepare.yml` to that scenario.
-   - Remove the `meta/main.yml` dependency entries from migrated `roles/content/` — the
-     Molecule lifecycle replaces them.
+   - Remove the `meta/main.yml` (or `meta/main.yaml`) dependency entries from migrated
+     `roles/content/` — the Molecule lifecycle replaces them.
 
 3. **Split converge from verify.** ansible-test integration targets almost always mix state
    application and assertions in `tasks/main.yml`.  Molecule separates these into distinct
