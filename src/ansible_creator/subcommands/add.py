@@ -473,4 +473,4 @@ class Add:
             ) or "action" in source_str
         if self._plugin_type == "modules":  # pragma: no cover
             return "modules" in source_str and "sample_module.py.j2" in source_str
-        return False
+        return False  # pragma: no cover
