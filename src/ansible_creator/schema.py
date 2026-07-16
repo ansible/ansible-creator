@@ -240,6 +240,6 @@ def _clean_help_text(help_text: str) -> str:
     Returns:
         Cleaned help text.
     """
-    help_text = re.sub(r"\s*\(default:\s[^)]+\)$", "", help_text)
-    help_text = re.sub(r"\s*\(choices:\s[^)]+\)$", "", help_text)
+    help_text = re.sub(r" \(default: [^)]+\)$", "", help_text)
+    help_text = re.sub(r" \(choices: [^)]+\)$", "", help_text)
     return help_text.strip()
