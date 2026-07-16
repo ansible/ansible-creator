@@ -70,6 +70,8 @@ class Init:
         self._include: list[str] = list(config.include)
         self._exclude: list[str] = list(config.exclude)
 
+        self._ee_type: str = getattr(config, "ee_type", "standard")
+
         # Build the canonical EEConfig from JSON, file, or defaults, then
         # layer CLI flag overrides on top.
         self._ee_config: EEConfig = self._build_ee_config(config)
@@ -177,6 +179,12 @@ class Init:
     def _build_ee_config(self, config: Config) -> EEConfig:
         """Build the final EEConfig by merging JSON/file config with CLI flags.
 
+        When ``ee_type`` is ``decision_environment`` and no explicit
+        ``--ee-config`` / ``--ee-config-file`` was provided, EDA-specific
+        defaults (base image, ansible-rulebook, java, ansible.eda) are
+        applied before CLI flag overrides, so ``--ee-base-image`` etc.
+        still win.
+
         Args:
             config: The application configuration.
 
@@ -184,6 +192,15 @@ class Init:
             A fully resolved EEConfig instance.
         """
         ee_cfg = self._resolve_ee_config(config)
+
+        if (
+            self._ee_type == "decision_environment"
+            and not config.ee_config
+            and not config.ee_config_file
+        ):
+            from ansible_creator.types import DE_DEFAULTS  # noqa: PLC0415
+
+            ee_cfg = dataclasses.replace(ee_cfg, **DE_DEFAULTS)
 
         overrides = Init._ee_cli_flag_overrides(config, ee_cfg, self._parse_single_collection)
         if overrides:

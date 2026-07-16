@@ -69,6 +69,7 @@ class ConfigDict(TypedDict, total=False):
     ee_build_arg_defaults: list[str]
     registry_tls_verify: bool | None
     scm_provider: str
+    ee_type: str
 
 
 @pytest.fixture(name="output")
@@ -2150,3 +2151,116 @@ def test_ee_project_with_scm_servers_gitlab(
     ns = next_steps.read_text()
     assert "CI/CD" in ns
     assert "Actions" not in ns
+
+
+# ---------------------------------------------------------------------------
+# Decision Environment (EDA) scaffolding tests
+# ---------------------------------------------------------------------------
+
+
+def test_run_success_ee_project_decision_env(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test Init.run() scaffolds a decision environment with EDA defaults.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "de_project")
+    cli_args["ee_type"] = "decision_environment"
+
+    init = Init(Config(**cli_args))
+    init.run()
+    result = capsys.readouterr().out
+
+    assert r"Note: execution_env project created" in result
+
+    ee_file = tmp_path / "de_project" / "execution-environment.yml"
+    ee_content = ee_file.read_text()
+
+    assert "de-supported-rhel9" in ee_content
+    assert "ansible-rulebook" in ee_content
+    assert "java-17-openjdk-headless" in ee_content
+    assert "ansible.eda" in ee_content
+    assert "ansible_sample_de" in ee_content
+
+    assert "package_manager_path: /usr/bin/microdnf" in ee_content
+
+
+def test_ee_project_de_cli_override(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test that CLI flags override DE defaults.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "de_override")
+    cli_args["ee_type"] = "decision_environment"
+    cli_args["base_image"] = "quay.io/custom/de:latest"
+    cli_args["ee_name"] = "my-custom-de"
+
+    init = Init(Config(**cli_args))
+    init.run()
+    result = capsys.readouterr().out
+
+    assert r"Note: execution_env project created" in result
+
+    ee_file = tmp_path / "de_override" / "execution-environment.yml"
+    ee_content = ee_file.read_text()
+
+    assert "quay.io/custom/de:latest" in ee_content
+    assert "my-custom-de" in ee_content
+    assert "ansible-rulebook" in ee_content
+    assert "ansible.eda" in ee_content
+
+
+def test_ee_project_de_with_config_file(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test that --ee-config takes precedence over DE defaults.
+
+    When a user provides an explicit EE config, DE defaults are not
+    applied — the config file is the source of truth.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    config_data = {
+        "name": "custom-de",
+        "base_image": "quay.io/fedora/fedora:41",
+        "collections": [{"name": "ansible.posix"}],
+    }
+
+    cli_args["project"] = "execution_env"
+    cli_args["init_path"] = str(tmp_path / "de_config")
+    cli_args["ee_type"] = "decision_environment"
+    cli_args["ee_config"] = json.dumps(config_data)
+
+    init = Init(Config(**cli_args))
+    init.run()
+    result = capsys.readouterr().out
+
+    assert r"Note: execution_env project created" in result
+
+    ee_file = tmp_path / "de_config" / "execution-environment.yml"
+    ee_content = ee_file.read_text()
+
+    assert "custom-de" in ee_content
+    assert "ansible.posix" in ee_content
+    assert "ansible-rulebook" not in ee_content
+    assert "ansible.eda" not in ee_content
