@@ -131,7 +131,7 @@ class Add:
 
         # Load the galaxy.yml file
         with galaxy_file.open("r", encoding="utf-8") as file:
-            data = yaml.safe_load(file)
+            data = yaml.safe_load(file) or {}
 
         # Ensure the dependencies key exists
         if "dependencies" not in data:
@@ -157,7 +157,7 @@ class Add:
 
         # Load the galaxy.yml file
         with galaxy_file.open("r", encoding="utf-8") as file:
-            data = yaml.safe_load(file)
+            data = yaml.safe_load(file) or {}
 
         # Ensure the namespace and name key exists
         namespace = data.get("namespace", "your-collection-namespace")

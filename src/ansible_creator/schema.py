@@ -94,7 +94,7 @@ def _extract_parser_schema(
         if action.dest in ("help", "version"):
             continue
 
-        if hasattr(action, "choices") and isinstance(action.choices, dict):
+        if isinstance(action, argparse._SubParsersAction):  # noqa: SLF001
             _collect_subcommands(action, subcommands)
         else:
             param_info = _extract_action_info(action)
