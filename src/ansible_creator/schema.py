@@ -91,27 +91,14 @@ def _extract_parser_schema(
     subcommands: dict[str, Any] = {}
 
     for action in parser._actions:  # noqa: SLF001
-        # Skip help and version actions
         if action.dest in ("help", "version"):
             continue
 
-        # Handle subparsers
-        if hasattr(action, "choices") and isinstance(action.choices, dict):
-            help_map: dict[str, str] = {}
-            for choice_action in action._choices_actions:  # type: ignore[attr-defined]  # noqa: SLF001
-                help_map[choice_action.dest] = choice_action.help or ""
-
-            for sub_name, sub_parser in action.choices.items():
-                sub_help = help_map.get(sub_name, "")
-                subcommands[sub_name] = _extract_parser_schema(
-                    sub_parser,
-                    sub_name,
-                    sub_help,
-                )
+        if isinstance(action, argparse._SubParsersAction):  # noqa: SLF001
+            _collect_subcommands(action, subcommands)
         else:
             param_info = _extract_action_info(action)
             result["parameters"]["properties"][action.dest] = param_info
-
             if _is_required(action):
                 result["parameters"]["required"].append(action.dest)
 
@@ -119,6 +106,23 @@ def _extract_parser_schema(
         result["subcommands"] = subcommands
 
     return result
+
+
+def _collect_subcommands(
+    action: argparse.Action,
+    subcommands: dict[str, Any],
+) -> None:
+    help_map: dict[str, str] = {}
+    for choice_action in action._choices_actions:  # type: ignore[attr-defined]  # noqa: SLF001
+        help_map[choice_action.dest] = choice_action.help or ""
+
+    for sub_name, sub_parser in action.choices.items():  # type: ignore[union-attr]
+        sub_help = help_map.get(sub_name, "")
+        subcommands[sub_name] = _extract_parser_schema(
+            sub_parser,
+            sub_name,
+            sub_help,
+        )
 
 
 def _extract_action_info(action: argparse.Action) -> dict[str, Any]:
@@ -236,6 +240,6 @@ def _clean_help_text(help_text: str) -> str:
     Returns:
         Cleaned help text.
     """
-    help_text = re.sub(r"\s*\(default:\s*[^)]+\)\s*$", "", help_text)
-    help_text = re.sub(r"\s*\(choices:\s*[^)]+\)\s*$", "", help_text)
+    help_text = re.sub(r" \(default: [^)]+\)$", "", help_text)
+    help_text = re.sub(r" \(choices: [^)]+\)$", "", help_text)
     return help_text.strip()

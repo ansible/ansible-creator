@@ -12,6 +12,11 @@ from ansible_creator.constants import GLOBAL_TEMPLATE_VARS
 from ansible_creator.exceptions import CreatorError
 
 
+DEFAULT_BASE_IMAGE = "quay.io/fedora/fedora:41"
+DEFAULT_REGISTRY = "ghcr.io"
+DEFAULT_EE_FILE_NAME = "execution-environment.yml"
+
+
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
@@ -490,8 +495,8 @@ class EEConfig:
     )
 
     ee_name: str = "ansible_sample_ee"
-    base_image: str = "quay.io/fedora/fedora:41"
-    registry: str = "ghcr.io"
+    base_image: str = DEFAULT_BASE_IMAGE
+    registry: str = DEFAULT_REGISTRY
     registry_tls_verify: bool = True
     image_name: str = ""
     collections: tuple[EECollection, ...] = ()
@@ -504,7 +509,7 @@ class EEConfig:
     ansible_cfg: str = ""
     galaxy_servers: tuple[GalaxyServer, ...] = ()
     scm_servers: tuple[ScmServer, ...] = ()
-    ee_file_name: str = "execution-environment.yml"
+    ee_file_name: str = DEFAULT_EE_FILE_NAME
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> EEConfig:
@@ -542,7 +547,7 @@ class EEConfig:
                 msg = "build_arg_defaults must be a mapping of string keys to string values"
                 raise CreatorError(msg)
             build_arg_defaults[bk] = bv
-        registry = data.get("registry", "ghcr.io")
+        registry = data.get("registry", DEFAULT_REGISTRY)
         if "://" in registry:
             msg = f"Invalid registry '{registry}'. Provide a hostname (e.g. 'ghcr.io'), not a URL."
             raise CreatorError(msg)
@@ -553,7 +558,7 @@ class EEConfig:
         scm_servers = tuple(ScmServer.from_dict(s) for s in raw_scm)
         return cls(
             ee_name=data.get("ee_name", data.get("name", "ansible_sample_ee")),
-            base_image=data.get("base_image", "quay.io/fedora/fedora:41"),
+            base_image=data.get("base_image", DEFAULT_BASE_IMAGE),
             registry=registry,
             registry_tls_verify=data.get("registry_tls_verify", True),
             image_name=data.get("image_name", ""),
@@ -568,7 +573,7 @@ class EEConfig:
             galaxy_servers=galaxy_servers,
             scm_servers=scm_servers,
             ee_file_name=cls._validate_ee_file_name(
-                data.get("ee_file_name", "execution-environment.yml"),
+                data.get("ee_file_name", DEFAULT_EE_FILE_NAME),
             ),
         )
 
@@ -616,13 +621,13 @@ class EEConfig:
                 },
                 "base_image": {
                     "type": "string",
-                    "default": "quay.io/fedora/fedora:41",
+                    "default": DEFAULT_BASE_IMAGE,
                     "description": "Base container image",
                     "minLength": 1,
                 },
                 "registry": {
                     "type": "string",
-                    "default": "ghcr.io",
+                    "default": DEFAULT_REGISTRY,
                     "description": (
                         "Container registry hostname for the CI workflow (e.g. ghcr.io, quay.io)"
                     ),
@@ -709,7 +714,7 @@ class EEConfig:
                 "ee_file_name": {
                     "type": "string",
                     "description": "Name of the EE definition file",
-                    "default": "execution-environment.yml",
+                    "default": DEFAULT_EE_FILE_NAME,
                     "pattern": r"^[^/\\]*\.(yml|yaml)$",
                     "minLength": 5,
                 },
@@ -821,7 +826,7 @@ class TemplateData:
     recommended_extensions: Sequence[str] = field(
         default_factory=lambda: GLOBAL_TEMPLATE_VARS["RECOMMENDED_EXTENSIONS"],
     )
-    ee_base_image: str = "quay.io/fedora/fedora:41"
+    ee_base_image: str = DEFAULT_BASE_IMAGE
     ee_collections: Sequence[dict[str, str]] = field(default_factory=list)
     ee_python_deps: Sequence[str] = field(default_factory=list)
     ee_system_packages: Sequence[str] = field(default_factory=list)
@@ -834,12 +839,12 @@ class TemplateData:
     is_official_ee: bool = False
     ee_python_path: str = DEFAULT_PYTHON_PATH
     ee_name_is_default: bool = True
-    ee_registry: str = "ghcr.io"
+    ee_registry: str = DEFAULT_REGISTRY
     ee_registry_tls_verify: bool = True
     ee_image_name: str = ""
     ee_galaxy_servers: Sequence[dict[str, Any]] = field(default_factory=list)
     ee_galaxy_token_vars: Sequence[str] = field(default_factory=list)
     ee_scm_servers: Sequence[dict[str, Any]] = field(default_factory=list)
     ee_scm_token_vars: Sequence[str] = field(default_factory=list)
-    ee_file_name: str = "execution-environment.yml"
+    ee_file_name: str = DEFAULT_EE_FILE_NAME
     scm_provider: str = "github"

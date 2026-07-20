@@ -330,12 +330,13 @@ class Walker:
         if obj.is_file():
             dest_path.set_content(template_data, self.templar)
 
+        is_walkable_dir = obj.is_dir() and obj.name not in SKIP_DIRS
+
         if dest_path.needs_write:
             conflict_msg = dest_path.conflict
             if conflict_msg:
                 self.output.warning(conflict_msg)
-
-            if obj.is_dir() and obj.name not in SKIP_DIRS:
+            if is_walkable_dir:
                 return FileList(
                     [
                         dest_path,
@@ -349,7 +350,8 @@ class Walker:
                 )
             if obj.is_file():
                 return FileList([dest_path])
-        if obj.is_dir() and obj.name not in SKIP_DIRS:
+
+        if is_walkable_dir:
             return self._recursive_walk(
                 root=obj,
                 resource=resource,
