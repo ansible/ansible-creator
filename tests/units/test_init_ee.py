@@ -47,6 +47,7 @@ class ConfigDict(TypedDict, total=False):
         ee_build_arg_defaults: EE build ARG defaults as KEY=VALUE strings (CLI).
         registry_tls_verify: Whether to verify TLS for container registries.
         scm_provider: SCM provider for EE CI (github or gitlab).
+        ee_type: Type of EE to scaffold (standard or decision_environment).
     """
 
     creator_version: str

@@ -765,9 +765,7 @@ OFFICIAL_EE_IMAGES: tuple[OfficialEEImage, ...] = (
 
 DEFAULT_PYTHON_PATH = "/usr/bin/python3"
 
-DE_BASE_IMAGE = (
-    "registry.redhat.io/ansible-automation-platform-25/de-supported-rhel9:latest"
-)
+DE_BASE_IMAGE = "registry.redhat.io/ansible-automation-platform-25/de-supported-rhel9:latest"
 
 DE_DEFAULTS: dict[str, Any] = {
     "base_image": DE_BASE_IMAGE,
