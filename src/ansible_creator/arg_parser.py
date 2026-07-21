@@ -744,6 +744,16 @@ class Parser:
             help="The destination directory for the EE project.",
         )
 
+        parser.add_argument(
+            "--ee-type",
+            dest="ee_type",
+            default="standard",
+            choices=["standard", "decision_environment"],
+            help="Type of execution environment to scaffold. "
+            "'decision_environment' pre-populates EDA dependencies "
+            "(ansible-rulebook, java, ansible.eda collection). Default: standard",
+        )
+
         from ansible_creator.types import EEConfig  # noqa: PLC0415
 
         ee_config_group = parser.add_mutually_exclusive_group()
