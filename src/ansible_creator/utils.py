@@ -285,6 +285,35 @@ class Walker:
             )
         return file_list
 
+    def _resolve_dest_name(
+        self,
+        obj: Traversable,
+        resource: str,
+        template_data: TemplateData,
+    ) -> str:
+        """Compute the destination name for a traversable object.
+
+        Args:
+            obj: A traversable object.
+            resource: The resource to consult for path names.
+            template_data: Data used to resolve path placeholders.
+
+        Returns:
+            The resolved destination name with placeholders replaced.
+        """
+        # resource names may have a . but directories use / in the path
+        dest_name = str(obj).split(
+            resource.replace(".", "/") + "/",
+            maxsplit=1,
+        )[-1]
+
+        # replace placeholders in destination path with real values
+        for key, val in PATH_REPLACERS.items():
+            repl_val = getattr(template_data, val)
+            if key in dest_name and repl_val:
+                dest_name = dest_name.replace(key, repl_val)
+        return dest_name.removesuffix(".j2")
+
     def each_obj(
         self,
         current_index: int,
@@ -303,28 +332,10 @@ class Walker:
         Returns:
             A list of paths.
         """
-        # resource names may have a . but directories use / in the path
-        dest_name = str(obj).split(
-            resource.replace(".", "/") + "/",
-            maxsplit=1,
-        )[-1]
+        dest_name = self._resolve_dest_name(obj, resource, template_data)
 
-        # replace placeholders in destination path with real values
-        for key, val in PATH_REPLACERS.items():
-            repl_val = getattr(template_data, val)
-            if key in dest_name and repl_val:
-                dest_name = dest_name.replace(key, repl_val)
-        dest_name = dest_name.removesuffix(".j2")
-
-        if isinstance(self.dest, list):
-            # If self.dest is a list of Path
-            dest_path = DestinationFile(
-                dest=self.dest[current_index] / dest_name,
-                source=obj,
-            )
-        else:
-            # If self.dest is a single Path
-            dest_path = DestinationFile(dest=self.dest / dest_name, source=obj)
+        base = self.dest[current_index] if isinstance(self.dest, list) else self.dest
+        dest_path = DestinationFile(dest=base / dest_name, source=obj)
 
         self.output.debug(f"Looking at {dest_path}")
         if obj.is_file():
