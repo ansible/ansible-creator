@@ -1,5 +1,5 @@
 ---
-- name: Test the Hello World filter plugin
+- name: Test the sample filter plugin
   ansible.builtin.set_fact:
     msg: "{{ 'ansible-creator' | testorg.testcol.sample_filter }}"
 
