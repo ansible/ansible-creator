@@ -30,7 +30,7 @@ schema = api.schema()
 # Scaffold a collection
 result = api.run("init", "collection", collection="testns.testcol")
 print(result.status)  # "success"
-print(result.path)    # Path to temp dir with scaffolded content
+print(result.path)  # Path to temp dir with scaffolded content
 
 # Add a filter plugin
 result = api.run("add", "plugin", "filter", plugin_name="my_filter")

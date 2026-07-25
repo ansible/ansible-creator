@@ -386,7 +386,9 @@ unsafe-fixes = true
 [tool.ruff.lint]
 ignore = [
   "COM812",  # conflicts with ISC001 on format
+  "CPY001",  # copyright notices not required
   "ISC001",  # conflicts with COM812 on format
+  "PLR0917",  # too-many-positional-arguments, already suppressed per-site with PLR0913
 ]
 select = ["ALL"]
 
