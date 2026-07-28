@@ -1,0 +1,9 @@
+---
+- name: Example playbook
+  hosts: localhost
+  gather_facts: true
+
+  tasks:
+    - name: Print a greeting
+      ansible.builtin.debug:
+        msg: Hello from Ansible

@@ -435,6 +435,31 @@ def test_add_resource_execution_environment(creator_api: V1, tmp_path: Path) -> 
     assert (target / "execution-environment.yml").exists()
 
 
+def test_add_resource_playbook(creator_api: V1, tmp_path: Path) -> None:
+    """Test adding a sample playbook resource.
+
+    Args:
+        creator_api: V1 API instance.
+        tmp_path: Temporary directory path.
+    """
+    target = tmp_path / "play"
+    target.mkdir()
+    result = creator_api.run(
+        "add",
+        "resource",
+        "playbook",
+        path=str(target),
+    )
+    assert result.status == "success", result.message
+    assert result.path == target
+    playbook = target / "playbook.yml"
+    assert playbook.exists()
+    content = playbook.read_text()
+    assert "name: Example playbook" in content
+    assert "hosts: localhost" in content
+    assert "ansible.builtin.debug" in content
+
+
 def test_add_resource_ai(creator_api: V1, tmp_path: Path) -> None:
     """Test adding AI agent helper files.
 
