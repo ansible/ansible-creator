@@ -400,7 +400,7 @@ ansible-creator add resource <resource-type> <path>
 | devfile               | Add a devfile file to an existing Ansible project.                 |
 | execution-environment | Add a sample execution-environment.yml file to an existing path.   |
 | play-argspec          | Add playbook argspec examples file to an existing Ansible project. |
-| playbook              | Add a sample single-file playbook.yml to an existing path.         |
+| playbook              | Add a sample playbook.yml to an existing path.                     |
 | role                  | Add a role to an existing Ansible collection.                      |
 
 #### Example of adding a resource
@@ -418,7 +418,7 @@ ansible-creator add resource playbook /home/user/..path/to/your/existing_project
 
 This command will scaffold a sample `playbook.yml` at
 `/home/user/..path/to/your/existing_project`. Use this when you need a
-single-file starter playbook rather than a full `init playbook` project.
+sample playbook rather than a full `init playbook` project.
 
 ### Add plugins to an existing ansible collection
 
