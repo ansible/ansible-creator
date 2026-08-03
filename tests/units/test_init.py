@@ -158,6 +158,32 @@ def test_run_success_for_collection(
     cmp = dircmp(str(tmp_path), str(FIXTURES_DIR / "collection"), ignore=[".DS_Store", ".ansible"])
     diff = has_differences(dcmp=cmp, errors=[])
     assert diff == [], diff
+
+    # Regression guard for issue #588: the scaffolded molecule scenario, its
+    # integration-test target, and the sample filter plugin must all share one
+    # name so the generated output is internally consistent. converge.yml derives
+    # the target from the scenario by stripping the "integration_" prefix.
+    collection_root = tmp_path / "testorg" / "testcol"
+    filter_plugins = [
+        p.stem
+        for p in (collection_root / "plugins" / "filter").glob("*.py")
+        if p.name != "__init__.py"
+    ]
+    assert filter_plugins == ["sample_filter"], filter_plugins
+    plugin_name = filter_plugins[0]
+    scenarios = [
+        p.name
+        for p in (collection_root / "extensions" / "molecule").iterdir()
+        if p.is_dir() and p.name != "utils"
+    ]
+    assert scenarios == [f"integration_{plugin_name}"], scenarios
+    targets = [
+        p.name
+        for p in (collection_root / "tests" / "integration" / "targets").iterdir()
+        if p.is_dir()
+    ]
+    assert targets == [plugin_name], targets
+
     # expect a CreatorError when the response to overwrite is no.
     monkeypatch.setattr("builtins.input", lambda _: "n")
     fail_msg = (
