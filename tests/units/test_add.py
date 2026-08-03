@@ -879,6 +879,34 @@ def test_run_success_add_execution_env(
     assert "Note: Resource added to" in result
 
 
+def test_run_success_add_playbook(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Test Add.run() for adding a sample playbook file.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Add class object.
+    """
+    cli_args["resource_type"] = "playbook"
+    add = Add(
+        Config(**cli_args),
+    )
+    add.run()
+    result = capsys.readouterr().out
+    assert "Note: Resource added to" in result
+
+    playbook = tmp_path / "playbook.yml"
+    assert playbook.exists()
+    content = playbook.read_text()
+    assert "name: Example playbook" in content
+    assert "hosts: localhost" in content
+    assert "ansible.builtin.debug" in content
+
+
 def test_run_success_add_play_argspec(
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
