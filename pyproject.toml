@@ -386,6 +386,7 @@ unsafe-fixes = true
 [tool.ruff.lint]
 ignore = [
   "COM812",  # conflicts with ISC001 on format
+  "CPY001",  # no copyright header required
   "ISC001",  # conflicts with COM812 on format
 ]
 select = ["ALL"]
