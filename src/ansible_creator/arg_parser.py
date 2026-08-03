@@ -131,7 +131,7 @@ class Parser:
                     prefix=Level.ERROR,
                     message="Missing required argument 'resource-type'.\n"
                     "Choose from: devcontainer, devfile, ee-ci, execution-environment, "
-                    "play-argspec, role",
+                    "play-argspec, playbook, role",
                 )
             )
             self.exit_code = os.EX_USAGE
@@ -294,6 +294,7 @@ class Parser:
         self._add_resource_ee_ci(subparser=subparser)
         self._add_resource_execution_env(subparser=subparser)
         self._add_resource_play_argspec(subparser=subparser)
+        self._add_resource_playbook(subparser=subparser)
         self._add_resource_role(subparser=subparser)
 
     def _add_resource_ai(self, subparser: SubParser[argparse.ArgumentParser]) -> None:
@@ -446,6 +447,29 @@ class Parser:
             metavar="path",
             nargs="?",
             help="The destination directory for the playbook argspec files. The default is the "
+            "current working directory.",
+        )
+
+        self._add_overwrite(parser)
+        self._add_args_common(parser)
+
+    def _add_resource_playbook(self, subparser: SubParser[argparse.ArgumentParser]) -> None:
+        """Add a sample Ansible playbook file to an existing path.
+
+        Args:
+            subparser: The subparser to add the playbook file to
+        """
+        parser = subparser.add_parser(
+            "playbook",
+            help="Add a sample Ansible playbook file to an existing path.",
+        )
+
+        parser.add_argument(
+            "path",
+            default="./",
+            metavar="path",
+            nargs="?",
+            help="The destination directory for the playbook file. The default is the "
             "current working directory.",
         )
 
