@@ -118,7 +118,7 @@ $ tree -lla /home/ansible-dev/collections/ansible_collections/testns/testname
 │   │   └── rulebooks
 │   │       └── rulebook.yml
 │   └── molecule
-│       ├── integration_hello_world
+│       ├── integration_sample_filter
 │       │   └── molecule.yml
 │       └── utils
 │           ├── playbooks
@@ -191,7 +191,7 @@ $ tree -lla /home/ansible-dev/collections/ansible_collections/testns/testname
 │   ├── integration
 │   │   ├── __init__.py
 │   │   ├── targets
-│   │   │   └── hello_world
+│   │   │   └── sample_filter
 │   │   │       └── tasks
 │   │   │           └── main.yml
 │   │   └── test_integration.py
@@ -208,7 +208,7 @@ molecule scenario and an integration test target for it, that can be run using
 `pytest`. This serves as an example for you to refer when writing tests for your
 Ansible plugins and can be removed when it is no longer required.
 
-To run the `hello_world` integration test, follow these steps:
+To run the `sample_filter` integration test, follow these steps:
 
 - Git initialize the repository containing the scaffolded collection with
   `git init`.
