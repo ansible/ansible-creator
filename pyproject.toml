@@ -160,6 +160,7 @@ disable = [
   "C0205",  # single-string-used-for-slots / ruff PLC0205
   "C0208",  # use-sequence-for-iteration / ruff PLC0208
   "C0301",  # line-too-long / ruff E501
+  "C0302",  # too-many-lines / large test modules are acceptable
   "C0303",  # trailing-whitespace / ruff W291
   "C0304",  # missing-final-newline / ruff W292
   "C0321",  # multiple-statements / ruff PLC0321
