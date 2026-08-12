@@ -868,9 +868,11 @@ class Parser:
         )
         parser.add_argument(
             "init_path",
+            default="./",
             metavar="path",
             nargs="?",
-            help="The destination directory for the decision environment project.",
+            help="The destination directory for the decision environment project. "
+            "The default is the current working directory.",
         )
 
         self._add_ee_build_args(parser)
@@ -889,9 +891,11 @@ class Parser:
         )
         parser.add_argument(
             "init_path",
+            default="./",
             metavar="path",
             nargs="?",
-            help="The destination directory for the EE project.",
+            help="The destination directory for the EE project. "
+            "The default is the current working directory.",
         )
 
         self._add_ee_build_args(parser)

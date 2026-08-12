@@ -291,7 +291,7 @@ class Init:
         if config.ee_config_file:
             return Init._load_ee_config_file(config.ee_config_file)
         if config.project == "decision_environment":
-            return dataclasses.replace(EEConfig(), **DE_DEFAULTS)
+            return EEConfig(**DE_DEFAULTS)
         return EEConfig()
 
     @staticmethod

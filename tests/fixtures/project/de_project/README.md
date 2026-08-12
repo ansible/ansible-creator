@@ -12,6 +12,7 @@ including collections, Python packages, and system libraries.
 │   └── workflows
 │       └── ee-build.yml    # CI/CD workflow for building and publishing
 ├── .gitignore
+├── NEXT_STEPS.md
 ├── README.md
 └── execution-environment.yml
 ```
@@ -28,7 +29,8 @@ The included GitHub Actions workflow (`ee-build.yml`) provides:
 ### Base Image Lifecycle Checks
 
 - Warns if the base image is older than 40 days
-- Fails if the base image is older than 80 days
+- Warns more prominently if the base image is older than 80 days
+- Annotations only — the age check never blocks the build
 - Helps ensure your DE stays up-to-date with security patches
 
 ### Production Release Workflow
@@ -72,9 +74,8 @@ podman build -t my-de:latest context/
 
 ### Triggering CI/CD
 
-- **Pull Request**: Builds and tests the DE (no push to registry)
-- **Push to main**: Builds, tests, and pushes with `latest` and commit SHA tags
-- **Release**: Tags image with version number and `prd` tag
+- **Release (published)**: Builds the DE and tags the image with the release version and `prd` tag
+- **Manual dispatch** (Actions > Run workflow): Builds the DE on demand
 
 ## Customization
 
