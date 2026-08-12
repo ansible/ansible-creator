@@ -21,6 +21,10 @@ including collections, Python packages, and system libraries.
 
 The included GitHub Actions workflow (`ee-build.yml`) provides:
 
+> **Note:** The workflow is named "Execution Environment Build" because decision
+> environments reuse the shared, ansible-builder-based EE build pipeline. The name
+> is cosmetic — the workflow builds your decision environment correctly.
+
 ### Token Validation
 
 - Validates configured tokens before starting builds
