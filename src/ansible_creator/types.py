@@ -760,7 +760,24 @@ OFFICIAL_EE_IMAGES: tuple[OfficialEEImage, ...] = (
     OfficialEEImage("ee-dellos", _PY311),
 )
 
+OFFICIAL_DE_IMAGES: tuple[OfficialEEImage, ...] = (
+    OfficialEEImage("de-minimal-rhel", _PY312),
+    OfficialEEImage("de-supported-rhel", _PY312),
+)
+
+ALL_OFFICIAL_IMAGES: tuple[OfficialEEImage, ...] = OFFICIAL_EE_IMAGES + OFFICIAL_DE_IMAGES
+
 DEFAULT_PYTHON_PATH = "/usr/bin/python3"
+
+DE_BASE_IMAGE = "registry.redhat.io/ansible-automation-platform-25/de-supported-rhel9:latest"
+
+DE_DEFAULTS: dict[str, Any] = {
+    "base_image": DE_BASE_IMAGE,
+    "ee_name": "ansible_sample_de",
+    "python_deps": ("ansible-rulebook",),
+    "system_packages": ("java-17-openjdk-headless [platform:rpm]",),
+    "collections": (EECollection(name="ansible.eda"),),
+}
 
 
 @dataclass
