@@ -2150,3 +2150,112 @@ def test_ee_project_with_scm_servers_gitlab(
     ns = next_steps.read_text()
     assert "CI/CD" in ns
     assert "Actions" not in ns
+
+
+def test_run_success_de_project(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    cli_args: ConfigDict,
+) -> None:
+    """Init decision_environment applies DE defaults (base image, deps, collections).
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+    """
+    cli_args["project"] = "decision_environment"
+    cli_args["init_path"] = str(tmp_path / "de_project")
+    init = Init(Config(**cli_args))
+
+    init.run()
+    result = capsys.readouterr().out
+
+    assert r"Note: decision_environment project created" in result
+
+    cmp = dircmp(
+        str(tmp_path / "de_project"),
+        str(FIXTURES_DIR / "project" / "de_project"),
+    )
+    diff = has_differences(dcmp=cmp, errors=[])
+    assert not diff, diff
+
+
+def test_de_project_cli_override(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    output: Output,
+) -> None:
+    """CLI flags override DE defaults when init decision_environment.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        output: Output object for logging.
+    """
+    dest = tmp_path / "de_override"
+    config = Config(
+        creator_version="0.0.1",
+        output=output,
+        subcommand="init",
+        project="decision_environment",
+        init_path=str(dest),
+        base_image="my-custom-de:latest",
+        ee_name="custom_de",
+        scm_provider="github",
+    )
+    Init(config=config).run()
+    result = capsys.readouterr().out
+
+    assert r"Note: decision_environment project created" in result
+
+    ee_yml = dest / "execution-environment.yml"
+    content = ee_yml.read_text()
+    assert "my-custom-de:latest" in content
+    assert "custom_de" in content
+    assert "ansible-rulebook" in content
+    assert "ansible.eda" in content
+
+
+def test_de_project_with_config_file(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    output: Output,
+) -> None:
+    """Config file takes full precedence over DE defaults.
+
+    Args:
+        capsys: Pytest fixture to capture stdout and stderr.
+        tmp_path: Temporary directory path.
+        output: Output object for logging.
+    """
+    config_data = {
+        "base_image": "custom-from-file:latest",
+        "ee_name": "file_de",
+        "collections": [{"name": "ansible.netcommon"}],
+    }
+    config_path = tmp_path / "de-config.json"
+    config_path.write_text(json.dumps(config_data))
+
+    dest = tmp_path / "de_from_file"
+    config = Config(
+        creator_version="0.0.1",
+        output=output,
+        subcommand="init",
+        project="decision_environment",
+        init_path=str(dest),
+        ee_config_file=str(config_path),
+        scm_provider="github",
+    )
+    Init(config=config).run()
+    result = capsys.readouterr().out
+
+    assert r"Note: decision_environment project created" in result
+
+    ee_yml = dest / "execution-environment.yml"
+    content = ee_yml.read_text()
+    assert "custom-from-file:latest" in content
+    assert "file_de" in content
+    assert "ansible.netcommon" in content
+    assert "ansible-rulebook" not in content
+    assert "ansible.eda" not in content

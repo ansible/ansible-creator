@@ -1,0 +1,170 @@
+# Decision Environment Project
+
+This is a sample decision environment project for Event-Driven Ansible (EDA).
+
+Decision environments package the dependencies needed to run ansible-rulebook,
+including collections, Python packages, and system libraries.
+
+## Directory Structure
+
+{%- if scm_provider == "gitlab" %}
+
+```shell
+├── .gitlab-ci.yml          # GitLab CI/CD pipeline for building and publishing
+├── .gitignore
+├── NEXT_STEPS.md
+├── README.md
+└── {{ ee_file_name }}
+```
+
+{%- else %}
+
+```shell
+├── .github
+│   └── workflows
+│       └── ee-build.yml    # CI/CD workflow for building and publishing
+├── .gitignore
+├── NEXT_STEPS.md
+├── README.md
+└── {{ ee_file_name }}
+```
+
+{%- endif %}
+
+## CI/CD Workflow Features
+
+{%- if scm_provider == "gitlab" %}
+
+The included GitLab CI pipeline (`.gitlab-ci.yml`) provides:
+{%- else %}
+
+The included GitHub Actions workflow (`ee-build.yml`) provides:
+
+> **Note:** The workflow is named "Execution Environment Build" because decision
+> environments reuse the shared, ansible-builder-based EE build pipeline. The name
+> is cosmetic — the workflow builds your decision environment correctly.
+{%- endif %}
+
+### Token Validation
+
+- Validates configured tokens before starting builds
+- Fails fast if credentials are missing
+
+### Base Image Lifecycle Checks
+
+- Warns if the base image is older than 40 days
+- Warns more prominently if the base image is older than 80 days
+- Annotations only — the age check never blocks the build
+- Helps ensure your DE stays up-to-date with security patches
+{%- if ee_galaxy_token_vars %}
+
+### Galaxy Server Support
+
+- Supports authenticated Galaxy server access via token secrets
+- Falls back to public Galaxy if no token is configured
+{%- endif %}
+
+### Production Release Workflow
+
+- Automatic tagging on release
+- Preserves previous production image as `previous` tag for rollback
+- Supports semantic versioning
+
+## Required Secrets and Variables
+
+{%- if scm_provider == "gitlab" %}
+
+### CI/CD Variables (Settings > CI/CD > Variables)
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+{%- for var in ee_galaxy_token_vars %}
+| `{{ var }}` | Yes | Galaxy server authentication token |
+{%- endfor %}
+{%- for server in ee_scm_servers %}
+| `{{ server.token_env_var }}` | Yes | Git access token for {{ server.hostname }} |
+{%- endfor %}
+| `REGISTRY_USERNAME` | No | Container registry username (defaults to `CI_REGISTRY_USER`) |
+| `REGISTRY_PASSWORD` | No | Container registry password (defaults to `CI_REGISTRY_PASSWORD`) |
+| `REDHAT_REGISTRY_PASSWORD` | No | Red Hat registry password (for pulling base images) |
+
+### Additional CI/CD Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `EE_REGISTRY` | `{{ ee_registry }}` | Container registry hostname |
+| `EE_IMAGE_NAME` | `$CI_PROJECT_PATH` | Image name / path in the registry |
+| `REDHAT_REGISTRY_USERNAME` | - | Red Hat registry username |
+
+{%- else %}
+
+### Secrets (Repository Settings > Secrets)
+
+| Secret | Required | Description |
+|--------|----------|-------------|
+{%- for var in ee_galaxy_token_vars %}
+| `{{ var }}` | Yes | Galaxy server authentication token |
+{%- endfor %}
+{%- for server in ee_scm_servers %}
+| `{{ server.token_env_var }}` | Yes | Git access token for {{ server.hostname }} |
+{%- endfor %}
+| `REGISTRY_USERNAME` | No | Container registry username (defaults to `github.actor`) |
+| `REGISTRY_PASSWORD` | No | Container registry password (defaults to `GITHUB_TOKEN`) |
+| `REDHAT_REGISTRY_PASSWORD` | No | Red Hat registry password (for pulling base images) |
+
+### Variables (Repository Settings > Variables)
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `EE_REGISTRY` | `{{ ee_registry }}` | Container registry hostname |
+| `EE_IMAGE_NAME` | `<owner>/<repo>` | Image name (GHCR requires the `owner/repo` namespace) |
+| `REDHAT_REGISTRY_USERNAME` | - | Red Hat registry username |
+
+{%- endif %}
+{%- if ee_galaxy_token_vars or ee_scm_token_vars %}
+
+See `NEXT_STEPS.md` for a complete setup checklist.
+{%- endif %}
+
+## Usage
+
+### Building Locally
+
+```bash
+# Install ansible-builder
+pip install ansible-builder
+
+# Create build context
+ansible-builder create --file {{ ee_file_name }}
+
+# Build the image
+podman build -t my-de:latest context/
+```
+
+### Triggering CI/CD
+
+{%- if scm_provider == "gitlab" %}
+
+- **Tag push**, **manual pipeline** (Run pipeline), **API**, or **pipeline trigger**: runs build and push
+- **Tag pipeline**: release job tags the image with the Git tag, `latest`, and `prd`
+
+{%- else %}
+
+- **Release (published)**: Builds the DE and tags the image with the release version and `prd` tag
+- **Manual dispatch** (Actions > Run workflow): Builds the DE on demand
+
+{%- endif %}
+
+## Customization
+
+Edit `{{ ee_file_name }}` to customize:
+
+- Base image
+- Ansible collections (e.g. `ansible.eda`)
+- Python dependencies (e.g. `ansible-rulebook`)
+- System packages (e.g. `java-17-openjdk-headless`)
+
+See the [ansible-builder documentation](https://ansible.readthedocs.io/projects/builder/en/latest/)
+for more details on execution environment configuration, and the
+[Event-Driven Ansible documentation](https://ansible.readthedocs.io/projects/rulebook/en/latest/)
+for decision environment guidance.

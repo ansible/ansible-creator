@@ -102,7 +102,7 @@ class Parser:
                 Msg(
                     prefix=Level.ERROR,
                     message="Missing required argument 'project-type'.\n"
-                    "Choose from: collection, playbook, execution_env",
+                    "Choose from: collection, decision_environment, playbook, execution_env",
                 )
             )
             self.exit_code = os.EX_USAGE
@@ -666,6 +666,7 @@ class Parser:
         )
 
         self._init_collection(subparser=subparser)
+        self._init_de_project(subparser=subparser)
         self._init_playbook(subparser=subparser)
         self._init_ee_project(subparser=subparser)
 
@@ -751,23 +752,12 @@ class Parser:
         self._add_args_init_common(parser)
         self._add_include_exclude(parser)
 
-    def _init_ee_project(self, subparser: SubParser[argparse.ArgumentParser]) -> None:
-        """Initialize an EE project.
+    def _add_ee_build_args(self, parser: argparse.ArgumentParser) -> None:
+        """Add shared EE/DE build arguments to *parser*.
 
         Args:
-            subparser: The subparser to add EE project to
+            parser: The parser to add EE build arguments to
         """
-        parser = subparser.add_parser(
-            "execution_env",
-            help="Create a new execution environment project.",
-        )
-        parser.add_argument(
-            "init_path",
-            metavar="path",
-            nargs="?",
-            help="The destination directory for the EE project.",
-        )
-
         from ansible_creator.types import EEConfig  # noqa: PLC0415
 
         ee_config_group = parser.add_mutually_exclusive_group()
@@ -792,98 +782,123 @@ class Parser:
             "--ee-base-image",
             dest="base_image",
             default="quay.io/fedora/fedora:41",
-            help="Base image for the execution environment. Default: quay.io/fedora/fedora:41",
+            help="Base container image. Default: quay.io/fedora/fedora:41",
         )
-        base_image_action.schema_metadata = {  # type: ignore[attr-defined]
-            "minLength": 1,
-        }
-
+        base_image_action.schema_metadata = {"minLength": 1}  # type: ignore[attr-defined]
         ee_collections_action = parser.add_argument(
             "--ee-collections",
             dest="ee_collections",
             action="append",
             default=[],
             metavar="COLLECTION",
-            help="Ansible collection to include (can be specified multiple times). "
-            "Supports formats: 'name', 'name:version', or 'name:version:type:source'. "
-            "Example: --ee-collections ansible.posix --ee-collections 'ansible.utils:>=1.0.0' "
-            "--ee-collections 'my.collection:1.0.0:galaxy:https://galaxy.ansible.com'",
+            help="Ansible collection to include (repeatable). "
+            "Formats: 'name', 'name:version', or 'name:version:type:source'.",
         )
         ee_collections_action.schema_metadata = {  # type: ignore[attr-defined]
             "items": {"type": "string", "minLength": 1},
             "minItems": 0,
         }
-
         parser.add_argument(
             "--ee-python-deps",
             dest="ee_python_deps",
             action="append",
             default=[],
             metavar="PACKAGE",
-            help="Python package dependency (can be specified multiple times). "
-            "Example: --ee-python-deps requests --ee-python-deps boto3",
+            help="Python package dependency (repeatable).",
         )
-
         parser.add_argument(
             "--ee-system-packages",
             dest="ee_system_packages",
             action="append",
             default=[],
             metavar="PACKAGE",
-            help="System package dependency (can be specified multiple times). "
-            "Example: --ee-system-packages openssh-clients --ee-system-packages sshpass",
+            help="System package dependency (repeatable).",
         )
-
         ee_name_action = parser.add_argument(
             "--ee-name",
             default="ansible_sample_ee",
-            help="Name/tag for the execution environment image. Default: ansible_sample_ee",
+            help="Name/tag for the built image. Default: ansible_sample_ee",
         )
         ee_name_action.schema_metadata = {"minLength": 1}  # type: ignore[attr-defined]
-
         ee_file_name_action = parser.add_argument(
             "--ee-file-name",
             dest="ee_file_name",
             default="execution-environment.yml",
             type=EEConfig._validate_ee_file_name,  # noqa: SLF001
-            help="Name of the EE definition file. "
-            "Must end with .yml or .yaml. Default: execution-environment.yml",
+            help="Name of the EE definition file (.yml/.yaml). Default: execution-environment.yml",
         )
         ee_file_name_action.schema_metadata = {  # type: ignore[attr-defined]
             "pattern": r"^[^/\\]*\.(yml|yaml)$",
             "minLength": 5,
         }
-
         parser.add_argument(
             "--ee-build-arg-default",
             dest="ee_build_arg_defaults",
             action="append",
             default=[],
             metavar="KEY=VALUE",
-            help="Default build ARG for the EE image (repeatable). "
-            "Example: --ee-build-arg-default ANSIBLE_GALAXY_CLI_COLLECTION_OPTS=--pre",
+            help="Default build ARG (repeatable). Example: "
+            "--ee-build-arg-default ANSIBLE_GALAXY_CLI_COLLECTION_OPTS=--pre",
         )
-
         parser.add_argument(
             "--registry-tls-verify",
             dest="registry_tls_verify",
             action=argparse.BooleanOptionalAction,
             default=None,
-            help="Verify TLS certificates when accessing container registries "
-            "(login, pull, push, and image builds). "
-            "Use --no-registry-tls-verify to disable. "
-            "Overrides the value from --ee-config/--ee-config-file when set explicitly.",
+            help="Verify TLS certificates for container registries. "
+            "Use --no-registry-tls-verify to disable.",
         )
-
         parser.add_argument(
             "--scm-provider",
             dest="scm_provider",
             default="github",
             choices=["github", "gitlab"],
-            help="SCM provider for the scaffolded EE CI files (GitHub Actions or GitLab CI). "
-            "Default: github",
+            help="SCM provider for the scaffolded CI files. Default: github",
         )
 
+    def _init_de_project(self, subparser: SubParser[argparse.ArgumentParser]) -> None:
+        """Initialize a decision environment project.
+
+        Args:
+            subparser: The subparser to add DE project to
+        """
+        parser = subparser.add_parser(
+            "decision_environment",
+            help="Create a new decision environment project for Event-Driven Ansible.",
+        )
+        parser.add_argument(
+            "init_path",
+            default="./",
+            metavar="path",
+            nargs="?",
+            help="The destination directory for the decision environment project. "
+            "The default is the current working directory.",
+        )
+
+        self._add_ee_build_args(parser)
+        self._add_args_common(parser)
+        self._add_args_init_common(parser)
+
+    def _init_ee_project(self, subparser: SubParser[argparse.ArgumentParser]) -> None:
+        """Initialize an EE project.
+
+        Args:
+            subparser: The subparser to add EE project to
+        """
+        parser = subparser.add_parser(
+            "execution_env",
+            help="Create a new execution environment project.",
+        )
+        parser.add_argument(
+            "init_path",
+            default="./",
+            metavar="path",
+            nargs="?",
+            help="The destination directory for the EE project. "
+            "The default is the current working directory.",
+        )
+
+        self._add_ee_build_args(parser)
         self._add_args_common(parser)
         self._add_args_init_common(parser)
 
@@ -929,7 +944,7 @@ class Parser:
         parser.add_argument("--init-path", help="")
         args, extras = parser.parse_known_args()
 
-        if args.collection in {"playbook", "collection", "execution_env"}:
+        if args.collection in {"playbook", "collection", "decision_environment", "execution_env"}:
             return True
         if args.project:
             msg = "The `project` flag is no longer needed and will be removed."

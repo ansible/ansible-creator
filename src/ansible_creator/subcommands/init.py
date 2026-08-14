@@ -16,6 +16,7 @@ from ansible_creator.bundles import get_init_bundle_names
 from ansible_creator.exceptions import CreatorError
 from ansible_creator.templar import Templar
 from ansible_creator.types import (
+    DE_DEFAULTS,
     EECollection,
     EEConfig,
     TemplateData,
@@ -87,7 +88,7 @@ class Init:
 
     def _construct_init_path(self) -> None:
         """Construct the init path based on project type."""
-        if self._project in {"playbook", "execution_env"}:
+        if self._project in {"playbook", "execution_env", "decision_environment"}:
             return
 
         if (
@@ -135,20 +136,20 @@ class Init:
 
     @staticmethod
     def _is_official_ee_image(image: str) -> bool:
-        """Check if the image is an official Red Hat EE image.
+        """Check if the image is an official Red Hat EE or DE image.
 
-        Official EE images have ansible-core/runner pre-installed and
+        Official images have ansible-core/runner pre-installed and
         use microdnf as the package manager.
 
         Args:
             image: The container image name/URL.
 
         Returns:
-            True if the image matches any official EE pattern.
+            True if the image matches any official EE or DE pattern.
         """
-        from ansible_creator.types import OFFICIAL_EE_IMAGES  # noqa: PLC0415
+        from ansible_creator.types import ALL_OFFICIAL_IMAGES  # noqa: PLC0415
 
-        return any(entry.pattern in image for entry in OFFICIAL_EE_IMAGES)
+        return any(entry.pattern in image for entry in ALL_OFFICIAL_IMAGES)
 
     @staticmethod
     def _get_ee_python_path(image: str) -> str:
@@ -165,11 +166,11 @@ class Init:
             The Python interpreter path for the image.
         """
         from ansible_creator.types import (  # noqa: PLC0415
+            ALL_OFFICIAL_IMAGES,
             DEFAULT_PYTHON_PATH,
-            OFFICIAL_EE_IMAGES,
         )
 
-        for entry in OFFICIAL_EE_IMAGES:
+        for entry in ALL_OFFICIAL_IMAGES:
             if entry.pattern in image:
                 return entry.python_path
         return DEFAULT_PYTHON_PATH
@@ -269,6 +270,10 @@ class Init:
     def _resolve_ee_config(config: Config) -> EEConfig:
         """Resolve EE configuration from inline JSON or a config file.
 
+        For ``decision_environment`` projects, DE-specific defaults
+        (base image, collections, system packages) are applied when no
+        explicit ``--ee-config`` or ``--ee-config-file`` is provided.
+
         Args:
             config: The application configuration.
 
@@ -285,6 +290,8 @@ class Init:
             return Init._parse_ee_config_json(config.ee_config)
         if config.ee_config_file:
             return Init._load_ee_config_file(config.ee_config_file)
+        if config.project == "decision_environment":
+            return EEConfig(**DE_DEFAULTS)
         return EEConfig()
 
     @staticmethod
@@ -530,7 +537,7 @@ class Init:
             scm_provider=self._scm_provider,
         )
 
-        if self._project == "execution_env":
+        if self._project in {"execution_env", "decision_environment"}:
             resources = (f"{self._project}_project", "common.ee-ci")
         else:
             resolved = self._resolve_common_resources()
@@ -546,7 +553,7 @@ class Init:
         )
         paths = walker.collect_paths()
 
-        if self._project == "execution_env":
+        if self._project in {"execution_env", "decision_environment"}:
             paths = filter_ee_ci_paths_for_scm(paths, self._scm_provider)
 
         copier = Copier(
@@ -591,7 +598,7 @@ class Init:
         configuration is provided, such as ansible.cfg for EE projects.
         Respects the ``--no-overwrite`` / ``--overwrite`` flags.
         """
-        if self._project != "execution_env":
+        if self._project not in {"execution_env", "decision_environment"}:
             return
 
         ansible_cfg_path = self._init_path / "ansible.cfg"

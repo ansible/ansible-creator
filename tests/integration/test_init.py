@@ -149,6 +149,25 @@ def test_run_init_ee(cli: CliRunCallable, tmp_path: Path) -> None:
     assert r"Note: execution_env project created at" in result.stdout
 
 
+def test_run_init_de(cli: CliRunCallable, tmp_path: Path) -> None:
+    """Test running ansible-creator init for decision_environment.
+
+    Args:
+        cli: cli_run function.
+        tmp_path: Temporary path.
+    """
+    final_dest = f"{tmp_path}/de_project"
+    cli(f"mkdir -p {final_dest}")
+
+    result = cli(
+        f"{CREATOR_BIN} init decision_environment {final_dest}",
+    )
+    assert result.returncode == 0
+
+    # check stdout
+    assert r"Note: decision_environment project created at" in result.stdout
+
+
 def test_run_init_collection_include(cli: CliRunCallable, tmp_path: Path) -> None:
     """Test init collection with --include to cherry-pick bundles.
 
