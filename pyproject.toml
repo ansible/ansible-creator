@@ -117,6 +117,7 @@ style = "google"
 [tool.pylint]
 [tool.pylint.format]
 max-line-length = 100
+max-module-lines = 1500
 
 [tool.pylint.master]
 good-names = "i,j,k,ex,Run,_,f,fh"
