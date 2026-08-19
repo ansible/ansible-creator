@@ -1,5 +1,4 @@
 # cspell: ignore dcmp, subdcmp, microdnf
-# pylint: disable=too-many-lines
 """Unit tests for ansible-creator init execution environment projects."""
 
 from __future__ import annotations
