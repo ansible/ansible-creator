@@ -49,7 +49,7 @@ repos:
         args: ["--upgrade"]
         stages: [manual]
   - repo: https://github.com/biomejs/pre-commit
-    rev: "v2.5.8"
+    rev: "v2.5.10"
     hooks:
       - id: biome-check
         name: biome
