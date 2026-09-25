@@ -22,22 +22,22 @@ Including an example of how to use your role (for instance, with variables passe
 - name: Execute tasks on servers
   hosts: servers
   roles:
-    - role: {{ namespace }}.{{ collection_name }}.run
-      run_x: 42
+    - role: {{ namespace }}.{{ collection_name }}.{{ role_name }}
+      {{ role_name }}_my_variable: "custom_value"
 ```
 
 Another way to consume this role would be:
 
 ```yaml
-- name: Initialize the run role from {{ namespace }}.{{ collection_name }}
+- name: Initialize the {{ role_name }} role from {{ namespace }}.{{ collection_name }}
   hosts: servers
   gather_facts: false
   tasks:
-    - name: Trigger invocation of run role
+    - name: Trigger invocation of {{ role_name }} role
       ansible.builtin.include_role:
-        name: {{ namespace }}.{{ collection_name }}.run
+        name: {{ namespace }}.{{ collection_name }}.{{ role_name }}
       vars:
-        run_x: 42
+        {{ role_name }}_my_variable: "custom_value"
 ```
 
 ## Role Idempotency
