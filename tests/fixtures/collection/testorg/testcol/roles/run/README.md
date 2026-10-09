@@ -23,7 +23,7 @@ Including an example of how to use your role (for instance, with variables passe
   hosts: servers
   roles:
     - role: testorg.testcol.run
-      run_x: 42
+      run_my_variable: "custom_value"
 ```
 
 Another way to consume this role would be:
@@ -37,7 +37,7 @@ Another way to consume this role would be:
       ansible.builtin.include_role:
         name: testorg.testcol.run
       vars:
-        run_x: 42
+        run_my_variable: "custom_value"
 ```
 
 ## Role Idempotency
