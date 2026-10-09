@@ -1068,6 +1068,53 @@ def test_run_success_add_role(
     assert "Note: Resource added to" in result
 
 
+def test_run_success_add_role_uses_role_name(
+    tmp_path: Path,
+    cli_args: ConfigDict,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test Add.run() renders the role name in the README examples and defaults comment.
+
+    Args:
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Add class object.
+        monkeypatch: Pytest monkeypatch fixture.
+    """
+    cli_args["resource_type"] = "role"
+    cli_args["role_name"] = "web_server"
+    add = Add(Config(**cli_args))
+
+    def mock_check_collection_path() -> None:
+        """Mock function to skip checking collection path."""
+
+    def mock_role_galaxy() -> tuple[str, str]:
+        """Mock function to return a namespace and collection name.
+
+        Returns:
+            tuple[str, str]: Values for namespace and collection name.
+        """
+        return "testorg", "testcol"
+
+    monkeypatch.setattr(Add, "_check_collection_path", staticmethod(mock_check_collection_path))
+    monkeypatch.setattr(Add, "role_galaxy", staticmethod(mock_role_galaxy))
+
+    add.run()
+
+    role_dir = tmp_path / "roles" / "web_server"
+    readme = (role_dir / "README.md").read_text()
+    defaults_text = (role_dir / "defaults" / "main.yml").read_text()
+
+    assert "role: testorg.testcol.web_server\n      web_server_my_variable:" in readme
+    assert (
+        "name: testorg.testcol.web_server\n      vars:\n        web_server_my_variable:" in readme
+    )
+    assert "testorg.testcol.run" not in readme
+    assert " run role" not in readme
+    assert "run_x" not in readme
+    assert "web_server_my_variable" in yaml.safe_load(defaults_text)
+    assert "'web_server_' prefix" in defaults_text
+
+
 def test_update_galaxy_dependency(tmp_path: Path, cli_args: ConfigDict) -> None:
     """Test update_galaxy_dependency method.
 
