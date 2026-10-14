@@ -42,11 +42,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: >-
-          python -c "assert 'failure' not in
+          python -c "assert {'success', 'skipped'} >=
           set([
           '${{ needs.changelog.result }}',
+          '${{ needs.build-import.result }}',
           '${{ needs.sanity.result }}',
-          '${{ needs.unit-galaxy.result }}'
-          '${{ needs.ansible-lint.result }}'
+          '${{ needs.unit-galaxy.result }}',
+          '${{ needs.ansible-lint.result }}',
           '${{ needs.unit-source.result }}'
           ])"
