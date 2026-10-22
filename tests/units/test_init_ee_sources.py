@@ -6,6 +6,7 @@ import json
 
 from pathlib import Path
 from typing import TypedDict
+from urllib.parse import urlparse
 
 import pytest
 
@@ -126,6 +127,25 @@ def _galaxy_server_ini_section(ansible_cfg: str, server_id: str) -> str:
     if next_idx == -1:
         return tail
     return tail[:next_idx]
+
+
+def _ini_value_hostname(section: str, key: str) -> str | None:
+    """Return the hostname of a ``key = <url>`` value within an INI section body.
+
+    Args:
+        section: INI section body text (e.g. from ``_galaxy_server_ini_section``).
+        key: INI key to look up (e.g. ``"url"`` or ``"auth_url"``).
+
+    Returns:
+        The hostname of the URL assigned to ``key``, or ``None`` if the key is
+        not present in the section.
+    """
+    prefix = f"{key} = "
+    for line in section.splitlines():
+        stripped = line.strip()
+        if stripped.startswith(prefix):
+            return urlparse(stripped[len(prefix) :].strip()).hostname
+    return None
 
 
 def test_ee_project_git_url_collection_cli(
@@ -335,18 +355,20 @@ def test_ee_project_with_galaxy_servers(
 
     assert "server_list = automation_hub, private_hub, galaxy" in cfg
     assert "[galaxy_server.automation_hub]" in cfg
-    assert "console.redhat.com/api/automation-hub" in cfg
-    assert "auth_url = https://sso.redhat.com/" in cfg
+    automation_hub_section = _galaxy_server_ini_section(cfg, "automation_hub")
+    assert _ini_value_hostname(automation_hub_section, "url") == "console.redhat.com"
+    assert _ini_value_hostname(automation_hub_section, "auth_url") == "sso.redhat.com"
     assert "[galaxy_server.private_hub]" in cfg
-    assert "pah.corp.example.com" in cfg
     private_hub_section = _galaxy_server_ini_section(cfg, "private_hub")
+    assert _ini_value_hostname(private_hub_section, "url") == "pah.corp.example.com"
     assert "validate_certs = false" in private_hub_section
     assert private_hub_section.count("validate_certs = false") == 1
-    assert "validate_certs = false" not in _galaxy_server_ini_section(cfg, "automation_hub")
-    assert "validate_certs = false" not in _galaxy_server_ini_section(cfg, "galaxy")
+    assert "validate_certs = false" not in automation_hub_section
+    galaxy_section = _galaxy_server_ini_section(cfg, "galaxy")
+    assert "validate_certs = false" not in galaxy_section
     assert cfg.count("validate_certs = false") == 1
     assert "[galaxy_server.galaxy]" in cfg
-    assert "galaxy.ansible.com" in cfg
+    assert _ini_value_hostname(galaxy_section, "url") == "galaxy.ansible.com"
     # Token comments for servers with token_required
     assert "# Token: set ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN" in cfg
     assert "# Token: set ANSIBLE_GALAXY_SERVER_PRIVATE_HUB_TOKEN" in cfg
@@ -493,7 +515,9 @@ def test_ee_project_with_scm_servers(
     assert next_steps.exists()
     ns_content = next_steps.read_text()
     assert "GITHUB_ORG1_TOKEN" in ns_content
-    assert "github.com" in ns_content
+    # Hostname is rendered as a backtick-delimited token (not a URL), so match
+    # the exact token rather than a bare substring of the hostname.
+    assert "`github.com`" in ns_content
 
 
 def test_ee_project_with_scm_servers_gitlab(

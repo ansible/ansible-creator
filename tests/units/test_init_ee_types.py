@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import argparse
 
+from urllib.parse import urlparse
+
 import pytest
 
 from ansible_creator.exceptions import CreatorError
@@ -68,8 +70,8 @@ def test_ee_config_from_dict_galaxy_servers() -> None:
 
     assert len(cfg.galaxy_servers) == 3  # noqa: PLR2004
     assert cfg.galaxy_servers[0].id == "automation_hub"
-    assert "console.redhat.com" in cfg.galaxy_servers[0].url
-    assert "sso.redhat.com" in cfg.galaxy_servers[0].auth_url
+    assert urlparse(cfg.galaxy_servers[0].url).hostname == "console.redhat.com"
+    assert urlparse(cfg.galaxy_servers[0].auth_url).hostname == "sso.redhat.com"
     assert cfg.galaxy_servers[0].token_required is True
     assert cfg.galaxy_servers[0].validate_certs is True
     assert cfg.galaxy_servers[1].id == "private_hub"
@@ -274,8 +276,8 @@ def test_galaxy_server_from_dict_full() -> None:
     server = GalaxyServer.from_dict(data)
 
     assert server.id == "automation_hub"
-    assert "console.redhat.com" in server.url
-    assert "sso.redhat.com" in server.auth_url
+    assert urlparse(server.url).hostname == "console.redhat.com"
+    assert urlparse(server.auth_url).hostname == "sso.redhat.com"
     assert server.token_required is True
     assert server.validate_certs is True
 
