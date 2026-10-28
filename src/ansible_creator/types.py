@@ -91,7 +91,6 @@ class EECollection:
     """A single Ansible collection entry for an execution environment.
 
     Attributes:
-        _KNOWN_KEYS: Accepted dictionary keys for from_dict validation.
         name: Collection name (namespace.name) or a Git URL.
         version: Version constraint string.
         type: Collection type (galaxy, git, url, file, dir).
@@ -450,7 +449,6 @@ class EEConfig:
     that consumers (e.g. the ADT server) know the payload shape.
 
     Attributes:
-        _KNOWN_KEYS: Accepted dictionary keys for from_dict validation.
         ee_name: Name/tag for the EE image.
         base_image: Base container image.
         registry: Container registry hostname for the CI workflow (e.g. ghcr.io, quay.io).
