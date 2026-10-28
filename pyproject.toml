@@ -109,7 +109,9 @@ baseline = ".config/pydoclint-baseline.txt"
 check-return-types = false
 exclude = '\.git|\.tox|build|out|venv|tests/fixtures|node_modules'
 should-declare-assert-error-if-assert-statement-exists = false  # conflicts with ruff DOC504
-should-document-private-class-attributes = true
+ignore-private-class-attributes = true
+ignore-special-dunder-class-attributes = true
+ignore-underscore-only-class-attributes = true
 show-filenames-in-every-violation-message = true
 skip-checking-short-docstrings = false
 style = "google"
@@ -356,6 +358,7 @@ disable = [
   "W2901",  # redefined-loop-name / ruff PLW2901
   "W3201",  # bad-dunder-name / ruff PLW3201
   "W3301",  # nested-min-max / ruff PLW3301
+  "W4904",  # deprecated-class / importlib.abc.Traversable on Python < 3.11
   "duplicate-code",
   "too-few-public-methods",
   "too-many-instance-attributes",
