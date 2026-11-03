@@ -7,14 +7,7 @@ here.
 
 from __future__ import annotations
 
-import sys
+from importlib.resources.abc import Traversable as _Traversable
 
-
-if sys.version_info >= (3, 11):  # pragma: no cover
-    from importlib.resources.abc import Traversable as _Traversable
-else:
-    from importlib.abc import (
-        Traversable as _Traversable,  # pragma: no cover
-    )
 
 Traversable = _Traversable

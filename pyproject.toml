@@ -2,7 +2,7 @@
 name = "ansible-creator"
 description = "A CLI tool for scaffolding Ansible Content."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = { text = "Apache" }
 authors = [
   { "name" = "Nilashish Chakarborty", "email" = "nchakrab@redhat.com" },
@@ -17,7 +17,6 @@ classifiers = [
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
@@ -26,7 +25,6 @@ classifiers = [
   "Topic :: Utilities",
 ]
 dependencies = [
-  "importlib-resources ; python_full_version < '3.10'",
   "jinja2>=3.1.2",
   "pyyaml>=6.0.1",
 ]
@@ -358,7 +356,6 @@ disable = [
   "W2901",  # redefined-loop-name / ruff PLW2901
   "W3201",  # bad-dunder-name / ruff PLW3201
   "W3301",  # nested-min-max / ruff PLW3301
-  "W4904",  # deprecated-class / importlib.abc.Traversable on Python < 3.11
   "duplicate-code",
   "too-few-public-methods",
   "too-many-instance-attributes",
@@ -383,7 +380,7 @@ cache-dir = "./.cache/.ruff"
 exclude = ["tests/fixtures"]
 fix = true
 line-length = 100
-target-version = "py310"
+target-version = "py311"
 unsafe-fixes = true
 
 [tool.ruff.lint]
@@ -583,6 +580,9 @@ TERM = "xterm-256color"
 constraint-dependencies = [
   "ansible-core>=2.20.0.dev0; python_version >= '3.14'",
   "cairosvg>=2.9.0",
+  "dnspython>=2.9.0",
+  "filelock>=4.2.1",
+  "pillow>=13.0.0",
 ]
 default-groups = ["dev", "docs", "lint", "pkg"]
 package = true
