@@ -2,14 +2,16 @@
 
 from __future__ import absolute_import, division, print_function
 
-from pytest_ansible.molecule import MoleculeScenario
+from pathlib import Path
+import subprocess
 
 
-def test_integration(molecule_scenario: MoleculeScenario) -> None:
-    """Run molecule for each scenario.
+def test_integration() -> None:
+    """Run molecule test --all for each scenario."""
+    extensions_dir = Path(__file__).resolve().parents[2] / "extensions"
 
-    Args:
-        molecule_scenario: The molecule scenario object
-    """
-    proc = molecule_scenario.test()
+    proc = subprocess.run(
+        ["molecule", "test", "--all"],
+        cwd=extensions_dir,
+    )
     assert proc.returncode == 0
