@@ -104,3 +104,10 @@ def test_multiline_message() -> None:
     assert "first line" in combined
     assert "second line" in combined
     assert len(lines) >= expected_min_lines
+
+
+def test_empty_message() -> None:
+    """Test Msg.to_lines() handles an empty message without raising."""
+    msg = Msg(message="", prefix=Level.ERROR)
+    assert msg.to_lines(color=False, width=120, with_prefix=True) == []
+    assert msg.to_lines(color=False, width=120, with_prefix=False) == []

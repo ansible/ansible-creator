@@ -220,6 +220,9 @@ class Msg:
         lines = []
         message_lines = self.message.splitlines()
 
+        if not message_lines:
+            return lines
+
         lines.extend(
             textwrap.fill(
                 message_lines[0],
