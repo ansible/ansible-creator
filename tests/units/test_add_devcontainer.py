@@ -239,6 +239,17 @@ def test_run_success_add_devcontainer(
     diff = has_differences(dcmp=cmp_result, errors=[])
     assert diff == [], diff
 
+    # Regression guard for issue #323: editor settings that prevent common lint failures.
+    expected_settings = {
+        "files.insertFinalNewline": True,
+        "files.trimFinalNewlines": True,
+        "files.trimTrailingWhitespace": True,
+    }
+    for variant in (".", "docker", "podman"):
+        devcontainer_json = expected_devcontainer / variant / "devcontainer.json"
+        content = json.loads(devcontainer_json.read_text(encoding="utf-8"))
+        assert content["customizations"]["vscode"]["settings"] == expected_settings
+
     # Test for overwrite prompt and failure with no overwrite option
     conflict_file = tmp_path / ".devcontainer" / "devcontainer.json"
     conflict_file.write_text('{ "name": "conflict" }')
