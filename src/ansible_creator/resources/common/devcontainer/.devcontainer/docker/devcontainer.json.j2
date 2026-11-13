@@ -18,7 +18,12 @@
   "updateRemoteUserUID": true,
   "customizations": {
     "vscode": {
-      "extensions": {{ recommended_extensions | json }}
+      "extensions": {{ recommended_extensions | json }},
+      "settings": {
+        "files.insertFinalNewline": true,
+        "files.trimFinalNewlines": true,
+        "files.trimTrailingWhitespace": true
+      }
     }
   }
 }
