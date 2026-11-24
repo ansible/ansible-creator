@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import importlib.util
 import re
 import shutil
 import subprocess
@@ -212,6 +213,62 @@ def test_run_success_for_collection(
     init.run()
     result = capsys.readouterr().out
     assert r"Warning: re-initializing existing directory" in result, result
+
+
+def test_collection_integration_runs_molecule_from_extensions(
+    tmp_path: Path,
+    cli_args: ConfigDict,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test that the scaffolded integration test runs Molecule from extensions.
+
+    Molecule discovers scenarios by globbing ``molecule/*/molecule.yml`` from
+    its working directory, so the generated test must run from the collection's
+    ``extensions`` directory rather than the collection root.
+
+    Args:
+        tmp_path: Temporary directory path.
+        cli_args: Dictionary, partial Init class object.
+        monkeypatch: Pytest monkeypatch fixture.
+    """
+    cli_args["project"] = "collection"
+    init = Init(
+        Config(**cli_args),
+    )
+
+    def mock_unique_name_in_devfile(init: Init) -> str:
+        return f"{init._namespace}.{init._collection_name}"
+
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(Init, "unique_name_in_devfile", mock_unique_name_in_devfile)
+        init.run()
+
+    collection_root = tmp_path / "testorg" / "testcol"
+    generated_test = collection_root / "tests" / "integration" / "test_integration.py"
+    module_spec = importlib.util.spec_from_file_location(
+        "generated_test_integration",
+        generated_test,
+    )
+    assert module_spec is not None
+    assert module_spec.loader is not None
+    module = importlib.util.module_from_spec(module_spec)
+    module_spec.loader.exec_module(module)
+
+    calls: list[tuple[list[str], Path]] = []
+
+    def fake_run(args: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+        cwd = kwargs["cwd"]
+        assert isinstance(cwd, Path)
+        calls.append((args, cwd))
+        return subprocess.CompletedProcess(args=args, returncode=0)
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    module.test_integration()
+
+    assert len(calls) == 1, calls
+    args, cwd = calls[0]
+    assert args == ["molecule", "test", "--all"]
+    assert cwd.resolve() == (collection_root / "extensions").resolve()
 
 
 def test_run_success_ansible_project(

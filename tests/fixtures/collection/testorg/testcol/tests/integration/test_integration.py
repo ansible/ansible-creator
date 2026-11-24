@@ -2,8 +2,9 @@
 
 from __future__ import absolute_import, division, print_function
 
-from pathlib import Path
 import subprocess
+
+from pathlib import Path
 
 
 def test_integration() -> None:
