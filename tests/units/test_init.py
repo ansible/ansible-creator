@@ -184,6 +184,26 @@ def test_run_success_for_collection(
     ]
     assert targets == [plugin_name], targets
 
+    # Regression guard for issue #672: new scaffolds must not inherit the
+    # deprecated pytest-ansible molecule_scenario fixture or dependency.
+    integration_test = (
+        collection_root / "tests" / "integration" / "test_integration.py"
+    ).read_text(encoding="utf-8")
+    assert "pytest_ansible" not in integration_test
+    assert "molecule_scenario" not in integration_test
+    assert "molecule test --all" in integration_test
+    requirements = (collection_root / "test-requirements.txt").read_text(encoding="utf-8")
+    assert "pytest-ansible" not in requirements
+    # Molecule sets MOLECULE_PROJECT_DIRECTORY to the collection root. A trailing
+    # "/.." resolves the sample-filter role outside the collection.
+    scenario_vars = (
+        collection_root / "extensions" / "molecule" / "utils" / "vars" / "vars.yml"
+    ).read_text(encoding="utf-8")
+    collection_root_line = next(
+        line for line in scenario_vars.splitlines() if line.startswith("collection_root:")
+    )
+    assert not collection_root_line.endswith("/..")
+
     # expect a CreatorError when the response to overwrite is no.
     monkeypatch.setattr("builtins.input", lambda _: "n")
     fail_msg = (
